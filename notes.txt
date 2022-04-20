@@ -1,0 +1,61 @@
+# Development:
+# ============
+* [2022.04.12] - Added coassembly module and support for multiple bam files in binning-prokaryotic, binning-eukaryotic, and binning-wrapper
+* [2022.03.28] - Added GTDB-Tk to prokaryotic binning so check for CPR and then rerun CheckM using the proper parameters.
+* [2022.03.14] - Created a `binning_wrapper.py` to normalize the binning process and add --minimum_genome_length capabilities. This is useful for eukaryotic binning but more complicated for prokaryotic binning because the current pipeline is hardcoded to handle errors on iterative binning. Also switched to CoverM for all coverage calculations because it's faster. Split out prokaryotic, eukaryotic, and viral binning environments. For eukaryotic binning, I've removed EukCC and use BUSCO v5 instead.
+* [2022.03.01] - Added a domain classification script that is run during prokaryotic binning. I've created a hack that moves all of the eukaryotic genomes to another directory to allow for proper gene calls in a separate module. This hack will remain until DAS_Tool can handle custom gene sets because it cannot in the current version. The other option is to remove 
+* [2022.02.24] - Added saf file to `assembly.py` and feature counts of scaffolds/transcripts
+* [2022.02.22] - Made the original `preprocess.py` -> `preprocess-kneaddata.py` and the new `preprocess.py` a wrapper around `fastq_preprocessor`
+* [2022.02.22] - Made the `index.py` module
+* [2022.02.22] - `concatenate_fasta.py` and `concatenate_gff.py`
+* [2022.02.02] - `consensus_genome_classification.py``
+
+# Pending: 
+==========
+* end_to_end? [preprocess] -> [assembly] -> [bin prok] -> [bin viral] -> [cluster] -> [classify] -> [annotate]
+* Make database installation script
+* Find a place to host the database
+* Make method for combining unbinned contigs and doing a coassembly
+
+# Binning
+# =======
+* Starts over at step 13? Realized this was because the checkpoints weren't being created when the error code wasn't 0. Not all steps are expected to finish properly because the pipeline is iterative and at a certain point there shouldn't be any bins to find. To get around this 
+* Add MAG level counts
+* Make a wrapper that does coassembly binning but then splits out the bins into individual samples like in VAMB
+
+# Index
+# =====
+* Add STAR support
+
+# Cluster
+# =======
+* Add Anvi'o pangeome for each cluster
+* Make the `identifier_mapping.orthogroups.tsv` contain all the ORFs even if they don't have orthogroups
+
+# Classify
+# ========
+
+
+# Annotate 
+# =========
+* Adapt command scripts to only use binned proteins. The reason for this is because the it will include ORFs from unbinned contigs but the unbinned contigs are used for the viral MAGs. 
+* Add an annotate script that annotates orthogroups
+* If --identifier_mapping is `[id_orf]<tab>[id_contig]<tab>[id_mag]<tab>[id_orthogroup] then it does consensus annotations for orthogroups using UniFunc
+
+# =========
+# Phylogeny
+# =========
+* How to find representative if clustering is given?
+* Make output step
+
+# =========
+# Noncoding
+# =========
+* Add a noncoding module that runs t-RNAscan-SE and BARRNAP (and CORDON?)
+* Input is [id_mag]<tab>[domain]<tab>[path/to/genome]
+
+# Scripts: 
+# ========
+
+
+* get_orthogroup_consensus_annotation.py [Not working w/ stdin]
