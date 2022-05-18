@@ -22,10 +22,15 @@
 * Starts over at step 13? Realized this was because the checkpoints weren't being created when the error code wasn't 0. Not all steps are expected to finish properly because the pipeline is iterative and at a certain point there shouldn't be any bins to find. To get around this 
 * Add MAG level counts
 * Make a wrapper that does coassembly binning but then splits out the bins into individual samples like in VAMB
+* Need to replace the grep -v with non-eukaryota.list for final scaffolds_to_bins.tsv in binning-eukaryotic with subset_table.py using --inverse because sometimes it is returned as empty when list of contigs is large
 
 # Index
 # =====
-* Add STAR support
+* Add STAR support. The limiting factor here is getting an analog to exon in the prodigal generated GTF for this option -sjdbGTFfeatureExon. Will need to make some adjustments to `append_geneid_to_prodigal_gff.py` but this will require new lines instead of modifying existing lines.
+
+* Relevant GitHub issues:
+https://github.com/alexdobin/STAR/issues/994
+https://github.com/alexdobin/STAR/issues/867
 
 # Cluster
 # =======
@@ -34,7 +39,7 @@
 
 # Classify
 # ========
-
+* Need to update to GTDB-Tk v2.1.0 and make the download_database.sh using r207 v2
 
 # Annotate 
 # =========
@@ -48,14 +53,11 @@
 * How to find representative if clustering is given?
 * Make output step
 
-# =========
-# Noncoding
-# =========
+# New Modules
+# ===========
 * Add a noncoding module that runs t-RNAscan-SE and BARRNAP (and CORDON?)
 * Input is [id_mag]<tab>[domain]<tab>[path/to/genome]
 
 # Scripts: 
 # ========
-
-
 * get_orthogroup_consensus_annotation.py [Not working w/ stdin]

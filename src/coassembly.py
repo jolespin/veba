@@ -78,7 +78,7 @@ def get_alignment_cmd(input_filepaths, output_filepaths, output_directory, direc
     # Command
     cmd = [
 
-
+# MAKE THIS A FOR LOOP WITH MAX THREADS FOR EACH ONE. THE REASON FOR THIS IS THAT IF THERE IS A SMALL SAMPLE IT WILL BE DONE QUICK BUT THE LARGER SAMPLES ARE GOING TO BE STUCK WITH ONE THREAD STILL
 """
     # Clear temporary directory just in case
 

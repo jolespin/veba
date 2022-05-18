@@ -357,7 +357,7 @@ def main(args=None):
     # Path info
     description = """
     Running: {} v{} via Python v{} | {}""".format(__program__, __version__, sys.version.split(" ")[0], sys.executable)
-    usage = "{} -d <database_hmms> -a <proteins> -o <output_directory>".format(__program__)
+    usage = "{} -i <viral_binning_directory>  -o <output_directory>".format(__program__)
     epilog = "Copyright 2021 Josh L. Espinoza (jespinoz@jcvi.org)"
 
     # Parser

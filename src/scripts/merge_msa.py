@@ -5,7 +5,7 @@ from Bio.SeqIO.FastaIO import SimpleFastaParser
 from tqdm import tqdm
 
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2021.10.04"
+__version__ = "2022.05.03"
 
 def main(args=None):
     # Path info
@@ -23,11 +23,14 @@ def main(args=None):
     parser.add_argument("-i","--msa_directory", type=str, help = "path/to/msa_directory")
     parser.add_argument("-x","--ext", type=str, default="msa.clipkit", help = "Complete file extension for MSA (anything before will be considered marker name) [Default: msa.clipkit")
     parser.add_argument("-o","--output", type=str,  default="stdout", help = "Output merged multiple sequence alignment [Default: stdout]")
+    parser.add_argument("-m","--minimum_genomes_aligned_ratio", type=float,  default=0.5, help = "Minimum ratio of genomes include in alignment [Default: 0.5]")
 
     # Options
     opts = parser.parse_args()
     opts.script_directory  = script_directory
     opts.script_filename = script_filename
+
+    assert 0 < opts.minimum_genomes_aligned_ratio <= 1.0, "--minimum_genomes_aligned_ratio must be in (0,1]"
 
     # Open output file
     if opts.output == "stdout":
@@ -51,6 +54,14 @@ def main(args=None):
         samples |= set(msa.index)
         marker_to_msa[id_marker] = msa
     samples = pd.Index(sorted(samples))
+    number_of_samples = len(samples)
+    minimum_genomes_aligned = int(opts.minimum_genomes_aligned_ratio * number_of_samples)
+
+    # Remove low prevalence markers
+    for id_marker, msa in tqdm(list(marker_to_msa.items()), "Removing low prevalence markers", unit = " markers"):
+        if len(msa) < minimum_genomes_aligned:
+            print("Removing marker {} because it includes only {} genomes out of the total {} genomes included in the union of all alignments".format(id_marker, minimum_genomes_aligned, number_of_samples), file=sys.stderr)
+            del marker_to_msa[id_marker]
 
     # Fill in missing samples for markers
     for id_marker, msa in tqdm(marker_to_msa.items(), "Filling in missing samples from alignment", unit = " markers"):

@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-import sys, os, glob, argparse, pickle, warnings
+import sys, os, glob, argparse, pickle, warnings, gzip
 import pandas as pd
 import numpy as np
 from collections import OrderedDict
@@ -9,7 +9,7 @@ from tqdm import tqdm
 DATABASE_EUKARYOTIC="/usr/local/scratch/CORE/jespinoz/db/veba/v1.0/Classify/Eukaryotic/"
 
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2022.03.23"
+__version__ = "2022.05.16"
 
 
 def main(args=None):
@@ -51,7 +51,7 @@ def main(args=None):
         print("\n", file=sys.stderr)
         
     # SourceID -> Taxonomy
-    fp = os.path.join(opts.eukaryotic_database,"source_taxonomy.tsv")
+    fp = os.path.join(opts.eukaryotic_database,"source_taxonomy.tsv.gz")
     print("* Reading source taxonomy table {}".format(fp), file=sys.stderr)
     df_source_taxonomy = pd.read_csv(fp, sep="\t", index_col=0)
     df_source_taxonomy.index = df_source_taxonomy.index.map(str)
@@ -61,9 +61,9 @@ def main(args=None):
         print("\n", file=sys.stderr)
 
     # VEBA -> SourceID
-    fp = os.path.join(opts.eukaryotic_database,"target_to_source.dict.pkl")
+    fp = os.path.join(opts.eukaryotic_database,"target_to_source.dict.pkl.gz")
     print("* Reading target to source mapping {}".format(fp), file=sys.stderr)
-    with open(fp, "rb") as f:
+    with gzip.open(fp, "rb") as f:
         target_to_source = pickle.load(f)
     #target_to_source = pd.read_csv(fp, sep="\t", index_col=0, dtype=str, usecols=["id_veba", "id_source"], squeeze=True)#.iloc[:,0]
     if opts.debug:
@@ -88,7 +88,7 @@ def main(args=None):
     orf_to_source = orf_to_target.map(lambda id_target: target_to_source.get(id_target,np.nan))
     if np.any(pd.isnull(orf_to_source)):
         warnings.warn("The following gene - target identifiers are not in the database file: {}".format(
-            os.path.join(opts.eukaryotic_database,"target_to_source.dict.pkl"), 
+            os.path.join(opts.eukaryotic_database,"target_to_source.dict.pkl.gz"), 
             ),
         )
         orf_to_target[orf_to_source[orf_to_source.isnull()].index].to_frame().to_csv(sys.stderr, sep="\t", header=None)
@@ -109,13 +109,13 @@ def main(args=None):
 
     if len(missing_lineage):
         warnings.warn("The following source identifiers are not in the database file: {}\n{}`".format(
-            os.path.join(opts.eukaryotic_database,"source_taxonomy.tsv"), 
+            os.path.join(opts.eukaryotic_database,"source_taxonomy.tsv.gz"), 
             "\n".join(set(missing_lineage)),
             ),
         )
 
     # Output
-    ["id_orf", "id_mag", "bitscore", "lineage"]
+    # ["id_orf", "id_mag", "bitscore", "lineage"]
     df_orf_classifications = pd.concat([
         orf_to_scaffold.to_frame("id_scaffold"),
         orf_to_mag.to_frame("id_mag"),

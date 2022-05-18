@@ -5,7 +5,7 @@ import pandas as pd
 
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2022.02.24"
+__version__ = "2022.04.20"
 
 #
 def main(args=None):
@@ -27,6 +27,7 @@ def main(args=None):
     parser.add_argument("-a","--axis", type=int, default=0, help = "index:axis=0, columns:axis=1")
     parser.add_argument("--sep", type=str, default="\t", help = "Separator [Default: <tab>]")
     parser.add_argument("--skiprows", type=int, help = "Skiprows")
+    parser.add_argument("-v", "--inverse", action="store_true", help = "Inverse")
 
     # Options
     opts = parser.parse_args()
@@ -53,12 +54,20 @@ def main(args=None):
 
     # Read Table
     df = pd.read_csv(opts.table, sep=opts.sep, index_col=0, skiprows=opts.skiprows)
-    if opts.axis == 0:
-        assert set(index) <= set(df.index), "--index isn't a subset of --table index"
-        df = df.loc[index]
-    if opts.axis == 1:
-        assert set(index) <= set(df.columns), "--index isn't a subset of --table columns"
-        df = df.loc[:,index]
+    if not opts.inverse:
+        if opts.axis == 0:
+            assert set(index) <= set(df.index), "--index isn't a subset of --table index"
+            df = df.loc[index]
+        if opts.axis == 1:
+            assert set(index) <= set(df.columns), "--index isn't a subset of --table columns"
+            df = df.loc[:,index]
+    else:
+        if opts.axis == 0:
+            assert set(index) <= set(df.index), "--index isn't a subset of --table index"
+            df = df.drop(index, axis=0)
+        if opts.axis == 1:
+            assert set(index) <= set(df.columns), "--index isn't a subset of --table columns"
+            df = df.drop(index, axis=1)
 
     # Write table
     df.to_csv(opts.output_table, sep=opts.sep)

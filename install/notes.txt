@@ -1,0 +1,41 @@
+Processing NCBITaxonomy
+--2022-05-16 11:01:40--  https://ftp.ncbi.nlm.nih.gov/pub/taxonomy/accession2taxid/prot.accession2taxid.FULL.gz
+Resolving ftp.ncbi.nlm.nih.gov (ftp.ncbi.nlm.nih.gov)... 130.14.250.13, 165.112.9.228, 2607:f220:41e:250::7, ...
+Connecting to ftp.ncbi.nlm.nih.gov (ftp.ncbi.nlm.nih.gov)|130.14.250.13|:443... connected.
+HTTP request sent, awaiting response... 200 OK
+Length: 11277955094 (11G) [application/x-gzip]
+Saving to: ‘./Classify/NCBITaxonomy/prot.accession2taxid.FULL.gz.1’
+
+prot.accession2taxid.FULL.gz.1                                 100%[====================================================================================================================================================>]  10.50G  23.5MB/s    in 7m 50s
+
+2022-05-16 11:09:30 (22.9 MB/s) - ‘./Classify/NCBITaxonomy/prot.accession2taxid.FULL.gz.1’ saved [11277955094/11277955094]
+
+--2022-05-16 11:09:30--  https://ftp.ncbi.nlm.nih.gov/pub/taxonomy/taxdump.tar.gz
+Resolving ftp.ncbi.nlm.nih.gov (ftp.ncbi.nlm.nih.gov)... 130.14.250.7, 165.112.9.229, 2607:f220:41f:250::228, ...
+Connecting to ftp.ncbi.nlm.nih.gov (ftp.ncbi.nlm.nih.gov)|130.14.250.7|:443... connected.
+HTTP request sent, awaiting response... 200 OK
+Length: 58127679 (55M) [application/x-gzip]
+Saving to: ‘./Classify/NCBITaxonomy/taxdump.tar.gz’
+
+taxdump.tar.gz                                                 100%[====================================================================================================================================================>]  55.43M  20.4MB/s    in 2.7s
+
+2022-05-16 11:09:33 (20.4 MB/s) - ‘./Classify/NCBITaxonomy/taxdump.tar.gz’ saved [58127679/58127679]
+
+Loading node names...
+2420930 names loaded.
+275727 synonyms loaded.
+Loading nodes...
+2420930 nodes loaded.
+Linking nodes...
+Tree is loaded.
+Updating database: ./Classify/NCBITaxonomy/taxa.sqlite ...
+ 2420000 generating entries...
+Uploading to ./Classify/NCBITaxonomy/taxa.sqlite
+
+Inserting synonyms:      275000
+Inserting taxid merges:  65000
+Inserting taxids:       2420000
+tar (child): v: Cannot open: No such file or directory
+tar (child): Error is not recoverable: exiting now
+tar: Child returned status 2
+tar: Error is not recoverable: exiting now

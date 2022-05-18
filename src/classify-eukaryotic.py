@@ -342,7 +342,7 @@ def main(args=None):
     # Path info
     description = """
     Running: {} v{} via Python v{} | {}""".format(__program__, __version__, sys.version.split(" ")[0], sys.executable)
-    usage = "{} -d <database_hmms> -a <proteins> -o <output_directory>".format(__program__)
+    usage = "{} -i <eukaryotic_binning_directory> -o <output_directory>".format(__program__)
     epilog = "Copyright 2021 Josh L. Espinoza (jespinoz@jcvi.org)"
 
     # Parser
@@ -350,6 +350,7 @@ def main(args=None):
     # Pipeline
     parser_io = parser.add_argument_group('Required I/O arguments')
     parser_io.add_argument("-i","--eukaryotic_binning_directory", type=str, required=True, help = "path/to/eukaryotic_binng_directory")
+    # parser_io.add_argument("-g","--gene_identifiers", type=str,  help = "path/to/gene_identifiers.list")
 
     # parser_io.add_argument("-m","--mags", type=str, required=True, help = "Tab-seperated value table of [id_mag]<tab>[path/to/genome.fasta]")
     # parser_io.add_argument("-i","--metaeuk_identifier_mapping", type=str, required=True, help = "path/to/identifier_mapping.metaeuk.tsv")

@@ -13,7 +13,7 @@ from soothsayer_utils import *
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2021.09.29"
+__version__ = "2022.05.03"
 
 
 # Assembly
@@ -110,7 +110,7 @@ cut -f1 %s | %s -j %d 'echo "[MUSCLE] {}" && zcat "%s/{}.faa.gz" | %s -out %s/{}
 cut -f1 %s | %s -j %d 'echo "[ClipKIT] {}"  &&  %s %s/{}.msa -m %s -o %s/{}.msa.clipkit %s'
 
 # Concatenate
-%s -i %s -x msa.clipkit -o %s/concatenated_alignment.fasta
+%s -i %s -x msa.clipkit -o %s/concatenated_alignment.fasta -m %s
 """%( 
     # MUSCLE
     os.path.join(directories[("intermediate",  "1__hmmsearch")], "markers.tsv"),
@@ -135,6 +135,7 @@ cut -f1 %s | %s -j %d 'echo "[ClipKIT] {}"  &&  %s %s/{}.msa -m %s -o %s/{}.msa.
     os.environ["merge_msa.py"],
     output_directory,
     output_directory,
+    opts.minimum_genomes_aligned_ratio,
     )
     ]
 # """
@@ -189,9 +190,11 @@ def get_iqtree_cmd(input_filepaths, output_filepaths, output_directory, director
     cmd = [
         os.environ["iqtree"],
         "-s {}".format(input_filepaths[0]),
-        "-nt {}".format(opts.n_jobs),
-        "-mset WAG,LG",
-        "-bb {}".format(opts.iqtree_bootstraps),
+        "-nt AUTO",
+        "-ntmax {}".format(opts.n_jobs),
+        "-mset {}".format(opts.iqtree_mset),
+        "-m {}".format(opts.iqtree_model),
+        "-B {}".format(opts.iqtree_bootstraps),
         "-pre {}".format(os.path.join(output_directory, "output")),
         "--seed {}".format(opts.random_state), 
     ]
@@ -569,18 +572,20 @@ def main(args=None):
     parser_hmmer.add_argument("-f", "--hmm_marker_field", default="accession", type=str, help="HMM reference type (accession, name) [Default: accession")
 
     # Muscle
-    parser_muscle = parser.add_argument_group('MUSCLE arguments')
-    parser_muscle.add_argument("--muscle_options", type=str, default="", help="MUSCLE | More options (e.g. --arg 1 ) [Default: '']")
+    parser_alignment = parser.add_argument_group('Alignment arguments')
+    parser_alignment.add_argument("-m","--minimum_genomes_aligned_ratio", type=float,  default=0.5, help = "Minimum ratio of genomes include in alignment [Default: 0.5]")
+    parser_alignment.add_argument("--muscle_options", type=str, default="", help="MUSCLE | More options (e.g. --arg 1 ) [Default: '']")
+    parser_alignment.add_argument("--clipkit_mode", type=str, default="smart-gap", help="ClipKIT | Trimming mode [Default: smart-gap]")
+    parser_alignment.add_argument("--clipkit_options", type=str, default="", help="ClipKIT | More options (e.g. --arg 1 ) [Default: '']")
 
-    # CLIPKIT
-    parser_clipkit = parser.add_argument_group('ClipKIT arguments')
-    parser_clipkit.add_argument("--clipkit_mode", type=str, default="smart-gap", help="ClipKIT | Trimming mode [Default: smart-gap]")
-    parser_clipkit.add_argument("--clipkit_options", type=str, default="", help="ClipKIT | More options (e.g. --arg 1 ) [Default: '']")
+
 
     # Tree
     parser_tree = parser.add_argument_group('Tree arguments')
     parser_tree.add_argument("--fasttree_options", type=str, default="", help="FastTree | More options (e.g. --arg 1 ) [Default: '']")
     parser_tree.add_argument("--no_iqtree", action="store_true", help="IQTree | Don't run IQTree")
+    parser_tree.add_argument("--iqtree_model", type=str, default="MFP", help="IQTree | Model finder [Default: MFP]")
+    parser_tree.add_argument("--iqtree_mset", type=str, default="WAG,LG", help="IQTree | Model set to choose from [Default: WAG,LG]")
     parser_tree.add_argument("--iqtree_bootstraps", type=int, default=1000, help="IQTree | Bootstraps [Default: 1000]")
     parser_tree.add_argument("--iqtree_options", type=str, default="", help="IQTree | More options (e.g. --arg 1 ) [Default: '']")
 

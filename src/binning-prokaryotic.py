@@ -12,7 +12,7 @@ from soothsayer_utils import *
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2022.04.12"
+__version__ = "2022.05.11"
 
 # .............................................................................
 # Primordial
@@ -220,7 +220,7 @@ def get_maxbin2_107_cmd( input_filepaths, output_filepaths, output_directory, di
         "-min_contig_length {}".format(opts.minimum_contig_length),
         "-markerset {}".format(107),
         "-thread {}".format(opts.n_jobs),
-        "-verbose",
+        # "-verbose",
         opts.maxbin2_options,
 r"""
 
@@ -292,7 +292,7 @@ def get_maxbin2_40_cmd( input_filepaths, output_filepaths, output_directory, dir
         "-min_contig_length {}".format(opts.minimum_contig_length),
         "-markerset {}".format(40),
         "-thread {}".format(opts.n_jobs),
-        "-verbose",
+        # "-verbose",
         opts.maxbin2_options,
 
 r"""
