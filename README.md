@@ -22,7 +22,7 @@ Usage:
 # Install VEBA environments 
 install_veba.sh
 
-# Install database
+# Download databases
 download_databases.sh /path/to/veba_database
 ```
 ___________________________________________________________________
