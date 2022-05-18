@@ -15,15 +15,15 @@ ___________________________________________________________________
 ### Installation
 One issue with having large-scale pipeline suites with open-source software is the issue of dependencies.  One solution for this is to have a modular software structure where each module has its own `conda` environment.  This allows for minimizing dependency constraints as this software suite uses an array of diverse packages from different developers. 
 
-The basis for these environments is creating a separate environment for each module with the `VEBA-` prefix and `_env` as the suffix.  For example `VEBA-assembly_env` or `VEBA-binning-prokaryotic_env`.  Because of this, `VEBA` is currently not available as a `conda` package but each module will be in the near future.  In the meantime, please use the `install/install_veba.sh` script which installs each environment from the yaml files in `install/environments/` and then installs the database. To install the database separately, use the `install/install_database.sh` script.  To install anything manually, just read the scripts as they are well documented and refer to different URL and paths for specific installation options.
+The basis for these environments is creating a separate environment for each module with the `VEBA-` prefix and `_env` as the suffix.  For example `VEBA-assembly_env` or `VEBA-binning-prokaryotic_env`.  Because of this, `VEBA` is currently not available as a `conda` package but each module will be in the near future.  In the meantime, please use the `install/install_veba.sh` script which installs each environment from the yaml files in `install/environments/` and then installs the database. To install the database separately, use the `install/download_databases` script.  To install anything manually, just read the scripts as they are well documented and refer to different URL and paths for specific installation options.
 
 ```
 Usage: 
-# Install VEBA environments (comment out the `install_database.sh` line to just install environments)
-install_veba.sh /path/to/veba_database
+# Install VEBA environments 
+install_veba.sh
 
 # Install database
-install_database.sh /path/to/veba_database
+download_databases.sh /path/to/veba_database
 ```
 ___________________________________________________________________
 
@@ -63,7 +63,7 @@ ___________________________________________________________________
 * **mapping** – Aligns reads to local or global index of genomes
 
 #### preprocess – Fastq quality trimming, adapter removal, decontamination, and read statistics calculations
-The preprocess module is a wrapper around our fastq_preprocessor (https://github.com/jolespin/fastq_preprocessor) which is a modernized reimplementation of KneadData (https://github.com/biobakery/kneaddata) that relies on fastp (57) for ultra-fast automated adapter removal and quality trimming. Pairing of the trimmed reads is assessed and corrected using BBTools’ reformat.sh (https://sourceforge.net/projects/bbmap). If the user provides a contamination database (e.g., the human reference genome), then trimmed reads are aligned using Bowtie2 (Langmead & Salzberg, 2012) and reads that do not map to the contamination database are stored. If the --retain_contaminated_reads flag is used then the contaminated reads are stored as well. Similarly, if a k-mer reference database is provided (e.g., ribosomal k-mers) then the trimmed or decontaminated reads are aligned against the reference database using BBTools’ bbduk.sh with an option for storing. By default, the none of the contaminated or k-mer analyzed reads are stored but regardless of the choice for retaining reads, the read sets are quantified using seqkit (Shen, Le, Li, & Hu, 2016) for accounting purposes (e.g., % contamination or % ribosomal). All sequences included were downloaded using Kingfisher (https://github.com/wwood/kingfisher-download), included in the preprocess environment, which a fast and flexible program for the procurement of sequencing files and their annotations from public data sources including ENA, NCBI SRA, Amazon AWS, and Google Cloud.
+The preprocess module is a wrapper around our [fastq_preprocessor](https://github.com/jolespin/fastq_preprocessor) which is a modernized reimplementation of [KneadData](https://github.com/biobakery/kneaddata) that relies on fastp for ultra-fast automated adapter removal and quality trimming. Pairing of the trimmed reads is assessed and corrected using [BBTools’ reformat.sh](https://sourceforge.net/projects/bbmap). If the user provides a contamination database (e.g., the human reference genome), then trimmed reads are aligned using Bowtie2 (Langmead & Salzberg, 2012) and reads that do not map to the contamination database are stored. If the --retain_contaminated_reads flag is used then the contaminated reads are stored as well. Similarly, if a k-mer reference database is provided (e.g., ribosomal k-mers) then the trimmed or decontaminated reads are aligned against the reference database using BBTools’ bbduk.sh with an option for storing. By default, the none of the contaminated or k-mer analyzed reads are stored but regardless of the choice for retaining reads, the read sets are quantified using seqkit (Shen, Le, Li, & Hu, 2016) for accounting purposes (e.g., % contamination or % ribosomal). All sequences included were downloaded using Kingfisher (https://github.com/wwood/kingfisher-download), included in the preprocess environment, which a fast and flexible program for the procurement of sequencing files and their annotations from public data sources including ENA, NCBI SRA, Amazon AWS, and Google Cloud.
 
 ```
 usage: preprocess.py -1 <reads_1.fq> -2 <reads_2.fq> -n <name> -o <output_directory> |Optional| -x <reference_index> -k <kmer_database>
