@@ -12,7 +12,7 @@ from soothsayer_utils import *
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2022.05.11"
+__version__ = "2022.05.25"
 
 # .............................................................................
 # Primordial
@@ -279,6 +279,8 @@ for FP in %s;
     ]
     return cmd
 
+
+
 def get_maxbin2_40_cmd( input_filepaths, output_filepaths, output_directory, directories, opts, prefix):
 
     cmd = [
@@ -350,6 +352,15 @@ for FP in %s;
         "rm -f {}".format(os.path.join(output_directory, "bin.marker_of_each_bin.tar.gz")), 
         "&&",
         "rm -f {}".format(os.path.join(output_directory, "bin.marker")), 
+    ]
+    return cmd
+
+def get_maxbin2_null_cmd( input_filepaths, output_filepaths, output_directory, directories, opts, prefix):
+    cmd = [
+        # Create dummy scaffolds_to_bins.tsv to overwrite later. This makes DAS_Tool easier to run
+        "echo '' > {}".format(os.path.join(output_directory, "scaffolds_to_bins.tsv")),
+        "&&",
+        "echo 'Skipping MaxBin2'",
     ]
     return cmd
 
@@ -1552,7 +1563,10 @@ def create_pipeline(opts, directories, f_cmds):
 
 
         # Info
-        description = "Binning via MaxBin2 [Marker Set=107] [Iteration={}]".format(iteration)
+        if opts.skip_maxbin2:
+            description = "[Skipping] Binning via MaxBin2 [Marker Set=107] [Iteration={}]".format(iteration)
+        else:
+            description = "Binning via MaxBin2 [Marker Set=107] [Iteration={}]".format(iteration)
 
         # i/o
         input_filepaths = [
@@ -1576,7 +1590,10 @@ def create_pipeline(opts, directories, f_cmds):
 
         }
 
-        cmd = get_maxbin2_107_cmd(**params)
+        if opts.skip_maxbin2:
+            cmd = get_maxbin2_null_cmd(**params)
+        else:
+            cmd = get_maxbin2_107_cmd(**params)
         pipeline.add_step(
                     id=program_label,
                     description = description,
@@ -1606,7 +1623,11 @@ def create_pipeline(opts, directories, f_cmds):
 
 
         # Info
-        description = "Binning via MaxBin2 [Marker Set=40] [Iteration={}]".format(iteration)
+        if opts.skip_maxbin2:
+            description = "[Skipping] Binning via MaxBin2 [Marker Set=40] [Iteration={}]".format(iteration)
+
+        else:
+            description = "Binning via MaxBin2 [Marker Set=40] [Iteration={}]".format(iteration)
 
         # i/o
         input_filepaths = [
@@ -1629,8 +1650,10 @@ def create_pipeline(opts, directories, f_cmds):
             "prefix":"{}__MAXBIN2-40__{}.{}__".format(opts.name, "P", iteration),
 
         }
-
-        cmd = get_maxbin2_40_cmd(**params)
+        if opts.skip_maxbin2:
+            cmd = get_maxbin2_null_cmd(**params)
+        else:
+            cmd = get_maxbin2_40_cmd(**params)
         pipeline.add_step(
                     id=program_label,
                     description = description,
@@ -2263,6 +2286,7 @@ def main(args=None):
     parser_binning.add_argument("-s", "--minimum_genome_length", type=int, default=150000, help="Minimum genome length.  [Default: 150000]")
     parser_binning.add_argument("--concoct_fragment_length", type=int, default=10000, help="CONCOCT | Fragment length [Default: 10000] ")
     parser_binning.add_argument("--concoct_overlap_length", type=int, default=0, help="CONCOCT | Fragment overlap length [Default: 0] ")
+    parser_binning.add_argument("--skip_maxbin2", action="store_true", help="MaxBin2 | Skip MaxBin2. Useful for large datasets")
     parser_binning.add_argument("--maxbin2_options", type=str, default="", help="MaxBin2 | More options (e.g. --arg 1 ) [Default: ''] | https://sourceforge.net/projects/maxbin/")
     parser_binning.add_argument("--metabat2_options", type=str, default="", help="MetaBat2 | More options (e.g. --arg 1 ) [Default: ''] | https://bitbucket.org/berkeleylab/metabat/src/master/")
     parser_binning.add_argument("--concoct_options", type=str, default="", help="CONCOCT | More options (e.g. --arg 1 ) [Default: '']")

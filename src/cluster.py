@@ -12,7 +12,7 @@ from soothsayer_utils import *
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2022.02.24"
+__version__ = "2022.06.04"
 
 
 # Assembly
@@ -261,7 +261,7 @@ def get_fastani_cmd( input_filepaths, output_filepaths, output_directory, direct
 #     return cmd
 
 # MUSCLE
-def get_orthofinder_cmd( input_filepaths, output_filepaths, output_directory, directories, opts):
+def get_orthofinder_gnuparallel_cmd( input_filepaths, output_filepaths, output_directory, directories, opts):
     # Command
 
     cmd = [
@@ -293,6 +293,85 @@ rm -rf %s
     os.path.join(output_directory, "*", "Results_orthofinder", "Orthogroup_Sequences"),
     os.path.join(output_directory, "*", "Results_orthofinder", "Gene_Trees"),
     os.path.join(output_directory, "*", "Results_orthofinder", "Single_Copy_Orthologue_Sequences"),
+
+    ),
+    "(",
+    os.environ["partition_orthogroups.py"],
+    "-i {}".format(output_filepaths[0]),
+    "-c {}".format(input_filepaths[1]),
+    "-a {}".format(input_filepaths[2]),
+    "-x {}".format(opts.proteins_extension),
+    "--clone_label {}".format(opts.clone_label),
+    "--sep _",
+    "-o {}".format(output_filepaths[1]),
+    ")",
+    "&&",
+    "(",
+    "cat",
+     output_filepaths[1],
+     "|", 
+     "cut -f1,5",
+     "|", 
+     "tail -n +2",
+      ">",
+      output_filepaths[2],
+      ")",
+       
+    ]
+
+    return cmd
+
+# MUSCLE
+def get_orthofinder_cmd( input_filepaths, output_filepaths, output_directory, directories, opts):
+    # Command
+
+    cmd = [
+"""
+n=1
+for ID in $(cut -f1 %s); do
+    # Remove directory
+    rm -rf %s/${ID}
+
+    START_TIME=${SECONDS}
+
+    # Run Orthofinder
+    %s -t %d -a %d -f %s/${ID} -o %s/${ID} -n orthofinder -M msa %s
+
+    # Placehold
+    echo "${ID}\t%s/${ID}/Results_orthofinder/Orthogroups/Orthogroups.tsv" >> %s
+
+    # Remove big intermediate files
+    rm -rf %s
+    rm -rf %s
+    rm -rf %s
+    rm -rf %s
+
+    END_TIME=${SECONDS}
+    RUN_TIME=$((END_TIME-START_TIME))
+    echo "*** n=${n} // ${ID} // Duration: ${RUN_TIME} seconds ***"
+
+    n=$(($n+1))
+    done
+
+"""%( 
+    # Args
+    os.path.join(input_filepaths[0],"clusters_to_proteins.tsv"),
+    output_directory,
+
+    os.environ["orthofinder"],
+    opts.n_jobs,
+    opts.n_jobs,
+    input_filepaths[0],
+    output_directory,
+    opts.orthofinder_options,
+    output_directory,
+    output_filepaths[0],
+
+    os.path.join(output_directory, "${ID}", "Results_orthofinder", "WorkingDirectory"),
+    os.path.join(output_directory, "${ID}", "Results_orthofinder", "Orthogroup_Sequences"),
+    os.path.join(output_directory, "${ID}", "Results_orthofinder", "Gene_Trees"),
+    os.path.join(output_directory, "${ID}", "Results_orthofinder", "Single_Copy_Orthologue_Sequences"),
+
 
     ),
     "(",
@@ -522,8 +601,10 @@ def create_pipeline(opts, directories, f_cmds):
             "opts":opts,
             "directories":directories,
         }
-
-        cmd = get_orthofinder_cmd(**params)
+        if not opts.one_task_per_cpu:
+            cmd = get_orthofinder_cmd(**params)
+        else:
+            cmd = get_orthofinder_gnuparallel_cmd(**params)
 
         pipeline.add_step(
                     id=program,
@@ -632,6 +713,7 @@ def main(args=None):
 
     # OrthoFinder
     parser_orthofinder = parser.add_argument_group('OrthoFinder arguments')
+    parser_orthofinder.add_argument("--one_task_per_cpu", action="store_true", help="Use GNU parallel to run GNU parallel with 1 task per CPU.  Useful if all clusters are roughly the same size but inefficient if cluster sizes vary.")
     parser_orthofinder.add_argument("--orthofinder_options", type=str, default="", help="OrthoFinder | More options (e.g. --arg 1 ) [Default: '']")
 
     # Options

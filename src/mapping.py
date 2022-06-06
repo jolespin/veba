@@ -12,7 +12,7 @@ from soothsayer_utils import *
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2021.12.10"
+__version__ = "2022.06.06"
 
 
 # Bowtie2
@@ -123,6 +123,7 @@ def get_featurecounts_cmd(input_filepaths, output_filepaths, output_directory, d
         "&&",
         "tail -n +3",
         os.path.join(output_directory, "featurecounts.orfs.tsv"),
+        "|",
         "cut -f1,7",
         "|",
         "gzip",
@@ -131,9 +132,10 @@ def get_featurecounts_cmd(input_filepaths, output_filepaths, output_directory, d
         "&&",
         "tail -n +3",
         os.path.join(output_directory, "featurecounts.scaffolds.tsv"),
+        "|",
         "cut -f1,7",
         "|",
-        "gzip"
+        "gzip",
         ">",
         os.path.join(output_directory, "counts.scaffolds.tsv.gz"),
     ]
