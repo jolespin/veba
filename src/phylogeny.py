@@ -13,7 +13,7 @@ from soothsayer_utils import *
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2022.05.03"
+__version__ = "2022.06.22"
 
 
 # Assembly
@@ -77,7 +77,7 @@ def get_hmmsearch_cmd( input_filepaths, output_filepaths, output_directory, dire
         "--tblout {}".format(os.path.join(output_directory, "output.tsv")),
         "--cpu {}".format(opts.n_jobs),
         "--seed {}".format(opts.random_state + 1),
-        {True:"--{}".format(opts.hmmsearch_threshold), False:"-E {}".format(opts.hmmsearch_evalue)}[bool(opts.hmmsearch_threshold)],
+        "--{}".format(opts.hmmsearch_threshold) if opts.hmmsearch_threshold == "e" else "-E {}".format(opts.hmmsearch_evalue),
         opts.database_hmm,
         os.path.join(directories["tmp"], "proteins.faa"),
         "|",
@@ -88,11 +88,13 @@ def get_hmmsearch_cmd( input_filepaths, output_filepaths, output_directory, dire
         "-i {}".format(os.path.join(output_directory, "output.tsv")),
         "-a {}".format(os.path.join(directories["tmp"], "proteins.faa")),
         "-o {}".format(output_directory),
-        '-s "|--|"',
+        '-d "|--|"',
         "-f {}".format(opts.hmm_marker_field),
-
-
     ]
+    if opts.scores_cutoff:
+        cmd += [ 
+            "-s {}".format(opts.scores_cutoff),
+        ]
 
     return cmd
 
@@ -110,7 +112,7 @@ cut -f1 %s | %s -j %d 'echo "[MUSCLE] {}" && zcat "%s/{}.faa.gz" | %s -out %s/{}
 cut -f1 %s | %s -j %d 'echo "[ClipKIT] {}"  &&  %s %s/{}.msa -m %s -o %s/{}.msa.clipkit %s'
 
 # Concatenate
-%s -i %s -x msa.clipkit -o %s/concatenated_alignment.fasta -m %s
+%s -i %s -x msa.clipkit -o %s/concatenated_alignment.fasta --minimum_genomes_aligned_ratio %f  --minimum_markers_aligned_ratio %f --prefiltered_alignment_table %s --boolean_alignment_table %s
 """%( 
     # MUSCLE
     os.path.join(directories[("intermediate",  "1__hmmsearch")], "markers.tsv"),
@@ -136,6 +138,9 @@ cut -f1 %s | %s -j %d 'echo "[ClipKIT] {}"  &&  %s %s/{}.msa -m %s -o %s/{}.msa.
     output_directory,
     output_directory,
     opts.minimum_genomes_aligned_ratio,
+    opts.minimum_markers_aligned_ratio,
+    os.path.join(output_directory, "prefiltered_alignment_table.tsv.gz"),
+    os.path.join(output_directory, "alignment_table.boolean.tsv.gz"),
     )
     ]
 # """
@@ -169,7 +174,6 @@ cut -f1 %s | %s -j %d 'echo "[ClipKIT] {}"  &&  %s %s/{}.msa -m %s -o %s/{}.msa.
 
 # FastTree
 def get_fasttree_cmd(input_filepaths, output_filepaths, output_directory, directories, opts):
-    # iqtree -s ${output_dir}/Aligned_SCGs_mod_names.faa -nt $num_jobs -mset WAG,LG -bb 1000 -pre iqtree_out
 
     # Command
     cmd = [
@@ -194,7 +198,7 @@ def get_iqtree_cmd(input_filepaths, output_filepaths, output_directory, director
         "-ntmax {}".format(opts.n_jobs),
         "-mset {}".format(opts.iqtree_mset),
         "-m {}".format(opts.iqtree_model),
-        "-B {}".format(opts.iqtree_bootstraps),
+        "-bb {}".format(opts.iqtree_bootstraps),
         "-pre {}".format(os.path.join(output_directory, "output")),
         "--seed {}".format(opts.random_state), 
     ]
@@ -202,16 +206,16 @@ def get_iqtree_cmd(input_filepaths, output_filepaths, output_directory, director
 
 
 # Symlink
-# def get_symlink_cmd(input_filepaths, output_filepaths, output_directory, directories, opts):
+def get_symlink_cmd(input_filepaths, output_filepaths, output_directory, directories, opts):
     
-#     # Command
-#     cmd = ["("]
-#     for filepath in input_filepaths:
-#         # cmd.append("ln -f -s {} {}".format(os.path.realpath(filepath), os.path.realpath(output_directory)))
-#         cmd.append("ln -f -s {} {}".format(os.path.realpath(filepath), output_directory))
-#         cmd.append("&&")
-#     cmd[-1] = ")"
-#     return cmd
+    # Command
+    cmd = ["("]
+    for filepath in input_filepaths:
+        # cmd.append("ln -f -s {} {}".format(os.path.realpath(filepath), os.path.realpath(output_directory)))
+        cmd.append("ln -f -s {} {}".format(os.path.realpath(filepath), output_directory))
+        cmd.append("&&")
+    cmd[-1] = ")"
+    return cmd
 
 # ============
 # Run Pipeline
@@ -378,7 +382,7 @@ def create_pipeline(opts, directories, f_cmds):
     input_filepaths = [
         os.path.join(directories[("intermediate", "1__hmmsearch")], "markers.tsv"),
         ]
-    output_filenames = ["concatenated_alignment.fasta"]
+    output_filenames = ["concatenated_alignment.fasta",  "prefiltered_alignment_table.tsv.gz", "alignment_table.boolean.tsv.gz"]
     output_filepaths = list(map(lambda filename: os.path.join(output_directory, filename), output_filenames))
 
     params = {
@@ -448,7 +452,7 @@ def create_pipeline(opts, directories, f_cmds):
     # IQTree
     # ==========
     if not opts.no_iqtree:
-        step = 4
+        step += 1
 
         program = "iqtree"
         program_label = "{}__{}".format(step, program)
@@ -487,45 +491,50 @@ def create_pipeline(opts, directories, f_cmds):
                     validate_outputs=False,
         )
 
-    # # =============
-    # # Symlink
-    # # =============
-    # program = "symlink"
-    # # Add to directories
-    # output_directory = directories["output"]
+    # =============
+    # Symlink
+    # =============
+    program = "symlink"
+    # Add to directories
+    output_directory = directories["output"]
 
-    # # Info
-    # step = 3
-    # description = "Symlinking relevant output files"
+    # Info
+    step += 1
+    description = "Symlinking relevant output files"
 
-    # # i/o
-    # input_filepaths = [
-    #     os.path.join(directories[("intermediate", "1__fastani")], "clusters.tsv"),
-    #     os.path.join(directories[("intermediate", "2__orthofinder")], "proteins_to_orthogroups.tsv"),
-    # ]
+    # i/o
+    input_filepaths = [
+        os.path.join(directories[("intermediate", "2__msa")], "prefiltered_alignment_table.tsv.gz"),
+        os.path.join(directories[("intermediate", "2__msa")], "alignment_table.boolean.tsv.gz"), 
+        os.path.join(directories[("intermediate", "2__msa")], "concatenated_alignment.fasta"),
+        os.path.join(directories[("intermediate", "3__fasttree")], "concatenated_alignment.fasttree.nw"),
+    ]
+    if not opts.no_iqtree:
+        input_filepaths += [os.path.join(directories[("intermediate", "4__iqtree")], "output.treefile")]
 
-    # output_filenames =  map(lambda fp: fp.split("/")[-1], input_filepaths)
-    # output_filepaths = list(map(lambda fn:os.path.join(directories["output"], fn), output_filenames))
 
-    # params = {
-    # "input_filepaths":input_filepaths,
-    # "output_filepaths":output_filepaths,
-    # "output_directory":output_directory,
-    # "opts":opts,
-    # "directories":directories,
-    # }
+    output_filenames =  map(lambda fp: fp.split("/")[-1], input_filepaths)
+    output_filepaths = list(map(lambda fn:os.path.join(directories["output"], fn), output_filenames))
 
-    # cmd = get_symlink_cmd(**params)
-    # pipeline.add_step(
-    #         id=program,
-    #         description = description,
-    #         step=step,
-    #         cmd=cmd,
-    #         input_filepaths = input_filepaths,
-    #         output_filepaths = output_filepaths,
-    #         validate_inputs=True,
-    #         validate_outputs=False,
-    # )
+    params = {
+    "input_filepaths":input_filepaths,
+    "output_filepaths":output_filepaths,
+    "output_directory":output_directory,
+    "opts":opts,
+    "directories":directories,
+    }
+
+    cmd = get_symlink_cmd(**params)
+    pipeline.add_step(
+            id=program,
+            description = description,
+            step=step,
+            cmd=cmd,
+            input_filepaths = input_filepaths,
+            output_filepaths = output_filepaths,
+            validate_inputs=True,
+            validate_outputs=False,
+    )
 
     return pipeline
 
@@ -566,14 +575,16 @@ def main(args=None):
 
     # HMMER
     parser_hmmer = parser.add_argument_group('HMMSearch arguments')
-    parser_hmmer.add_argument("--hmmsearch_threshold", type=str, default="cut_ga", help="HMMSearch | Threshold {cut_ga, cut_nc, gut_tc, e} [Default:  cut_ga]")
+    parser_hmmer.add_argument("--hmmsearch_threshold", type=str, default="e", help="HMMSearch | Threshold {cut_ga, cut_nc, gut_tc, e} [Default:  e]")
     parser_hmmer.add_argument("--hmmsearch_evalue", type=float, default=10.0, help="Diamond | E-Value [Default: 10.0]")
     parser_hmmer.add_argument("--hmmsearch_options", type=str, default="", help="Diamond | More options (e.g. --arg 1 ) [Default: '']")
     parser_hmmer.add_argument("-f", "--hmm_marker_field", default="accession", type=str, help="HMM reference type (accession, name) [Default: accession")
+    parser_hmmer.add_argument("-s","--scores_cutoff", type=str, help = "path/to/scores_cutoff.tsv. No header. [id_hmm]<tab>[score]")
 
     # Muscle
     parser_alignment = parser.add_argument_group('Alignment arguments')
-    parser_alignment.add_argument("-m","--minimum_genomes_aligned_ratio", type=float,  default=0.5, help = "Minimum ratio of genomes include in alignment [Default: 0.5]")
+    parser_alignment.add_argument("-g", "--minimum_genomes_aligned_ratio", type=float,  default=0.95, help = "Minimum ratio of genomes include in alignment. This removes markers that are under represented. [Default: 0.95]")
+    parser_alignment.add_argument("-m", "--minimum_markers_aligned_ratio", type=float,  default=0.2, help = "Minimum ratio of markers aligned. This removes genomes with few markers. Note, this is based on detected markers and NOT total markers in original HMM. [Default: 0.2]")
     parser_alignment.add_argument("--muscle_options", type=str, default="", help="MUSCLE | More options (e.g. --arg 1 ) [Default: '']")
     parser_alignment.add_argument("--clipkit_mode", type=str, default="smart-gap", help="ClipKIT | Trimming mode [Default: smart-gap]")
     parser_alignment.add_argument("--clipkit_options", type=str, default="", help="ClipKIT | More options (e.g. --arg 1 ) [Default: '']")

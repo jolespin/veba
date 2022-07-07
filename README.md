@@ -6,10 +6,10 @@
                                                                                                                                                                                                                   
 ```
 ### Description
-The *Viral Eukaryotic Bacterial Archaeal* (VEBA) is an open-source software suite developed with all domains of microorganisms as the primary objective (not *post hoc* adjustments) including prokaryotic, eukaryotic, and viral organisms.  VEBA is an end-to-end metagenomics analysis suite that can directly address eukaryotic and viral genomes in addition to prokaryotic genomes with support for CPR. VEBA implements a novel iterative binning procedure and hybrid sample-specific/coassembly framework.  To optimize the microeukaryotic gene calling and taxonomic classifications, VEBA includes a consensus microeukaryotic database containing protists and fungi from several existing databases. VEBA also provides a unique clustering-based dereplication strategy allowing for sample-specific genomes and genes to be directly compared across non-overlapping biological samples.  In addition, VEBA automates the detection of candidate phyla radiation bacteria and implements the appropriate genome quality assessments for said organisms.  
+The *Viral Eukaryotic Bacterial Archaeal* (VEBA) is an open-source software suite developed with all domains of microorganisms as the primary objective (not *post hoc* adjustments) including prokaryotic, eukaryotic, and viral organisms.  VEBA is an end-to-end metagenomics analysis suite that can directly address eukaryotic and viral genomes in addition to prokaryotic genomes with support for CPR. VEBA implements a novel iterative binning procedure and hybrid sample-specific/multisample framework.  To optimize the microeukaryotic gene calling and taxonomic classifications, VEBA includes a consensus microeukaryotic database containing protists and fungi from several existing databases. VEBA also provides a unique clustering-based dereplication strategy allowing for sample-specific genomes and genes to be directly compared across non-overlapping biological samples.  In addition, VEBA automates the detection of candidate phyla radiation bacteria and implements the appropriate genome quality assessments for said organisms.  
 ___________________________________________________________________
 ### Citation
-Espinoza et a. 2022
+Espinoza et al. 2022
 ___________________________________________________________________
 
 ### Installation
@@ -24,6 +24,9 @@ install_veba.sh
 
 # Download databases
 download_databases.sh /path/to/veba_database
+
+# Environment variable
+Check that `VEBA_DATABASE` environment variable is set. If not, then add to ~/.bash_profile: `export VEBA_DATABASE=/path/to/veba_database`
 ```
 ___________________________________________________________________
 
@@ -38,7 +41,7 @@ ___________________________________________________________________
 
 * **assembly** – Assemble reads, align reads to assembly, and count mapped reads
 
-* **coassembly** – Align reads to coassembly, and count mapped reads
+* **coverage** – Align reads to (concatenated) reference and counts mapped reads
 
 * **binning-prokaryotic** – Iterative consensus binning for recovering prokaryotic genomes with lineage-specific quality assessment
 
@@ -132,20 +135,20 @@ BBDuk arguments:
 The assembly module optimizes the output for typical metagenomics workflows. In particular, the module does the following: 1) assembles reads using either metaSPAdes (Nurk, Meleshko, Korobeynikov, & Pevzner, 2017), SPAdes (A et al., 2012), rnaSPAdes (Bushmanova, Antipov, Lapidus, & Prjibelski, 2019), or any of the other task-specific assemblers installed with the SPAdes package (Antipov, Raiko, Lapidus, & Pevzner, 2020; Meleshko, Hajirasouliha, & Korobeynikov, 2021); 2) builds a Bowtie2 index for the scaffolds.fasta (or transcripts.fasta if rnaSPAdes is used); 3) aligns the reads using Bowtie2 to the assembly; 4) pipes the alignment file into Samtools (Li et al., 2009) to produce a sorted BAM file (necessary for many coverage applications); 5) counts the reads mapping to each scaffold via featureCounts (Liao, Smyth, & Shi, 2014); and 6) seqkit for useful assembly statistics such as N50, number of scaffolds, and total assembly size. This module automates many critical yet overlooked workflows dealing with assemblies. 
 
 ```
-usage: coassembly.py -f <coassembly.fasta> -r <reads.tsv> -o <output_directory>
+usage: coverage.py -f <reference.fasta> -r <reads.tsv> -o <output_directory>
 
-    Running: coassembly.py v2022.04.12 via Python v3.8.5 | /Users/jespinoz/anaconda3/bin/python
+    Running: coverage.py v2022.04.12 via Python v3.8.5 | /Users/jespinoz/anaconda3/bin/python
 
 optional arguments:
   -h, --help            show this help message and exit
 
 Required I/O arguments:
   -f FASTA, --fasta FASTA
-                        path/to/coassembly.fasta [Required]
+                        path/to/reference.fasta [Required]
   -r READS, --reads READS
                         path/to/reads_table.tsv with the following format: [id_sample]<tab>[path/to/r1.fastq.gz]<tab>[path/to/r2.fastq.gz], No header
   -o OUTPUT_DIRECTORY, --output_directory OUTPUT_DIRECTORY
-                        path/to/project_directory [Default: veba_output/assembly/coassembly]
+                        path/to/project_directory [Default: veba_output/assembly/multisample]
 
 Utility arguments:
   --path_config PATH_CONFIG
@@ -226,24 +229,24 @@ featureCounts arguments:
                         featureCounts | More options (e.g. --arg 1 ) [Default: ''] | http://bioinf.wehi.edu.au/featureCounts/
 ```
 
-#### coassembly – Align reads to coassembly, and count mapped reads
-The coassembly module further optimizes the output for typical metagenomics workflows. In particular, the module does the following: 1) filters contigs based on a size filter (default 1500 bp); 2) builds a Bowtie2 index for the coassembly.fasta; 3) aligns the reads from all provided samples using Bowtie2 to the assembly; 4) pipes the alignment file into Samtools to produce a sorted BAM file; 5) counts the reads mapping to each scaffold via featureCounts; and 6) seqkit for useful assembly statistics such as N50, number of scaffolds, and total assembly size (Shen et al., 2016). The preferred usage for this module is after prokaryotic, eukaryotic, and viral binning has been performed and the unbinned contigs are merged into a single coassembly used as input.  The outputs of this module are expected to be used as a final pass through prokaryotic and eukaryotic binning modules.  
+#### coverage – Align reads to (concatenated) reference and counts mapped reads
+The coverage module further optimizes the output for typical metagenomics workflows. In particular, the module does the following: 1) filters contigs based on a size filter (default 1500 bp); 2) builds a Bowtie2 index for the coassembly.fasta; 3) aligns the reads from all provided samples using Bowtie2 to the assembly; 4) pipes the alignment file into Samtools to produce a sorted BAM file; 5) counts the reads mapping to each scaffold via featureCounts; and 6) seqkit for useful assembly statistics such as N50, number of scaffolds, and total assembly size (Shen et al., 2016). The preferred usage for this module is after prokaryotic, eukaryotic, and viral binning has been performed and the unbinned contigs are merged into a single coassembly used as input.  The outputs of this module are expected to be used as a final pass through prokaryotic and eukaryotic binning modules.  
 
 ```
-usage: coassembly.py -f <coassembly.fasta> -r <reads.tsv> -o <output_directory>
+usage: coverage.py -f <reference.fasta> -r <reads.tsv> -o <output_directory>
 
-    Running: coassembly.py v2022.04.12 via Python v3.8.5 | /Users/jespinoz/anaconda3/bin/python
+    Running: coverage.py v2022.04.12 via Python v3.8.5 | /Users/jespinoz/anaconda3/bin/python
 
 optional arguments:
   -h, --help            show this help message and exit
 
 Required I/O arguments:
   -f FASTA, --fasta FASTA
-                        path/to/coassembly.fasta [Required]
+                        path/to/reference.fasta [Required]
   -r READS, --reads READS
                         path/to/reads_table.tsv with the following format: [id_sample]<tab>[path/to/r1.fastq.gz]<tab>[path/to/r2.fastq.gz], No header
   -o OUTPUT_DIRECTORY, --output_directory OUTPUT_DIRECTORY
-                        path/to/project_directory [Default: veba_output/assembly/coassembly]
+                        path/to/project_directory [Default: veba_output/assembly/multisample]
 
 Utility arguments:
   --path_config PATH_CONFIG

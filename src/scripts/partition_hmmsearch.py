@@ -5,7 +5,7 @@ import pandas as pd
 from Bio.SeqIO.FastaIO import SimpleFastaParser
 
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2021.10.01"
+__version__ = "2022.06.20"
 
 def main(args=None):
     # Path info
@@ -22,11 +22,10 @@ def main(args=None):
     # Pipeline
     parser.add_argument("-i","--hmmsearch_tblout", type=str, help = "path/to/hmmsearch_tblout.tsv", required=True)
     parser.add_argument("-a","--proteins", type=str, help = "path/to/proteins.faa",  required=True)
+    parser.add_argument("-s","--scores_cutoff", type=str, help = "path/to/scores_cutoff.tsv. No header. [id_hmm]<tab>[score]")
     parser.add_argument("-o","--output_directory", type=str,  default="input", help = "Output directory [Default: Directory of --hmmsearch_tblout")
-    parser.add_argument("-s", "--sep", default="|--|", type=str, help="[id_organism]<sep>[id_protein] [Default: |--|]")
+    parser.add_argument("-d", "--sep", default="|--|", type=str, help="[id_organism]<sep>[id_protein] [Default: |--|]")
     parser.add_argument("-f", "--hmm_marker_field", default="accession", type=str, help="HMM reference type (accession, name) [Default: accession")
-
-
 
     # Options
     opts = parser.parse_args()
@@ -51,26 +50,52 @@ def main(args=None):
     organism_to_marker_to_query = defaultdict(dict)
     markers = list()
     with open(opts.hmmsearch_tblout, "r") as f:
-        for line in f.readlines():
-            line = line.strip()
-            if not line.startswith("#"):
-                fields = list(filter(bool, line.split(" ")))
-                id_organism, id_query = fields[0].split(opts.sep)
+        if not opts.scores_cutoff:
+            for line in f.readlines():
+                line = line.strip()
+                if not line.startswith("#"):
+                    fields = list(filter(bool, line.split(" ")))
+                    id_organism, id_query = fields[0].split(opts.sep)
 
-                id_marker = fields[hmm_indexer]
-                assert id_marker != "-", "Cannot use --hmm_marker_field {} with current HMM output because missing identifiers".format(opts.hmmer_marker_field)
-                evalue = eval(fields[4])
+                    id_marker = fields[hmm_indexer]
+                    assert id_marker != "-", "Cannot use --hmm_marker_field {} with current HMM output because missing identifiers".format(opts.hmmer_marker_field)
+                    evalue = eval(fields[4])
 
-                if id_marker not in organism_to_marker_to_query[id_organism]:
-                    print(id_organism, "|", id_marker, "-->", id_query, "| E-Value = {:.1e}".format(evalue), file=sys.stdout)
-                    organism_to_marker_to_query[id_organism][id_marker] = id_query
-                    organism_to_marker_to_evalue[id_organism][id_marker] = evalue
-                else:
-                    if evalue < organism_to_marker_to_evalue[id_organism][id_marker]:
-                        print(id_organism, "|", id_marker, "-->", id_query, "| E-Value = {:.1e}".format(evalue), "[Update] [Overriding: {}]".format(organism_to_marker_to_query[id_organism][id_marker]), file=sys.stdout)
+                    if id_marker not in organism_to_marker_to_query[id_organism]:
+                        print(id_organism, "|", id_marker, "-->", id_query, "| E-Value = {:.1e}".format(evalue), file=sys.stdout)
                         organism_to_marker_to_query[id_organism][id_marker] = id_query
                         organism_to_marker_to_evalue[id_organism][id_marker] = evalue
-                markers.append(id_marker)
+                    else:
+                        if evalue < organism_to_marker_to_evalue[id_organism][id_marker]:
+                            print(id_organism, "|", id_marker, "-->", id_query, "| E-Value = {:.1e}".format(evalue), "[Update] [Overriding: {}]".format(organism_to_marker_to_query[id_organism][id_marker]), file=sys.stdout)
+                            organism_to_marker_to_query[id_organism][id_marker] = id_query
+                            organism_to_marker_to_evalue[id_organism][id_marker] = evalue
+                    markers.append(id_marker)
+        else:
+            # This incorporates score cutoffs (e.g., BUSCO's eukaryota_odb10)
+            hmm_to_cutoff = pd.read_csv(opts.scores_cutoff, sep="\t", index_col=0, header=None).iloc[:,0]
+            for line in f.readlines():
+                line = line.strip()
+                if not line.startswith("#"):
+                    fields = list(filter(bool, line.split(" ")))
+                    id_organism, id_query = fields[0].split(opts.sep)
+
+                    id_marker = fields[hmm_indexer]
+                    assert id_marker != "-", "Cannot use --hmm_marker_field {} with current HMM output because missing identifiers".format(opts.hmmer_marker_field)
+                    evalue = eval(fields[4])
+                    score = eval(fields[5])
+                    assert id_marker in hmm_to_cutoff, "{} is not in --scores_cutoff file. Either add this score to the table, add a pseudo-low score (e.g., 0.001), or remove the --scores_cutoff option".format(id_marker)
+                    if score >= hmm_to_cutoff[id_marker]:
+                        if id_marker not in organism_to_marker_to_query[id_organism]:
+                            print(id_organism, "|", id_marker, "-->", id_query, "| E-Value = {:.1e}".format(evalue), file=sys.stdout)
+                            organism_to_marker_to_query[id_organism][id_marker] = id_query
+                            organism_to_marker_to_evalue[id_organism][id_marker] = evalue
+                        else:
+                            if evalue < organism_to_marker_to_evalue[id_organism][id_marker]:
+                                print(id_organism, "|", id_marker, "-->", id_query, "| E-Value = {:.1e}".format(evalue), "[Update] [Overriding: {}]".format(organism_to_marker_to_query[id_organism][id_marker]), file=sys.stdout)
+                                organism_to_marker_to_query[id_organism][id_marker] = id_query
+                                organism_to_marker_to_evalue[id_organism][id_marker] = evalue
+                        markers.append(id_marker)
     markers = set(markers)
 
     print(" * Writing marker list: {}".format(os.path.join(opts.output_directory, "markers.tsv")), file=sys.stderr)

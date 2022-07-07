@@ -17,7 +17,7 @@ DATABASE_CPR="/usr/local/scratch/CORE/jespinoz/db/veba/v1.0/MarkerSets/CPR_43.hm
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2022.03.30"
+__version__ = "2022.06.07"
 
 # .............................................................................
 # Notes
@@ -94,7 +94,7 @@ def get_gtdbtk_cmd( input_filepaths, output_filepaths, output_directory, directo
 
     return cmd
 
-def get_consensus_cmd( input_filepaths, output_filepaths, output_directory, directories, opts):
+def get_consensus_cluster_classification_cmd( input_filepaths, output_filepaths, output_directory, directories, opts):
 
     # Command
     cmd = [ 
@@ -103,9 +103,14 @@ def get_consensus_cmd( input_filepaths, output_filepaths, output_directory, dire
         "cat",
         input_filepaths[0],
         "|",
-        "cut -f1,3,18",
+        "cut -f1,2,17",
         "|",
         "tail -n +2",
+        "|",
+        os.environ["insert_column_to_table.py"],
+        "-c {}".format(opts.clusters),
+        "-n id_slc",
+        "-i 0",
         "|",
         os.environ["consensus_genome_classification.py"],
         "--leniency {}".format(opts.leniency),
@@ -140,6 +145,7 @@ def add_executables_to_environment(opts):
     accessory_scripts = set([ 
         "concatenate_dataframes.py",
         "consensus_genome_classification.py",
+        "insert_column_to_table.py",
     ])
 
     
@@ -217,7 +223,7 @@ def create_pipeline(opts, directories, f_cmds):
         cmd = get_concatenate_gtdbtk_cmd(**params)
 
         pipeline.add_step(
-                    id=program,
+                    id=program_label,
                     description = description,
                     step=step,
                     cmd=cmd,
@@ -262,7 +268,7 @@ def create_pipeline(opts, directories, f_cmds):
         cmd = get_gtdbtk_cmd(**params)
 
         pipeline.add_step(
-                    id=program,
+                    id=program_label,
                     description = description,
                     step=step,
                     cmd=cmd,
@@ -278,7 +284,7 @@ def create_pipeline(opts, directories, f_cmds):
         # ==========
         step = 2
 
-        program = "consensus_genome_classification"
+        program = "consensus_cluster_classification"
         program_label = "{}__{}".format(step, program)
         # Add to directories
         output_directory = directories["output"]# = create_directory(os.path.join(directories["intermediate"], program_label))
@@ -292,7 +298,7 @@ def create_pipeline(opts, directories, f_cmds):
             os.path.join(directories["output"], "prokaryotic_taxonomy.tsv"),
             opts.clusters,
             ]
-        output_filenames = ["consensus_genome_classification.tsv"]
+        output_filenames = ["prokaryotic_taxonomy.clusters.tsv"]
         output_filepaths = list(map(lambda filename: os.path.join(output_directory, filename), output_filenames))
 
         params = {
@@ -303,10 +309,10 @@ def create_pipeline(opts, directories, f_cmds):
             "directories":directories,
         }
 
-        cmd = get_consensus_cmd(**params)
+        cmd = get_consensus_cluster_classification_cmd(**params)
 
         pipeline.add_step(
-                    id=program,
+                    id=program_label,
                     description = description,
                     step=step,
                     cmd=cmd,

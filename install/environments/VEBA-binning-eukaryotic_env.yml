@@ -1,11 +1,9 @@
 name: VEBA-binning-eukaryotic_env
 channels:
   - jolespin
-  - bioconda
   - conda-forge
   - defaults
-  - etetoolkit
-  - r
+  - bioconda
 dependencies:
   - _libgcc_mutex=0.1=conda_forge
   - _openmp_mutex=4.5=1_gnu
@@ -22,15 +20,16 @@ dependencies:
   - boost=1.70.0=py38h9de70de_1
   - boost-cpp=1.70.0=h7b93d67_3
   - brotlipy=0.7.0=py38h497a2fe_1003
+  - busco=5.3.2=pyhdfd78af_0
   - bwa=0.7.17=h7132678_9
   - bwidget=1.9.14=ha770c72_1
   - bz2file=0.98=py_0
   - bzip2=1.0.8=h7f98852_4
   - c-ares=1.18.1=h7f98852_0
-  - ca-certificates=2022.2.1=h06a4308_0
+  - ca-certificates=2022.4.26=h06a4308_0
   - cairo=1.16.0=h9f066cc_1006
   - cdbtools=0.99=hd03093a_7
-  - certifi=2021.10.8=py38h578d9bd_1
+  - certifi=2022.5.18.1=py38h06a4308_0
   - cffi=1.15.0=py38h3931269_0
   - charset-normalizer=2.0.12=pyhd8ed1ab_0
   - colorama=0.4.4=pyh9f0ad1d_0
@@ -130,7 +129,7 @@ dependencies:
   - openblas=0.3.18=pthreads_h4748800_0
   - openjdk=11.0.13=h87a67e3_0
   - openmp=8.0.1=0
-  - openssl=1.1.1m=h7f8727e_0
+  - openssl=1.1.1o=h7f8727e_0
   - pandas=1.4.1=py38h43a58ef_0
   - pango=1.42.4=h69149e4_5
   - pathlib2=2.3.7.post1=py38h578d9bd_0
@@ -320,14 +319,13 @@ dependencies:
   - zlib=1.2.11=h36c2ea0_1013
   - zstd=1.4.9=ha95c52a_0
   - pip:
-    - busco==5.3.1
     - joblib==0.17.0
-    - llvmlite==0.38.0
-    - numba==0.55.1
+    - llvmlite==0.38.1
+    - numba==0.55.2
     - numpy==1.19.5
     - skorch==0.9.0
-    - tabulate==0.8.9
+    - tabulate==0.8.10
     - tiara==1.0.2
     - torch==1.7.1
     - tqdm==4.54.1
-    - typing-extensions==4.1.1
+    - typing-extensions==4.3.0
