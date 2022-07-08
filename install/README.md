@@ -1,4 +1,4 @@
-###Installation and Database Configuration Guide
+### Installation and Database Configuration Guide
 ____________________________________________________________
 #### Software installation
 One issue with having large-scale pipeline suites with open-source software is the issue of dependencies.  One solution for this is to have a modular software structure where each module has its own `conda` environment.  This allows for minimizing dependency constraints as this software suite uses an array of diverse packages from different developers. 
