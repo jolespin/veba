@@ -2,7 +2,7 @@
 import sys, os, glob, argparse 
 import pandas as pd
 
-DATABASE_CHECKV="/usr/local/scratch/CORE/jespinoz/db/checkv/checkv-db-v1.0/"
+# DATABASE_CHECKV="/usr/local/scratch/CORE/jespinoz/db/checkv/checkv-db-v1.0/"
 
 __program__ = os.path.split(sys.argv[0])[-1]
 __version__ = "2022.03.08"
@@ -24,7 +24,7 @@ def main(args=None):
     parser.add_argument("-i","--checkv_results", type=str, required=True, help = "path/to/checkv/quality_summary.tsv")
     parser.add_argument("-c","--clusters", type=str,  help = "path/to/clusters.tsv, Format: [id_mag]<tab>[id_cluster], No header [Optional]")
     parser.add_argument("-o","--output", type=str, default="stdout", help = "path/to/output.tsv [Default: stdout]")
-    parser.add_argument("--checkv_database", type=str, default=DATABASE_CHECKV, help="CheckV | path/to/gtdbtk_database (e.g. --arg 1 ) [Default: {}]".format(DATABASE_CHECKV))
+    parser.add_argument("--checkv_database", type=str, default=None, required=True, help="CheckV | path/to/checkv_database (e.g. --arg 1 )")
     parser.add_argument("--header", type=int, default=1, help="Include header in output {0=No, 1=Yes) [Default: 1]")
 
 
@@ -89,7 +89,6 @@ def main(args=None):
     df_mag_classifications.to_csv(opts.output, sep="\t", header=bool(opts.header))
 
 
-    
 
 if __name__ == "__main__":
     main()

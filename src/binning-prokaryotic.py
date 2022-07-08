@@ -12,13 +12,11 @@ from soothsayer_utils import *
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2022.05.25"
+__version__ = "2022.7.8"
 
-# .............................................................................
-# Primordial
-# .............................................................................
-DATABASE_GTDBTK="/usr/local/scratch/CORE/jespinoz/db/gtdbtk/release202/"
-DATABASE_CPR="/usr/local/scratch/CORE/jespinoz/db/veba/v1.0/MarkerSets/CPR_43.hmm"
+
+# DATABASE_GTDBTK="/usr/local/scratch/CORE/jespinoz/db/gtdbtk/release202/"
+# DATABASE_CPR="/usr/local/scratch/CORE/jespinoz/db/veba/v1.0/MarkerSets/CPR_43.hmm"
 
 # Assembly
 def get_coverage_cmd( input_filepaths, output_filepaths, output_directory, directories, opts):
@@ -2280,6 +2278,10 @@ def main(args=None):
     parser_utility.add_argument("-v", "--version", action='version', version="{} v{}".format(__program__, __version__))
     parser_utility.add_argument("--tmpdir", type=str, help="Set temporary directory")  #site-packges in future
 
+    # Databases
+    parser_databases = parser.add_argument_group('Database arguments')
+    parser_databases.add_argument("--veba_database", type=str, default=None, help=f"VEBA database location.  [Default: $VEBA_DATABASE environment variable]")
+
     # Binning
     parser_binning = parser.add_argument_group('Binning arguments')
     parser_binning.add_argument("-m", "--minimum_contig_length", type=int, default=1500, help="Minimum contig length.  Anything under 2500 will default to 2500 for MetaBat2 [Default: 1500] ")
@@ -2305,8 +2307,8 @@ def main(args=None):
     parser_evaluation.add_argument("--checkm_contamination", type=float, default=10.0, help="CheckM contamination threshold [Default: 10]")
     parser_evaluation.add_argument("--checkm_strain_heterogeneity", type=float,  help="CheckM strain hetereogeneity threshold")
     parser_evaluation.add_argument("--checkm_options", type=str, default="", help="CheckM lineage_wf | More options (e.g. --arg 1 ) [Default: '']")
-    parser_evaluation.add_argument("--cpr_database", type=str, default=DATABASE_CPR, help="GTDB-Tk | path/to/cpr.hmm (e.g. --arg 1 ) [Default: {}]".format(DATABASE_CPR))
-    parser_evaluation.add_argument("--gtdbtk_database", type=str, default=DATABASE_GTDBTK, help="GTDB-Tk | path/to/gtdbtk_database (e.g. --arg 1 ) [Default: {}]".format(DATABASE_GTDBTK))
+    # parser_evaluation.add_argument("--cpr_database", type=str, default=DATABASE_CPR, help="GTDB-Tk | path/to/cpr.hmm (e.g. --arg 1 ) [Default: {}]".format(DATABASE_CPR))
+    # parser_evaluation.add_argument("--gtdbtk_database", type=str, default=DATABASE_GTDBTK, help="GTDB-Tk | path/to/gtdbtk_database (e.g. --arg 1 ) [Default: {}]".format(DATABASE_GTDBTK))
     parser_evaluation.add_argument("--gtdbtk_options", type=str, default="", help="GTDB-Tk | classify_wf options (e.g. --arg 1 ) [Default: '']")
 
     # featureCounts
@@ -2327,7 +2329,16 @@ def main(args=None):
     opts.script_directory  = script_directory
     opts.script_filename = script_filename
 
+    # Database
+    if opts.veba_database is None:
+        assert "VEBA_DATABASE" in os.environ, "Please set the following environment variable 'export VEBA_DATABASE=/path/to/veba_database' or provide path to --veba_database"
+    else:
+        opts.veba_database = os.environ["VEBA_DATABASE"]
 
+    opts.cpr_database = os.path.join(opts.veba_database, "MarkerSets", "CPR_43.hmm")
+    opts.gtdbtk_database = os.path.join(opts.veba_database, "Classify", "GTDBTk")
+
+    # Directories
     directories = dict()
 
     directories["project"] = create_directory(opts.project_directory)
@@ -2349,13 +2360,13 @@ def main(args=None):
     print("Python version:", sys.version.replace("\n"," "), file=sys.stdout)
     print("Python path:", sys.executable, file=sys.stdout) #sys.path[2]
     print("Script version:", __version__, file=sys.stdout)
+    print("VEBA Database:", opts.veba_database, file=sys.stdout)
     print("Moment:", get_timestamp(), file=sys.stdout)
     print("Directory:", os.getcwd(), file=sys.stdout)
     print("Commands:", list(filter(bool,sys.argv)),  sep="\n", file=sys.stdout)
     configure_parameters(opts, directories)
     sys.stdout.flush()
 
-    # if opts.CONDA_PREFIX:
     # opts.bam = " ".join(opts.bam)
 
 

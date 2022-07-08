@@ -10,12 +10,12 @@ import pandas as pd
 from genopype import *
 from soothsayer_utils import *
 
-DATABASE_EUKARYOTIC="/usr/local/scratch/CORE/jespinoz/db/veba/v1.0/Classify/Eukaryotic/"
+# DATABASE_EUKARYOTIC="/usr/local/scratch/CORE/jespinoz/db/veba/v1.0/Classify/Eukaryotic/"
 
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2022.06.16"
+__version__ = "2022.7.8"
 
 
 # GTDB-Tk
@@ -525,11 +525,12 @@ def main(args=None):
     parser_hmmer.add_argument("--hmmsearch_options", type=str, default="", help="HMMSearch | More options (e.g. --arg 1 ) [Default: '']")
 
     # Databases
-    parser_database = parser.add_argument_group('Database arguments')
-    parser_database.add_argument("--eukaryotic_database", type=str, default=DATABASE_EUKARYOTIC, help="Database | path/to/eukaryotic_database (e.g. --arg 1 ) [Default: {}]".format(DATABASE_EUKARYOTIC))
-    parser_database.add_argument("--include_all_genes",  action="store_true", help="Use if you want to include all genes for taxonomy classification instead of only core markers from BUSCO's eukaryota_odb10")
-    parser_database.add_argument("--hmms", type=str, default=os.path.join(DATABASE_EUKARYOTIC, "hmms", "eukaryota_odb10.hmm.gz"), help="Core HMMs for HMMER's hmmsearch [Default: {}]".format(os.path.join(DATABASE_EUKARYOTIC, "hmms", "eukaryota_odb10.hmm.gz"))) # 
-    parser_database.add_argument("--scores_cutoff", default=os.path.join(DATABASE_EUKARYOTIC, "hmms", "eukaryota_odb10.scores_cutoff.tsv.gz"), help="Tab-separated value file with [id_query]<tab>[score] [Default: {}]".format(os.path.join(DATABASE_EUKARYOTIC, "hmms", "eukaryota_odb10.scores_cutoff.tsv.gz")))
+    parser_databases = parser.add_argument_group('Database arguments')
+    parser_databases.add_argument("--veba_database", type=str, default=None, help=f"VEBA database location.  [Default: $VEBA_DATABASE environment variable]")
+    # parser_databases.add_argument("--eukaryotic_database", type=str, default=DATABASE_EUKARYOTIC, help="Database | path/to/eukaryotic_database (e.g. --arg 1 ) [Default: {}]".format(DATABASE_EUKARYOTIC))
+    # parser_databases.add_argument("--hmms", type=str, default=os.path.join(DATABASE_EUKARYOTIC, "hmms", "eukaryota_odb10.hmm"), help="Core HMMs for HMMER's hmmsearch [Default: {}]".format(os.path.join(DATABASE_EUKARYOTIC, "hmms", "eukaryota_odb10.hmm"))) # 
+    # parser_databases.add_argument("--scores_cutoff", default=os.path.join(DATABASE_EUKARYOTIC, "hmms", "eukaryota_odb10.scores_cutoff.tsv.gz"), help="Tab-separated value file with [id_query]<tab>[score] [Default: {}]".format(os.path.join(DATABASE_EUKARYOTIC, "hmms", "eukaryota_odb10.scores_cutoff.tsv.gz")))
+    parser_databases.add_argument("--include_all_genes",  action="store_true", help="Use if you want to include all genes for taxonomy classification instead of only core markers from BUSCO's eukaryota_odb10")
 
     # Consensus genome classification
     parser_consensus= parser.add_argument_group('Consensus genome arguments')
@@ -543,6 +544,15 @@ def main(args=None):
     opts = parser.parse_args()
     opts.script_directory  = script_directory
     opts.script_filename = script_filename
+
+    # Database
+    if opts.veba_database is None:
+        assert "VEBA_DATABASE" in os.environ, "Please set the following environment variable 'export VEBA_DATABASE=/path/to/veba_database' or provide path to --veba_database"
+    else:
+        opts.veba_database = os.environ["VEBA_DATABASE"]
+    opts.eukaryotic_database = os.path.join(opts.veba_database, "Classify", "Microeukaryotic")
+    opts.hmms = os.path.join(opts.veba_database, "MarkerSets", "eukaryota_odb10.hmm")
+    opts.scores_cutoff = os.path.join(opts.veba_database, "MarkerSets", "eukaryota_odb10.scores_cutoff.tsv.gz")
 
     # Directories
     directories = dict()
@@ -561,13 +571,12 @@ def main(args=None):
     print("Python version:", sys.version.replace("\n"," "), file=sys.stdout)
     print("Python path:", sys.executable, file=sys.stdout) #sys.path[2]
     print("Script version:", __version__, file=sys.stdout)
+    print("VEBA Database:", opts.veba_database, file=sys.stdout)
     print("Moment:", get_timestamp(), file=sys.stdout)
     print("Directory:", os.getcwd(), file=sys.stdout)
     print("Commands:", list(filter(bool,sys.argv)),  sep="\n", file=sys.stdout)
     configure_parameters(opts, directories)
     sys.stdout.flush()
-
-    # Symlink genomes
 
     # Run pipeline
     with open(os.path.join(directories["project"], "commands.sh"), "w") as f_cmds:

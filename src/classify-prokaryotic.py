@@ -11,8 +11,7 @@ import pandas as pd
 from genopype import *
 from soothsayer_utils import *
 
-DATABASE_GTDBTK="/usr/local/scratch/CORE/jespinoz/db/gtdbtk/release202/"
-DATABASE_CPR="/usr/local/scratch/CORE/jespinoz/db/veba/v1.0/MarkerSets/CPR_43.hmm.gz"
+# DATABASE_GTDBTK="/usr/local/scratch/CORE/jespinoz/db/gtdbtk/release202/"
 
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
@@ -22,12 +21,6 @@ __version__ = "2022.06.07"
 # .............................................................................
 # Notes
 # .............................................................................
-# * Make batch version that takes in a manifest file
-# .............................................................................
-# Primordial
-# .............................................................................
-
-
 
 # GTDB-Tk
 def get_concatenate_gtdbtk_cmd( input_filepaths, output_filepaths, output_directory, directories, opts):
@@ -360,9 +353,13 @@ def main(args=None):
     parser_utility.add_argument("--restart_from_checkpoint", type=str, default=None, help = "Restart from a particular checkpoint [Default: None]")
     parser_utility.add_argument("-v", "--version", action='version', version="{} v{}".format(__program__, __version__))
 
+    # Databases
+    parser_databases = parser.add_argument_group('Database arguments')
+    parser_databases.add_argument("--veba_database", type=str, default=None, help=f"VEBA database location.  [Default: $VEBA_DATABASE environment variable]")
+
     # GTDB-Tk
     parser_gtdbtk = parser.add_argument_group('GTDB-Tk arguments')
-    parser_gtdbtk.add_argument("--gtdbtk_database", type=str, default=DATABASE_GTDBTK, help="GTDB-Tk | path/to/gtdbtk_database (e.g. --arg 1 ) [Default: {}]".format(DATABASE_GTDBTK))
+    # parser_gtdbtk.add_argument("--gtdbtk_database", type=str, default=DATABASE_GTDBTK, help="GTDB-Tk | path/to/gtdbtk_database (e.g. --arg 1 ) [Default: {}]".format(DATABASE_GTDBTK))
     parser_gtdbtk.add_argument("--gtdbtk_options", type=str, default="", help="GTDB-Tk | classify_wf options (e.g. --arg 1 ) [Default: '']")
 
 
@@ -380,6 +377,15 @@ def main(args=None):
     opts.script_directory  = script_directory
     opts.script_filename = script_filename
 
+    # Database
+    if opts.veba_database is None:
+        assert "VEBA_DATABASE" in os.environ, "Please set the following environment variable 'export VEBA_DATABASE=/path/to/veba_database' or provide path to --veba_database"
+    else:
+        opts.veba_database = os.environ["VEBA_DATABASE"]
+
+    opts.gtdbtk_database = os.path.join(opts.veba_database, "Classify", "GTDBTk")
+
+
     # Directories
     directories = dict()
     directories["project"] = create_directory(opts.output_directory)
@@ -396,13 +402,12 @@ def main(args=None):
     print("Python version:", sys.version.replace("\n"," "), file=sys.stdout)
     print("Python path:", sys.executable, file=sys.stdout) #sys.path[2]
     print("Script version:", __version__, file=sys.stdout)
+    print("VEBA Database:", opts.veba_database, file=sys.stdout)
     print("Moment:", get_timestamp(), file=sys.stdout)
     print("Directory:", os.getcwd(), file=sys.stdout)
     print("Commands:", list(filter(bool,sys.argv)),  sep="\n", file=sys.stdout)
     configure_parameters(opts, directories)
     sys.stdout.flush()
-
-    # Symlink genomes
 
     # Run pipeline
     with open(os.path.join(directories["project"], "commands.sh"), "w") as f_cmds:

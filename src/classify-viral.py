@@ -10,15 +10,15 @@ import pandas as pd
 from genopype import *
 from soothsayer_utils import *
 
-DATABASE_CHECKV="/usr/local/scratch/CORE/jespinoz/db/checkv/checkv-db-v1.0/"
+# DATABASE_CHECKV="/usr/local/scratch/CORE/jespinoz/db/checkv/checkv-db-v1.0/"
 
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2022.03.30"
+__version__ = "2022.7.8"
 
 
-# GTDB-Tk
+# Preprocess
 def get_preprocess_cmd( input_filepaths, output_filepaths, output_directory, directories, opts):
     cmd = [ 
 """
@@ -374,9 +374,13 @@ def main(args=None):
     parser_utility.add_argument("--restart_from_checkpoint", type=str, default=None, help = "Restart from a particular checkpoint [Default: None]")
     parser_utility.add_argument("-v", "--version", action='version', version="{} v{}".format(__program__, __version__))
 
-    # CheckV
-    parser_checkv = parser.add_argument_group('CheckV arguments')
-    parser_checkv.add_argument("--checkv_database", type=str, default=DATABASE_CHECKV, help="CheckV | path/to/gtdbtk_database (e.g. --arg 1 ) [Default: {}]".format(DATABASE_CHECKV))
+    # Databases
+    parser_databases = parser.add_argument_group('Database arguments')
+    parser_databases.add_argument("--veba_database", type=str, default=None, help=f"VEBA database location.  [Default: $VEBA_DATABASE environment variable]")
+
+    # # CheckV
+    # parser_checkv = parser.add_argument_group('CheckV arguments')
+    # parser_checkv.add_argument("--checkv_database", type=str, default=DATABASE_CHECKV, help="CheckV | path/to/gtdbtk_database (e.g. --arg 1 ) [Default: {}]".format(DATABASE_CHECKV))
 
     # Consensus genome classification
     parser_consensus_source = parser.add_argument_group('Consensus habitat/isolation source arguments')
@@ -389,6 +393,13 @@ def main(args=None):
     opts = parser.parse_args()
     opts.script_directory  = script_directory
     opts.script_filename = script_filename
+
+    # Database
+    if opts.veba_database is None:
+        assert "VEBA_DATABASE" in os.environ, "Please set the following environment variable 'export VEBA_DATABASE=/path/to/veba_database' or provide path to --veba_database"
+    else:
+        opts.veba_database = os.environ["VEBA_DATABASE"]
+    opts.checkv_database = os.path.join(opts.veba_database, "Classify", "CheckV")
 
     # Directories
     directories = dict()
@@ -407,13 +418,12 @@ def main(args=None):
     print("Python version:", sys.version.replace("\n"," "), file=sys.stdout)
     print("Python path:", sys.executable, file=sys.stdout) #sys.path[2]
     print("Script version:", __version__, file=sys.stdout)
+    print("VEBA Database:", opts.veba_database, file=sys.stdout)
     print("Moment:", get_timestamp(), file=sys.stdout)
     print("Directory:", os.getcwd(), file=sys.stdout)
     print("Commands:", list(filter(bool,sys.argv)),  sep="\n", file=sys.stdout)
     configure_parameters(opts, directories)
     sys.stdout.flush()
-
-    # Symlink genomes
 
     # Run pipeline
     with open(os.path.join(directories["project"], "commands.sh"), "w") as f_cmds:

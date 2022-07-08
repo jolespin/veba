@@ -13,15 +13,7 @@ from soothsayer_utils import *
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2022.03.07"
-
-# .............................................................................
-# Primordial
-# .............................................................................
-
-
-
-
+__version__ = "2022.7.8"
 
 
 # # VirSorter2
@@ -262,6 +254,27 @@ def get_prodigal_cmd(input_filepaths, output_filepaths, output_directory, direct
         "rm -f {}".format(os.path.join(output_directory, "gene_models.faa")),
         ")",
 
+    ]
+    return cmd
+
+def get_featurecounts_cmd(input_filepaths, output_filepaths, output_directory, directories, opts):
+    # ORF-Level Counts
+    cmd = [
+    "mkdir -p {}".format(os.path.join(directories["tmp"], "featurecounts")),
+    "&&",
+        os.environ["featureCounts"],
+        "-G {}".format(input_filepaths[0]),
+        "-a {}".format(input_filepaths[1]),
+        "-o {}".format(os.path.join(output_directory, "featurecounts.orfs.tsv")),
+        "-F GTF",
+        "--tmpDir {}".format(os.path.join(directories["tmp"], "featurecounts")),
+        "-T {}".format(opts.n_jobs),
+        "-g gene_id",
+        "-t CDS",
+        opts.featurecounts_options,
+        " ".join(opts.bam),
+    "&&",
+    "gzip -f {}".format(os.path.join(output_directory, "featurecounts.orfs.tsv")),
     ]
     return cmd
 
@@ -537,11 +550,58 @@ def create_pipeline(opts, directories, f_cmds):
                 log_prefix=program_label,
 
     )
+
+    # ==========
+    # featureCounts
+    # ==========
+    if opts.bam is not None:
+        step += 1
+
+        # Info
+        program = "featurecounts"
+        program_label = "{}__{}".format(step, program)
+        description = "Counting reads"
+
+        # Add to directories
+        output_directory = directories[("intermediate",  program_label)] = create_directory(os.path.join(directories["intermediate"], program_label))
+
+        # i/o
+        input_filepaths = [ 
+            opts.fasta,
+            os.path.join(directories[("intermediate",  "3__prodigal")], "gene_models.gff"),
+            *opts.bam,
+        ]
+
+        output_filenames = ["featurecounts.orfs.tsv.gz"]
+        output_filepaths = list(map(lambda filename: os.path.join(output_directory, filename), output_filenames))
+
+        params = {
+            "input_filepaths":input_filepaths,
+            "output_filepaths":output_filepaths,
+            "output_directory":output_directory,
+            "opts":opts,
+            "directories":directories,
+        }
+
+        cmd = get_featurecounts_cmd(**params)
+        pipeline.add_step(
+                    id=program_label,
+                    description = description,
+                    step=step,
+                    cmd=cmd,
+                    input_filepaths = input_filepaths,
+                    output_filepaths = output_filepaths,
+                    validate_inputs=True,
+                    validate_outputs=True,
+                    errors_ok=False,
+                    acceptable_returncodes={0},                    
+                    log_prefix=program_label,
+        )
     
     # =============
     # Output
     # =============
-    step = 4
+    step += 1
 
     program = "output"
     program_label = "{}__{}".format(step, program)
@@ -566,6 +626,11 @@ def create_pipeline(opts, directories, f_cmds):
     ]
     input_filepaths = list(map(lambda fn:os.path.join(directories[("intermediate",  "2__checkv")],"filtered", fn), input_filenames))
 
+    if opts.bam is not None:
+        input_filepaths += [ 
+            os.path.join(directories[("intermediate",  "4__featurecounts")], "featurecounts.orfs.tsv.gz")
+        ]
+
         # "-g {}".format(input_filepaths[1]),
         # "-d {}".format(input_filepaths[2]),
         # "-a {}".format(input_filepaths[3]),
@@ -579,6 +644,11 @@ def create_pipeline(opts, directories, f_cmds):
         "bins.list",
         "genome_statistics.tsv",
     ]
+    if opts.bam is not None:
+        output_filenames += [ 
+            "featurecounts.orfs.tsv.gz",
+        ]
+
 
 
     output_filepaths = list(map(lambda fn:os.path.join(directories["output"], fn), output_filenames))
@@ -695,6 +765,7 @@ def main(args=None):
     parser_io.add_argument("-n", "--name", type=str, help="Name of sample", required=True)
     parser_io.add_argument("-l","--contig_identifiers", type=str,  help = "path/to/contigs.list [Optional]")
     parser_io.add_argument("-o","--project_directory", type=str, default="veba_output/binning/viral", help = "path/to/project_directory [Default: veba_output/binning/viral]")
+    parser_io.add_argument("-b","--bam", type=str, nargs="+", required=False, help = "path/to/mapped.sorted.bam files separated by spaces.")
 
     # Utility
     parser_utility = parser.add_argument_group('Utility arguments')
@@ -707,7 +778,9 @@ def main(args=None):
     parser_utility.add_argument("--remove_temporary_fasta", action="store_true", help="If contig identifiers were provided and a fasta is generated, remove this file")
 
     # parser_utility.add_argument("-c", "--CONDA_PREFIX", type=str, default=None, help = "Set a conda environment")
-
+    # Databases
+    parser_databases = parser.add_argument_group('Database arguments')
+    parser_databases.add_argument("--veba_database", type=str, default=None, help=f"VEBA database location.  [Default: $VEBA_DATABASE environment variable]")
 
     # Binning
     parser_binning = parser.add_argument_group('Binning arguments')
@@ -728,7 +801,7 @@ def main(args=None):
     # parser_virus.add_argument("--viralverify_options", type=str, default="", help="ViralVerify | More options (e.g. --arg 1 ) [Default: '']")
     parser_virus.add_argument("--virfinder_pvalue", type=float, default=0.05, help="VirFinder p-value threshold [Default: 0.05]")
     parser_virus.add_argument("--virfinder_options", type=str, default="", help="VirFinder | More options (e.g. --arg 1 ) [Default: '']")
-    parser_virus.add_argument("--checkv_database", type=str, default="/usr/local/scratch/CORE/jespinoz/db/checkv/checkv-db-v1.0", help="CheckV | More options (e.g. --arg 1 ) [Default: '/usr/local/scratch/CORE/jespinoz/db/checkv/checkv-db-v1.0']")
+    # parser_virus.add_argument("--checkv_database", type=str, default="/usr/local/scratch/CORE/jespinoz/db/checkv/checkv-db-v1.0", help="CheckV | More options (e.g. --arg 1 ) [Default: '/usr/local/scratch/CORE/jespinoz/db/checkv/checkv-db-v1.0']")
     parser_virus.add_argument("--checkv_options", type=str, default="", help="CheckV | More options (e.g. --arg 1 ) [Default: '']")
     parser_virus.add_argument("--multiplier_viral_to_host_genes", type=int, default=5, help = "Minimum number of viral genes [Default: 5]")
     parser_virus.add_argument("--checkv_completeness", type=float, default=50.0, help = "Minimum completeness [Default: 50.0]")
@@ -741,6 +814,12 @@ def main(args=None):
     opts.script_directory  = script_directory
     opts.script_filename = script_filename
     
+    # Database
+    if opts.veba_database is None:
+        assert "VEBA_DATABASE" in os.environ, "Please set the following environment variable 'export VEBA_DATABASE=/path/to/veba_database' or provide path to --veba_database"
+    else:
+        opts.veba_database = os.environ["VEBA_DATABASE"]
+    opts.checkv_database = os.path.join(opts.veba_database, "Classify", "CheckV")
 
     # Directories
     directories = dict()
@@ -754,7 +833,6 @@ def main(args=None):
     directories["intermediate"] = create_directory(os.path.join(directories["sample"], "intermediate"))
     os.environ["TMPDIR"] = directories["tmp"]
 
-
     # Info
     print(format_header(__program__, "="), file=sys.stdout)
     print(format_header("Configuration:", "-"), file=sys.stdout)
@@ -762,13 +840,12 @@ def main(args=None):
     print("Python version:", sys.version.replace("\n"," "), file=sys.stdout)
     print("Python path:", sys.executable, file=sys.stdout) #sys.path[2]
     print("Script version:", __version__, file=sys.stdout)
+    print("VEBA Database:", opts.veba_database, file=sys.stdout)
     print("Moment:", get_timestamp(), file=sys.stdout)
     print("Directory:", os.getcwd(), file=sys.stdout)
     print("Commands:", list(filter(bool,sys.argv)),  sep="\n", file=sys.stdout)
     configure_parameters(opts, directories)
     sys.stdout.flush()
-
-    # if opts.CONDA_PREFIX:
 
 
     # Run pipeline

@@ -13,27 +13,7 @@ from soothsayer_utils.soothsayer_utils import assert_acceptable_arguments
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2021.08.023"
-
-# DATABASE_NR="/usr/local/scratch/CORE/jespinoz/db/nr/v2021.08.03/nr.dmnd"
-# DATABASE_PFAM="/usr/local/scratch/CORE/jespinoz/db/pfam/v33.1/Pfam-A.hmm.gz"
-# DATABASE_KOFAM="/usr/local/scratch/CORE/jespinoz/db/kofam"
-# DATABASE_TAXA="/usr/local/scratch/CORE/jespinoz/db/ncbi_taxonomy/v2021.08.03/taxa.sqlite"
-
-DATABASE_NR="/usr/local/scratch/CORE/jespinoz/db/veba/v1.0/Annotate/nr.dmnd"
-DATABASE_PFAM="/usr/local/scratch/CORE/jespinoz/db/veba/v1.0/Annotate/Pfam-A.hmm.gz"
-DATABASE_KOFAM="/usr/local/scratch/CORE/jespinoz/db/veba/v1.0/Annotate/kofam"
-DATABASE_TAXA="/usr/local/scratch/CORE/jespinoz/db/veba/v1.0/Classify/NCBITaxonomy/taxa.sqlite"
-
-# .............................................................................
-# Notes
-# .............................................................................
-# * Make batch version that takes in a manifest file
-# .............................................................................
-# Primordial
-# .............................................................................
-
-
+__version__ = "2021.7.8"
 
 
 # Diamond
@@ -485,6 +465,8 @@ def create_pipeline(opts, directories, f_cmds):
 # Configure parameters
 def configure_parameters(opts, directories):
 
+
+
     assert_acceptable_arguments(opts.diamond_sensitivity, {"", "fast", "mid-sensitive", "sensitive", "more-sensitive", "very-sensitive", "ultra-sensitive"})
     assert_acceptable_arguments(opts.hmmsearch_threshold, {"", "cut_ga", "cut_nc", "cut_tc"})
 
@@ -534,10 +516,11 @@ def main(args=None):
 
     # Databases
     parser_databases = parser.add_argument_group('Database arguments')
-    parser_databases.add_argument("--database_nr", type=str, default=DATABASE_NR, help=f"NCBI's NR database [Default: {DATABASE_NR}]")
-    parser_databases.add_argument("--database_pfam", type=str, default=DATABASE_PFAM, help=f"PFAM HMM database [Default: {DATABASE_PFAM}]")
-    parser_databases.add_argument("--database_kofam", type=str, default=DATABASE_KOFAM, help=f"KEGG's KOFAM database [Default: {DATABASE_KOFAM}]")
-    parser_databases.add_argument("--database_taxa", type=str, default=DATABASE_TAXA, help=f"ETE3 build of NCBI's taxonomy database [Default: {DATABASE_TAXA}]")
+    parser_databases.add_argument("--veba_database", type=str, default=None, help=f"VEBA database location.  [Default: $VEBA_DATABASE environment variable]")
+    # parser_databases.add_argument("--database_nr", type=str, default=DATABASE_NR, help=f"NCBI's NR database [Default: {DATABASE_NR}]")
+    # parser_databases.add_argument("--database_pfam", type=str, default=DATABASE_PFAM, help=f"PFAM HMM database [Default: {DATABASE_PFAM}]")
+    # parser_databases.add_argument("--database_kofam", type=str, default=DATABASE_KOFAM, help=f"KEGG's KOFAM database [Default: {DATABASE_KOFAM}]")
+    # parser_databases.add_argument("--database_taxa", type=str, default=DATABASE_TAXA, help=f"ETE3 build of NCBI's taxonomy database [Default: {DATABASE_TAXA}]")
 
     # Diamond
     parser_diamond = parser.add_argument_group('Diamond arguments')
@@ -562,6 +545,17 @@ def main(args=None):
     opts.script_directory  = script_directory
     opts.script_filename = script_filename
 
+    # Database
+    if opts.veba_database is None:
+        assert "VEBA_DATABASE" in os.environ, "Please set the following environment variable 'export VEBA_DATABASE=/path/to/veba_database' or provide path to --veba_database"
+    else:
+        opts.veba_database = os.environ["VEBA_DATABASE"]
+
+    opts.database_nr = os.path.join(opts.veba_database, "Annotate", "nr", "nr.dmnd")
+    opts.database_pfam = os.path.join(opts.veba_database, "Annotate", "Pfam", "Pfam-A.full.gz")
+    opts.database_kofam = os.path.join(opts.veba_database, "Annotate", "KOFAM")
+    opts.database_taxa = os.path.join(opts.veba_database, "Classify", "NCBITaxonomy", "taxa.sqlite")
+
     # Directories
     directories = dict()
     directories["project"] = create_directory(opts.output_directory)
@@ -579,15 +573,13 @@ def main(args=None):
     print("Python version:", sys.version.replace("\n"," "), file=sys.stdout)
     print("Python path:", sys.executable, file=sys.stdout) #sys.path[2]
     print("Script version:", __version__, file=sys.stdout)
+    print("VEBA Database:", opts.veba_database, file=sys.stdout)
     print("Moment:", get_timestamp(), file=sys.stdout)
     print("Directory:", os.getcwd(), file=sys.stdout)
     print("Commands:", list(filter(bool,sys.argv)),  sep="\n", file=sys.stdout)
     configure_parameters(opts, directories)
 
-    
     sys.stdout.flush()
-
-    # Symlink genomes
 
     # Run pipeline
     with open(os.path.join(directories["project"], "commands.sh"), "w") as f_cmds:

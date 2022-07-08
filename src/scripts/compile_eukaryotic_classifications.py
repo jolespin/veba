@@ -6,10 +6,10 @@ from collections import OrderedDict
 from tqdm import tqdm 
 
 
-DATABASE_EUKARYOTIC="/usr/local/scratch/CORE/jespinoz/db/veba/v1.0/Classify/Eukaryotic/"
+# DATABASE_EUKARYOTIC="/usr/local/scratch/CORE/jespinoz/db/veba/v1.0/Classify/Eukaryotic/"
 
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2022.05.16"
+__version__ = "2022.7.8"
 
 
 def main(args=None):
@@ -29,18 +29,24 @@ def main(args=None):
     parser.add_argument("-s","--scaffolds_to_bins", type=str, required=True, help = "path/to/scaffolds_to_bins.tsv")
     parser.add_argument("-c","--clusters", type=str,  help = "path/to/clusters.tsv, Format: [id_mag]<tab>[id_cluster], No header [Optional]")
     parser.add_argument("-o","--output", type=str, default="stdout", help = "path/to/output.tsv [Default: stdout]")
-    parser.add_argument("--eukaryotic_database", type=str, default=DATABASE_EUKARYOTIC, help="path/to/eukaryotic_database (e.g. --arg 1 ) [Default: {}]".format(DATABASE_EUKARYOTIC))
+    parser.add_argument("--eukaryotic_database", type=str, default=None, required=True, help="path/to/eukaryotic_database (e.g. --arg 1 )")
+    # parser.add_argument("--veba_database", type=str, default=None, help=f"VEBA database location.  [Default: $VEBA_DATABASE environment variable]")
     parser.add_argument("--header", type=int, default=1, help="Include header in output {0=No, 1=Yes) [Default: 1]")
     parser.add_argument("--debug", action="store_true")
-
 
     # Options
     opts = parser.parse_args()
     opts.script_directory  = script_directory
     opts.script_filename = script_filename
 
-    # I/O
+    # Database
+    # if opts.veba_database is None:
+    #     assert "VEBA_DATABASE" in os.environ, "Please set the following environment variable 'export VEBA_DATABASE=/path/to/veba_database' or provide path to --veba_database"
+    # else:
+    #     opts.veba_database = os.environ["VEBA_DATABASE"]
+    # opts.eukaryotic_database = os.path.join(opts.veba_database, "Classify", "Microeukaryotic")
 
+    # I/O
     # Scaffolds -> Bins
     fp = opts.scaffolds_to_bins
     print("* Reading scaffolds to bins table {}".format(fp), file=sys.stderr)

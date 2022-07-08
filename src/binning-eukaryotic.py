@@ -13,9 +13,9 @@ from soothsayer_utils import *
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2022.04.04"
+__version__ = "2022.7.8"
 
-DATABASE_METAEUK="/usr/local/scratch/CORE/jespinoz/db/veba/v1.0/Classify/Eukaryotic/eukaryotic"
+# DATABASE_METAEUK="/usr/local/scratch/CORE/jespinoz/db/veba/v1.0/Classify/Eukaryotic/eukaryotic"
 
 
 def get_preprocess_cmd(input_filepaths, output_filepaths, output_directory, directories, opts):
@@ -907,6 +907,9 @@ def main(args=None):
 
     # parser_utility.add_argument("-c", "--CONDA_PREFIX", type=str, default=None, help = "Set a conda environment")
 
+    # Databases
+    parser_databases = parser.add_argument_group('Database arguments')
+    parser_databases.add_argument("--veba_database", type=str, default=None, help=f"VEBA database location.  [Default: $VEBA_DATABASE environment variable]")
 
     # Binning
     parser_binning = parser.add_argument_group('Binning arguments')
@@ -930,7 +933,7 @@ def main(args=None):
     parser_metaeuk = parser.add_argument_group('MetaEuk arguments')
     parser_metaeuk.add_argument("--metaeuk_sensitivity", type=float, default=4.0, help="MetaEuk | Sensitivity: 1.0 faster; 4.0 fast; 7.5 sensitive  [Default: 4.0]")
     parser_metaeuk.add_argument("--metaeuk_evalue", type=float, default=0.01, help="MetaEuk | List matches below this E-value (range 0.0-inf) [Default: 0.01]")
-    parser_metaeuk.add_argument("--metaeuk_database", type=str, default=DATABASE_METAEUK, help="MetaEuk | More options (e.g. --arg 1 ) [Default: {}]".format(DATABASE_METAEUK))
+    # parser_metaeuk.add_argument("--metaeuk_database", type=str, default=DATABASE_METAEUK, help="MetaEuk | More options (e.g. --arg 1 ) [Default: {}]".format(DATABASE_METAEUK))
     parser_metaeuk.add_argument("--metaeuk_options", type=str, default="", help="MetaEuk | More options (e.g. --arg 1 ) [Default: ''] https://github.com/soedinglab/metaeuk")
 
     # BUSCO
@@ -951,7 +954,14 @@ def main(args=None):
 
     opts.script_directory  = script_directory
     opts.script_filename = script_filename
-    
+
+    # Database
+    if opts.veba_database is None:
+        assert "VEBA_DATABASE" in os.environ, "Please set the following environment variable 'export VEBA_DATABASE=/path/to/veba_database' or provide path to --veba_database"
+    else:
+        opts.veba_database = os.environ["VEBA_DATABASE"]
+    opts.metaeuk_database = os.path.join(opts.veba_database, "Classify", "Microeukaryotic", "microeukaryotic")
+
 
     # Directories
     directories = dict()
@@ -965,7 +975,6 @@ def main(args=None):
     directories["intermediate"] = create_directory(os.path.join(directories["sample"], "intermediate"))
     os.environ["TMPDIR"] = directories["tmp"]
 
-
     # Info
     print(format_header(__program__, "="), file=sys.stdout)
     print(format_header("Configuration:", "-"), file=sys.stdout)
@@ -973,13 +982,12 @@ def main(args=None):
     print("Python version:", sys.version.replace("\n"," "), file=sys.stdout)
     print("Python path:", sys.executable, file=sys.stdout) #sys.path[2]
     print("Script version:", __version__, file=sys.stdout)
+    print("VEBA Database:", opts.veba_database, file=sys.stdout)    
     print("Moment:", get_timestamp(), file=sys.stdout)
     print("Directory:", os.getcwd(), file=sys.stdout)
     print("Commands:", list(filter(bool,sys.argv)),  sep="\n", file=sys.stdout)
     configure_parameters(opts, directories)
     sys.stdout.flush()
-
-    # if opts.CONDA_PREFIX:
 
 
     # Run pipeline
