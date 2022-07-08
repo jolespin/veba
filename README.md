@@ -18,7 +18,7 @@ VEBA is currently under active development. If you are interested in requesting 
 ___________________________________________________________________
 
 ### Installation and databases
-Please refer to the [installation and database guide](install/README.md) for software installation and database configuration.
+Please refer to the [*Installation and Database Configuration Guide*](install/README.md) for software installation and database configuration.
 
 ___________________________________________________________________
 

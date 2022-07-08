@@ -1,4 +1,6 @@
-### Installation
+###Installation and Database Configuration Guide
+____________________________________________________________
+#### Software installation
 One issue with having large-scale pipeline suites with open-source software is the issue of dependencies.  One solution for this is to have a modular software structure where each module has its own `conda` environment.  This allows for minimizing dependency constraints as this software suite uses an array of diverse packages from different developers. 
 
 The basis for these environments is creating a separate environment for each module with the `VEBA-` prefix and `_env` as the suffix.  For example `VEBA-assembly_env` or `VEBA-binning-prokaryotic_env`.  Because of this, `VEBA` is currently not available as a `conda` package but each module will be in the near future.  In the meantime, please use the `install/install_veba.sh` script which installs each environment from the yaml files in `install/environments/` and then installs the database. To install the database separately, use the `install/download_databases` script.  To install anything manually, just read the scripts as they are well documented and refer to different URL and paths for specific installation options.
@@ -21,7 +23,7 @@ Check that `VEBA_DATABASE` environment variable is set. If not, then add to ~/.b
 
 ```
 
-### Database Structure:
+#### Database Structure:
 ```
 tree -L 3 .
 .
