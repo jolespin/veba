@@ -8,18 +8,21 @@ The basis for these environments is creating a separate environment for each mod
 The majority of the time taken to build database is decompressing large archives, Diamond database creation of NR, and MMSEQS2 database creation of microeukaryotic protein database.
 
 ```
-Usage: 
+# Download repository
+git clone https://github.com/jolespin/veba/
+cd veba/install
+ 
 # Install VEBA environments 
-install_veba.sh
+bash install_veba.sh
 
 # Activate that database conda environment
 conda activate VEBA-database_env
 
 # Download databases (This takes ~9.5 hrs using 8 threads with 128G memory)
-download_databases.sh /path/to/veba_database
+bash download_databases.sh /path/to/veba_database
 
 # Environment variable
-Check that `VEBA_DATABASE` environment variable is set. If not, then add to ~/.bash_profile: `export VEBA_DATABASE=/path/to/veba_database`
+Check that `VEBA_DATABASE` environment variable is set. If not, then add it manually to ~/.bash_profile: `export VEBA_DATABASE=/path/to/veba_database`
 
 ```
 
