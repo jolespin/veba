@@ -9,33 +9,21 @@
 The *Viral Eukaryotic Bacterial Archaeal* (VEBA) is an open-source software suite developed with all domains of microorganisms as the primary objective (not *post hoc* adjustments) including prokaryotic, eukaryotic, and viral organisms.  VEBA is an end-to-end metagenomics analysis suite that can directly address eukaryotic and viral genomes in addition to prokaryotic genomes with support for CPR. VEBA implements a novel iterative binning procedure and hybrid sample-specific/multisample framework.  To optimize the microeukaryotic gene calling and taxonomic classifications, VEBA includes a consensus microeukaryotic database containing protists and fungi from several existing databases. VEBA also provides a unique clustering-based dereplication strategy allowing for sample-specific genomes and genes to be directly compared across non-overlapping biological samples.  In addition, VEBA automates the detection of candidate phyla radiation bacteria and implements the appropriate genome quality assessments for said organisms.  
 ___________________________________________________________________
 ### Citation
-Espinoza et al. 2022
+Espinoza et al. 2022 (In review)
+
 ___________________________________________________________________
-
-### Installation
-One issue with having large-scale pipeline suites with open-source software is the issue of dependencies.  One solution for this is to have a modular software structure where each module has its own `conda` environment.  This allows for minimizing dependency constraints as this software suite uses an array of diverse packages from different developers. 
-
-The basis for these environments is creating a separate environment for each module with the `VEBA-` prefix and `_env` as the suffix.  For example `VEBA-assembly_env` or `VEBA-binning-prokaryotic_env`.  Because of this, `VEBA` is currently not available as a `conda` package but each module will be in the near future.  In the meantime, please use the `install/install_veba.sh` script which installs each environment from the yaml files in `install/environments/` and then installs the database. To install the database separately, use the `install/download_databases` script.  To install anything manually, just read the scripts as they are well documented and refer to different URL and paths for specific installation options.
-
-```
-Usage: 
-# Install VEBA environments 
-install_veba.sh
-
-# Download databases
-download_databases.sh /path/to/veba_database
-
-# Environment variable
-Check that `VEBA_DATABASE` environment variable is set. If not, then add to ~/.bash_profile: `export VEBA_DATABASE=/path/to/veba_database`
-```
-___________________________________________________________________
-
 
 #### Development
 VEBA is currently under active development. If you are interested in requesting features or wish to report a bug, please post a GitHub issue prefixed with the tag [Feature Request] and [Bug], respectively.
 ___________________________________________________________________
 
+### Installation and databases
+Please refer to the [installation and database guide](install/README.md) for software installation and database configuration.
+
+___________________________________________________________________
+
 ### Modules
+[![Schematic](images/Schematic.png)](images/Schematic.pdf)
 
 * **preprocess** – Fastq quality trimming, adapter removal, decontamination, and read statistics calculations
 
