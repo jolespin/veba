@@ -64,8 +64,8 @@ echo ". .. ... ..... ........ ............."
 echo "v * Processing Microeukaryotic MMSEQS2 database"
 echo ". .. ... ..... ........ ............."
 # Download from FigShare
-mkdir -v -p ${DATABASE_DIRECTORY}/Classify/Microeukaryotic
-tar xvzf ${DATABASE_DIRECTORY}/Microeukaryotic.tar.gz -C ${DATABASE_DIRECTORY}/Classify
+wget -v -O Microeukaryotic.tar.gz https://figshare.com/ndownloader/files/34929255
+tar xvzf Microeukaryotic.tar.gz -C ${DATABASE_DIRECTORY}/Classify
 mmseqs createdb ${DATABASE_DIRECTORY}/Classify/Microeukaryotic/reference.rmdup.iupac.relabeled.no_deprecated.complete_lineage.faa.gz ${DATABASE_DIRECTORY}/Classify/Microeukaryotic/microeukaryotic
 rm -rf ${DATABASE_DIRECTORY}/Microeukaryotic.tar.gz
 
@@ -73,7 +73,7 @@ rm -rf ${DATABASE_DIRECTORY}/Microeukaryotic.tar.gz
 echo ". .. ... ..... ........ ............."
 echo "vi * Processing profile HMM marker sets"
 echo ". .. ... ..... ........ ............."
-wget -v -O MarkerSets.tar.gz https://ndownloader.figshare.com/files/34844712
+wget -v -O MarkerSets.tar.gz https://figshare.com/ndownloader/files/36201486
 tar xvzf MarkerSets.tar.gz -C ${DATABASE_DIRECTORY}
 rm -rf MarkerSets.tar.gz
 
