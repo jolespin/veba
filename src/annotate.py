@@ -516,7 +516,7 @@ def main(args=None):
 
     # Databases
     parser_databases = parser.add_argument_group('Database arguments')
-    parser_databases.add_argument("--veba_database", type=str, default=None, help=f"VEBA database location.  [Default: $VEBA_DATABASE environment variable]")
+    parser_databases.add_argument("--veba_database", type=str,  help=f"VEBA database location.  [Default: $VEBA_DATABASE environment variable]")
     # parser_databases.add_argument("--database_nr", type=str, default=DATABASE_NR, help=f"NCBI's NR database [Default: {DATABASE_NR}]")
     # parser_databases.add_argument("--database_pfam", type=str, default=DATABASE_PFAM, help=f"PFAM HMM database [Default: {DATABASE_PFAM}]")
     # parser_databases.add_argument("--database_kofam", type=str, default=DATABASE_KOFAM, help=f"KEGG's KOFAM database [Default: {DATABASE_KOFAM}]")
@@ -548,7 +548,6 @@ def main(args=None):
     # Database
     if opts.veba_database is None:
         assert "VEBA_DATABASE" in os.environ, "Please set the following environment variable 'export VEBA_DATABASE=/path/to/veba_database' or provide path to --veba_database"
-    else:
         opts.veba_database = os.environ["VEBA_DATABASE"]
 
     opts.database_nr = os.path.join(opts.veba_database, "Annotate", "nr", "nr.dmnd")

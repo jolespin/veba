@@ -526,7 +526,7 @@ def main(args=None):
 
     # Databases
     parser_databases = parser.add_argument_group('Database arguments')
-    parser_databases.add_argument("--veba_database", type=str, default=None, help=f"VEBA database location.  [Default: $VEBA_DATABASE environment variable]")
+    parser_databases.add_argument("--veba_database", type=str,  help=f"VEBA database location.  [Default: $VEBA_DATABASE environment variable]")
     # parser_databases.add_argument("--eukaryotic_database", type=str, default=DATABASE_EUKARYOTIC, help="Database | path/to/eukaryotic_database (e.g. --arg 1 ) [Default: {}]".format(DATABASE_EUKARYOTIC))
     # parser_databases.add_argument("--hmms", type=str, default=os.path.join(DATABASE_EUKARYOTIC, "hmms", "eukaryota_odb10.hmm"), help="Core HMMs for HMMER's hmmsearch [Default: {}]".format(os.path.join(DATABASE_EUKARYOTIC, "hmms", "eukaryota_odb10.hmm"))) # 
     # parser_databases.add_argument("--scores_cutoff", default=os.path.join(DATABASE_EUKARYOTIC, "hmms", "eukaryota_odb10.scores_cutoff.tsv.gz"), help="Tab-separated value file with [id_query]<tab>[score] [Default: {}]".format(os.path.join(DATABASE_EUKARYOTIC, "hmms", "eukaryota_odb10.scores_cutoff.tsv.gz")))
@@ -548,7 +548,6 @@ def main(args=None):
     # Database
     if opts.veba_database is None:
         assert "VEBA_DATABASE" in os.environ, "Please set the following environment variable 'export VEBA_DATABASE=/path/to/veba_database' or provide path to --veba_database"
-    else:
         opts.veba_database = os.environ["VEBA_DATABASE"]
     opts.eukaryotic_database = os.path.join(opts.veba_database, "Classify", "Microeukaryotic")
     opts.hmms = os.path.join(opts.veba_database, "MarkerSets", "eukaryota_odb10.hmm")

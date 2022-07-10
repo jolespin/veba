@@ -376,7 +376,7 @@ def main(args=None):
 
     # Databases
     parser_databases = parser.add_argument_group('Database arguments')
-    parser_databases.add_argument("--veba_database", type=str, default=None, help=f"VEBA database location.  [Default: $VEBA_DATABASE environment variable]")
+    parser_databases.add_argument("--veba_database", type=str,  help=f"VEBA database location.  [Default: $VEBA_DATABASE environment variable]")
 
     # # CheckV
     # parser_checkv = parser.add_argument_group('CheckV arguments')
@@ -397,7 +397,6 @@ def main(args=None):
     # Database
     if opts.veba_database is None:
         assert "VEBA_DATABASE" in os.environ, "Please set the following environment variable 'export VEBA_DATABASE=/path/to/veba_database' or provide path to --veba_database"
-    else:
         opts.veba_database = os.environ["VEBA_DATABASE"]
     opts.checkv_database = os.path.join(opts.veba_database, "Classify", "CheckV")
 
