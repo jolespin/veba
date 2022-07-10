@@ -102,8 +102,20 @@ wget -v -P ${DATABASE_DIRECTORY} https://ftp.ncbi.nlm.nih.gov/blast/db/FASTA/nr.
 diamond makedb --in ${DATABASE_DIRECTORY}/nr.gz --db ${DATABASE_DIRECTORY}/Annotate/nr.dmnd --taxonmap ${DATABASE_DIRECTORY}/Classify/NCBITaxonomy/prot.accession2taxid.FULL.gz --taxonnodes ${DATABASE_DIRECTORY}/Classify/NCBITaxonomy/nodes.dmp --taxonnames ${DATABASE_DIRECTORY}/Classify/NCBITaxonomy/names.dmp
 rm -rf ${DATABASE_DIRECTORY}/nr.gz
 
+# Contamination
 echo ". .. ... ..... ........ ............."
-echo "x * Adding the following environment variable to VEBA environments: export VEBA_DATABASE=${1}"
+echo "ix * Processing contamination databases"
+echo ". .. ... ..... ........ ............."
+mkdir -v -p ${DATABASE_DIRECTORY}/Contamination
+mkdir -v -p ${DATABASE_DIRECTORY}/Contamination/grch38
+# mkdir -v -p ${DATABASE_DIRECTORY}/Contamination/antifam
+mkdir -v -p ${DATABASE_DIRECTORY}/Contamination/kmers
+wget -v -O ${DATABASE_DIRECTORY}/Contamination/ribokmers.fa.gz https://figshare.com/ndownloader/files/36220587
+wget -v -P ${DATABASE_DIRECTORY} https://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/000/001/405/GCF_000001405.40_GRCh38.p14/GRCh38_major_release_seqs_for_alignment_pipelines/GCA_000001405.15_GRCh38_no_alt_analysis_set.fna.bowtie_index.tar.gz
+tar xvzf ${DATABASE_DIRECTORY}/GCA_000001405.15_GRCh38_no_alt_analysis_set.fna.bowtie_index.tar.gz -C ${DATABASE_DIRECTORY}/Contamination/grch38
+
+echo ". .. ... ..... ........ ............."
+echo "xi * Adding the following environment variable to VEBA environments: export VEBA_DATABASE=${1}"
 # CONDA_BASE=$(which conda | python -c "import sys; print('/'.join(sys.stdin.read().split('/')[:-2]))")
 CONDA_BASE=$(conda run -n base bash -c "echo \${CONDA_PREFIX}")
 
@@ -119,7 +131,7 @@ for ENV_PREFIX in ${CONDA_BASE}/envs/VEBA-*; do
 
 #GTDB-Tk
 echo ". .. ... ..... ........ ............."
-echo "xi * Adding the following environment variable to VEBA environments: export GTDBTK_DATA_PATH=${REALPATH_DATABASE_DIRECTORY}/Classify/GTDBTk/"
+echo "xii * Adding the following environment variable to VEBA environments: export GTDBTK_DATA_PATH=${REALPATH_DATABASE_DIRECTORY}/Classify/GTDBTk/"
 for ENV_PREFIX in VEBA-binning-prokaryotic_env VEBA-classify-prokaryotic_env; do 
     # GTDBTK_DATABASE_VERSION=$(ls ${REALPATH_DATABASE_DIRECTORY}/Classify/GTDBTk)
     echo "export GTDBTK_DATA_PATH=${REALPATH_DATABASE_DIRECTORY}/Classify/GTDBTk/}" >> ${ENV_PREFIX}/etc/conda/activate.d/veba.sh
@@ -127,7 +139,7 @@ for ENV_PREFIX in VEBA-binning-prokaryotic_env VEBA-classify-prokaryotic_env; do
 
 # CheckV
 echo ". .. ... ..... ........ ............."
-echo "xii * Adding the following environment variable to VEBA environments: export CHECKVDB=${REALPATH_DATABASE_DIRECTORY}/Classify/CheckV}"
+echo "xiii * Adding the following environment variable to VEBA environments: export CHECKVDB=${REALPATH_DATABASE_DIRECTORY}/Classify/CheckV}"
 for ENV_PREFIX in VEBA-binning-viral_env; do 
     echo "export CHECKVDB=${REALPATH_DATABASE_DIRECTORY}/Classify/CheckV}" >> ${ENV_PREFIX}/etc/conda/activate.d/veba.sh
     echo "unset CHECKVDB" >> ${ENV_PREFIX}/etc/conda/activate.d/veba.sh
