@@ -138,7 +138,7 @@ Please cite the following sources if these marker sets are used in any way:
 
 
 #### Version Notes:
-* The only mandatory datbase version is `R202` for `GTDBTk` because `VEBA` is built on `v1.5.0 ≤ GTDBTk ≤ v1.70`.  The next major update will update to `GTDBTk v2.1.0` and the associated `R207_v2` database.
+* The only mandatory datbase version is `R202` for `GTDBTk` because `VEBA` is built on `v1.5.0 ≤ GTDBTk ≤ v1.70`.  The next major `VEBA` update will upgrade to `GTDBTk v2.1.0` and the associated `R207_v2` database.
 * The `nr.dmnd` should be built using NCBI's taxonomy info.  The `download_database.sh` takes care of this but if you are using a prebuilt `nr.dmnd` database then use following command for reference: `diamond makedb --in ${DATABASE_DIRECTORY}/nr.gz --db ${DATABASE_DIRECTORY}/Annotate/nr.dmnd --taxonmap ${DATABASE_DIRECTORY}/Classify/NCBITaxonomy/prot.accession2taxid.FULL.gz --taxonnodes ${DATABASE_DIRECTORY}/Classify/NCBITaxonomy/nodes.dmp --taxonnames ${DATABASE_DIRECTORY}/Classify/NCBITaxonomy/names.dmp`
 * The NCBI taxonomy should be downloaded on the same date as NR to make sure the identifiers match up between datasets.  NCBI deprecates taxonomy identifiers and adds new ones between versions so downloading on the same day should minimize that discrepancy.  One caveat NCBI NR and taxonomy databases is the versioning is difficult to discern.
 * For the human contamination, if you use `KneadData` and already have a `Bowtie2` index for human then you can use that instead.  The only module that uses this is `preprocess.py` and you have to specify this directly when running (i.e., it's optional) so it doesn't matter if it's in the database directory or not (same with ribokmers.fa.gz). 
