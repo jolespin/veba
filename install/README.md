@@ -7,6 +7,10 @@ The basis for these environments is creating a separate environment for each mod
 
 The majority of the time taken to build database is decompressing large archives, Diamond database creation of NR, and MMSEQS2 database creation of microeukaryotic protein database.
 
+Total size is 369G but if you have certain databases installed already then you can just symlink them. 
+
+
+
 ```
 # Download repository
 git clone https://github.com/jolespin/veba/
@@ -22,13 +26,14 @@ conda activate VEBA-database_env
 bash download_databases.sh /path/to/veba_database
 
 # Environment variable
-Check that `VEBA_DATABASE` environment variable is set. If not, then add it manually to ~/.bash_profile: `export VEBA_DATABASE=/path/to/veba_database`
+# Check that `VEBA_DATABASE` environment variable is set. If not, then add it manually to ~/.bash_profile: `export VEBA_DATABASE=/path/to/veba_database`
 
 ```
 
 #### Database Structure:
 ```
 tree -L 3 .
+.
 .
 ├── ACCESS_DATE
 ├── Annotate
@@ -91,6 +96,16 @@ tree -L 3 .
 │       ├── readme.txt
 │       ├── taxa.sqlite
 │       └── taxa.sqlite.traverse.pkl
+├── Contamination
+│   ├── grch38
+│   │   ├── GCA_000001405.15_GRCh38_no_alt_analysis_set.fna.bowtie_index.1.bt2
+│   │   ├── GCA_000001405.15_GRCh38_no_alt_analysis_set.fna.bowtie_index.2.bt2
+│   │   ├── GCA_000001405.15_GRCh38_no_alt_analysis_set.fna.bowtie_index.3.bt2
+│   │   ├── GCA_000001405.15_GRCh38_no_alt_analysis_set.fna.bowtie_index.4.bt2
+│   │   ├── GCA_000001405.15_GRCh38_no_alt_analysis_set.fna.bowtie_index.rev.1.bt2
+│   │   └── GCA_000001405.15_GRCh38_no_alt_analysis_set.fna.bowtie_index.rev.2.bt2
+│   └── kmers
+│       └── ribokmers.fa.gz
 └── MarkerSets
     ├── Archaea_76.hmm
     ├── Bacteria_71.hmm
@@ -101,7 +116,7 @@ tree -L 3 .
     ├── Protista_83.hmm
     └── README
 
-30 directories, 40 files
+33 directories, 47 files
 ```
 
 #### Profile HMM Sources:
@@ -120,3 +135,15 @@ Please cite the following sources if these marker sets are used in any way:
 
 * eukaryota_odb10 - (BUSCO) https://busco-data.ezlab.org/v5/data/lineages/eukaryota_odb10.2020-09-10.tar.gz
 ```
+
+
+#### Version Notes:
+* The only mandatory datbase version is `R202` for `GTDBTk` because `VEBA` is built on `v1.5.0 ≤ GTDBTk ≤ v1.70`.  The next major update will update to `GTDBTk v2.1.0` and the associated `R207_v2` database.
+* The `nr.dmnd` should be built using NCBI's taxonomy info.  The `download_database.sh` takes care of this but if you are using a prebuilt `nr.dmnd` database then use following command for reference: `diamond makedb --in ${DATABASE_DIRECTORY}/nr.gz --db ${DATABASE_DIRECTORY}/Annotate/nr.dmnd --taxonmap ${DATABASE_DIRECTORY}/Classify/NCBITaxonomy/prot.accession2taxid.FULL.gz --taxonnodes ${DATABASE_DIRECTORY}/Classify/NCBITaxonomy/nodes.dmp --taxonnames ${DATABASE_DIRECTORY}/Classify/NCBITaxonomy/names.dmp`
+* The NCBI taxonomy should be downloaded on the same date as NR to make sure the identifiers match up between datasets.  NCBI deprecates taxonomy identifiers and adds new ones between versions so downloading on the same day should minimize that discrepancy.  One caveat NCBI NR and taxonomy databases is the versioning is difficult to discern.
+* For the human contamination, if you use `KneadData` and already have a `Bowtie2` index for human then you can use that instead.  The only module that uses this is `preprocess.py` and you have to specify this directly when running (i.e., it's optional) so it doesn't matter if it's in the database directory or not (same with ribokmers.fa.gz). 
+* `CheckM` and `CheckV` only have 1 database version at this time so it isn't an issue. 
+* `KOFAM` and `Pfam` just uses these as annotations so any version should work perfectly.
+* Again, if you are low on disk space and already have these installed then just symlink them with the structure above. If so, them just comment out those sections of `download_databases.sh`.  
+
+If you have any issues, please create a GitHub issue with the prefix `[DATABASE]` followed by the question.
