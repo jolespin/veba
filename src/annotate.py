@@ -551,7 +551,7 @@ def main(args=None):
         opts.veba_database = os.environ["VEBA_DATABASE"]
 
     opts.database_nr = os.path.join(opts.veba_database, "Annotate", "nr", "nr.dmnd")
-    opts.database_pfam = os.path.join(opts.veba_database, "Annotate", "Pfam", "Pfam-A.full.gz")
+    opts.database_pfam = os.path.join(opts.veba_database, "Annotate", "Pfam", "Pfam-A.hmm.gz")
     opts.database_kofam = os.path.join(opts.veba_database, "Annotate", "KOFAM")
     opts.database_taxa = os.path.join(opts.veba_database, "Classify", "NCBITaxonomy", "taxa.sqlite")
 

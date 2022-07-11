@@ -91,7 +91,7 @@ echo ". .. ... ..... ........ ............."
 echo "viii * Processing Pfam profile HMM marker sets"
 echo ". .. ... ..... ........ ............."
 mkdir -v -p ${DATABASE_DIRECTORY}/Annotate/Pfam
-wget -v -P ${DATABASE_DIRECTORY}/Annotate/Pfam http://ftp.ebi.ac.uk/pub/databases/Pfam/current_release/Pfam-A.full.gz
+wget -v -P ${DATABASE_DIRECTORY}/Annotate/Pfam http://ftp.ebi.ac.uk/pub/databases/Pfam/current_release/Pfam-A.hmm.gz
 
 # NCBI non-redundant
 echo ". .. ... ..... ........ ............."
