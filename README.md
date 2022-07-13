@@ -22,7 +22,8 @@ Please refer to the [*Installation and Database Configuration Guide*](install/RE
 
 ___________________________________________________________________
 
-#### Output structure
+
+### Output structure
 *VEBA*'s is built on the [GenoPype](https://github.com/jolespin/veba) archituecture which creates a reproducible and easy-to-navigate directory structure.  *GenoPype*'s philosophy is to use the same names for all files but to have sample names as subdirectories.  This makes it easier to glob files for grepping, concatenating, etc.  *VEBA* 
 e.g., 
 
@@ -86,7 +87,7 @@ ___________________________________________________________________
 ### Modules
 [![Schematic](images/Schematic.png)](images/Schematic.pdf)
 
-* [**preprocess** – Fastq quality trimming, adapter removal, decontamination, and read statistics calculations](https://github.com/jolespin/veba#preprocess--fastq-quality-trimming-adapter-removal-decontamination-and-read-statistics-calculations)
+* **preprocess** – Fastq quality trimming, adapter removal, decontamination, and read statistics calculations
 
 * **assembly** – Assemble reads, align reads to assembly, and count mapped reads
 

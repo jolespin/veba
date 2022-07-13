@@ -136,6 +136,13 @@ Please cite the following sources if these marker sets are used in any way:
 * eukaryota_odb10 - (BUSCO) https://busco-data.ezlab.org/v5/data/lineages/eukaryota_odb10.2020-09-10.tar.gz
 ```
 
+Espinoza, Josh (2022): Profile HMM marker sets. figshare. Dataset. https://doi.org/10.6084/m9.figshare.19616016.v1 
+
+#### Microeukaryotic protein database:
+A protein database is required not only for eukaryotic gene calls using MetaEuk but can also be used for MAG annotation.  Many eukaryotic protein databases exist such as MMETSP, EukZoo, and EukProt, yet these are limited to marine environments, include prokaryotic sequences, or include eukaryotic sequences for organisms that would not be expected to be binned out of metagenomes such as metazoans.  We combined and dereplicated MMETSP, EukZoo, EukProt, and NCBI non-redundant to include only microeukaryotes such as protists and fungi.  This optimized microeukaryotic database ensures that only eukaryotic exons expected to be represented in metagenomes are utilized for eukaryotic gene modeling and the resulting MetaEuk reference targets are used for eukaryotic MAG classification.  VEBA’s microeukaryotic protein database includes 48,006,918 proteins from 42,922 microeukaryotic strains.  
+
+Espinoza, Josh (2022): Microeukaryotic Protein Database. figshare. Dataset. https://doi.org/10.6084/m9.figshare.19668855.v1 
+
 
 #### Version Notes:
 * The only mandatory datbase version is `R202` for `GTDBTk` because `VEBA` is built on `v1.5.0 ≤ GTDBTk ≤ v1.70`.  The next major `VEBA` update will upgrade to `GTDBTk v2.1.0` and the associated `R207_v2` database.
