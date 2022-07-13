@@ -86,7 +86,7 @@ ___________________________________________________________________
 ### Modules
 [![Schematic](images/Schematic.png)](images/Schematic.pdf)
 
-* **preprocess** – Fastq quality trimming, adapter removal, decontamination, and read statistics calculations
+* [**preprocess** – Fastq quality trimming, adapter removal, decontamination, and read statistics calculations](#preprocess--fastq-quality-trimming-adapter-removal-decontamination-and-read-statistics-calculations)
 
 * **assembly** – Assemble reads, align reads to assembly, and count mapped reads
 
