@@ -1141,8 +1141,7 @@ Identifier arguments:
 * unmapped_2.fastq.gz - Unmapped reads (reverse)
 
 
-<details open>
-<summary>**References:**</summary>
+**References:**
 
 Alneberg, J., Bjarnason, B.S., De Bruijn, I., Schirmer, M., Quick, J., Ijaz, U.Z., Lahti, L., Loman, N.J., Andersson, A.F., and Quince, C. (2014). Binning metagenomic contigs by coverage and composition. Nat. Methods 11, 1144–1146.
 
@@ -1219,4 +1218,3 @@ West, P.T., Probst, A.J., Grigoriev, I. V., Thomas, B.C., and Banfield, J.F. (20
 
 Wu, Y.-W., Simmons, B.A., and Singer, S.W. (2016). MaxBin 2.0: an automated binning algorithm to recover genomes from multiple metagenomic datasets. Bioinformatics 32, 605–607.
 
-</details>
