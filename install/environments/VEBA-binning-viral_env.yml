@@ -1,11 +1,9 @@
 name: VEBA-binning-viral_env
 channels:
   - jolespin
-  - bioconda
   - conda-forge
   - defaults
-  - etetoolkit
-  - r
+  - bioconda
 dependencies:
   - _libgcc_mutex=0.1=conda_forge
   - _openmp_mutex=4.5=1_gnu
@@ -23,9 +21,9 @@ dependencies:
   - bz2file=0.98=py_0
   - bzip2=1.0.8=h7f98852_4
   - c-ares=1.18.1=h7f98852_0
-  - ca-certificates=2021.10.8=ha878542_0
+  - ca-certificates=2022.6.15=ha878542_0
   - cairo=1.16.0=ha12eb4b_1010
-  - certifi=2021.10.8=py38h578d9bd_2
+  - certifi=2022.6.15=py38h578d9bd_0
   - cffi=1.15.0=py38h3931269_0
   - charset-normalizer=2.0.12=pyhd8ed1ab_0
   - checkv=0.8.1=pyhdfd78af_1
@@ -212,6 +210,7 @@ dependencies:
   - six=1.16.0=pyh6c4a22f_0
   - soothsayer_utils=2022.2.9=py_0
   - sqlite=3.38.0=hc218d9a_0
+  - subread=2.0.1=h7132678_2
   - sysroot_linux-64=2.12=he073ed8_15
   - tk=8.6.12=h27826a3_0
   - tktable=2.10=hb7b940f_3
@@ -236,3 +235,4 @@ dependencies:
   - zipp=3.7.0=pyhd8ed1ab_1
   - zlib=1.2.11=h36c2ea0_1013
   - zstd=1.5.2=ha95c52a_0
+prefix: /expanse/projects/jcl110/anaconda3/envs/VEBA-binning-viral_env

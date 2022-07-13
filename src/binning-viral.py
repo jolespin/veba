@@ -13,7 +13,7 @@ from soothsayer_utils import *
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2022.7.8"
+__version__ = "2022.7.13"
 
 
 # # VirSorter2
@@ -701,6 +701,7 @@ def add_executables_to_environment(opts):
                 "prodigal",
                 "checkv",
                 "seqkit",
+                "featureCounts",
      } | accessory_scripts
 
     if opts.path_config == "CONDA_PREFIX":
@@ -807,6 +808,10 @@ def main(args=None):
     parser_virus.add_argument("--checkv_completeness", type=float, default=50.0, help = "Minimum completeness [Default: 50.0]")
     parser_virus.add_argument("--checkv_quality", type=str, default="High-quality,Medium-quality,Complete", help = "Comma-separated string of acceptable arguments between {High-quality,Medium-quality,Complete} [Default: High-quality,Medium-quality,Complete]")
     parser_virus.add_argument("--miuvig_quality", type=str, default="High-quality,Medium-quality,Complete", help = "Comma-separated string of acceptable arguments between {High-quality,Medium-quality,Complete} [Default: High-quality,Medium-quality,Complete]")
+
+    # featureCounts
+    parser_featurecounts = parser.add_argument_group('featureCounts arguments')
+    parser_featurecounts.add_argument("--featurecounts_options", type=str, default="", help="featureCounts | More options (e.g. --arg 1 ) [Default: ''] | http://bioinf.wehi.edu.au/featureCounts/")
 
     # Options
     opts = parser.parse_args()

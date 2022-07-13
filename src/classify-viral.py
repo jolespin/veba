@@ -15,7 +15,7 @@ from soothsayer_utils import *
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2022.7.8"
+__version__ = "2022.7.13"
 
 
 # Preprocess
@@ -87,7 +87,7 @@ def get_consensus_source_cmd( input_filepaths, output_filepaths, output_director
         "&&",
         "mv {} {}".format(
             os.path.join(output_directory, "unifunc_output", "consensus_annotations.tsv"),
-            os.path.join(output_directory,  "consensus_source_classification.tsv"),
+            os.path.join(output_directory,  "viral_isolation_source.clusters.tsv"),
         ),
         "&&",
         os.path.join(directories["tmp"], "source.tsv"),
@@ -274,7 +274,7 @@ def create_pipeline(opts, directories, f_cmds):
             os.path.join(directories["output"], "viral_taxonomy.tsv"),
             opts.clusters,
             ]
-        output_filenames = ["consensus_genome_classification.tsv"]
+        output_filenames = ["viral_taxonomy.clusters.tsv"]
         output_filepaths = list(map(lambda filename: os.path.join(output_directory, filename), output_filenames))
 
         params = {
@@ -317,7 +317,7 @@ def create_pipeline(opts, directories, f_cmds):
             os.path.join(directories["output"], "viral_taxonomy.tsv"),
             opts.clusters,
             ]
-        output_filenames = ["consensus_source_classification.tsv"]
+        output_filenames = ["viral_isolation_source.clusters.tsv"]
         output_filepaths = list(map(lambda filename: os.path.join(output_directory, filename), output_filenames))
 
         params = {
