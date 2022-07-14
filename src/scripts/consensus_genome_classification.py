@@ -9,7 +9,7 @@ import numpy as np
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2022.02.02"
+__version__ = "2022.7.13"
 
 # RANK_TO_PREFIX="superkingdom:d__,phylum:p__,class:c__,order:o__,family:f__,genus:g__,species:s__"
 
@@ -140,6 +140,7 @@ def main(args=None):
     parser.add_argument("-r", "--rank_prefixes", type=str, default=RANK_PREFIXES, help = "Rank prefixes separated by , delimiter'\n[Default: {}]".format(RANK_PREFIXES))
     parser.add_argument("-d", "--delimiter", type=str, default=";", help = "Taxonomic delimiter [Default: ; ]")
     parser.add_argument("-s", "--simple", action="store_true", help = "Simple classification that does not use lineage information from --rank_prefixes")
+    parser.add_argument("--remove_missing_classifications", action="store_true", help = "Remove all classifications and weights that are  null.  For viruses this could cause an error if this isn't selected.")
 
     # Options
     opts = parser.parse_args()
@@ -163,7 +164,10 @@ def main(args=None):
     mag_to_slc = df_input.iloc[:,0]
     mag_to_classification = df_input.iloc[:,1]
     mag_to_weights = df_input.iloc[:,2]
-
+    if  opts.remove_missing_classifications:
+        mag_to_classification = mag_to_classification.dropna()
+        mag_to_weights = mag_to_weights[mag_to_classification.index]
+        
     # Consensus classification
     df_consensus_classification = get_consensus_classification(
         classification=mag_to_classification, 

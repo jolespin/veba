@@ -57,6 +57,7 @@ def get_consensus_genome_cmd( input_filepaths, output_filepaths, output_director
         "|",
         os.environ["consensus_genome_classification.py"],
         "--leniency 1",
+        "--remove_missing_classifications",
         "-o {}".format(output_filepaths[0]),
         "--simple",
     ]
