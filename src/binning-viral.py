@@ -262,9 +262,14 @@ def get_featurecounts_cmd(input_filepaths, output_filepaths, output_directory, d
     cmd = [
     "mkdir -p {}".format(os.path.join(directories["tmp"], "featurecounts")),
     "&&",
+    "cat",
+    os.path.join(directories[("intermediate",  "2__checkv")],"filtered", "genomes","*.gff"),
+    ">",
+    os.path.join(directories["tmp"], "featurecounts", "gene_models.gff"),
+    "&&",
         os.environ["featureCounts"],
         "-G {}".format(input_filepaths[0]),
-        "-a {}".format(input_filepaths[1]),
+        "-a {}".format(os.path.join(directories["tmp"], "featurecounts", "gene_models.gff")),
         "-o {}".format(os.path.join(output_directory, "featurecounts.orfs.tsv")),
         "-F GTF",
         "--tmpDir {}".format(os.path.join(directories["tmp"], "featurecounts")),
@@ -275,6 +280,9 @@ def get_featurecounts_cmd(input_filepaths, output_filepaths, output_directory, d
         " ".join(opts.bam),
     "&&",
     "gzip -f {}".format(os.path.join(output_directory, "featurecounts.orfs.tsv")),
+    "&&",
+    "rm -rf {}".format(os.path.join(directories["tmp"], "featurecounts","*" )),
+
     ]
     return cmd
 
@@ -568,7 +576,7 @@ def create_pipeline(opts, directories, f_cmds):
         # i/o
         input_filepaths = [ 
             opts.fasta,
-            os.path.join(directories[("intermediate",  "3__prodigal")], "gene_models.gff"),
+            os.path.join(directories[("intermediate",  "2__checkv")], "filtered","genomes","*.gff"),
             *opts.bam,
         ]
 
