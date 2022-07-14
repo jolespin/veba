@@ -43,7 +43,7 @@ tree -L 3 .
 │   ├── nr
 │   │   └── nr.dmnd
 │   └── Pfam
-│       └── Pfam-A.full.gz
+│       └── Pfam-A.hmm.gz
 ├── Classify
 │   ├── CheckM
 │   │   ├── distributions
