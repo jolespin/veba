@@ -1,5 +1,6 @@
 # Development:
 # ============
+* [2022.07.14] - Added `genome_coverage_from_spades.py` script to help with coverage calculations for NCBI submissions.
 * [2022.07.13] - Added output files to documentation readme.  Also added subread to viral binning environment and changed the output filenames for viral classification.
 * [2022.07.08] - Fixed database arguments to use --veba_database. Also added --bam support for binning-viral.py
 * [2022.06.21] - Added `prefiltered_alignment_table.tsv.gz` to `phylogeny.py` and `merge_msa.py` for debugging and finding a balance between removing genomes and removing markers. Changed `samples` and `number_of_samples` to `genomes` and `number_of_genomes` in `merge_msa.py`. Also added `minimum_markers_aligned_ratio` to remove poor quality genomes.
@@ -20,14 +21,11 @@
 ==========
 * Automate feature compression ratios in cluster.py
 * end_to_end? [preprocess] -> [assembly] -> [bin prok] -> [bin viral] -> [cluster] -> [classify] -> [annotate]
-* Make database installation script
-* Find a place to host the database
-* Make method for combining unbinned contigs and doing a coassembly
-* Add cluster to classify modules. Right now they aren't automated to handle it. 
+* Switch to GTDBTk2 and CheckM2
 
 # Binning
 # =======
-* Starts over at step 13? Realized this was because the checkpoints weren't being created when the error code wasn't 0. Not all steps are expected to finish properly because the pipeline is iterative and at a certain point there shouldn't be any bins to find. To get around this 
+* Starts over at step 13? Realized this was because the checkpoints weren't being created when the error code wasn't 0. Not all steps are expected to finish properly because the pipeline is iterative and at a certain point there shouldn't be any bins to find.  
 * Add MAG level counts
 * Make a wrapper that does coassembly binning but then splits out the bins into individual samples like in VAMB
 * Need to replace the grep -v with non-eukaryota.list for final scaffolds_to_bins.tsv in binning-eukaryotic with subset_table.py using --inverse because sometimes it is returned as empty when list of contigs is large
@@ -43,7 +41,7 @@ https://github.com/alexdobin/STAR/issues/867
 # Cluster
 # =======
 * Add Anvi'o pangeome for each cluster
-* Make the `identifier_mapping.orthogroups.tsv` contain all the ORFs even if they don't have orthogroups
+
 
 # Classify
 # ========
@@ -51,15 +49,8 @@ https://github.com/alexdobin/STAR/issues/867
 
 # Annotate 
 # =========
-* Adapt command scripts to only use binned proteins. The reason for this is because the it will include ORFs from unbinned contigs but the unbinned contigs are used for the viral MAGs. 
-* Add an annotate script that annotates orthogroups
 * If --identifier_mapping is `[id_orf]<tab>[id_contig]<tab>[id_mag]<tab>[id_orthogroup] then it does consensus annotations for orthogroups using UniFunc
 
-# =========
-# Phylogeny
-# =========
-* How to find representative if clustering is given?
-* Make output step
 
 # New Modules
 # ===========
