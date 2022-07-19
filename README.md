@@ -23,7 +23,7 @@ Please refer to the [*Installation and Database Configuration Guide*](install/RE
 ___________________________________________________________________
 ### Getting started with *VEBA*
 
-Please refer to [*Walkthrough Guides*](walkthroughs/README.md) for tutorials and workflows on how to get started.
+Please refer to the *Walkthrough Guides*](walkthroughs/README.md) for tutorials and workflows on how to get started.
 
 ___________________________________________________________________
 
