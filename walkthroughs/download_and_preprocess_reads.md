@@ -29,6 +29,7 @@ cat identifiers.list
 
 <details open>
 <summary>Output:</summary>
+
 ```
 SRR17458603
 SRR17458604
@@ -75,6 +76,7 @@ SRR17458644
 SRR17458645
 SRR17458646
 ```
+
 </details>
 
 #### 3. Create a directory for the raw Fastq reads and download the sequences from NCBI
