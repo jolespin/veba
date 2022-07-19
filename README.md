@@ -13,12 +13,17 @@ Espinoza et al. (In review)
 
 ___________________________________________________________________
 
-#### Development
+### Development
 VEBA is currently under active development. If you are interested in requesting features or wish to report a bug, please post a GitHub issue prefixed with the tag [Feature Request] and [Bug], respectively.
 ___________________________________________________________________
 
 ### Installation and databases
 Please refer to the [*Installation and Database Configuration Guide*](install/README.md) for software installation and database configuration.
+
+___________________________________________________________________
+### Getting started with *VEBA*
+
+Please refer to [*Walkthrough Guides*](walkthroughs/README.md) for tutorials and workflows on how to get started.
 
 ___________________________________________________________________
 
@@ -317,6 +322,8 @@ featureCounts arguments:
 
 #### binning-prokaryotic – Iterative consensus binning for recovering prokaryotic genomes with lineage-specific quality assessment
 The prokaryotic binning module implements a novel iterative consensus binning procedure that uses CoverM (https://github.com/wwood/CoverM) for fast coverage calculations, multiple binning algorithms (MaxBin2 (marker set = 107); MaxBin2 (marker set = 40) (Wu et al., 2016); MetaBat2 (Kang et al., 2019); and CONCOCT (Alneberg et al., 2014), consensus dereplication and aggregate binning with DAS Tool (Sieber et al., 2018), the consensus domain wrapper for Tiara (Karlicki et al., 2022) for removing eukaryotes at the MAG level, and CheckM   for quality assessment where poor quality MAGs are removed (e.g., completeness < 50% and/or contamination ≥ 10). The novelty of this procedure is that the unbinned contigs are stored and fed back into the input of the binning procedure using a separate random seed state allowing for an exhaustive, yet effective, approach in extracting high quality and difficult to bin genomes; number of iterations specified by --n\_iter option. Gene calls are performed using Prodigal (Hyatt et al., 2010) and the gene models (GFF3 Format) are modified to include gene and contig identifiers for use with downstream feature counting software. Although CheckM can handle CPR it cannot do so with the typical, and recommended, lineage_wf directly in the current version but instead with a separate workflow. The prokaryotic binning module allows for basal bacteria to filter through intermediate genome quality checks, runs GTDB-Tk (Chaumeil et al., 2020) for genome classification, reruns CheckM CPR workflow for said genomes, and then updates the genome set with adjusted completeness and contamination scores.  The input alignment file is utilized using featureCounts to produce counts tables for the gene models and MAGs.  Lastly, genome statistics such as N50, number of scaffolds, and genome size are calculated using seqkit. Utility scripts, installed with VEBA, are run in the backend to modify prodigal gene models, consensus domain classification of MAGs using Tiara contig predictions, along with several fasta and pre/post-processing scripts. The input to this module is a fasta file (typically the scaffolds.fasta from metaSPAdes) and sorted BAM while the output includes the prokaryotic MAGs via Prodigal, gene models, identifier mappings, counts tables, CheckM output, GTDB-Tk output, and unbinned fasta.  MAG naming scheme for prokaryotes follows [SAMPLE]\_\_\[ALGORITHM\]\_\_P.\[ITERATION\]\_\_\[NAME] (e.g., SRR17458623\_\_METABAT2\_\_P.1\_\_bin.1)
+
+**⚠️Note:** *If you have a lot of samples and a lot of contigs then use the --skip_maxbin2 flag because it takes MUCH longer to run.  For the Plastisphere it was going to take 40 hours per MaxBin2 run (there are 2 MaxBin2 runs) per iteration.  Metabat2 and CONCOCT can do the heavy lifting much faster and often with better results so it's recommended to skip MaxBin2 for larger datasets.*
 
 **Conda Environment**: `conda activate VEBA-binning-prokaryotic_env`
 
@@ -1134,16 +1141,12 @@ Identifier arguments:
 ```
 
 **Output:**
+
 * counts.orfs.tsv.gz - ORF-level counts table
 * counts.scaffolds.tsv.gz - Contig-level counts table
 * mapped.sorted.bam - Sorted BAM file
 * unmapped_1.fastq.gz - Unmapped reads (forward)
 * unmapped_2.fastq.gz - Unmapped reads (reverse)
-
-___________________________________________________________________
-### Workflows
-*Coming soon. .. ... ..... ........ .............*
-
 
 ___________________________________________________________________
 #### References:

@@ -1,11 +1,9 @@
 name: VEBA-preprocess_env
 channels:
   - jolespin
-  - bioconda
   - conda-forge
   - defaults
-  - etetoolkit
-  - r
+  - bioconda
 dependencies:
   - _libgcc_mutex=0.1=conda_forge
   - _openmp_mutex=4.5=1_gnu
@@ -20,6 +18,7 @@ dependencies:
   - boost-cpp=1.77.0=h359cf19_1
   - bowtie2=2.3.5.1=py37he513fc3_0
   - brotlipy=0.7.0=py37h5e8e339_1003
+  - bz2file=0.98=py_0
   - bzip2=1.0.8=h7f98852_4
   - c-ares=1.18.1=h7f98852_0
   - ca-certificates=2021.10.8=ha878542_0
@@ -84,7 +83,6 @@ dependencies:
   - seqkit=0.16.1=h9ee0642_0
   - setuptools=59.8.0=py37h89c1867_0
   - six=1.16.0=pyh6c4a22f_0
-  - soothsayer_utils=2022.2.9=py_0
   - sqlite=3.37.1=h4ff8645_0
   - srprism=2.4.24=h96824bc_3
   - tbb=2020.2=h4bd325d_4
@@ -97,8 +95,8 @@ dependencies:
   - zlib=1.2.11=h36c2ea0_1013
   - zstd=1.5.2=ha95c52a_0
   - pip:
-    - bz2file==0.98
     - charset-normalizer==2.0.4
+    - extern==0.4.1
     - genopype==2020.3.27
     - idna==3.2
     - kingfisher==0.0.1.dev0
@@ -110,3 +108,4 @@ dependencies:
     - tqdm==4.62.0
     - tzlocal==3.0
     - urllib3==1.26.6
+prefix: /expanse/projects/jcl110/anaconda3/envs/VEBA-preprocess_env

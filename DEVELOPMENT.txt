@@ -1,5 +1,6 @@
 # Development:
 # ============
+* [2022.07.14] - Added `--absolute` argument to `compile_reads_table.py` to use absolute paths instead of relative paths.
 * [2022.07.14] - Added `genome_coverage_from_spades.py` script to help with coverage calculations for NCBI submissions.
 * [2022.07.13] - Added output files to documentation readme.  Also added subread to viral binning environment and changed the output filenames for viral classification.
 * [2022.07.08] - Fixed database arguments to use --veba_database. Also added --bam support for binning-viral.py
