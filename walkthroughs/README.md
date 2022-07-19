@@ -1,4 +1,4 @@
-# How to use VEBA
+# Getting started with *VEBA*
 
 #### Basics:
 Since VEBA functionality benefits from structure, it's good to have a list of identifiers that you can use for for-loops. In the examples, it will be the following: `identifiers.list`
