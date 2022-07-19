@@ -29,7 +29,7 @@ Please refer to the [*Walkthrough Guides*](walkthroughs/README.md) for tutorials
 
 ___________________________________________________________________
 
-### Modules
+### *VEBA* Modules
 
 Please refer to the [*Modules*](src/README.md) for a description of all *VEBA* modules and their functionality.
 
@@ -68,8 +68,7 @@ Please refer to the [*Modules*](src/README.md) for a description of all *VEBA* m
 ___________________________________________________________________
 
 ### Output structure
-*VEBA*'s is built on the [GenoPype](https://github.com/jolespin/genopype) archituecture which creates a reproducible and easy-to-navigate directory structure.  *GenoPype*'s philosophy is to use the same names for all files but to have sample names as subdirectories.  This makes it easier to glob files for grepping, concatenating, etc.  *VEBA* 
-e.g., 
+*VEBA*'s is built on the [*GenoPype*](https://github.com/jolespin/genopype) archituecture which creates a reproducible and easy-to-navigate directory structure.  *GenoPype*'s philosophy is to use the same names for all files but to have sample names as subdirectories.  This makes it easier to glob files for grepping, concatenating, etc. 
 
 Here is an example of *GenoPype*'s layout:
 
