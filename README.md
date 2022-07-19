@@ -15,6 +15,8 @@ ___________________________________________________________________
 
 ### Development
 VEBA is currently under active development. If you are interested in requesting features or wish to report a bug, please post a GitHub issue prefixed with the tag [Feature Request] and [Bug], respectively.
+
+For questions please contact me at `jespinoz[A|T]jcvi[DOT]org`
 ___________________________________________________________________
 
 ### Installation and databases
@@ -24,6 +26,44 @@ ___________________________________________________________________
 ### Getting started with *VEBA*
 
 Please refer to the [*Walkthrough Guides*](walkthroughs/README.md) for tutorials and workflows on how to get started.
+
+___________________________________________________________________
+
+### Modules
+
+Please refer to the [*Modules*](src/README.md) for a description of all *VEBA* modules and their functionality.
+
+[![Schematic](images/Schematic.png)](images/Schematic.pdf)
+
+
+* **preprocess** – Fastq quality trimming, adapter removal, decontamination, and read statistics calculations
+
+* **assembly** – Assemble reads, align reads to assembly, and count mapped reads
+
+* **coverage** – Align reads to (concatenated) reference and counts mapped reads
+
+* **binning-prokaryotic** – Iterative consensus binning for recovering prokaryotic genomes with lineage-specific quality assessment
+
+* **binning-eukaryotic** – Binning for recovering eukaryotic genomes with exon-aware gene modeling and lineage-specific quality assessment
+
+* **binning-viral** – Detection of viral genomes and quality assessment
+
+* **classify-prokaryotic** – Taxonomic classification and candidate phyla radiation adjusted quality 
+
+* **classify-eukaryotic** – Taxonomic classification of eukaryotic genomes
+
+* **classify-viral** – Taxonomic classification and isolation source of viral genomes
+
+* **cluster** – Species-level clustering of genomes and lineage-specific orthogroup detection
+
+* **annotate** – Annotates translated gene calls against NR, Pfam, and KOFAM
+
+* **phylogeny** – Constructs phylogenetic trees given a marker set
+
+* **index** – Builds local or global index for alignment to genomes
+ 
+* **mapping** – Aligns reads to local or global index of genomes
+
 
 ___________________________________________________________________
 
@@ -87,44 +127,3 @@ veba_output/binning/viral/${ID}/output/
 ```
 
 The above are default output locations but they can be customized.
-
-___________________________________________________________________
-
-### Modules
-
-Please refer to the [*Modules*](src/README.md) for a description on modules and their functionality.
-
-[![Schematic](images/Schematic.png)](images/Schematic.pdf)
-
-
-* **preprocess** – Fastq quality trimming, adapter removal, decontamination, and read statistics calculations
-
-* **assembly** – Assemble reads, align reads to assembly, and count mapped reads
-
-* **coverage** – Align reads to (concatenated) reference and counts mapped reads
-
-* **binning-prokaryotic** – Iterative consensus binning for recovering prokaryotic genomes with lineage-specific quality assessment
-
-* **binning-eukaryotic** – Binning for recovering eukaryotic genomes with exon-aware gene modeling and lineage-specific quality assessment
-
-* **binning-viral** – Detection of viral genomes and quality assessment
-
-* **classify-prokaryotic** – Taxonomic classification and candidate phyla radiation adjusted quality 
-
-* **classify-eukaryotic** – Taxonomic classification of eukaryotic genomes
-
-* **classify-viral** – Taxonomic classification and isolation source of viral genomes
-
-* **cluster** – Species-level clustering of genomes and lineage-specific orthogroup detection
-
-* **annotate** – Annotates translated gene calls against NR, Pfam, and KOFAM
-
-* **phylogeny** – Constructs phylogenetic trees given a marker set
-
-* **index** – Builds local or global index for alignment to genomes
- 
-* **mapping** – Aligns reads to local or global index of genomes
-
-
-
-

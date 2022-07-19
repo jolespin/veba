@@ -1,6 +1,6 @@
 
 # Modules
-[![Schematic](images/Schematic.png)](../images/Schematic.pdf)
+[![Schematic](../images/Schematic.png)](../images/Schematic.pdf)
 
 * **preprocess** – Fastq quality trimming, adapter removal, decontamination, and read statistics calculations
 
