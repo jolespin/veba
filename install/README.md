@@ -98,6 +98,7 @@ and check that `VEBA_DATABASE` environment variable is set. If not, then add it 
 
 Future versions will have `bioconda` installation available.
 
+____________________________________________________________
 
 
 #### Database Structure:
@@ -188,6 +189,7 @@ tree -L 3 .
 
 33 directories, 47 files
 ```
+____________________________________________________________
 
 #### Profile HMM Sources:
 Please cite the following sources if these marker sets are used in any way:
@@ -213,6 +215,7 @@ A protein database is required not only for eukaryotic gene calls using MetaEuk 
 
 Espinoza, Josh (2022): Microeukaryotic Protein Database. figshare. Dataset. https://doi.org/10.6084/m9.figshare.19668855.v1 
 
+____________________________________________________________
 
 #### Version Notes:
 * The only mandatory datbase version is `R202` for `GTDBTk` because `VEBA` is built on `v1.5.0 ≤ GTDBTk ≤ v1.70`.  The next major `VEBA` update will upgrade to `GTDBTk v2.1.0` and the associated `R207_v2` database.
