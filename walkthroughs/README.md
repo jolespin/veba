@@ -22,7 +22,7 @@ N=preprocessing__${ID}
 	
 CMD="some command we want to run"
 	
-# SunGridEnginer
+# SunGridEngine:
 qsub -o logs/${N}.o -e logs/${N}.e -cwd -N ${N} -j y -pe threaded ${N_JOBS} "${CMD}"
 	
 # SLURM:
