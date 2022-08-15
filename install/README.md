@@ -49,9 +49,12 @@ bash download_databases.sh /path/to/veba_database
 
 **If you submit a scheduled job:**
 
-[If you're unfamiliar with SLURM or SunGridEnginer, we got you.](https://github.com/jolespin/veba/blob/main/walkthroughs/README.md#basics)  Using the `source activate` command requires you to be in `base` conda environment.  You can do this via `conda deactivate` or `conda activate base`. 
+[If you're unfamiliar with SLURM or SunGridEnginer, we got you](https://github.com/jolespin/veba/blob/main/walkthroughs/README.md#basics).  Running `conda activate` on a compute server might prompt you to run `conda init` even if you've already initilized on the head node.  To get around this you can use `source activate [environment]`.  Using the `source activate` command requires you to be in `base` conda environment.  You can do this via `conda deactivate` or `conda activate base` before you submit your job.  Below is an example of how to do this: 
 
 ```
+# Activate your base environment
+conda activate base
+
 # Set the number of threads you want to use.  
 # Keep in mind that not all steps are parallelized (e.g., wget)
 N_JOBS=8 
