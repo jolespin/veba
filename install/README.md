@@ -9,26 +9,93 @@ The majority of the time taken to build database is decompressing large archives
 
 Total size is 369G but if you have certain databases installed already then you can just symlink them. 
 
+____________________________________________________________
 
+**There are 3 steps to install *VEBA*:**
+
+* Download repository from GitHub
+
+* Install conda environments
+
+* Download/configure databases
+
+
+**1. Download repository**
 
 ```
-# Download repository
 git clone https://github.com/jolespin/veba/
 cd veba/install
- 
-# Install VEBA environments 
+``` 
+
+**2. Install VEBA environments**
+This should be relatively quick and does not require grid access.
+```
 bash install_veba.sh
+```
 
-# Activate that database conda environment
-conda activate VEBA-database_env
+**3. Activate the database conda environment, download, and configure databases**
 
-# Download databases (This takes ~9.5 hrs using 8 threads with 128G memory)
-bash download_databases.sh /path/to/veba_database
+⚠️ This step takes ~9.5 hrs using 8 threads with 128G memory and should be run using a compute grid via SLURM or SunGridEngine.  If this command is run on the head node it will likely fail or timeout if a connection is interrupted. The most computationally intensive steps are creating a `Diamond` database of NCBI's non-redundant reference and a `MMSEQS2` database of the microeukaryotic protein database.
 
-# Environment variable
-# Check that `VEBA_DATABASE` environment variable is set. If not, then add it manually to ~/.bash_profile: `export VEBA_DATABASE=/path/to/veba_database`
+If issues arise, please [submit a GitHub issue](https://github.com/jolespin/veba/issues) prefixed with [DATABASE]. We are here to help :)
+
+**If you are running an interactive queue:**
 
 ```
+conda activate VEBA-database_env
+
+bash download_databases.sh /path/to/veba_database
+```
+
+**If you submit a scheduled job:**
+
+[If you're unfamiliar with SLURM or SunGridEnginer, we got you.](https://github.com/jolespin/veba/blob/main/walkthroughs/README.md#basics)  Using the `source activate` command requires you to be in `base` conda environment.  You can do this via `conda deactivate` or `conda activate base`. 
+
+```
+# Set the number of threads you want to use.  
+# Keep in mind that not all steps are parallelized (e.g., wget)
+N_JOBS=8 
+
+# Create a log directory
+mkdir -p logs/
+
+# Set name for log files when running on the grid
+N="database_config"
+
+# Adapt your command to a one-liner
+CMD="source activate VEBA-database_env && bash download_databases.sh /path/to/veba_database"
+	
+# Note: You should either use SunGridEngine or SLURM not both. 
+# You might need to adapt slightly but these worked on our systems.
+
+# SunGridEngine:
+qsub -o logs/${N}.o -e logs/${N}.e -cwd -N ${N} -j y -pe threaded ${N_JOBS} "${CMD}"
+	
+# SLURM:
+sbatch -J ${N} -N 1 -c ${N_JOBS} --ntasks-per-node=1 -o logs/${N}.o -e logs/${N}.e --export=ALL -t 12:00:00 --mem=128 --wrap="${CMD}"
+
+```
+
+You should be done now. If you want to double check the installation and database configuration worked then activate a `VEBA` environment: 
+
+```
+VEBA-annotate_env
+VEBA-assembly_env
+VEBA-binning-eukaryotic_env
+VEBA-binning-prokaryotic_env
+VEBA-binning-viral_env
+VEBA-classify_env
+VEBA-cluster_env
+VEBA-database_env
+VEBA-mapping_env
+VEBA-phylogeny_env
+VEBA-preprocess_env
+```
+and check that `VEBA_DATABASE` environment variable is set. If not, then add it manually to ~/.bash_profile: `export VEBA_DATABASE=/path/to/veba_database`.
+
+Future versions will have `bioconda` installation available.
+
+
 
 #### Database Structure:
 ```
