@@ -23,12 +23,20 @@ ____________________________________________________________
 **1. Download repository**
 
 ```
+# Clone the repository
 git clone https://github.com/jolespin/veba/
+
+# Update the permissions
+chmod 755 veba/src/*.py
+chmod 755 veba/src/scripts/*
+
+# Go into the install directory
 cd veba/install
 ``` 
 
 **2. Install VEBA environments**
-This should be relatively quick and does not require grid access.
+This is not resource intensive and does not require grid access but took ~1.5 hours to download and configure the dependencies.  Advanced users may speed this up by replacing `conda` with [`mamba`](https://github.com/mamba-org/mamba) in the installation script assuming `mamba` is in the base environment.
+
 ```
 bash install_veba.sh
 ```
@@ -47,9 +55,13 @@ conda activate VEBA-database_env
 bash download_databases.sh /path/to/veba_database
 ```
 
-**If you submit a scheduled job:**
+**If you use job scheduling (e.g., sbatch or qsub):**
 
-[If you're unfamiliar with SLURM or SunGridEnginer, we got you](https://github.com/jolespin/veba/blob/main/walkthroughs/README.md#basics).  Running `conda activate` on a compute server might prompt you to run `conda init` even if you've already initilized on the head node.  To get around this you can use `source activate [environment]`.  Using the `source activate` command requires you to be in `base` conda environment.  You can do this via `conda deactivate` or `conda activate base` before you submit your job.  Below is an example of how to do this: 
+[If you're unfamiliar with SLURM or SunGridEnginer, we got you](https://github.com/jolespin/veba/blob/main/walkthroughs/README.md#basics).  
+
+Running `conda activate` on a compute server might prompt you to run `conda init` even if you've already initilized on the head node.  To get around this you can use `source activate [environment]`.  Using the `source activate` command requires you to be in `base` conda environment.  You can do this via `conda deactivate` or `conda activate base` before you submit your job.  
+
+Below is an example of how to do this: 
 
 ```
 # Activate your base environment
@@ -75,8 +87,11 @@ CMD="source activate VEBA-database_env && bash download_databases.sh /path/to/ve
 qsub -o logs/${N}.o -e logs/${N}.e -cwd -N ${N} -j y -pe threaded ${N_JOBS} "${CMD}"
 	
 # SLURM:
-sbatch -J ${N} -N 1 -c ${N_JOBS} --ntasks-per-node=1 -o logs/${N}.o -e logs/${N}.e --export=ALL -t 12:00:00 --mem=128 --wrap="${CMD}"
+# For SLURM you might need to specify which account and partition you are associated with for grid jobs
+PARTITION=[partition name]
+ACCOUNT=[account name]
 
+sbatch -A ${ACCOUNT} -p ${PARTITION} -J ${N} -N 1 -c ${N_JOBS} --ntasks-per-node=1 -o logs/${N}.o -e logs/${N}.e --export=ALL -t 12:00:00 --mem=128G --wrap="${CMD}"
 ```
 
 You should be done now. If you want to double check the installation and database configuration worked then activate a `VEBA` environment: 
@@ -97,6 +112,8 @@ VEBA-preprocess_env
 and check that `VEBA_DATABASE` environment variable is set. If not, then add it manually to ~/.bash_profile: `export VEBA_DATABASE=/path/to/veba_database`.
 
 Future versions will have `bioconda` installation available.
+
+If you get a `ClobberError`, you probably canceled a `conda` command while it was running and an incomplete file was downloaded.  To get around that, remove the environment then run `conda clean --packages --tarballs -y` to remove the corrupted files.
 
 ____________________________________________________________
 
