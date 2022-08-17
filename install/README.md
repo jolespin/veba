@@ -43,7 +43,7 @@ bash install_veba.sh
 
 **3. Activate the database conda environment, download, and configure databases**
 
-⚠️ This step takes ~9.5 hrs using 8 threads with 128G memory and should be run using a compute grid via SLURM or SunGridEngine.  If this command is run on the head node it will likely fail or timeout if a connection is interrupted. The most computationally intensive steps are creating a `Diamond` database of NCBI's non-redundant reference and a `MMSEQS2` database of the microeukaryotic protein database.
+⚠️ This step takes ~4.5 hrs using 8 threads with 128G memory and should be run using a compute grid via SLURM or SunGridEngine.  If this command is run on the head node it will likely fail or timeout if a connection is interrupted. The most computationally intensive steps are creating a `Diamond` database of NCBI's non-redundant reference and a `MMSEQS2` database of the microeukaryotic protein database.
 
 If issues arise, please [submit a GitHub issue](https://github.com/jolespin/veba/issues) prefixed with [DATABASE]. We are here to help :)
 

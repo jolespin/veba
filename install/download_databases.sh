@@ -132,14 +132,18 @@ for ENV_PREFIX in ${CONDA_BASE}/envs/VEBA-*; do
 #GTDB-Tk
 echo ". .. ... ..... ........ ............."
 echo "xii * Adding the following environment variable to VEBA environments: export GTDBTK_DATA_PATH=${REALPATH_DATABASE_DIRECTORY}/Classify/GTDBTk/"
-for ENV_PREFIX in VEBA-binning-prokaryotic_env VEBA-classify-prokaryotic_env; do 
+for ENV_NAME in VEBA-binning-prokaryotic_env VEBA-classify_env; do 
+    ENV_PREFIX=${CONDA_BASE}/envs/${ENV_NAME}
     # GTDBTK_DATABASE_VERSION=$(ls ${REALPATH_DATABASE_DIRECTORY}/Classify/GTDBTk)
-    echo "export GTDBTK_DATA_PATH=${REALPATH_DATABASE_DIRECTORY}/Classify/GTDBTk/}" >> ${ENV_PREFIX}/etc/conda/activate.d/veba.sh
-    echo "unset GTDBTK_DATA_PATH" >> ${ENV_PREFIX}/etc/conda/activate.d/veba.sh
+    echo "export GTDBTK_DATA_PATH=${REALPATH_DATABASE_DIRECTORY}/Classify/GTDBTk/" >> ${ENV_PREFIX}/etc/conda/activate.d/veba.sh
+    echo "unset GTDBTK_DATA_PATH" >> ${ENV_PREFIX}/etc/conda/deactivate.d/veba.sh
+    done 
 
 # CheckV
 echo ". .. ... ..... ........ ............."
 echo "xiii * Adding the following environment variable to VEBA environments: export CHECKVDB=${REALPATH_DATABASE_DIRECTORY}/Classify/CheckV}"
-for ENV_PREFIX in VEBA-binning-viral_env; do 
-    echo "export CHECKVDB=${REALPATH_DATABASE_DIRECTORY}/Classify/CheckV}" >> ${ENV_PREFIX}/etc/conda/activate.d/veba.sh
-    echo "unset CHECKVDB" >> ${ENV_PREFIX}/etc/conda/activate.d/veba.sh
+for ENV_NAME in VEBA-binning-viral_env; do 
+    ENV_PREFIX=${CONDA_BASE}/envs/${ENV_NAME}
+    echo "export CHECKVDB=${REALPATH_DATABASE_DIRECTORY}/Classify/CheckV" >> ${ENV_PREFIX}/etc/conda/activate.d/veba.sh
+    echo "unset CHECKVDB" >> ${ENV_PREFIX}/etc/conda/deactivate.d/veba.sh
+    done
