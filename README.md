@@ -14,9 +14,8 @@ Espinoza et al. (In review)
 ___________________________________________________________________
 
 ### Development
-VEBA is currently under active development. If you are interested in requesting features or wish to report a bug, please post a GitHub issue prefixed with the tag [Feature Request] and [Bug], respectively.
+*VEBA* is currently under active development. If you are interested in requesting features or wish to report a bug, please post a GitHub issue prefixed with the tag `[Feature Request]` and `[Bug]`, respectively.
 
-For questions please contact me at `jespinoz[A|T]jcvi[DOT]org`
 ___________________________________________________________________
 
 ### Installation and databases
@@ -27,6 +26,9 @@ ___________________________________________________________________
 
 Please refer to the [*Walkthrough Guides*](walkthroughs/README.md) for tutorials and workflows on how to get started.
 
+If perusing the [**F**requently **A**sked **Q**uestions](FAQ.md) doesn't address your question, feel free to submit a [GitHub issue](https://github.com/jolespin/veba/issues/new) with the `[Question]` prefix in the title.
+
+For all other inquiries, please contact me at `jespinoz[A|T]jcvi[DOT]org`
 ___________________________________________________________________
 
 ### *VEBA* Modules

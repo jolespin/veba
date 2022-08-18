@@ -35,6 +35,7 @@ cd veba/install
 ``` 
 
 **2. Install VEBA environments**
+
 This is not resource intensive and does not require grid access but took ~1.5 hours to download and configure the dependencies.  Advanced users may speed this up by replacing `conda` with [`mamba`](https://github.com/mamba-org/mamba) in the installation script assuming `mamba` is in the base environment.  Note that `mamba` has not been tested but theoretically it should work.
 
 ```
