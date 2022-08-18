@@ -2,8 +2,7 @@
  _    _ _______ ______  _______
   \  /  |______ |_____] |_____|
    \/   |______ |_____] |     |
-                               
-                                                                                                                                                                                                                  
+
 ```
 ### Description
 The *Viral Eukaryotic Bacterial Archaeal* (VEBA) is an open-source software suite developed with all domains of microorganisms as the primary objective (not *post hoc* adjustments) including prokaryotic, eukaryotic, and viral organisms.  VEBA is an end-to-end metagenomics analysis suite that can directly address eukaryotic and viral genomes in addition to prokaryotic genomes with support for CPR. VEBA implements a novel iterative binning procedure and hybrid sample-specific/multisample framework.  To optimize the microeukaryotic gene calling and taxonomic classifications, VEBA includes a consensus microeukaryotic database containing protists and fungi from several existing databases. VEBA also provides a unique clustering-based dereplication strategy allowing for sample-specific genomes and genes to be directly compared across non-overlapping biological samples.  In addition, VEBA automates the detection of candidate phyla radiation bacteria and implements the appropriate genome quality assessments for said organisms.  
