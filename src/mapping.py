@@ -12,7 +12,7 @@ from soothsayer_utils import *
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2022.06.06"
+__version__ = "2022.8.17"
 
 
 # Bowtie2
@@ -72,7 +72,41 @@ def get_bowtie2_cmd(input_filepaths, output_filepaths, output_directory, directo
         ">",
         output_filepaths[0],
         ")",
+
+        # Index BAM
+        "&&",
+        "(",
+        os.environ["samtools"],
+        "index",
+        "-@",
+        opts.n_jobs,
+        output_filepaths[0],
+        ")",
+
+        # Calculate coverage
+        "&&",
+        "(",
+        os.environ["samtools"],
+        "coverage",
+        output_filepaths[0],
+        "|",
+        "gzip",
+        ">",
+        "{}.coverage.tsv.gz".format(output_filepaths[0]),
+        ")",
     ]
+
+    if opts.scaffolds_to_bins:
+        cmd += [ 
+            "&&",
+            "(",
+            os.environ["genome_spatial_coverage.py"],
+            "-i {}".format(opts.scaffolds_to_bins),
+            "-f {}".format(opts.reference_fasta),
+            "-o {}".format(os.path.join(output_directory, "genome_spatial_coverage.tsv.gz")),
+            "{}.coverage.tsv.gz".format(output_filepaths[0]),
+            ")",
+        ]
 
     cmd += [ 
         "&&",
@@ -159,6 +193,15 @@ def get_featurecounts_cmd(input_filepaths, output_filepaths, output_directory, d
             "-o {}".format(os.path.join(output_directory, "counts.orthogroups.tsv.gz")),
         ]
 
+    if opts.scaffolds_to_bins:
+        cmd += [ 
+            "&&",
+            os.environ["groupby_table.py"],
+            "-m {}".format(opts.scaffolds_to_bins),
+            "-t {}".format(os.path.join(output_directory, "counts.scaffolds.tsv.gz")),
+            "-o {}".format(os.path.join(output_directory, "counts.mags.tsv.gz")),
+        ]
+
     if opts.scaffolds_to_clusters:
         cmd += [ 
             "&&",
@@ -189,7 +232,7 @@ def add_executables_to_environment(opts):
     Adapted from Soothsayer: https://github.com/jolespin/soothsayer
     """
 
-    accessory_scripts = {"groupby_table.py"}
+    accessory_scripts = {"groupby_table.py", "genome_spatial_coverage.py"}
 
     required_executables={
                 "bowtie2",
@@ -250,7 +293,9 @@ def create_pipeline(opts, directories, f_cmds):
     # i/o
     input_filepaths = [opts.forward_reads, opts.reverse_reads]
 
-    output_filenames = ["mapped.sorted.bam"]
+    output_filenames = ["mapped.sorted.bam", "mapped.sorted.bam.bai", "mapped.sorted.bam.coverage.tsv.gz"]
+    if opts.scaffolds_to_bins:
+        output_filenames += ["genome_spatial_coverage.tsv.gz"]
     output_filepaths = list(map(lambda filename: os.path.join(output_directory, filename), output_filenames))
 
     params = {
@@ -292,6 +337,8 @@ def create_pipeline(opts, directories, f_cmds):
     output_filenames = ["counts.orfs.tsv.gz", "counts.scaffolds.tsv.gz"]
     if opts.orfs_to_orthogroups:
         output_filenames.append("counts.orthogroups.tsv.gz")
+    if opts.scaffolds_to_bins:
+        output_filenames.append("counts.mags.tsv.gz")
     if opts.scaffolds_to_clusters:
         output_filenames.append("counts.clusters.tsv.gz")
     output_filepaths = list(map(lambda filename: os.path.join(output_directory, filename), output_filenames))
@@ -332,6 +379,8 @@ def create_pipeline(opts, directories, f_cmds):
     # i/o
     input_filepaths = [
         os.path.join(directories[("intermediate", "1__bowtie2")], "mapped.sorted.bam"),
+        os.path.join(directories[("intermediate", "1__bowtie2")], "mapped.sorted.bam.bai"),
+        os.path.join(directories[("intermediate", "1__bowtie2")], "mapped.sorted.bam.coverage.tsv.gz"),
     ]
     if opts.retain_unmapped_reads:
          input_filepaths += [
@@ -347,6 +396,14 @@ def create_pipeline(opts, directories, f_cmds):
         input_filepaths += [ 
             os.path.join(directories[("intermediate", "2__featurecounts")], "counts.orthogroups.tsv.gz"),
         ]
+
+    if opts.scaffolds_to_bins:
+        input_filepaths += [ 
+             
+            os.path.join(directories[("intermediate", "1__bowtie2")], "genome_spatial_coverage.tsv.gz"),
+            os.path.join(directories[("intermediate", "2__featurecounts")], "counts.mags.tsv.gz"),
+        ]   
+
     if opts.scaffolds_to_clusters:
         input_filepaths += [ 
             os.path.join(directories[("intermediate", "2__featurecounts")], "counts.clusters.tsv.gz"),
@@ -401,6 +458,9 @@ def configure_parameters(opts, directories):
     if opts.orfs_to_orthogroups is not None:
         assert os.path.exists(opts.orfs_to_orthogroups)
 
+    if opts.scaffolds_to_bins is not None:
+        assert os.path.exists(opts.scaffolds_to_bins)
+
     if opts.scaffolds_to_clusters is not None:
         assert os.path.exists(opts.scaffolds_to_clusters)
 
@@ -413,7 +473,6 @@ def main(args=None):
     script_filename = __program__
     # Path info
     description = """
-    Wrapper around github.com/jolespin/fastq_preprocessor
     Running: {} v{} via Python v{} | {}""".format(__program__, __version__, sys.version.split(" ")[0], sys.executable)
     usage = "{} -1 <reads_1.fq> -2 <reads_2.fq> -n <name> -o <output_directory> -x <reference_directory>"    .format(__program__)
     epilog = "Copyright 2022 Josh L. Espinoza (jespinoz@jcvi.org)"
@@ -459,6 +518,7 @@ def main(args=None):
 
     parser_identifiers = parser.add_argument_group('Identifier arguments')
     parser_identifiers.add_argument("--orfs_to_orthogroups", type=str, help = "path/to/orf_to_orthogroup.tsv, [id_orf]<tab>[id_orthogroup], No header")
+    parser_identifiers.add_argument("--scaffolds_to_bins", type=str, help = "path/to/scaffold_to_bins.tsv, [id_scaffold]<tab>[id_bin], No header")
     parser_identifiers.add_argument("--scaffolds_to_clusters", type=str, help = "path/to/scaffold_to_cluster.tsv, [id_scaffold]<tab>[id_cluster], No header")
 
     # Options

@@ -5,7 +5,7 @@ import pandas as pd
 
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2022.02.24"
+__version__ = "2022.08.17"
 
 #
 def main(args=None):
@@ -51,7 +51,7 @@ def main(args=None):
     df_output = df_table.groupby(key_to_group, axis=opts.axis).sum()
 
     # Write table
-    df_output.to_csv(opts.output_table, sep=opts.sep, header=bool(opts.table_header))
+    df_output.to_csv(opts.output_table, sep=opts.sep)#, header=bool(opts.table_header))
 
 if __name__ == "__main__":
     main()

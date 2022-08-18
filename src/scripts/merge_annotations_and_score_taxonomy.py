@@ -83,6 +83,9 @@ def main(args=None):
     df_kofamscan = pd.read_csv(opts.kofam, sep="\t", index_col=None, header=None)
     orfs = orfs | set(df_kofamscan.iloc[:,1])
 
+    # For pandas indexing
+    orfs = list(orfs)
+
     # Process HMMSearch
     orf_to_hmmid = defaultdict(list)
     orf_to_hmmname = defaultdict(list)
