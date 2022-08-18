@@ -24,7 +24,7 @@ ___________________________________________________________________
 
 ### Frequently Asked Questions
 
-If perusing the [**F**requently **A**sked **Q**uestions](FAQ.md) doesn't address your question, feel free to submit a [GitHub issue](https://github.com/jolespin/veba/issues/new) with the `[Question]` prefix in the title.
+If perusing the [*Frequently Asked Questions*](FAQ.md) doesn't address your question, feel free to submit a [GitHub issue](https://github.com/jolespin/veba/issues/new) with the `[Question]` prefix in the title.
 
 
 ___________________________________________________________________
