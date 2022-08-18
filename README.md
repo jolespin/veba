@@ -123,7 +123,6 @@ veba_output/binning/eukaryotic/${ID}/output/
 
 # Viral binning
 veba_output/binning/viral/${ID}/output/
-
 ```
 
 The above are default output locations but they can be customized.
