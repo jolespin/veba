@@ -8,6 +8,10 @@ echo "Updating permissions for scripts in ${PREFIX}/../src"
 chmod 755 ${PREFIX}/../src/*.py
 chmod 755 ${PREFIX}/../src/scripts/*
 
+# If mamba available, use mamba else default to conda
+# PACKAGE_MANAGER=$(type -P mamba) || PACKAGE_MANAGER=$(type -P conda)
+# echo "Using the following package manager: ${PACKAGE_MANAGER}"
+
 # Environemnts
 for ENV_YAML in ${PREFIX}/environments/VEBA*.yml; do
     # Get environment name
@@ -18,10 +22,12 @@ for ENV_YAML in ${PREFIX}/environments/VEBA*.yml; do
     conda env create -n $ENV_NAME -f $ENV_YAML
 
     # Copy over files to environment bin/
+    echo -e "Copying VEBA into ${ENV_NAME} environment"
     cp -r ${PREFIX}/../src/*.py ${CONDA_BASE}/envs/${ENV_NAME}/bin/
     cp -r ${PREFIX}/../src/scripts/ ${CONDA_BASE}/envs/${ENV_NAME}/bin/
 
     # Symlink the accessory scripts to bin/
+    echo -e "Symlinking VEBA scripts into ${ENV_NAME} environment path"
     ln -sf ${PREFIX}/../src/scripts/* ${CONDA_BASE}/envs/${ENV_NAME}/bin/
 
     done

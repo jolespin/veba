@@ -11,7 +11,6 @@ echo ". .. ... ..... ........ ............."
 mkdir -vp $DATABASE_DIRECTORY
 mkdir -vp ${DATABASE_DIRECTORY}/Annotate
 mkdir -vp ${DATABASE_DIRECTORY}/Classify
-# mkdir -vp ${DATABASE_DIRECTORY}/MarkerSets
 # >${DATABASE_DIRECTORY}/log
 
 # Versions
@@ -64,8 +63,8 @@ echo ". .. ... ..... ........ ............."
 echo "v * Processing Microeukaryotic MMSEQS2 database"
 echo ". .. ... ..... ........ ............."
 # Download from FigShare
-wget -v -O Microeukaryotic.tar.gz https://figshare.com/ndownloader/files/34929255
-tar xvzf Microeukaryotic.tar.gz -C ${DATABASE_DIRECTORY}/Classify
+wget -v -O ${DATABASE_DIRECTORY}/Microeukaryotic.tar.gz https://figshare.com/ndownloader/files/34929255
+tar xvzf ${DATABASE_DIRECTORY}/Microeukaryotic.tar.gz -C ${DATABASE_DIRECTORY}/Classify
 mmseqs createdb ${DATABASE_DIRECTORY}/Classify/Microeukaryotic/reference.rmdup.iupac.relabeled.no_deprecated.complete_lineage.faa.gz ${DATABASE_DIRECTORY}/Classify/Microeukaryotic/microeukaryotic
 rm -rf ${DATABASE_DIRECTORY}/Microeukaryotic.tar.gz
 
@@ -73,9 +72,9 @@ rm -rf ${DATABASE_DIRECTORY}/Microeukaryotic.tar.gz
 echo ". .. ... ..... ........ ............."
 echo "vi * Processing profile HMM marker sets"
 echo ". .. ... ..... ........ ............."
-wget -v -O MarkerSets.tar.gz https://figshare.com/ndownloader/files/36201486
-tar xvzf MarkerSets.tar.gz -C ${DATABASE_DIRECTORY}
-rm -rf MarkerSets.tar.gz
+wget -v -O ${DATABASE_DIRECTORY}/MarkerSets.tar.gz https://figshare.com/ndownloader/files/36201486
+tar xvzf ${DATABASE_DIRECTORY}/MarkerSets.tar.gz -C ${DATABASE_DIRECTORY}
+rm -rf ${DATABASE_DIRECTORY}/MarkerSets.tar.gz
 
 # KOFAMSCAN
 echo ". .. ... ..... ........ ............."
@@ -119,7 +118,7 @@ echo "xi * Adding the following environment variable to VEBA environments: expor
 # CONDA_BASE=$(which conda | python -c "import sys; print('/'.join(sys.stdin.read().split('/')[:-2]))")
 CONDA_BASE=$(conda run -n base bash -c "echo \${CONDA_PREFIX}")
 
-# VEBA (Note, this will add extra lines if this is run more than once.  Might need to grep -v to another file then overwrite)
+# VEBA
 REALPATH_DATABASE_DIRECTORY=$(realpath $DATABASE_DIRECTORY)
 for ENV_PREFIX in ${CONDA_BASE}/envs/VEBA-*; do 
     echo $ENV_PREFIX;
@@ -141,9 +140,16 @@ for ENV_NAME in VEBA-binning-prokaryotic_env VEBA-classify_env; do
 
 # CheckV
 echo ". .. ... ..... ........ ............."
-echo "xiii * Adding the following environment variable to VEBA environments: export CHECKVDB=${REALPATH_DATABASE_DIRECTORY}/Classify/CheckV}"
+echo "xiii * Adding the following environment variable to VEBA environments: export CHECKVDB=${REALPATH_DATABASE_DIRECTORY}/Classify/CheckV/"
 for ENV_NAME in VEBA-binning-viral_env; do 
     ENV_PREFIX=${CONDA_BASE}/envs/${ENV_NAME}
     echo "export CHECKVDB=${REALPATH_DATABASE_DIRECTORY}/Classify/CheckV" >> ${ENV_PREFIX}/etc/conda/activate.d/veba.sh
     echo "unset CHECKVDB" >> ${ENV_PREFIX}/etc/conda/deactivate.d/veba.sh
     done
+
+echo -e " _    _ _______ ______  _______\n  \  /  |______ |_____] |_____|\n   \/   |______ |_____] |     |"
+echo -e "........................................."
+echo -e "     Database Configuration Complete     "
+echo -e ".........................................."
+echo -e "The VEBA database environment variable is set in your VEBA conda environments: \n\tVEBA_DATABASE=${REALPATH_DATABASE_DIRECTORY}"
+echo -e "For walkthroughs on different workflows, please refer to the documentation: \n\thttps://github.com/jolespin/veba/blob/main/walkthroughs/README.md"

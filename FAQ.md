@@ -14,7 +14,7 @@ Yes! *VEBA* isn't restrictive with the source of the data for most of the module
 
 **4. How can I speed up the installation?**
 
-You should be able to replace all of the `conda` references to `mamba` but this hasn't been tested yet.  It's on my list of action items.  Right now, it takes ~1.5 hours to install all the environments and ~4.5 to download/configure the databases.  **Please refer to the [documentation](https://github.com/jolespin/veba/blob/main/install/README.md)** to make sure you allocate enough resources to run `Diamond` and `MMSEQS2` in the backend of the database config.
+You can replace all of the `conda` references to `mamba` but this hasn't been tested yet.   With `conda`, it takes ~1.5 hours to install all the environments and `mamba` only drops the time by ~10 minutes so it's not recommended. The databases take ~4.5 to download/configure.  **Please refer to the [documentation](https://github.com/jolespin/veba/blob/main/install/README.md)** to make sure you allocate enough resources to run `Diamond` and `MMSEQS2` in the backend of the database config.  If you have connection issues to your remote server, you can always use a screen so it doesn't lose your progress when you are installing VEBA (I tend to do this for large copy jobs).  Here is an example command to ssh into your remote server and launching a screen: `ssh -t [username]@[domain] 'screen -DR'`
 
 **5. Are there any database versions that are mandatory?**
 
