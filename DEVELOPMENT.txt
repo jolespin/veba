@@ -1,5 +1,6 @@
 # Development:
 # ============
+* [2022.08.27] - Added `metaeuk_wrapper.py` script
 * [2022.08.17] - Added --scaffolds_to_bins option to mapping.py. Automated `samtools index` and `samtools coverage` steps for `mapped.sorted.bam` files for use spatial coverage calculation which is now automated as well producing a `genome_spatial_coverage.tsv.gz` file if `--scaffolds_to_bins` is provided.  Added `genome_spatial_coverage.py` script that uses the `samtools coverage` files from the `mapping.py` module or custom runs. Fixed --table_header error in `groupby_table.py` script.
 * [2022.07.14] - Added `--absolute` argument to `compile_reads_table.py` to use absolute paths instead of relative paths.
 * [2022.07.14] - Added `genome_coverage_from_spades.py` script to help with coverage calculations for NCBI submissions.
@@ -24,13 +25,14 @@
 * Automate feature compression ratios in cluster.py
 * end_to_end? [preprocess] -> [assembly] -> [bin prok] -> [bin viral] -> [cluster] -> [classify] -> [annotate]
 * Switch to GTDBTk2 and CheckM2
+* Switch GRCH38.p13 to T2T https://genome-idx.s3.amazonaws.com/bt/chm13v2.0.zip
 
 # Binning
-# =======
-* Starts over at step 13? Realized this was because the checkpoints weren't being created when the error code wasn't 0. Not all steps are expected to finish properly because the pipeline is iterative and at a certain point there shouldn't be any bins to find.  
+# ======= 
 * Add MAG level counts
 * Make a wrapper that does coassembly binning but then splits out the bins into individual samples like in VAMB
 * Need to replace the grep -v with non-eukaryota.list for final scaffolds_to_bins.tsv in binning-eukaryotic with subset_table.py using --inverse because sometimes it is returned as empty when list of contigs is large
+* Add geNomad as main option: https://github.com/apcamargo/genomad/
 
 # Index
 # =====
@@ -40,14 +42,9 @@
 https://github.com/alexdobin/STAR/issues/994
 https://github.com/alexdobin/STAR/issues/867
 
-# Mapping
-# =====
-* Automatically index bam files
-
 # Cluster
 # =======
 * Add Anvi'o pangeome for each cluster
-
 
 # Classify
 # ========
@@ -61,8 +58,8 @@ https://github.com/alexdobin/STAR/issues/867
 # New Modules
 # ===========
 * Add a noncoding module that runs t-RNAscan-SE and BARRNAP (and CORDON?)
-* Input is [id_mag]<tab>[domain]<tab>[path/to/genome]
-* Add a 'spatial' module that assess the spatial coverage of MAGs in specific samples.  Maybe instead just add this to the mapping module?
+	* Input is [id_mag]<tab>[domain]<tab>[path/to/genome]
+* Add a metabolism module: gapseq
 
 # Scripts: 
 # ========
