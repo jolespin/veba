@@ -114,7 +114,7 @@ and check that `VEBA_DATABASE` environment variable is set. If not, then add it 
 
 Future versions will have `bioconda` installation available.
 
-**Common installation errors that do not affect VEBA functionality:**
+#### Common installation errors that do not affect VEBA functionality:
 
 You may get the following **non-fatal** errors but you can ignore these: 
 
