@@ -114,8 +114,29 @@ and check that `VEBA_DATABASE` environment variable is set. If not, then add it 
 
 Future versions will have `bioconda` installation available.
 
-If you get a `ClobberError`, you probably canceled a `conda` command while it was running and an incomplete file was downloaded.  To get around that, remove the environment then run `conda clean --packages --tarballs -y` to remove the corrupted files.
+**Common installation errors that do not affect VEBA functionality:**
 
+You may get the following **non-fatal** errors but you can ignore these: 
+
+* *SafetyError* from `CheckM v1.1.3`
+
+```
+SafetyError: The package for checkm-genome located at /path/to/anaconda3/pkgs/checkm-genome-1.1.3-py_1
+appears to be corrupted. The path 'site-packages/checkm/DATA_CONFIG'
+has an incorrect size.
+  reported size: 215 bytes
+  actual size: 251 bytes
+```
+
+* *ClobberError* from `Perl` packages
+ 
+```
+ClobberError: This transaction has incompatible packages due to a shared path.
+  packages: bioconda/linux-64::perl-params-util-1.07-pl526h6bb024c_4, bioconda/linux-64::perl-package-stash-0.38-pl526hf484d3e_1
+  path: 'lib/site_perl/5.26.2/x86_64-linux-thread-multi/auto/Params/Util/.packlist'
+```
+
+These errors have been reported during the creation of `VEBA-binning-prokaryotic_env` and `VEBA-classify_env` both of which are the only environments that install `CheckM`.  However, the SafetyError [is easily reproducible](https://github.com/Ecogenomics/CheckM/issues/349) and similar ClobberErrors have been [reported in other software suites](https://github.com/bxlab/metaWRAP/issues/72) which are likely due to Perl dependencies.  Working on addressing these minor errors but they are non-fatal so not the highest priority.  
 ____________________________________________________________
 
 
