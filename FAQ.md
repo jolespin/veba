@@ -53,6 +53,6 @@ This is because CheckM can't handle long directory paths.  By default, the tempo
 
 **13. Why did I get an `AssertionError` The following path does not exist /path/to/scaffolds\_to\_bins.tsv?**
 
-This means that you don't have any MAGs that meet the quality threshold. This is typically an empty file that yields the error. 
+This means that you don't have any MAGs that meet the quality threshold. This is typically an empty file that throws the error.  You could always lower the completeness or completion thresholds but this may yield lower quality results.
 
 
