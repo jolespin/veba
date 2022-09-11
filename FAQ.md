@@ -47,4 +47,12 @@ Currently, not directly but the install scripts are all built around conda so yo
 
 These are known errors that have to do with `CheckM` and `Perl` dependencies, respectively. In short, these are non-fatal errors and will not affect your installation.  For more details, check this section of the [installation manual](https://github.com/jolespin/veba/tree/main/install#common-installation-errors-that-do-not-affect-veba-functionality). 
 
+**12. Why did I get a `KeyError: 'TMPDIR'`?**
+
+This is because CheckM can't handle long directory paths.  By default, the temporary directory is set to the TMPDIR environment variable.  If you don't have a TMPDIR environment variable for some reason, add a TMPDIR environment variable to your path either in the script or your ~/.bash_profile.  For example, `export TMPDIR=/path/to/temporary/directory/with/read/write/access
+
+**13. Why did I get an `AssertionError` The following path does not exist /path/to/scaffolds\_to\_bins.tsv?**
+
+This means that you don't have any MAGs that meet the quality threshold. This is typically an empty file that yields the error. 
+
 
