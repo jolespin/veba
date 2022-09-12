@@ -35,7 +35,7 @@ Here we are going to assemble all of the reads using `rnaSPAdes`.
 # Set the number of threads to use for each sample. Let's use 4
 N_JOBS=4
 
-# This is the not the default output directory and is customized for metatranscriptomics
+# This is not the default output directory and is customized for metatranscriptomics
 OUT_DIR=veba_output/transcript_assembly
 
 # Just making sure your log directory is available
