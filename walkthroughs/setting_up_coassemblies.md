@@ -101,7 +101,7 @@ N="coverage__${ID}";
 rm -f logs/${N}.*
 FASTA=veba_output/assembly/${ID}/output/scaffolds.fasta
 READS=veba_output/misc/reads_table.tsv
-CMD="source activate VEBA-assembly_env && coverage.py -f ${FASTA} -r ${READS} -p ${N_JOBS} -m 1500 -o veba_output/coverage/coassembly"
+CMD="source activate VEBA-assembly_env && coverage.py -f ${FASTA} -r ${READS} -p ${N_JOBS} -m 1500 -o veba_output/coverage/${ID}"
 	
 # Either run this command or use SunGridEnginge/SLURM
 
