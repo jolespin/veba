@@ -125,6 +125,6 @@ Now that you have a coassembly and multiple sorted BAM files, it's time for binn
 
 **Please do not forget to adapt the BAM argument in the `binning-prokaryotic.py` command to include all the sample-specific sorted BAM files and not the concatenated sorted BAM.**  
 
-More specifically, use `BAM=$(ls veba_output/coverage/coassembly/output/*/mapped.sorted.bam)` and not `BAM=veba_output/assembly/coassembly/output/mapped.sorted.bam`.
+More specifically, use `BAM="veba_output/coverage/coassembly/output/*/mapped.sorted.bam"` and not `BAM="veba_output/assembly/coassembly/output/mapped.sorted.bam"`.
 
 Note that both will work but the former will yield much better results since coverage for different scaffolds/contigs are kept separate for each sample.
