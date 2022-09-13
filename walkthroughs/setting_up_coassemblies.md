@@ -123,4 +123,8 @@ _____________________________________________________
 
 Now that you have a coassembly and multiple sorted BAM files, it's time for binning.  Start at step 3 of the [end-to-end metagenomics](end-to-end_metagenomics.md) or [recovering viruses from metatranscriptomics](recovering_viruses_from_metatranscriptomics.md) workflows depending on whether or not you have metagenomics or metatranscriptomics, respectively.  
 
-**Please do not forget to adapt the BAM argument in the `binning-prokaryotic.py` command to include all the sample-specific sorted BAM files and not the concatenated sorted BAM.**  Both will work but the former will yield much better results since coverage for different scaffolds/contigs are kept separate for each sample.
+**Please do not forget to adapt the BAM argument in the `binning-prokaryotic.py` command to include all the sample-specific sorted BAM files and not the concatenated sorted BAM.**  
+
+More specifically, use `BAM=$(ls veba_output/coverage/coassembly/output/*/mapped.sorted.bam)` and not `BAM=veba_output/assembly/coassembly/output/mapped.sorted.bam`.
+
+Note that both will work but the former will yield much better results since coverage for different scaffolds/contigs are kept separate for each sample.
