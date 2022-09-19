@@ -55,4 +55,8 @@ This is because CheckM can't handle long directory paths.  By default, the tempo
 
 This means that you don't have any MAGs that meet the quality threshold. This is typically an empty file that throws the error.  You could always lower the completeness or completion thresholds but this may yield lower quality results.
 
+**14. Why am I getting errors for `Kingfisher` saying a command was not found?**
+
+This is likely because `sra-tools` was not installed properly or at all.  Installing `sra-tools` should fix the problem: `conda install -c bioconda sra-tools --force-reinstall` from the `VEBA-preprocess_env` environment.  More details [in this walkthrough](https://github.com/jolespin/veba/blob/main/walkthroughs/download_and_preprocess_reads.md#3-create-a-directory-for-the-raw-fastq-reads-and-download-the-sequences-from-ncbi).
+
 
