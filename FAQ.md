@@ -59,4 +59,36 @@ This means that you don't have any MAGs that meet the quality threshold. This is
 
 This is likely because `sra-tools` was not installed properly or at all.  Installing `sra-tools` should fix the problem: `conda install -c bioconda sra-tools --force-reinstall` from the `VEBA-preprocess_env` environment.  More details [in this walkthrough](https://github.com/jolespin/veba/blob/main/walkthroughs/download_and_preprocess_reads.md#3-create-a-directory-for-the-raw-fastq-reads-and-download-the-sequences-from-ncbi).
 
+**15. Why am I getting an error at the last step of `binning-prokaryotic.py`?**
+
+There's a few reasons why you could be getting an error: 
+
+a. You might not actually have any high quality bins.  To check this, manually inspect the `CheckM` results from the intermediate results.  For example: 
+
+```bash
+ID="*" # Change this to the ID you are curious about
+for FP in veba_output/binning/prokaryotic/${ID}/intermediate/*__checkm/filtered/checkm_output.filtered.tsv; do 
+	echo ${FP}
+	cat ${FP}
+	done
+```
+
+Some of these files might (and should) be empty and that's expected but what you're looking for are the actual results.  Recall that to properly handle CPR bacteria we allow `k__Bacteria` phyla through at any completion/contamination levels which will be filtered out at the last step.  `GTDB-Tk` is run on these MAGs and if they are CPR bacteria then they are reevaluated with the [proper marker set](https://github.com/Ecogenomics/CheckM/blob/master/custom_marker_sets/cpr_43_markers.hmm).  If you only have `k__Bacteria` MAGs then there is a chance that you didn't recover any high quality MAGs.
+
+b. If you checked the above and it looks like you have decent MAGs (that is, non `k__Bacteria` hits with acceptable completion and contamination ratios (e.g., completeness ≥ 70, contamination < 10) then check the `GTDB-Tk` log file as you may have an error with `pplacer`.  Check the following log file:
+
+```bash
+ID="*" # Change this to the ID you are curious about
+
+cat veba_output/binning/prokaryotic/${ID}/intermediate/*__cpr_adjustment/gtdbtk_output/gtdbtk.log	
+```
+
+If you have this error, then it's your `pplacer` installation: 
+
+```
+gtdbtk.exceptions.PplacerException: An error was encountered while running pplacer.
+```
+
+This is a known issue [GTDBTk/issues/170](https://github.com/Ecogenomics/GTDBTk/issues/170) and is related to memory issues (e.g., try 128GB).  Don't increase the `--pplacer_threads` because this requires massive amounts of memory. 
+
 
