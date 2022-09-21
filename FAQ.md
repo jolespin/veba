@@ -92,3 +92,15 @@ gtdbtk.exceptions.PplacerException: An error was encountered while running pplac
 This is a known issue [GTDBTk/issues/170](https://github.com/Ecogenomics/GTDBTk/issues/170) and is related to memory issues (e.g., try 128GB).  Don't increase the `--pplacer_threads` because this requires massive amounts of memory. 
 
 
+**16. Why am I getting compatibility issues when creating my environments?** 
+This is likely the result of your channel priority and channel order. [Here's an explanation on the .condarc config file.](https://conda.io/projects/conda/en/latest/user-guide/configuration/use-condarc.html).  Alternatively, just copy the below to the following path: `~/.condarc`
+
+```
+channel_priority: flexible
+channels:
+  - conda-forge
+  - defaults
+  - bioconda
+  - jolespin
+report_errors: true
+```
