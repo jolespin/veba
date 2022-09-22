@@ -93,6 +93,7 @@ This is a known issue [GTDBTk/issues/170](https://github.com/Ecogenomics/GTDBTk/
 
 
 **16. Why am I getting compatibility issues when creating my environments?** 
+
 This is likely the result of your channel priority and channel order. [Here's an explanation on the .condarc config file.](https://conda.io/projects/conda/en/latest/user-guide/configuration/use-condarc.html).  Alternatively, just copy the below to the following path: `~/.condarc`
 
 ```
@@ -104,3 +105,11 @@ channels:
   - jolespin
 report_errors: true
 ```
+
+**17. How can I use options for backend programs that are not arguments in *VEBA*?** 
+
+While *VEBA* accounts for the most important parameters in the backend, it doesn't hard-code direct access to every parameter (that would be crazy!).  However, many of these options are still accessible for key programs in the backend.  For instance, if you wanted to adjust the *DAS Tool* score threshold, which is not an argument that is hard-coded in *VEBA* like `--dastool_searchengine`, you can simple add the following argument in your *VEBA* command: `--dastool_options '--score_threshold 0.6 --megabin_penalty 0.7'`.  This can be any number of additional arguments, just note that certain ones can break *VEBA* (e.g., changing basenames) so be mindful. 
+
+**^ Please note the usage of quotes here ^** 
+
+When using this functionality, just make sure that the argument doesn't overlap with the specified arguments for *VEBA*.  For instance, in the case of *DAS Tool* we already hard-coded access to the `--search_engine` argument via the `--dastool_searchengine` so don't use `--dastool_options '--search_engine <value>'`. Again, be mindful when using this advanced usage.
