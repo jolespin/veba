@@ -75,6 +75,18 @@ for FP in veba_output/binning/prokaryotic/${ID}/intermediate/*__checkm/filtered/
 
 Some of these files might (and should) be empty and that's expected but what you're looking for are the actual results.  Recall that to properly handle CPR bacteria we allow `k__Bacteria` phyla through at any completion/contamination levels which will be filtered out at the last step.  `GTDB-Tk` is run on these MAGs and if they are CPR bacteria then they are reevaluated with the [proper marker set](https://github.com/Ecogenomics/CheckM/blob/master/custom_marker_sets/cpr_43_markers.hmm).  If you only have `k__Bacteria` MAGs then there is a chance that you didn't recover any high quality MAGs.
 
+If you don't have any `checkm_output.filtered.tsv` then likely no MAGs passed `DAS Tool` then you probably have very low quality genomes if any. Next step is to check the `CheckM` output before filtered.
+
+```bash
+ID="*" # Change this to the ID you are curious about
+for FP in veba_output/binning/prokaryotic/${ID}/intermediate/*__checkm/output.tsv; do 
+	echo ${FP}
+	cat ${FP}
+	done
+```
+Are there any MAGs here? If so, how are the completeness values? What about the contamination values? Are they meeting the thresholds? If so, then submit a GitHub issue because they should pass.  If not, then you probably just have poor quality data.  If all of your samples are like this then consider doing a bona fide coassembly (not pseudo-coassembly).  [Here is a walkthrough to do that with VEBA.](https://github.com/jolespin/veba/blob/main/walkthroughs/setting_up_coassemblies.md). If that still doesn't yield results then assembly-centric metagenomics is likely not the way forward with your dataset and you should consider using a read-based profiling tool like [Kraken2](https://genomebiology.biomedcentral.com/articles/10.1186/s13059-019-1891-0) which is not implemented in *VEBA* but very easy to use with minimal pre/post-processing.  If you use an external profiling tool, [you can still use the preprocessed reads from *VEBA*](https://github.com/jolespin/veba/blob/main/walkthroughs/download_and_preprocess_reads.md#4-perform-qualityadapter-trimming-remove-human-contamination-and-count-the-ribosomal-reads-but-dont-remove-them).
+	
+
 b. If you checked the above and it looks like you have decent MAGs (that is, non `k__Bacteria` hits with acceptable completion and contamination ratios (e.g., completeness ≥ 70, contamination < 10) then check the `GTDB-Tk` log file as you may have an error with `pplacer`.  Check the following log file:
 
 ```bash
