@@ -154,3 +154,7 @@ Did `GTDB-Tk` run or is there an memory issue w/ `pplacer`? What about an unspec
 
 
 If you can't figure it out, then submit a GitHub issue ticket and provide a zipped directory of the log files. 
+
+**19. How can I restart a module from a specific step?**
+
+You can do this by using the `--restart_from_checkpoint <int>` argument which is available on all of the modules.  This goes through and removes all of the checkpoints and intermediate files from that step onwards. 
