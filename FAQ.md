@@ -125,3 +125,32 @@ While *VEBA* accounts for the most important parameters in the backend, it doesn
 **^ Please note the usage of quotes here ^** 
 
 When using this functionality, just make sure that the argument doesn't overlap with the specified arguments for *VEBA*.  For instance, in the case of *DAS Tool* we already hard-coded access to the `--search_engine` argument via the `--dastool_searchengine` so don't use `--dastool_options '--search_engine <value>'`. Again, be mindful when using this advanced usage.
+
+**18. I got an error, how can I diagnose the issue?**
+
+*VEBA* is set up to produce log files for each step.  Most steps cannot proceed with an error but to allow for convergence on iterative binning errors are allowed in some steps of the `binning-prokaryotic.py` module.  If you are experiencing an error, look at the log files in the project directory.  For instance, if you are recieving an error for `binning-prokaryotic.py` look under the following directory: `veba_output/binning/prokaryotic/${ID}/logs/` where stderr and stdout are denoted by `.e` and `.o` extensions.  Also, check out the files in the corresponding intermediate directory.  
+
+For instance, if you received an error at `63__cpr_adjustment` then look at these files to diagnose your issues. 
+
+1. Are there any MAGs that made it pass the filters?
+
+`cat veba_output/binning/prokaryotic/${ID}/intermediate/*__checkm/filtered/checkm_output.filtered.tsv`
+
+If so, then you should check the last step.  If you have 10 iterations then it will be step 63.  If you have fewer iterations, then it will be a different step that is lower.
+
+If not, then manually inspect the CheckM results before filtering. 
+
+`cat veba_output/binning/prokaryotic/${ID}/intermediate/*__checkm/output.tsv`
+
+Do you have MAGs there? Do any of them look legit or are they poor quality? **If your MAGs are `≥ the --checkm_completeness` and `< the --checkm_contamination` thresholds but are not making it through the step**, then please submit a GitHub issue with your log files, scaffolds, and BAM file so I can reproduce and diagnose.
+
+See FAQ #15 for more details on this.  
+
+2. Check the stderr/stdout for the last step: 
+
+`cat veba_output/binning/prokaryotic/DE_001/log/63__cpr_adjustment.*`
+
+Did `GTDB-Tk` run or is there an memory issue w/ `pplacer`? What about an unspecified environment variable?  Is that path valid or is incorrect?
+
+
+If you can't figure it out, then submit a GitHub issue ticket and provide a zipped directory of the log files. 
