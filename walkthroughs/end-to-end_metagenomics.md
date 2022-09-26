@@ -93,7 +93,13 @@ Node, length, and coverage refer to the backend node in the assembly graph, scaf
 #### 3. Recover prokaryotes from metagenomic assemblies
 Here we are going to perform iterative prokaryotic binning.  It's difficult to say how many iterations to use but I've found that between 3-10 usually does the job. This dataset is fairly complex and has decent depth so let's use 10 iterations.  Remember, we are analyzing each sample individually at this stage.  
 
-Note: The penultimate step `[step-number]__cpr_adjustment]` is the most memory intensive stage as this uses `GTDB-Tk` to identify CPR bacteria. Please refer to the [FAQ](https://github.com/jolespin/veba/blob/main/FAQ.md) on approaches to properly allocate resources.  In particular, refer to items: 15, 18, and 20.
+**⚠️Notes:** 
+
+1) If you have a lot of samples and a lot of contigs then use the --skip_maxbin2 flag because it takes MUCH longer to run.  For the Plastisphere it was going to take 40 hours per MaxBin2 run (there are 2 MaxBin2 runs) per iteration.  Metabat2 and CONCOCT can do the heavy lifting much faster and often with better results so it's recommended to skip MaxBin2 for larger datasets.
+
+2) The penultimate step [step-number]__cpr_adjustment] is the most memory intensive stage as this uses GTDB-Tk to identify CPR bacteria. Please refer to the FAQ on approaches to properly allocate resources. 
+
+Please refer to [FAQ](https://github.com/jolespin/veba/blob/main/src/README.md) for more details.  In particular, refer to items: 15, 18, 20, and 21.
 
 **Conda Environment:** `conda activate VEBA-binning-prokaryotic_env`
 
