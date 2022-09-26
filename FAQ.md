@@ -158,3 +158,7 @@ If you can't figure it out, then submit a GitHub issue ticket and provide a zipp
 **19. How can I restart a module from a specific step?**
 
 You can do this by using the `--restart_from_checkpoint <int>` argument which is available on all of the modules.  This goes through and removes all of the checkpoints and intermediate files from that step onwards. 
+
+**20. How can I allocate enough resources for `binning-prokarytic.py` module?**
+
+The penultimate step `[step-number]__cpr_adjustment]` is the most memory intensive stage as this uses `GTDB-Tk` to identify CPR bacteria. There are two options: 1) The first is the easiest but not the best use of resources for larger datasets.  This option is to use ~243GB memory in the initial command.  This will ensure that `GTBD-Tk` has enough resources to run to completion but if you are being charged for compute resources this easier option may be more expensive.; 2) The second option is more involved is to use a lower amount of memory (e.g., 50GB) in the initial command.  Once the penultimate step is launched, it will fail due to not having enough resources.  If this was step 63 you could rerun the program using `--restart_from_checkpoint 63` and allocate `243G` to your `SLURM/SunGridEngine` job submission.  Personally, this is what I do to minimize resource consumption but this adds an extra manual step.  Again, to get around this you can just allocate the maximum resources at the beginning and not worry about it but the former will be more resource intensive.
