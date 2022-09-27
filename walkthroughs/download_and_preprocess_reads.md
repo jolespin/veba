@@ -130,7 +130,9 @@ STDERR was: b'bash: fasterq-dump: command not found\n'STDOUT was: b''
 
 #### 4. Perform quality/adapter trimming, remove human contamination, and count the ribosomal reads but don't remove them.
 
-Here we are going to count the reads for the human contamination and ribosomal reads but not keep them.  If you wanted to keep the human reads to do some type of human-based study then do `--retain_contaminated_reads 1`.  If you wanted to just do read trimming and not remove any contamination or count anything then you would just leave out the `-x` and `-k` arguments.  For example, if you were using this to process some human reads.
+Here we are going to count the reads for the human contamination and ribosomal reads but not keep them.  If you wanted to keep the human reads to do some type of human-based study then do `--retain_contaminated_reads 1`.  If you wanted to just do read trimming and not remove any contamination or count anything then you would just leave out the `-x` and `-k` arguments.  For example, if you were using this to process some human reads.  
+
+**Note:** If your host is not human then you will need to use a different contamination reference.  See item #22 in the [FAQ](https://github.com/jolespin/veba/blob/main/FAQ.md).
 
 ```
 N_JOBS=4

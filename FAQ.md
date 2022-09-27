@@ -166,3 +166,13 @@ The penultimate step `[step-number]__cpr_adjustment]` of `binning-prokaryotic.py
 **21. What can I do if `MaxBin2` is taking magnitudes longer to run than `Metabat2` and `CONCOCT` in `binning-prokaryotic.py` module?** 
 
 If you have a lot of samples and a lot of contigs then `MaxBin2` is likely taking forever to run.  If this is the case, you can use the `--skip_maxbin2` flag because it takes MUCH longer to run. For the Plastisphere it was going to take 40 hours per `MaxBin2` run (there are 2 `MaxBin2` runs) per iteration. `Metabat2` and `CONCOCT` can do the heavy lifting much faster and often with better results so it's recommended to skip `MaxBin2` for larger datasets.
+
+**22. The host for the microbiome I'm studying isn't human, but instead *[organism X]*.  How can I remove host contamination?**
+
+You can either make your own database or, if you are studying a model organism, you can download the precompiled index files for your organism on the [Bowtie2 website](https://bowtie-bio.sourceforge.net/bowtie2/manual.shtml). 
+
+Here are a few shortcuts: 
+
+* [*H. sapiens* CHM13 v2 (T2T)](https://genome-idx.s3.amazonaws.com/bt/chm13v2.0.zip)
+* [*M. musculus* GRCm39](https://genome-idx.s3.amazonaws.com/bt/GRCm39.zip)
+* [*A. thaliana* TAIR10](https://genome-idx.s3.amazonaws.com/bt/TAIR10.zip)
