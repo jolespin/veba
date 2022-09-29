@@ -42,7 +42,7 @@ ___________________________________________
 
 **Coming Soon:**
 
-Integrating third party software with *VEBA*
+Workflows for integrating 3rd party software with *VEBA*
 
 * Using [EukHeist](https://github.com/AlexanderLabWHOI/EukHeist) for eukaryotic binning followed by *VEBA* for mapping and annotation.
 * Using [EukMetaSanity](https://github.com/cjneely10/EukMetaSanity) for modeling genes for eukaryotic genomes recovered with *VEBA*.
