@@ -38,6 +38,11 @@ sbatch -J ${N} -N 1 -c ${N_JOBS} --ntasks-per-node=1 -o logs/${N}.o -e logs/${N}
 * [Phylogenetic inference](phylogenetic_inference.md) - Phylogenetic inference of eukaryotic diatoms.
 * [Setting up coassemblies for metagenomics or metatranscriptomics](setting_up_coassemblies.md) - In the case where all samples are of low depth, it may be useful to use coassembly instead of sample-specific approaches.  This walkthrough goes through concatenating reads, creating a reads table, coassembly of concatenated reads, aligning sample-specific reads to the coassembly for multiple sorted BAM files, and mapping reads for scaffold/transcript-level counts.
 
+**Coming Soon:**
+
+* Using [EukHeist](https://github.com/AlexanderLabWHOI/EukHeist) for eukaryotic binning followed by *VEBA* for mapping and annotation.
+* Using [EukMetaSanity](https://github.com/cjneely10/EukMetaSanity) for modeling genes for eukaryotic recovered with *VEBA*.
+
 ##### Notes:
 
 * The final output files are in the `output` subdirectory and to avoid redundant files many of these symlinked from the `intermediate` directory.  This can cause issues if you are using a ["scratch" directory](https://en.wikipedia.org/wiki/Scratch_space) where the files are deleted after a certain amount of time. If you have a [crontab](https://www.man7.org/linux/man-pages/man5/crontab.5.html) set up, make sure it also touches symlinks and not just files.
