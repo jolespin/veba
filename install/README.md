@@ -9,6 +9,8 @@ The majority of the time taken to build database is decompressing large archives
 
 Total size is 369G but if you have certain databases installed already then you can just symlink them. 
 
+Each major version will be packaged as a [release](https://github.com/jolespin/veba/releases) which will include a log of module and script versions. 
+
 ____________________________________________________________
 
 **There are 3 steps to install *VEBA*:**
@@ -23,7 +25,7 @@ ____________________________________________________________
 **1. Download repository**
 
 ```
-# For stable version, wget the tar-ball:
+# For stable version, download and uncompress the tarball:
 wget https://github.com/jolespin/veba/archive/refs/tags/v1.0.0.tar.gz
 tar -xvf v1.0.0.tar.gz && mv veba-1.0.0 veba
 
@@ -261,12 +263,16 @@ Espinoza, Josh (2022): Microeukaryotic Protein Database. figshare. Dataset. http
 ____________________________________________________________
 
 #### Version Notes:
-* The only mandatory datbase version is `R202` for `GTDBTk` because `VEBA` is built on `v1.5.0 ≤ GTDBTk ≤ v1.70`.  The next major `VEBA` update will upgrade to `GTDBTk v2.1.0` and the associated `R207_v2` database.
+
 * The `nr.dmnd` should be built using NCBI's taxonomy info.  The `download_database.sh` takes care of this but if you are using a prebuilt `nr.dmnd` database then use following command for reference: `diamond makedb --in ${DATABASE_DIRECTORY}/nr.gz --db ${DATABASE_DIRECTORY}/Annotate/nr.dmnd --taxonmap ${DATABASE_DIRECTORY}/Classify/NCBITaxonomy/prot.accession2taxid.FULL.gz --taxonnodes ${DATABASE_DIRECTORY}/Classify/NCBITaxonomy/nodes.dmp --taxonnames ${DATABASE_DIRECTORY}/Classify/NCBITaxonomy/names.dmp`
 * The NCBI taxonomy should be downloaded on the same date as NR to make sure the identifiers match up between datasets.  NCBI deprecates taxonomy identifiers and adds new ones between versions so downloading on the same day should minimize that discrepancy.  One caveat NCBI NR and taxonomy databases is the versioning is difficult to discern.
 * For the human contamination, if you use `KneadData` and already have a `Bowtie2` index for human then you can use that instead.  The only module that uses this is `preprocess.py` and you have to specify this directly when running (i.e., it's optional) so it doesn't matter if it's in the database directory or not (same with ribokmers.fa.gz). 
 * `CheckM` and `CheckV` only have 1 database version at this time so it isn't an issue. 
 * `KOFAM` and `Pfam` just uses these as annotations so any version should work perfectly.
 * Again, if you are low on disk space and already have these installed then just symlink them with the structure above. If so, them just comment out those sections of `download_databases.sh`.  
+
+**VEBA v1.0.0 Specific:**
+
+* The only mandatory datbase version is `R202` for `GTDBTk` because `VEBA` is built on `v1.5.0 ≤ GTDBTk ≤ v1.70`.  The next major `VEBA` update will upgrade to `≥ GTDBTk v2.0.0` and the associated `R207_v2` database.
 
 If you have any issues, please create a GitHub issue with the prefix `[DATABASE]` followed by the question.
