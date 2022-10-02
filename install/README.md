@@ -23,7 +23,11 @@ ____________________________________________________________
 **1. Download repository**
 
 ```
-# Clone the repository
+# For stable version, wget the tar-ball:
+wget https://github.com/jolespin/veba/archive/refs/tags/v1.0.0.tar.gz
+tar -xvf v1.0.0.tar.gz && mv veba-1.0.0 veba
+
+# For developmental version, clone the repository:
 git clone https://github.com/jolespin/veba/
 
 # Update the permissions
