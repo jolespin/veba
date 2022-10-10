@@ -176,3 +176,12 @@ Here are a few shortcuts:
 * [*H. sapiens* CHM13 v2 (T2T)](https://genome-idx.s3.amazonaws.com/bt/chm13v2.0.zip)
 * [*M. musculus* GRCm39](https://genome-idx.s3.amazonaws.com/bt/GRCm39.zip)
 * [*A. thaliana* TAIR10](https://genome-idx.s3.amazonaws.com/bt/TAIR10.zip)
+
+**23. What's the difference between a coassembly and a pseudo-coassembly?**
+
+Coassembly is when a user concatenates all forward reads into one file (e.g., `cat *_1.fastq.gz > concat_1.fastq.gz`) and all reverse reads into another file (e.g., `cat *_2.fastq.gz > concat_2.fastq.gz`) which is then input into an assembly algorithm (e.g., `metaSPAdes`) to perform "coassembly".  This is often performed when the samples are similar enough to contain similar strains of bacteria and the samples are not deep enough to yield high quality sample-specific assemblies. 
+
+For pseudo-coassembly binning, the user first assembles all of the samples individually (i.e., sample-specific assembly) and then bins out MAGs; preferably using iterative prokaryotic binning followed by eukaryotic and viral binning if applicable.  In most pipelines, the unbinned contigs are discarded but in certain cases (e.g., when the samples are similar enough in origin such as different samples from the same location in the same study) these unbinned contigs can repurposed in a "pseudo-coassembly", a concept introduced in the *VEBA* publication, where unbinned contigs are concatenated together to produce a pseudo-coassembly (e.g., `cat */unbinned.fasta > pseudo-coassembly.fasta`).  **Note that an additional round of assembly is not performed here.** The logic for this procedure is that genomes left over after binning in each individual sample are incomplete fragments which is why they were not recovered during the sample-specific binning and pseudo-coassembly binning has the potential to combine said fragments into a complete genome with reduced likelihood of contaminated genomes than binning using the entire coassembled dataset.  
+
+For more information on *bona fide* coassemblies and what they are, please refer to [AstrobioMike's Happy Belly Bioinformatics blogpost](https://astrobiomike.github.io/metagenomics/metagen_anvio#what-is-a-co-assembly).
+
