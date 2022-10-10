@@ -201,7 +201,7 @@ for ID in $(cat identifiers.list);
 	rm -f logs/${N}.*
 	FASTA=veba_output/binning/eukaryotic/${ID}/output/unbinned.fasta
 	BAM=veba_output/assembly/${ID}/output/mapped.sorted.bam
-	CMD="source activate VEBA-binning_env && binning-viral.py -f ${FASTA} -b ${BAM} -n ${ID} -p ${N_JOBS} -m 1500 -o veba_output/binning/viral"
+	CMD="source activate VEBA-binning-viral_env && binning-viral.py -f ${FASTA} -b ${BAM} -n ${ID} -p ${N_JOBS} -m 1500 -o veba_output/binning/viral"
 	# Either run this command or use SunGridEnginge/SLURM
 
 	done
@@ -258,7 +258,7 @@ conda activate VEBA-preprocess_env
 
 N_JOBS=4
 
-cat veba_output/assembly/*/output/scaffolds.fasta | seqkit -m 1500 -j ${N_JOBS} | seqkit grep -v -j ${N_JOBS} -f veba_output/misc/all_sample_specific_mags.binned_contigs.list > veba_output/misc/all_sample_specific_mags.unbinned_contigs.gt1500.fasta
+cat veba_output/assembly/*/output/scaffolds.fasta | seqkit seq -m 1500 -j ${N_JOBS} | seqkit grep -v -j ${N_JOBS} -f veba_output/misc/all_sample_specific_mags.binned_contigs.list > veba_output/misc/all_sample_specific_mags.unbinned_contigs.gt1500.fasta
 
 # Now create a read table of the following format: 
 # [id_sample]<tab>[path/to/r1.fastq.gz]<tab>[path/to/r2.fastq.gz]

@@ -92,7 +92,7 @@ for ID in $(cat identifiers.list);
 	rm -f logs/${N}.*
 	FASTA=veba_output/transcript_assembly/${ID}/output/transcripts.fasta
 	BAM=veba_output/transcript_assembly/${ID}/output/mapped.sorted.bam
-	CMD="source activate VEBA-binning_env && binning-viral.py -f ${FASTA} -b ${BAM} -n ${ID} -p ${N_JOBS} -m 1500 -o veba_output/binning/viral"
+	CMD="source activate VEBA-binning-viral_env && binning-viral.py -f ${FASTA} -b ${BAM} -n ${ID} -p ${N_JOBS} -m 1500 -o veba_output/binning/viral"
 	
 	# Either run this command or use SunGridEnginge/SLURM
 
