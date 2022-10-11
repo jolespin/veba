@@ -185,3 +185,6 @@ For pseudo-coassembly binning, the user first assembles all of the samples indiv
 
 For more information on *bona fide* coassemblies and what they are, please refer to [AstrobioMike's Happy Belly Bioinformatics blogpost](https://astrobiomike.github.io/metagenomics/metagen_anvio#what-is-a-co-assembly).
 
+**24. What's the difference between a bin and a MAG?** 
+
+In the *VEBA* suite, we define bins as candidate genomes output by binning algorithms that have not been quality assessed and MAGs as genomes that have been quality filtered by *CheckM*, *BUSCO*, and *CheckV* for prokaryotes, eukaryotes, and viruses, respectively.
