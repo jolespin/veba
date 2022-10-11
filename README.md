@@ -128,3 +128,10 @@ veba_output/binning/viral/${ID}/output/
 ```
 
 The above are default output locations but they can be customized.
+
+___________________________________________________________________
+
+### What's next for *VEBA*?
+
+Check out the [*VEBA* Roadmap](ROADMAP.md) for insight into what is being implemented in the upcoming version.
+
