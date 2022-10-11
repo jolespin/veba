@@ -22,10 +22,18 @@
 
 # Pending: 
 ==========
+* Add the [--name] prefix to all scaffolds to avoid rare situations where the contigs have the same name.
 * Automate feature compression ratios in cluster.py
 * end_to_end? [preprocess] -> [assembly] -> [bin prok] -> [bin viral] -> [cluster] -> [classify] -> [annotate]
 * Switch to GTDBTk2 and CheckM2
 * Switch GRCH38.p13 to T2T https://genome-idx.s3.amazonaws.com/bt/chm13v2.0.zip
+* Add `conda install -c bioconda sra-tools` to VEBA-preprocess_env
+* Fix ClobberError in VEBA-binning-prokaryotic_env and VEBA-classify_env
+* Add DADA2 pipeline as an amplicon.py module
+* Add spatial coverage to coverage.py script like in mapping.py script? Maybe just the samtools coverage output.
+* Adapt DADA2_pipeline to amplicon.py module
+* Create a metabolism.py module
+* Create biosynthetic.py module
 
 # Binning
 # ======= 
