@@ -9,7 +9,7 @@
 
 
 ##### Release v1.0
-Released with *BMC Bionformatics* publication (doi:10.1186/s12859-022-04973-8).
+* Released with *BMC Bionformatics* publication (doi:10.1186/s12859-022-04973-8).
 
 
 
