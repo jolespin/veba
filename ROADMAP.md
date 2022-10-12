@@ -1,6 +1,6 @@
 #### What's next for *VEBA*?
 
-##### Release v1.1
+##### Release v1.1 [In Development]
 * Add an option for sample name prefix in `assembly.py`
 * Change default human reference genome from [GRCh38 no-alt analysis set](https://genome-idx.s3.amazonaws.com/bt/GRCh38_noalt_as.zip) to [T2T CHM13v2.0](https://genome-idx.s3.amazonaws.com/bt/chm13v2.0.zip)
 * Update *GTDBTk* v1.x to v2.x and the database from [R202](https://data.gtdb.ecogenomic.org/releases/release202/202.0/auxillary_files/gtdbtk_r202_data.tar.gz) to [R207_v2](https://data.gtdb.ecogenomic.org/releases/latest/auxillary_files/gtdbtk_v2_data.tar.gz)
