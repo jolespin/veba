@@ -10,7 +10,7 @@ The *Viral Eukaryotic Bacterial Archaeal* (VEBA) is an open-source software suit
 ___________________________________________________________________
 ### Citation
 
-Espinoza, J.L., Dupont, C.L. VEBA: a modular end-to-end suite for in silico recovery, clustering, and analysis of prokaryotic, microeukaryotic, and viral genomes from metagenomes. BMC Bioinformatics 23, 419 (2022). [https://doi.org/10.1186/s12859-022-04973-8](https://doi.org/10.1186/s12859-022-04973-8)
+Espinoza JL, Dupont CL. VEBA: a modular end-to-end suite for in silico recovery, clustering, and analysis of prokaryotic, microeukaryotic, and viral genomes from metagenomes. BMC Bioinformatics. 2022 Oct 12;23(1):419. [doi: 10.1186/s12859-022-04973-8](https://doi.org/10.1186/s12859-022-04973-8). PMID: 36224545.
 
 ___________________________________________________________________
 
