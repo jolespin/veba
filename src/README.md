@@ -709,9 +709,9 @@ Consensus habitat/isolation source arguments:
 
 **Output:**
 
-* viral_taxonomy.tsv - Viral genome classification based on CheckV classifications
-* viral_taxonomy.clusters.tsv - Viral cluster classification (If --clusters are provided)
-* viral_isolation_source.clusters.tsv - Viral isolation source consensus (If --clusters are provided)
+* viral\_taxonomy.tsv - Viral genome classification based on CheckV classifications
+* viral\_taxonomy.clusters.tsv - Viral cluster classification (If --clusters are provided)
+* viral\_isolation\_source.clusters.tsv - Viral isolation source consensus (If --clusters are provided)
 
 #### cluster – Species-level clustering of genomes and lineage-specific orthogroup detection
 To leverage intra-sample genome analysis in an inter-sample analytical paradigm, genome clustering and lineage-specific orthogroup detection is necessary.  The cluster module first uses FastANI (Jain, Rodriguez-R, Phillippy, Konstantinidis, & Aluru, 2018) to compute pairwise ANI and these are used to construct a NetworkX graph object where nodes are genomes and edges are ANI values (Hagberg, Schult, & Swart, 2008).  This graph is converted into subgraphs of connected components whose edges are connected by a particular threshold such as 95% ANI [default] as recommended by the authors for species-level clustering.  These species-level clusters (SLC) are then partitioned and OrthoFinder (Emms & Kelly, 2019) is then run on each SLC panproteome. The input is a list of genome paths and list of protein fasta paths while the output includes identifier mappings between genomes, SLCs, scaffolds, proteins, and orthogroups.
@@ -778,9 +778,10 @@ OrthoFinder arguments:
 
 *Note: This should be run separately for prokaryotes, eukaryotes, and viruses. 
 
-* veba_output/cluster/prokaryotes
-* veba_output/cluster/prokaryotes
-* veba_output/cluster/prokaryotes
+Here is the suggested directory structure:
+* veba_output/cluster/prokaryotic
+* veba_output/cluster/eukaryotic
+* veba_output/cluster/viral
 
 #### annotate – Annotates translated gene calls against NR, Pfam, and KOFAM
 Annotation is performed using best hit annotations and profile HMMs.  First proteins are aligned against NCBI non-redundant protein database (other databases are supported) using Diamond (Buchfink, Reuter, & Drost, 2021; Buchfink, Xie, & Huson, 2014). After annotation, protein domains are identified using the Pfam database (Mistry et al., 2021) via HMMER (Mistry, Finn, Eddy, Bateman, & Punta, 2013) and KEGG orthology is characterized via KOFAMSCAN (Aramaki et al., 2020).  Note, the `lineage_predictions.*.tsv` files generated here are experimental.
