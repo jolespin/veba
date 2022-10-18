@@ -12,7 +12,7 @@ from soothsayer_utils import *
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2022.06.04"
+__version__ = "2022.10.16"
 
 
 # Assembly
@@ -176,8 +176,8 @@ def get_fastani_cmd( input_filepaths, output_filepaths, output_directory, direct
         "-g {}".format(input_filepaths[0]),
         {True:"-p {}".format(opts.cluster_prefix), False:""}[bool(opts.cluster_prefix)],
         {True:"-s {}".format(opts.cluster_suffix), False:""}[bool(opts.cluster_suffix)],
-        "--export_pickle {}".format(os.path.join(output_directory, "graph.pkl")),
-        "--export_edgelist {}".format(os.path.join(output_directory, "edgelist.tsv")),
+        "--export_pickle {}".format(os.path.join(output_directory, "genomes")),
+        "--export_edgelist {}".format(os.path.join(output_directory, "genomes")),
         "-o {}".format(output_filepaths[1]),
         "--no_header",
         ")",
@@ -545,7 +545,15 @@ def create_pipeline(opts, directories, f_cmds):
         os.path.join(directories["project"], "genomes.list"),
         os.path.join(directories["project"], "proteins.tsv"),
         ]
-    output_filenames = ["fastani_output.tsv", "clusters.tsv", "clusters", "scaffolds_to_clusters.tsv"]
+    output_filenames = [
+        "fastani_output.tsv",
+        "clusters.tsv",
+        "clusters", 
+        "scaffolds_to_clusters.tsv",
+        "genomes-ani_{}.edgelist.tsv".format(opts.ani_threshold),
+        "genomes-ani_{}.graph.pkl".format(opts.ani_threshold),
+        ]
+
     output_filepaths = list(map(lambda filename: os.path.join(output_directory, filename), output_filenames))
 
     params = {
@@ -632,7 +640,11 @@ def create_pipeline(opts, directories, f_cmds):
         # i/o
         input_filepaths = [
             os.path.join(directories[("intermediate", "1__fastani")], "clusters.tsv"),
+            # os.path.join(directories[("intermediate", "1__fastani")], "fastani_output.tsv"),
+            os.path.join(directories[("intermediate", "1__fastani")], "genomes-ani_{}.edgelist.tsv".format(opts.ani_threshold)),
+            os.path.join(directories[("intermediate", "1__fastani")], "genomes-ani_{}.graph.pkl".format(opts.ani_threshold)),
             os.path.join(directories[("intermediate", "1__fastani")], "scaffolds_to_clusters.tsv"),
+
             os.path.join(directories[("intermediate", "2__orthofinder")], "identifier_mapping.orthogroups.tsv"),
             os.path.join(directories[("intermediate", "2__orthofinder")], "proteins_to_orthogroups.tsv"),
 

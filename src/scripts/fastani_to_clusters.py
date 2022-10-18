@@ -5,7 +5,7 @@ import pandas as pd
 import networkx as nx
 
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2021.06.16"
+__version__ = "2021.11.16"
 
 def main(args=None):
     # Path info
@@ -126,7 +126,7 @@ def main(args=None):
 
         # Export pickle
         if opts.export_pickle is not None:
-            nx.write_gpickle(graph, "{}-ani_{}.pkl".format(opts.export_pickle, tol))
+            nx.write_gpickle(graph, "{}-ani_{}.graph.pkl".format(opts.export_pickle, tol))
         # Export edgelist
         if opts.export_edgelist is not None:
             nx.write_weighted_edgelist(graph, "{}-ani_{}.edgelist.tsv".format(opts.export_pickle, tol), delimiter="\t")

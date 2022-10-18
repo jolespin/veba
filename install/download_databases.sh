@@ -1,4 +1,5 @@
 #!/bin/bash
+# __VERSION__="2022.10.17"
 
 # Create database
 DATABASE_DIRECTORY=${1:-"."}
@@ -67,6 +68,7 @@ wget -v -O ${DATABASE_DIRECTORY}/Microeukaryotic.tar.gz https://figshare.com/ndo
 tar xvzf ${DATABASE_DIRECTORY}/Microeukaryotic.tar.gz -C ${DATABASE_DIRECTORY}/Classify
 mmseqs createdb ${DATABASE_DIRECTORY}/Classify/Microeukaryotic/reference.rmdup.iupac.relabeled.no_deprecated.complete_lineage.faa.gz ${DATABASE_DIRECTORY}/Classify/Microeukaryotic/microeukaryotic
 rm -rf ${DATABASE_DIRECTORY}/Microeukaryotic.tar.gz
+# rm -rf ${DATABASE_DIRECTORY}/Classify/Microeukaryotic/reference.rmdup.iupac.relabeled.no_deprecated.complete_lineage.faa.gz
 
 # MarkerSets
 echo ". .. ... ..... ........ ............."
@@ -112,6 +114,7 @@ mkdir -v -p ${DATABASE_DIRECTORY}/Contamination/kmers
 wget -v -O ${DATABASE_DIRECTORY}/Contamination/kmers/ribokmers.fa.gz https://figshare.com/ndownloader/files/36220587
 wget -v -P ${DATABASE_DIRECTORY} https://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/000/001/405/GCF_000001405.40_GRCh38.p14/GRCh38_major_release_seqs_for_alignment_pipelines/GCA_000001405.15_GRCh38_no_alt_analysis_set.fna.bowtie_index.tar.gz
 tar xvzf ${DATABASE_DIRECTORY}/GCA_000001405.15_GRCh38_no_alt_analysis_set.fna.bowtie_index.tar.gz -C ${DATABASE_DIRECTORY}/Contamination/grch38
+rm -rf ${DATABASE_DIRECTORY}/GCA_000001405.15_GRCh38_no_alt_analysis_set.fna.bowtie_index.tar.gz
 
 echo ". .. ... ..... ........ ............."
 echo "xi * Adding the following environment variable to VEBA environments: export VEBA_DATABASE=${1}"
