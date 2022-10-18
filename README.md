@@ -24,6 +24,8 @@ ___________________________________________________________________
 
 Please refer to the [*Walkthrough Guides*](walkthroughs/README.md) for tutorials and workflows on how to get started.
 
+ [A synopsis of *VEBA* (PDF)](presentations/VEBA-Overview_2022-10-18.pdf)
+
 ___________________________________________________________________
 
 ### Frequently Asked Questions
@@ -134,5 +136,5 @@ ___________________________________________________________________
 
 ### What's next for *VEBA*?
 
-Check out the [*VEBA* Roadmap](ROADMAP.md) for insight into what is being implemented in the upcoming version.
+Check out the [*VEBA* Development Log](DEVELOPMENT.md) for insight into what is being implemented in the upcoming version.
 

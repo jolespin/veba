@@ -1,5 +1,28 @@
-# Development:
-# ============
+### What's next for *VEBA*?
+
+*VEBA* is currently under active development. If you are interested in requesting features or wish to report a bug, please post a GitHub issue prefixed with the tag `[Feature Request]` and `[Bug]`, respectively.  If you want to contribute or have any other inquiries, contact me at `jespinoz[A|T]jcvi[DOT]org`.
+
+
+________________________________________________________________
+#### Versions:
+##### Release v1.1 [In Development]
+* Add an option for sample name prefix in `assembly.py`
+* Change default human reference genome from [GRCh38 no-alt analysis set](https://genome-idx.s3.amazonaws.com/bt/GRCh38_noalt_as.zip) to [T2T CHM13v2.0](https://genome-idx.s3.amazonaws.com/bt/chm13v2.0.zip)
+* Update *GTDBTk* v1.x to v2.x and the database from [R202](https://data.gtdb.ecogenomic.org/releases/release202/202.0/auxillary_files/gtdbtk_r202_data.tar.gz) to [R207_v2](https://data.gtdb.ecogenomic.org/releases/latest/auxillary_files/gtdbtk_v2_data.tar.gz)
+* Add support for *geNomad* for viral binning instead of *VirFinder*.
+* [CONTINGENT] Once *CheckM2* is peer-reviewed and available on Conda, it will replace *CheckM* and the automated CPR workflow implemented by *VEBA*.
+
+
+##### Release v1.0
+* Released with *BMC Bionformatics* publication (doi:10.1186/s12859-022-04973-8).
+
+
+________________________________________________________________
+
+
+
+#### Change Log:
+* [2022.10.16] - Added `edgelist.tsv` and `graph.pkl` to output directory for cluster.py.  These files were already in intermediate 1__fastani but the file name was weird. (e.g., graph.pkl-ani_95.0.edgelist.tsv).  Fixed and also changed output of graph in `fastani_to_clusters.py`:nx.write_gpickle(graph, "{}-ani_{}.graph.pkl".format(opts.export_pickle, tol)) (Adding the .graph. part).
 * [2022.08.27] - Added `metaeuk_wrapper.py` script
 * [2022.08.17] - Added --scaffolds_to_bins option to mapping.py. Automated `samtools index` and `samtools coverage` steps for `mapped.sorted.bam` files for use spatial coverage calculation which is now automated as well producing a `genome_spatial_coverage.tsv.gz` file if `--scaffolds_to_bins` is provided.  Added `genome_spatial_coverage.py` script that uses the `samtools coverage` files from the `mapping.py` module or custom runs. Fixed --table_header error in `groupby_table.py` script.
 * [2022.07.14] - Added `--absolute` argument to `compile_reads_table.py` to use absolute paths instead of relative paths.
@@ -20,59 +43,65 @@
 * [2022.02.22] - `concatenate_fasta.py` and `concatenate_gff.py`
 * [2022.02.02] - `consensus_genome_classification.py``
 
-# Pending: 
-==========
+________________________________________________________________
+
+#### Next up:
+
+* Add MAG-level counts to prokaryotic and eukaryotic. Add optional bam file for viral binning, if so then add MAG-level counts
+* Add support for Anvi'o object export
 * Add the [--name] prefix to all scaffolds to avoid rare situations where the contigs have the same name.
 * Automate feature compression ratios in cluster.py
-* end_to_end? [preprocess] -> [assembly] -> [bin prok] -> [bin viral] -> [cluster] -> [classify] -> [annotate]
-* Switch to GTDBTk2 and CheckM2
+* Switch to GTDBTk2. GTDB-Tk v2.1.x and download_database.sh will use r207 v2
+* Switch CheckM2 [Contingent on publication and Bioconda]
 * Switch GRCH38.p13 to T2T https://genome-idx.s3.amazonaws.com/bt/chm13v2.0.zip
 * Add `conda install -c bioconda sra-tools` to VEBA-preprocess_env
 * Fix ClobberError in VEBA-binning-prokaryotic_env and VEBA-classify_env
 * Add DADA2 pipeline as an amplicon.py module
 * Add spatial coverage to coverage.py script like in mapping.py script? Maybe just the samtools coverage output.
-* Adapt DADA2_pipeline to amplicon.py module
-* Create a metabolism.py module
-* Create biosynthetic.py module
 
-# Binning
-# ======= 
-* Add MAG level counts
+________________________________________________________________
+
+#### Upcoming Modules:
+
+* Adapt DADA2_pipeline to amplicon.py module
+* biosynthetic.py module: antiSMASH
+* noncoding.py module that runs t-RNAscan-SE and BARRNAP (and CORDON?)
+* metabolism.py module: gapseq
+
+________________________________________________________________
+
+#### Additional:
+
+**Binning:**
+
 * Make a wrapper that does coassembly binning but then splits out the bins into individual samples like in VAMB
 * Need to replace the grep -v with non-eukaryota.list for final scaffolds_to_bins.tsv in binning-eukaryotic with subset_table.py using --inverse because sometimes it is returned as empty when list of contigs is large
 * Add geNomad as main option: https://github.com/apcamargo/genomad/
+* In very rare cases `identifier_mapping.tsv`from prokaryotic binning have entries where there's no MAG (i.e., columns 1 and 2 are not-null but columns 3 is null).  Identify and fix this error. 
 
-# Index
-# =====
+**Index/Mapping:**
+
 * Add STAR support. The limiting factor here is getting an analog to exon in the prodigal generated GTF for this option -sjdbGTFfeatureExon. Will need to make some adjustments to `append_geneid_to_prodigal_gff.py` but this will require new lines instead of modifying existing lines.
 
 * Relevant GitHub issues:
 https://github.com/alexdobin/STAR/issues/994
 https://github.com/alexdobin/STAR/issues/867
 
-# Cluster
-# =======
+**Cluster:**
+
 * Add Anvi'o pangeome for each cluster
 
-# Classify
-# ========
-* Need to update to GTDB-Tk v2.1.0 and make the download_database.sh using r207 v2
 
-# Annotate 
-# =========
+
+**Annotate:**
+
 * If --identifier_mapping is `[id_orf]<tab>[id_contig]<tab>[id_mag]<tab>[id_orthogroup] then it does consensus annotations for orthogroups using UniFunc
 
+**Scripts:**
+* get_orthogroup\_consensus\_annotation.py [Not working w/ stdin]
 
-# New Modules
-# ===========
-* Add a noncoding module that runs t-RNAscan-SE and BARRNAP (and CORDON?)
-	* Input is [id_mag]<tab>[domain]<tab>[path/to/genome]
-* Add a metabolism module: gapseq
 
-# Scripts: 
-# ========
-* get_orthogroup_consensus_annotation.py [Not working w/ stdin]
 
-# Notes: 
-# ======
-* Why does `identifier_mapping.tsv`from prokaryotic binning have entries where there's no MAG (i.e., columns 1 and 2 are not-null but columns 3 is null)? 
+
+
+
