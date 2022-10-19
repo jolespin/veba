@@ -188,3 +188,17 @@ For more information on *bona fide* coassemblies and what they are, please refer
 **24. What's the difference between a bin and a MAG?** 
 
 In the *VEBA* suite, we define bins as candidate genomes output by binning algorithms that have not been quality assessed and MAGs as genomes that have been quality filtered by *CheckM*, *BUSCO*, and *CheckV* for prokaryotes, eukaryotes, and viruses, respectively.
+
+**25. How can I update the human reference included in my *VEBA* database?** (i.e., GRCh38  →  CHM13v2.0)
+
+As of 2022.10.18 *VEBA* has switched from using the "GRCh38 no alt analysis set" to the "CHM13v2.0 telomore-to-telomere" build for human.  If you've installed *VEBA* before this date or are using `v1.0.0` release from [Espinoza et al. 2022](https://bmcbioinformatics.biomedcentral.com/articles/10.1186/s12859-022-04973-8) then you can update with the following code:
+
+```
+conda activate VEBA-database_env
+wget -v -P ${VEBA_DATABASE} https://genome-idx.s3.amazonaws.com/bt/chm13v2.0.zip
+unzip -d ${VEBA_DATABASE}/Contamination/ ${VEBA_DATABASE}/chm13v2.0.zip
+rm -rf ${VEBA_DATABASE}/chm13v2.0.zip
+
+# Use this if you want to remove the previous GRCh38 index
+rm -rf ${VEBA_DATABASE}/Contamination/grch38/
+```

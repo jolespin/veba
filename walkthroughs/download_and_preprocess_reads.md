@@ -132,13 +132,31 @@ STDERR was: b'bash: fasterq-dump: command not found\n'STDOUT was: b''
 
 Here we are going to count the reads for the human contamination and ribosomal reads but not keep them.  If you wanted to keep the human reads to do some type of human-based study then do `--retain_contaminated_reads 1`.  If you wanted to just do read trimming and not remove any contamination or count anything then you would just leave out the `-x` and `-k` arguments.  For example, if you were using this to process some human reads.  
 
-**Note:** If your host is not human then you will need to use a different contamination reference.  See item #22 in the [FAQ](https://github.com/jolespin/veba/blob/main/FAQ.md).
+
+* ⚠️ If your host is not human then you will need to use a different contamination reference.  See item #22 in the [FAQ](https://github.com/jolespin/veba/blob/main/FAQ.md).
+
+* ⚠️ As of 2022.10.18 *VEBA* has switched from using the "GRCh38 no alt analysis set" to the "CHM13v2.0 telomore-to-telomere" build for human.  If you've installed *VEBA* before this date or are using `v1.0.0` release from [Espinoza et al. 2022](https://bmcbioinformatics.biomedcentral.com/articles/10.1186/s12859-022-04973-8) then you can update with the following code:
+
+```
+conda activate VEBA-database_env
+wget -v -P ${VEBA_DATABASE} https://genome-idx.s3.amazonaws.com/bt/chm13v2.0.zip
+unzip -d ${VEBA_DATABASE}/Contamination/ ${VEBA_DATABASE}/chm13v2.0.zip
+rm -rf ${VEBA_DATABASE}/chm13v2.0.zip
+
+# Use this if you want to remove the previous GRCh38 index
+rm -rf ${VEBA_DATABASE}/Contamination/grch38/
+```
+
+Continuing with the tutorial...just make note of the human index here and swap out GRCh38 for CHM13v2.0 if you decided to update:
 
 ```
 N_JOBS=4
 
 # Human Bowtie2 index
 HUMAN_INDEX=${VEBA_DATABASE}/Contamination/grch38/GCA_000001405.15_GRCh38_no_alt_analysis_set.fna.bowtie_index
+
+# or use this if you have updated from GRCh38 to CHM13v2.0
+# HUMAN_INDEX=${VEBA_DATABASE}/Contamination/chm13v2.0/chm13v2.0
 
 # Ribosomal k-mer fasta
 RIBOSOMAL_KMERS=${VEBA_DATABASE}/Contamination/kmers/ribokmers.fa.gz

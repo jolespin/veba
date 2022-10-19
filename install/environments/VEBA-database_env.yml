@@ -1,11 +1,9 @@
 name: VEBA-database_env
 channels:
   - jolespin
-  - bioconda
   - conda-forge
   - defaults
-  - etetoolkit
-  - r
+  - bioconda
 dependencies:
   - _libgcc_mutex=0.1=conda_forge
   - _openmp_mutex=4.5=1_gnu
@@ -14,8 +12,8 @@ dependencies:
   - brotlipy=0.7.0=py39hb9d737c_1004
   - bz2file=0.98=py_0
   - bzip2=1.0.8=h7f98852_4
-  - ca-certificates=2021.10.8=ha878542_0
-  - certifi=2021.10.8=py39hf3d152e_2
+  - ca-certificates=2022.9.24=ha878542_0
+  - certifi=2022.9.24=pyhd8ed1ab_0
   - cffi=1.15.0=py39h4bc2ebd_0
   - charset-normalizer=2.0.12=pyhd8ed1ab_0
   - colorama=0.4.4=pyh9f0ad1d_0
@@ -110,6 +108,7 @@ dependencies:
   - tqdm=4.64.0=pyhd8ed1ab_0
   - tzdata=2022a=h191b570_0
   - tzlocal=3.0=py39hf3d152e_2
+  - unzip=6.0=h7f98852_3
   - urllib3=1.26.9=pyhd8ed1ab_0
   - wget=1.20.3=ha56f1ee_1
   - wheel=0.37.1=pyhd8ed1ab_0

@@ -22,6 +22,7 @@ ________________________________________________________________
 
 
 #### Change Log:
+* [2022.10.18] - Replace `GRCh38 alt analysis set` with the `CHM13v2.0 telomere-to-telomere build` for the included human reference.  Also updated the `VEBA-database_env` to include `unzip` and added a patch for users to update their human reference if desired.
 * [2022.10.16] - Added `edgelist.tsv` and `graph.pkl` to output directory for cluster.py.  These files were already in intermediate 1__fastani but the file name was weird. (e.g., graph.pkl-ani_95.0.edgelist.tsv).  Fixed and also changed output of graph in `fastani_to_clusters.py`:nx.write_gpickle(graph, "{}-ani_{}.graph.pkl".format(opts.export_pickle, tol)) (Adding the .graph. part).
 * [2022.08.27] - Added `metaeuk_wrapper.py` script
 * [2022.08.17] - Added --scaffolds_to_bins option to mapping.py. Automated `samtools index` and `samtools coverage` steps for `mapped.sorted.bam` files for use spatial coverage calculation which is now automated as well producing a `genome_spatial_coverage.tsv.gz` file if `--scaffolds_to_bins` is provided.  Added `genome_spatial_coverage.py` script that uses the `samtools coverage` files from the `mapping.py` module or custom runs. Fixed --table_header error in `groupby_table.py` script.
@@ -52,7 +53,7 @@ ________________________________________________________________
 * Add the [--name] prefix to all scaffolds to avoid rare situations where the contigs have the same name.
 * Automate feature compression ratios in cluster.py
 * Switch to GTDBTk2. GTDB-Tk v2.1.x and download_database.sh will use r207 v2
-* Switch CheckM2 [Contingent on publication and Bioconda]
+* Switch CheckM2 [Contingent on publication and Conda release]
 * Switch GRCH38.p13 to T2T https://genome-idx.s3.amazonaws.com/bt/chm13v2.0.zip
 * Add `conda install -c bioconda sra-tools` to VEBA-preprocess_env
 * Fix ClobberError in VEBA-binning-prokaryotic_env and VEBA-classify_env

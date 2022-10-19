@@ -1,5 +1,5 @@
 #!/bin/bash
-# __VERSION__="2022.10.17"
+# __VERSION__="2022.10.18"
 
 # Create database
 DATABASE_DIRECTORY=${1:-"."}
@@ -108,13 +108,20 @@ echo ". .. ... ..... ........ ............."
 echo "ix * Processing contamination databases"
 echo ". .. ... ..... ........ ............."
 mkdir -v -p ${DATABASE_DIRECTORY}/Contamination
-mkdir -v -p ${DATABASE_DIRECTORY}/Contamination/grch38
 # mkdir -v -p ${DATABASE_DIRECTORY}/Contamination/antifam
 mkdir -v -p ${DATABASE_DIRECTORY}/Contamination/kmers
 wget -v -O ${DATABASE_DIRECTORY}/Contamination/kmers/ribokmers.fa.gz https://figshare.com/ndownloader/files/36220587
-wget -v -P ${DATABASE_DIRECTORY} https://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/000/001/405/GCF_000001405.40_GRCh38.p14/GRCh38_major_release_seqs_for_alignment_pipelines/GCA_000001405.15_GRCh38_no_alt_analysis_set.fna.bowtie_index.tar.gz
-tar xvzf ${DATABASE_DIRECTORY}/GCA_000001405.15_GRCh38_no_alt_analysis_set.fna.bowtie_index.tar.gz -C ${DATABASE_DIRECTORY}/Contamination/grch38
-rm -rf ${DATABASE_DIRECTORY}/GCA_000001405.15_GRCh38_no_alt_analysis_set.fna.bowtie_index.tar.gz
+
+# # GRCh38
+# mkdir -v -p ${DATABASE_DIRECTORY}/Contamination/grch38
+# wget -v -P ${DATABASE_DIRECTORY} https://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/000/001/405/GCF_000001405.40_GRCh38.p14/GRCh38_major_release_seqs_for_alignment_pipelines/GCA_000001405.15_GRCh38_no_alt_analysis_set.fna.bowtie_index.tar.gz
+# tar xvzf ${DATABASE_DIRECTORY}/GCA_000001405.15_GRCh38_no_alt_analysis_set.fna.bowtie_index.tar.gz -C ${DATABASE_DIRECTORY}/Contamination/grch38
+# rm -rf ${DATABASE_DIRECTORY}/GCA_000001405.15_GRCh38_no_alt_analysis_set.fna.bowtie_index.tar.gz
+
+# Replacing GRCh38 with CHM13v2.0 in v2022.10.18
+wget -v -P ${DATABASE_DIRECTORY} https://genome-idx.s3.amazonaws.com/bt/chm13v2.0.zip
+unzip -d ${DATABASE_DIRECTORY}/Contamination/ ${DATABASE_DIRECTORY}/chm13v2.0.zip
+rm -rf ${DATABASE_DIRECTORY}/chm13v2.0.zip
 
 echo ". .. ... ..... ........ ............."
 echo "xi * Adding the following environment variable to VEBA environments: export VEBA_DATABASE=${1}"
