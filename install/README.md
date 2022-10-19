@@ -147,6 +147,101 @@ ____________________________________________________________
 
 
 #### Database Structure:
+
+**Current:**
+
+```
+tree -L 3 .
+.
+├── ACCESS_DATE
+├── Annotate
+│   ├── KOFAM
+│   │   ├── ko_list
+│   │   └── profiles
+│   ├── nr
+│   │   └── nr.dmnd
+│   └── Pfam
+│       └── Pfam-A.hmm.gz
+├── Classify
+│   ├── CheckM
+│   │   ├── distributions
+│   │   ├── genome_tree
+│   │   ├── hmms
+│   │   ├── hmms_ssu
+│   │   ├── img
+│   │   ├── pfam
+│   │   ├── selected_marker_sets.tsv
+│   │   ├── taxon_marker_sets.tsv
+│   │   └── test_data
+│   ├── CheckV
+│   │   ├── genome_db
+│   │   ├── hmm_db
+│   │   └── README.txt
+│   ├── GTDBTk
+│   │   ├── fastani
+│   │   ├── manifest.tsv
+│   │   ├── markers
+│   │   ├── masks
+│   │   ├── metadata
+│   │   ├── mrca_red
+│   │   ├── msa
+│   │   ├── pplacer
+│   │   ├── radii
+│   │   └── taxonomy
+│   ├── Microeukaryotic
+│   │   ├── microeukaryotic
+│   │   ├── microeukaryotic.dbtype
+│   │   ├── microeukaryotic_h
+│   │   ├── microeukaryotic_h.dbtype
+│   │   ├── microeukaryotic_h.index
+│   │   ├── microeukaryotic.index
+│   │   ├── microeukaryotic.lookup
+│   │   ├── microeukaryotic.source
+│   │   ├── reference.rmdup.iupac.relabeled.no_deprecated.complete_lineage.faa.gz
+│   │   ├── source_taxonomy.tsv.gz
+│   │   ├── source_to_lineage.dict.pkl.gz
+│   │   └── target_to_source.dict.pkl.gz
+│   └── NCBITaxonomy
+│       ├── citations.dmp
+│       ├── delnodes.dmp
+│       ├── division.dmp
+│       ├── gc.prt
+│       ├── gencode.dmp
+│       ├── merged.dmp
+│       ├── names.dmp
+│       ├── nodes.dmp
+│       ├── prot.accession2taxid.FULL.gz
+│       ├── readme.txt
+│       ├── taxa.sqlite
+│       └── taxa.sqlite.traverse.pkl
+├── Contamination
+│   ├── chm13v2.0
+│   │   ├── chm13v2.0.1.bt2
+│   │   ├── chm13v2.0.2.bt2
+│   │   ├── chm13v2.0.3.bt2
+│   │   ├── chm13v2.0.4.bt2
+│   │   ├── chm13v2.0.rev.1.bt2
+│   │   └── chm13v2.0.rev.2.bt2
+│   └── kmers
+│       └── ribokmers.fa.gz
+├── MarkerSets
+│   ├── Archaea_76.hmm
+│   ├── Bacteria_71.hmm
+│   ├── CPR_43.hmm
+│   ├── eukaryota_odb10.hmm
+│   ├── eukaryota_odb10.scores_cutoff.tsv.gz
+│   ├── Fungi_593.hmm
+│   ├── Protista_83.hmm
+│   └── README
+└── SIZE
+
+33 directories, 48 files
+```
+
+**Previous:**
+<details>
+	<summary>v1.0.0 Database</summary>
+	
 ```
 tree -L 3 .
 .
@@ -234,6 +329,8 @@ tree -L 3 .
 
 33 directories, 47 files
 ```
+
+</details>
 ____________________________________________________________
 
 #### Profile HMM Sources:
