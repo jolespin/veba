@@ -218,7 +218,7 @@ def get_binning_cmd( input_filepaths, output_filepaths, output_directory, direct
             os.path.join(directories["tmp"], "non-eukaryota.scaffolds.fasta"),
             os.path.join(os.path.join(directories["tmp"], "scaffolds_to_bins.tsv")),
             os.path.join(directories["tmp"], "scaffolds.binned.gte{}.fasta".format(opts.tiara_minimum_length)),
-            os.path.join(output_directory, "itermediate"), 
+            os.path.join(output_directory, "intermediate"), 
         ),
         ")",
     ]
