@@ -13,7 +13,7 @@ from soothsayer_utils import *
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2022.7.8"
+__version__ = "2022.10.20"
 
 # DATABASE_METAEUK="/usr/local/scratch/CORE/jespinoz/db/veba/v1.0/Classify/Eukaryotic/eukaryotic"
 
@@ -218,7 +218,7 @@ def get_binning_cmd( input_filepaths, output_filepaths, output_directory, direct
             os.path.join(directories["tmp"], "non-eukaryota.scaffolds.fasta"),
             os.path.join(os.path.join(directories["tmp"], "scaffolds_to_bins.tsv")),
             os.path.join(directories["tmp"], "scaffolds.binned.gte{}.fasta".format(opts.tiara_minimum_length)),
-            os.path.join(output_directory, "itermediate"), 
+            os.path.join(output_directory, "intermediate"), 
         ),
         ")",
     ]
