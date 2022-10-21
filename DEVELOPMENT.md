@@ -13,7 +13,15 @@ ________________________________________________________________
 * [CONTINGENT] Once *CheckM2* is peer-reviewed and available on Conda, it will replace *CheckM* and the automated CPR workflow implemented by *VEBA*.
 
 
-##### Release v1.0
+##### Release v1.0.1
+
+Small patch fix:
+
+* Fixed the fatal binning-eukaryotic.py error: [7c5addf](https://github.com/jolespin/veba/commit/7c5addf9ed6e8e45502274dd353f20b211838a41)
+* Fixed the minor file naming in cluster.py: [5803845](https://github.com/jolespin/veba/commit/58038451dac0791899aa7fca3f9d79454cb9ed46)
+* Removes left-over human genome tar.gz during database download/config: [5803845](https://github.com/jolespin/veba/commit/58038451dac0791899aa7fca3f9d79454cb9ed46)
+
+##### Release v1.0.0
 * Released with *BMC Bionformatics* publication (doi:10.1186/s12859-022-04973-8).
 
 
