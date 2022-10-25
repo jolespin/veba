@@ -30,6 +30,9 @@
  
 * **mapping** – Aligns reads to local or global index of genomes
 
+* **⚠️[EXPERIMENTAL] amplicon** - Automated read trim position detection, DADA2 ASV detection, taxonomic classification, and file conversion
+
+
 #### preprocess – Fastq quality trimming, adapter removal, decontamination, and read statistics calculations
 The preprocess module is a wrapper around our [fastq_preprocessor](https://github.com/jolespin/fastq_preprocessor) which is a modernized reimplementation of [KneadData](https://github.com/biobakery/kneaddata) that relies on fastp for ultra-fast automated adapter removal and quality trimming. Pairing of the trimmed reads is assessed and corrected using [BBTools’ repair.sh](https://sourceforge.net/projects/bbmap). If the user provides a contamination database (e.g., the human reference genome), then trimmed reads are aligned using Bowtie2 (Langmead & Salzberg, 2012) and reads that do not map to the contamination database are stored. If the --retain_contaminated_reads flag is used then the contaminated reads are stored as well. Similarly, if a k-mer reference database is provided (e.g., ribosomal k-mers) then the trimmed or decontaminated reads are aligned against the reference database using BBTools’ bbduk.sh with an option for storing. By default, the none of the contaminated or k-mer analyzed reads are stored but regardless of the choice for retaining reads, the read sets are quantified using seqkit (Shen, Le, Li, & Hu, 2016) for accounting purposes (e.g., % contamination or % ribosomal). All sequences included were downloaded using Kingfisher (https://github.com/wwood/kingfisher-download), included in the preprocess environment, which a fast and flexible program for the procurement of sequencing files and their annotations from public data sources including ENA, NCBI SRA, Amazon AWS, and Google Cloud.
 
@@ -1076,6 +1079,84 @@ Copyright 2022 Josh L. Espinoza (jespinoz@jcvi.org)
 * counts.orthogroups.tsv.gz - Orthogroup-level counts table [Only if --orf_to_orthogroups is provided]
 * unmapped_1.fastq.gz - Unmapped reads (forward)
 * unmapped_2.fastq.gz - Unmapped reads (reverse)
+
+___________________________________________________________________
+**⚠️[EXPERIMENTAL]**
+
+####  **amplicon** - Automated read trim position detection, DADA2 ASV detection, taxonomic classification, and file conversion
+
+The amplicon module is a wrapper around QIIME2's implementation of the DADA2 ASV pipeline which has been fairly standardized.  This works exclusively on paired-end short reads and is not designed for single-end reads nor long reads (the latter may be adapted later).  The experimental portion of this module is the automatic detection of forward and reverse trim.  This module first imports reads into a QIIME2 Artifact object, summarizes reads, and gets position-specific fastq statistics.  The amplicon module uses the position-specific fastq statistics to suggest forward and reverse trim positions (this part is experimental, please use --inspect_trim_regions to manually check the quality plots to ensure it is where you would cut). Next ASVs are detected via DADA2 and denoising statistics are calculated.  After ASVs are detected, taxonomy is classified using classification modules provided by user (e.g., [silva-138-99-nb-classifier.qza](https://data.qiime2.org/2022.8/common/silva-138-99-nb-classifier.qza) followed by phylogenetic inference.  Finally, QIIME2 and BIOM formatted files are converted into tab-separated value tables and fasta files.
+
+```
+usage: amplicon.py -i <reads_table.tsv> -c <classifier.qza> -o <output_directory>
+
+    Running: amplicon.py v2022.10.24 via Python v3.9.7 | /Users/jespinoz/anaconda3/bin/python
+
+optional arguments:
+  -h, --help            show this help message and exit
+
+Required I/O arguments:
+  -i READS_TABLE, --reads_table READS_TABLE
+                        path/to/reads_table.tsv. 3 columns separated by tabs with the following header: [sample-id <tab> forward-absolute-filepath <tab> reverse-absolute-filepath]
+                        A utility script is provided: compile_reads_table.py
+  -c CLASSIFIER, --classifier CLASSIFIER
+                        path/to/feature_classifier. Data Resources: https://docs.qiime2.org/2022.8/data-resources/
+  -o PROJECT_DIRECTORY, --project_directory PROJECT_DIRECTORY
+                        path/to/project_directory [Default: veba_output/amplicon]
+
+Utility arguments:
+  -p N_JOBS, --n_jobs N_JOBS
+                        Number of threads [Default: 1]
+  --random_state RANDOM_STATE
+                        Random state [Default: 0]
+  --restart_from_checkpoint RESTART_FROM_CHECKPOINT
+                        Restart from a particular checkpoint [Default: None]
+  -v, --version         show program's version number and exit
+  --tmpdir TMPDIR       Set temporary directory
+
+Trim detection arguments:
+  --inspect_trim_regions
+                        Manually inspect trim regions then rerun [PLEASE USE THIS TO CHECK TRIMMING SUGGESTIONS AS THEY ARE CURRENTLY EXPERIMENTAL]
+  -f FORWARD_TRIM, --forward_trim FORWARD_TRIM
+                        Specify forward trim position
+  -r REVERSE_TRIM, --reverse_trim REVERSE_TRIM
+                        Specify reverse trim position
+  -q MINIMUM_QUALITY, --minimum_quality MINIMUM_QUALITY
+                        Minimum quality value
+  -m MINIMUM_LENGTH, --minimum_length MINIMUM_LENGTH
+                        Minimum length.  If minimum quality value makes length shorter than this then an error will yield with which samples are responsible [Default: 100]
+  -w WINDOW_SIZE, --window_size WINDOW_SIZE
+                        Window size [Default: 4]
+  -l MAXIMUM_AVERAGE_LOSS, --maximum_average_loss MAXIMUM_AVERAGE_LOSS
+                        Maximum average loss for window size [Default: --window_size]
+
+DADA2 arguments:
+  --minimum_overlap MINIMUM_OVERLAP
+                        DADA2 | The minimum length of the overlap required for merging the forward and reverse reads. [Default: 12]
+  --dada2_options DADA2_OPTIONS
+                        Additional DADA2 options. '--arg value'
+
+Phylogeny arguments:
+  --phylogeny_mode PHYLOGENY_MODE
+                        QIIME2 phylogeny submodule [Default: align-to-tree-mafft-fasttree]
+  --phylogeny_options PHYLOGENY_OPTIONS
+                        Additional options. '--arg value'
+
+Copyright 2021 Josh L. Espinoza (jespinoz@jcvi.org)
+```
+
+**Output:**
+
+* aligned-dna-sequences.fasta - Aligned ASV reference sequences
+* dna-sequences.fasta - ASV reference sequences
+* dna-sequences.with_taxonomy.fasta - ASV reference sequences with taxonomy/confidence info in description
+* feature-table.biom - BIOM format ASV feature table
+* feature-table.tsv - Tab-seperated values ASV table (rows=ASV, columns=samples, skiprows=1)
+* stats.tsv - Read statistics
+* taxonomy.tsv - Taxonomy table [ASV]<tab>[Lineage]<tab>[Confidence]
+* tree.nwk - Newick formatted tree
+
+
 
 ___________________________________________________________________
 #### References:
