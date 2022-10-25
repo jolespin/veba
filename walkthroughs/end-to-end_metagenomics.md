@@ -265,7 +265,8 @@ cat veba_output/assembly/*/output/scaffolds.fasta | seqkit seq -m 1500 -j ${N_JO
 # compile_reads_table.py is a script installed in every VEBA environment. 
 # If for some reason it's unavailable then just download it here: 
 # https://github.com/jolespin/veba/tree/main/src/scripts
-# If you want, you can use `-r` or `--relative` flag for relative paths. # Note, functionality prior to 2022.10.24 uses `-a` and `--absolute` but # now absolute paths are default.
+# If you want, you can use `-r` or `--relative` flag for relative paths. 
+# Note, functionality prior to 2022.10.24 uses `-a` and `--absolute` but now absolute paths are default.
 
 compile_reads_table.py -i veba_output/preprocess/ > veba_output/misc/reads_table.tsv
 
