@@ -27,7 +27,9 @@ Refer to the [downloading and preprocessing reads workflow](download_and_preproc
 mkdir -p veba_output/misc
 
 # Compile reads table
-compile_reads_table.py -i veba_output/preprocess/ -a > veba_output/misc/reads_table.tsv
+# Note: Prior to 2022.10.24 `-a` and `--absolute` were used for absolute paths.  Now absolute paths are default but relative paths can be used via `-r` or `--relative` flags.  Older versions had a `-a` in the command below. 
+
+compile_reads_table.py -i veba_output/preprocess/ > veba_output/misc/reads_table.tsv
 
 # Forward reads
 cat veba_output/preprocessed/*/output/cleaned_1.fastq.gz > veba_output/misc/concatenated_1.fastq.gz
