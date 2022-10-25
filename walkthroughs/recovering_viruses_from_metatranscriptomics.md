@@ -23,7 +23,7 @@ Refer to the [downloading and preprocessing reads workflow](download_and_preproc
 
 * A file with all of your identifiers on a separate line (e.g., `identifiers.list` but you can call it whatever you want)
 * A directory to keep all your logs called `logs/`
-* A directory of preprocessed reads: `veba_output/preprocessed/${ID}/output/cleaned_1.fastq.gz` and `veba_output/preprocessed/${ID}/output/cleaned_2.fastq.gz` where `${ID}` represents the identifiers in `identifiers.list`.
+* A directory of preprocessed reads: `veba_output/preprocess/${ID}/output/cleaned_1.fastq.gz` and `veba_output/preprocess/${ID}/output/cleaned_2.fastq.gz` where `${ID}` represents the identifiers in `identifiers.list`.
 
 #### 2. Assemble reads, map reads to assembly, calculate assembly statistics, and index the assembly
 
