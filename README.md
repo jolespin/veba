@@ -17,7 +17,7 @@ ___________________________________________________________________
 ### Installation and databases
 Please refer to the [*Installation and Database Configuration Guide*](install/README.md) for software installation and database configuration.
 
-**Current Version:** [`v1.0.1`](https://github.com/jolespin/veba/releases/tag/v1.0.1)
+**Current Version:** [`v1.0.2`](https://github.com/jolespin/veba/releases/tag/v1.0.2)
 
 ___________________________________________________________________
 ### Getting started with *VEBA*
@@ -70,7 +70,7 @@ Please refer to the [*Modules*](src/README.md) for a description of all *VEBA* m
  
 * **mapping** – Aligns reads to local or global index of genomes
 
-
+* **⚠️[EXPERIMENTAL] amplicon** - Automated read trim position detection, DADA2 ASV detection, taxonomic classification, and file conversion
 ___________________________________________________________________
 
 ### Output structure
@@ -137,4 +137,7 @@ ___________________________________________________________________
 ### What's next for *VEBA*?
 
 Check out the [*VEBA* Development Log](DEVELOPMENT.md) for insight into what is being implemented in the upcoming version.
+
+___________________________________________________________________
+
 

@@ -12,7 +12,7 @@ from soothsayer_utils import *
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2022.10.25"
+__version__ = "2022.10.26"
 
 # Assembly
 def get_coverage_cmd( input_filepaths, output_filepaths, output_directory, directories, opts):
@@ -654,7 +654,7 @@ def get_checkm_cmd(input_filepaths, output_filepaths, output_directory, director
         {"full":"", "reduced":"-r"}[opts.checkm_tree],
         "-g", 
         "--tab_table",
-        "-f {}".format(output_filepaths[0]),
+        "-f {}".format(os.path.join(output_directory, "output.tsv")),
         "--pplacer_threads {}".format(opts.pplacer_threads),
         "-t {}".format(opts.n_jobs),
         "-x faa",
@@ -665,7 +665,7 @@ def get_checkm_cmd(input_filepaths, output_filepaths, output_directory, director
         "&&",
         os.environ["filter_checkm_results.py"],
         "--retain_basal_bacteria",
-        "-i {}".format(output_filepaths[0]),
+        "-i {}".format(os.path.join(output_directory, "output.tsv")),
         "-b {}".format(input_filepaths[0]),
         "-o {}".format(os.path.join(output_directory, "filtered")),
         "-f {}".format(opts.fasta),

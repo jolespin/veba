@@ -1,11 +1,9 @@
 name: VEBA-binning-prokaryotic_env
 channels:
-  - jolespin
-  - bioconda
   - conda-forge
+  - bioconda
+  - jolespin
   - defaults
-  - etetoolkit
-  - r
 dependencies:
   - _libgcc_mutex=0.1=conda_forge
   - _openmp_mutex=4.5=1_gnu
@@ -28,16 +26,16 @@ dependencies:
   - bz2file=0.98=py_0
   - bzip2=1.0.8=h7f98852_4
   - c-ares=1.18.1=h7f98852_0
-  - ca-certificates=2022.3.18=h06a4308_0
+  - ca-certificates=2022.9.24=ha878542_0
   - cairo=1.16.0=h9f066cc_1006
   - capnproto=0.9.1=h780b84a_5
-  - certifi=2021.10.8=py38h578d9bd_1
+  - certifi=2022.9.24=py38h06a4308_0
   - cffi=1.15.0=py38h3931269_0
   - charset-normalizer=2.0.12=pyhd8ed1ab_0
   - checkm-genome=1.1.3=py_1
   - colorama=0.4.4=pyh9f0ad1d_0
   - concoct=1.1.0=py38h7be5676_2
-  - coverm=0.6.1=ha1d52fc_2
+  - coverm=0.4.0=hc216eb9_2
   - cryptography=36.0.0=py38h9ce1e76_0
   - curl=7.76.1=h979ede3_1
   - cycler=0.11.0=pyhd8ed1ab_0
@@ -48,7 +46,7 @@ dependencies:
   - diamond=2.0.8=h56fc30b_0
   - entrez-direct=16.2=he881be0_0
   - expat=2.4.7=h27087fc_0
-  - fastani=1.32=he1c1bb9_0
+  - fastani=1.3=he1c1bb9_0
   - fasttree=2.1.11=hec16e2b_1
   - font-ttf-dejavu-sans-mono=2.37=hab24e00_0
   - font-ttf-inconsolata=3.000=h77eed37_0
@@ -72,7 +70,7 @@ dependencies:
   - gmp=6.2.1=h58526e2_0
   - graphite2=1.3.14=h23475e2_0
   - gsl=2.6=he838d99_2
-  - gtdbtk=1.7.0=pyhdfd78af_0
+  - gtdbtk=2.1.1=pyhdfd78af_1
   - gxx_impl_linux-64=9.4.0=h03d3576_13
   - gxx_linux-64=9.4.0=h0316aca_7
   - harfbuzz=2.7.2=ha5b49bf_1
@@ -102,11 +100,11 @@ dependencies:
   - libffi=3.4.2=h7f98852_5
   - libgcc=7.2.0=h69d50b8_2
   - libgcc-devel_linux-64=9.4.0=hd854feb_13
-  - libgcc-ng=11.2.0=h1d223b6_13
+  - libgcc-ng=12.2.0=h65d4601_19
   - libgfortran-ng=11.2.0=h69a702a_13
   - libgfortran5=11.2.0=h5c6108e_13
   - libglib=2.70.2=h174f98d_4
-  - libgomp=11.2.0=h1d223b6_13
+  - libgomp=12.2.0=h65d4601_19
   - libiconv=1.16=h516909a_0
   - libidn2=2.3.2=h7f98852_0
   - liblapack=3.9.0=13_linux64_mkl
@@ -140,7 +138,7 @@ dependencies:
   - nose=1.3.7=py38h32f6830_1004
   - openblas=0.3.18=pthreads_h4748800_0
   - openmp=8.0.1=0
-  - openssl=1.1.1n=h166bdaf_0
+  - openssl=1.1.1q=h166bdaf_1
   - packaging=21.3=pyhd8ed1ab_0
   - pandas=1.4.1=py38h43a58ef_0
   - pango=1.42.4=h69149e4_5
@@ -300,3 +298,4 @@ dependencies:
     - torch==1.7.1
     - tqdm==4.54.1
     - typing-extensions==4.1.1
+prefix: /expanse/projects/jcl110/anaconda3/envs/VEBA-binning-prokaryotic_env

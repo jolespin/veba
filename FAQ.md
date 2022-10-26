@@ -202,3 +202,24 @@ rm -rf ${VEBA_DATABASE}/chm13v2.0.zip
 # Use this if you want to remove the previous GRCh38 index
 rm -rf ${VEBA_DATABASE}/Contamination/grch38/
 ```
+
+**26. Error when installing environments through `conda` (or `mamba`) saying `Encountered problems while solving` and/or `Problem: nothing provides`?**
+
+This is a common issue with `conda` (and `mamba`) and can usually be solved with 2 steps.  
+
+1) First and foremost, make sure you have the most recent version of `conda` (or `mamba`) installed via `conda update conda` (and `conda update mamba`, respectively). [This issue has been well documented on QIIME2's forum.](https://forum.qiime2.org/t/installing-qiime2-with-mamba/21911/4)
+
+2) The second action you can do is set your channel priorities in your `~/.condarc` (if you don't have one, then created one). 
+
+```
+(base) cat ~/.condarc
+channel_priority: flexible
+channels:
+  - conda-forge
+  - bioconda
+  - jolespin
+  - defaults
+  - qiime2/label/r2022.2
+
+report_errors: true
+```

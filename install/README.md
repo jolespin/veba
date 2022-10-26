@@ -7,7 +7,7 @@ The basis for these environments is creating a separate environment for each mod
 
 The majority of the time taken to build database is decompressing large archives, `Diamond` database creation of NR, and `MMSEQS2` database creation of microeukaryotic protein database.
 
-Total size is 369G but if you have certain databases installed already then you can just symlink them. 
+Total size is 372G but if you have certain databases installed already then you can just symlink them. 
 
 Each major version will be packaged as a [release](https://github.com/jolespin/veba/releases) which will include a log of module and script versions. 
 
@@ -26,8 +26,8 @@ ____________________________________________________________
 
 ```
 # For stable version, download and uncompress the tarball:
-wget https://github.com/jolespin/veba/archive/refs/tags/v1.0.0.tar.gz
-tar -xvf v1.0.0.tar.gz && mv veba-1.0.0 veba
+wget https://github.com/jolespin/veba/archive/refs/tags/v1.0.2.tar.gz
+tar -xvf v1.0.2.tar.gz && mv veba-1.0.2 veba
 
 # For developmental version, clone the repository:
 # git clone https://github.com/jolespin/veba/
@@ -104,6 +104,7 @@ sbatch -A ${ACCOUNT} -p ${PARTITION} -J ${N} -N 1 -c ${N_JOBS} --ntasks-per-node
 You should be done now. If you want to double check the installation and database configuration worked then activate a `VEBA` environment: 
 
 ```
+VEBA-amplicon_env
 VEBA-annotate_env
 VEBA-assembly_env
 VEBA-binning-eukaryotic_env
@@ -148,7 +149,13 @@ ____________________________________________________________
 
 #### Database Structure:
 
+
 **Current:**
+
+* *VEBA Database* version: `VDB_v2`
+
+* Compatible with *VEBA* version: `v1.0.2+`
+	
 
 ```
 tree -L 3 .
@@ -179,7 +186,6 @@ tree -L 3 .
 │   │   └── README.txt
 │   ├── GTDBTk
 │   │   ├── fastani
-│   │   ├── manifest.tsv
 │   │   ├── markers
 │   │   ├── masks
 │   │   ├── metadata
@@ -187,7 +193,9 @@ tree -L 3 .
 │   │   ├── msa
 │   │   ├── pplacer
 │   │   ├── radii
-│   │   └── taxonomy
+│   │   ├── split
+│   │   ├── taxonomy
+│   │   └── temp
 │   ├── Microeukaryotic
 │   │   ├── microeukaryotic
 │   │   ├── microeukaryotic.dbtype
@@ -235,12 +243,13 @@ tree -L 3 .
 │   └── README
 └── SIZE
 
-33 directories, 48 files
+35 directories, 47 files
+
 ```
 
 **Previous:**
 <details>
-	<summary>v1.0.0 Database</summary>
+	<summary>VDB_v1</summary>
 	
 ```
 tree -L 3 .
@@ -368,8 +377,16 @@ ____________________________________________________________
 * `KOFAM` and `Pfam` just uses these as annotations so any version should work perfectly.
 * Again, if you are low on disk space and already have these installed then just symlink them with the structure above. If so, them just comment out those sections of `download_databases.sh`.  
 
-**VEBA v1.0.0 Specific:**
+_______________________________________________________
+
+**VEBA v1.0.2 Specific Versions:**
+
+* As of `v1.0.2` *VEBA* uses *GTDB-Tk v2.x* which requires *GTDB R207_v2* and above. If you are using *GTDB-Tk v1.0.0/1* then you will need to use either *GTDB R202/R207*.
+
+**VEBA v1.0.0/1 Specific Versions:**
 
 * The only mandatory datbase version is `R202` for `GTDBTk` because `VEBA` is built on `v1.5.0 ≤ GTDBTk ≤ v1.70`.  The next major `VEBA` update will upgrade to `≥ GTDBTk v2.0.0` and the associated `R207_v2` database.
 
-If you have any issues, please create a GitHub issue with the prefix `[DATABASE]` followed by the question.
+_______________________________________________________
+
+If you have any issues, please create a GitHub issue with the prefix `[Database]` followed by the question.

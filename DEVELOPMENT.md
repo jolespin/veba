@@ -6,6 +6,16 @@
 ________________________________________________________________
 
 #### Current Releases:
+
+##### Release v1.0.2
+* Updated *GTDB-Tk* in `VEBA-binning-prokaryotic_env` from `1.x` to `2.x` (this version uses much less memory). 
+* Updated the *GTDB-Tk* database from `R202` to `R207_v2` to be compatible with *GTDB-Tk v2.x*
+* Updated the [GRCh38 no-alt analysis set](https://genome-idx.s3.amazonaws.com/bt/GRCh38_noalt_as.zip) to [T2T CHM13v2.0](https://genome-idx.s3.amazonaws.com/bt/chm13v2.0.zip) for the default human reference.
+* Added an experimental `amplicon.py` module for short-read ASV detection via the *DADA2* workflow of *QIIME2*.
+* Added additional functionality to `compile_reads_table.py` to handle advanced parsing of samples from fastq directories while also maintaining support for parsing filenames from `veba_output/preprocess`.
+* Added `sra-tools` to `VEBA-preprocess_env`
+
+
 ##### Release v1.0.1
 
 Small patch fix:
@@ -22,10 +32,18 @@ ________________________________________________________________
 
 #### Future Releases:
 
-##### Release v1.1 [In Development]
+##### Release v1.1.0 [In Development]
+
+Completed:
+
+* √ Change default human reference genome from [GRCh38 no-alt analysis set](https://genome-idx.s3.amazonaws.com/bt/GRCh38_noalt_as.zip) to [T2T CHM13v2.0](https://genome-idx.s3.amazonaws.com/bt/chm13v2.0.zip)
+* √ Update *GTDBTk* v1.x to v2.x and the database from [R202](https://data.gtdb.ecogenomic.org/releases/release202/202.0/auxillary_files/gtdbtk_r202_data.tar.gz) to [R207_v2](https://data.gtdb.ecogenomic.org/releases/latest/auxillary_files/gtdbtk_v2_data.tar.gz)
+* √ Add **experimental** `amplicon.py` module for ASV detection via DADA2 implemented in QIIME2. 
+
+ 
+Pending:
+
 * Add an option for sample name prefix in `assembly.py`
-* Change default human reference genome from [GRCh38 no-alt analysis set](https://genome-idx.s3.amazonaws.com/bt/GRCh38_noalt_as.zip) to [T2T CHM13v2.0](https://genome-idx.s3.amazonaws.com/bt/chm13v2.0.zip)
-* Update *GTDBTk* v1.x to v2.x and the database from [R202](https://data.gtdb.ecogenomic.org/releases/release202/202.0/auxillary_files/gtdbtk_r202_data.tar.gz) to [R207_v2](https://data.gtdb.ecogenomic.org/releases/latest/auxillary_files/gtdbtk_v2_data.tar.gz)
 * Add support for *geNomad* for viral binning instead of *VirFinder*.
 * [CONTINGENT] Once *CheckM2* is peer-reviewed and available on Conda, it will replace *CheckM* and the automated CPR workflow implemented by *VEBA*.
 
@@ -35,6 +53,7 @@ ________________________________________________________________
 
 
 #### Change Log:
+* [2022.10.25] - Updated default `GTDB-Tk` database from `R202` to `R207_v2` and along with this updated `GTDB-Tk` in `VEBA-binning-prokaryotic_env` and `VEBA-classify_env`.  Also, updated the `binning-prokaryotic.py` to include the `checkm_output.filtered.tsv` instead of unfiltered `output.tsv`.
 * [2022.10.24] - Added new functionality to `compile_reads_table.py` by adding a method to compile reads tables from Fastq directories.  Compatible with `QIIME2` manifest. Defaults to absolute path with added option `--relative` for relative paths. Also added an experimental `amplicon.py` module for ASV detection/classification along with the appropriate environment recipe and README.md update.
 * [2022.10.18] - Replace `GRCh38 alt analysis set` with the `CHM13v2.0 telomere-to-telomere build` for the included human reference.  Also updated the `VEBA-database_env` to include `unzip` and added a patch for users to update their human reference if desired.
 * [2022.10.16] - Added `edgelist.tsv` and `graph.pkl` to output directory for cluster.py.  These files were already in intermediate 1__fastani but the file name was weird. (e.g., graph.pkl-ani_95.0.edgelist.tsv).  Fixed and also changed output of graph in `fastani_to_clusters.py`:nx.write_gpickle(graph, "{}-ani_{}.graph.pkl".format(opts.export_pickle, tol)) (Adding the .graph. part).
@@ -66,9 +85,7 @@ ________________________________________________________________
 * Add support for Anvi'o object export
 * Add the [--name] prefix to all scaffolds to avoid rare situations where the contigs have the same name.
 * Automate feature compression ratios in cluster.py
-* Switch to GTDBTk2. GTDB-Tk v2.1.x and download_database.sh will use r207 v2
 * Switch CheckM2 [Contingent on publication and Conda release]
-* Switch GRCH38.p13 to T2T https://genome-idx.s3.amazonaws.com/bt/chm13v2.0.zip
 * Add `conda install -c bioconda sra-tools` to VEBA-preprocess_env
 * Fix ClobberError in VEBA-binning-prokaryotic_env and VEBA-classify_env
 * Add DADA2 pipeline as an amplicon.py module

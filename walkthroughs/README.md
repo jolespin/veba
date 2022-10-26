@@ -42,10 +42,13 @@ ___________________________________________
 
 **Coming Soon:**
 
-Workflows for integrating 3rd party software with *VEBA*
+* Workflow for low-depth samples with no bins
+* Workflow for ASV detection from short-read amplicons
 
-* Using [EukHeist](https://github.com/AlexanderLabWHOI/EukHeist) for eukaryotic binning followed by *VEBA* for mapping and annotation.
-* Using [EukMetaSanity](https://github.com/cjneely10/EukMetaSanity) for modeling genes for eukaryotic genomes recovered with *VEBA*.
+* Workflows for integrating 3rd party software with *VEBA*:
+
+	* Using [EukHeist](https://github.com/AlexanderLabWHOI/EukHeist) for eukaryotic binning followed by *VEBA* for mapping and annotation.
+	* Using [EukMetaSanity](https://github.com/cjneely10/EukMetaSanity) for modeling genes for eukaryotic genomes recovered with *VEBA*.
 
 ___________________________________________
 

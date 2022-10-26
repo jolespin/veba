@@ -1,5 +1,6 @@
 #!/bin/bash
-# __VERSION__="2022.10.18"
+# __VERSION__ = "2022.10.25"
+# VEBA_DATABASE_VERSION = "VDB_v2"
 
 # Create database
 DATABASE_DIRECTORY=${1:-"."}
@@ -31,14 +32,20 @@ rm -rf ${DATABASE_DIRECTORY}/taxdump.tar.gz
 
 # GTDB-Tk
 echo ". .. ... ..... ........ ............."
-echo "ii * Processing GTDB-Tk" # Need to update VEBA to use GTDB-Tk v2.1.0
+echo "ii * Processing GTDB-Tk"
 echo ". .. ... ..... ........ ............."
-# mkdir -v -p ${DATABASE_DIRECTORY}/Classify/gtdbtk
-# wget -v -P ${DATABASE_DIRECTORY} https://data.gtdb.ecogenomic.org/releases/latest/auxillary_files/gtdbtk_data.tar.gz
-wget -v -P ${DATABASE_DIRECTORY} https://data.gtdb.ecogenomic.org/releases/release202/202.0/auxillary_files/gtdbtk_r202_data.tar.gz
-tar xvzf ${DATABASE_DIRECTORY}/gtdbtk_r202_data.tar.gz -C ${DATABASE_DIRECTORY}
-mv ${DATABASE_DIRECTORY}/release202 ${DATABASE_DIRECTORY}/Classify/GTDBTk
-rm -rf ${DATABASE_DIRECTORY}/gtdbtk_r202_data.tar.gz
+
+# For GTDBTk v1
+# wget -v -P ${DATABASE_DIRECTORY} https://data.gtdb.ecogenomic.org/releases/release202/202.0/auxillary_files/gtdbtk_r202_data.tar.gz
+# tar xvzf ${DATABASE_DIRECTORY}/gtdbtk_r202_data.tar.gz -C ${DATABASE_DIRECTORY}
+# mv ${DATABASE_DIRECTORY}/release202 ${DATABASE_DIRECTORY}/Classify/GTDBTk
+# rm -rf ${DATABASE_DIRECTORY}/gtdbtk_r202_data.tar.gz
+
+# For GTDBTk v2
+wget -v -P ${DATABASE_DIRECTORY} https://data.gtdb.ecogenomic.org/releases/release207/207.0/auxillary_files/gtdbtk_r207_v2_data.tar.gz
+tar xvzf ${DATABASE_DIRECTORY}/gtdbtk_r207_v2_data.tar.gz -C ${DATABASE_DIRECTORY}
+mv ${DATABASE_DIRECTORY}/release207_v2 ${DATABASE_DIRECTORY}/Classify/GTDBTk
+rm -rf ${DATABASE_DIRECTORY}/gtdbtk_r207_v2_data.tar.gz
 
 # CheckV
 echo ". .. ... ..... ........ ............."
