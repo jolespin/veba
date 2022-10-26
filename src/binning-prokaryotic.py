@@ -12,11 +12,7 @@ from soothsayer_utils import *
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2022.7.8"
-
-
-# DATABASE_GTDBTK="/usr/local/scratch/CORE/jespinoz/db/gtdbtk/release202/"
-# DATABASE_CPR="/usr/local/scratch/CORE/jespinoz/db/veba/v1.0/MarkerSets/CPR_43.hmm"
+__version__ = "2022.10.25"
 
 # Assembly
 def get_coverage_cmd( input_filepaths, output_filepaths, output_directory, directories, opts):
@@ -1843,7 +1839,7 @@ def create_pipeline(opts, directories, f_cmds):
         ]
 
         output_filenames = [
-            "output.tsv",
+            "filtered/checkm_output.filtered.tsv",
             "filtered/*.list",
             #  "filtered/genomes/*.fa",
         ]
