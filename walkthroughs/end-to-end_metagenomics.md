@@ -95,6 +95,8 @@ Here we are going to perform iterative prokaryotic binning.  It's difficult to s
 
 **⚠️Notes:** 
 
+Versions prior to `v1.0.2a` (e.g., `v1.0.0` and `v1.0.1` using `GTDB-Tk v1.x` but `VEBA v1.0.2a` has updated to `GTDB-Tk v2.x` which uses MUCH less memory.  If you are using `VEBA v1.0.2a` then you can use ~60GB of memory while earlier versions reliant on `GTDB-Tk v1.x` will require between 128-243GB of memory.
+
 1) If you have a lot of samples and a lot of contigs then use the `--skip_maxbin2` flag because it takes MUCH longer to run.  For the *Plastisphere* it was going to take 40 hours per `MaxBin2` run (there are 2 `MaxBin2` runs) per iteration.  `Metabat2` and `CONCOCT` can do the heavy lifting much faster and often with better results so it's recommended to skip `MaxBin2` for larger datasets.
 
 2) The penultimate step `step-number]__cpr_adjustment]` is the most memory intensive stage as this uses `GTDB-Tk` to identify CPR bacteria. Approaches to properly allocate resources are explained in FAQ. 
