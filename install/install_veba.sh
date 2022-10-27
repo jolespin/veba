@@ -1,4 +1,5 @@
 #!/bin/bash
+# __VERSION__ = "2022.10.26"
 SCRIPT_PATH=$(realpath $0)
 PREFIX=$(echo $SCRIPT_PATH | python -c "import sys; print('/'.join(sys.stdin.read().split('/')[:-1]))")
 CONDA_BASE=$(conda run -n base bash -c "echo \${CONDA_PREFIX}")
@@ -22,12 +23,12 @@ for ENV_YAML in ${PREFIX}/environments/VEBA*.yml; do
     conda env create -n $ENV_NAME -f $ENV_YAML
 
     # Copy over files to environment bin/
-    echo -e "Copying VEBA into ${ENV_NAME} environment"
+    echo -e "\t*Copying VEBA modules into ${ENV_NAME} environment path"
     cp -r ${PREFIX}/../src/*.py ${CONDA_BASE}/envs/${ENV_NAME}/bin/
+    echo -e "\t*Copying VEBA utility scripts into ${ENV_NAME} environment path"
     cp -r ${PREFIX}/../src/scripts/ ${CONDA_BASE}/envs/${ENV_NAME}/bin/
-
-    # Symlink the accessory scripts to bin/
-    echo -e "Symlinking VEBA scripts into ${ENV_NAME} environment path"
+    # Symlink the utility scripts to bin/
+    echo -e "\t*Symlinking VEBA utility scripts into ${ENV_NAME} environment path"
     ln -sf ${CONDA_BASE}/envs/${ENV_NAME}/bin/scripts/* ${CONDA_BASE}/envs/${ENV_NAME}/bin/
 
     done

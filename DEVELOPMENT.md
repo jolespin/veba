@@ -14,6 +14,8 @@ ________________________________________________________________
 * Added an experimental `amplicon.py` module for short-read ASV detection via the *DADA2* workflow of *QIIME2*: [cd4ed2b](https://github.com/jolespin/veba/commit/cd4ed2bfe35d5379a63dd3294c229f2c861f6f77)
 * Added additional functionality to `compile_reads_table.py` to handle advanced parsing of samples from fastq directories while also maintaining support for parsing filenames from `veba_output/preprocess`: [cd4ed2b](https://github.com/jolespin/veba/commit/cd4ed2bfe35d5379a63dd3294c229f2c861f6f77)
 * Added `sra-tools` to `VEBA-preprocess_env`: [f3507dd](https://github.com/jolespin/veba/commit/f3507dd13a42960e3671c9f8a106c9974fbfce21)
+* Fixed symlinks to scripts for `install_veba.sh`: [d1fad03](https://github.com/jolespin/veba/commit/d1fad03b71537cc6cc0d47fee426b6610000752a)
+* Added missing `CHECKM_DATA_PATH` environment variable to `VEBA-binning-prokaryotic_env` and `VEBA-classify_env`: [d1fad03](https://github.com/jolespin/veba/commit/d1fad03b71537cc6cc0d47fee426b6610000752a)
 
 
 ##### Release v1.0.1
@@ -39,12 +41,14 @@ Completed:
 * √ Change default human reference genome from [GRCh38 no-alt analysis set](https://genome-idx.s3.amazonaws.com/bt/GRCh38_noalt_as.zip) to [T2T CHM13v2.0](https://genome-idx.s3.amazonaws.com/bt/chm13v2.0.zip)
 * √ Update *GTDBTk* v1.x to v2.x and the database from [R202](https://data.gtdb.ecogenomic.org/releases/release202/202.0/auxillary_files/gtdbtk_r202_data.tar.gz) to [R207_v2](https://data.gtdb.ecogenomic.org/releases/latest/auxillary_files/gtdbtk_v2_data.tar.gz)
 * √ Add **experimental** `amplicon.py` module for ASV detection via DADA2 implemented in QIIME2. 
+* √ Add `conda install -c bioconda sra-tools` to `VEBA-preprocess_env` and update environment
 
  
 Pending:
 
 * Add an option for sample name prefix in `assembly.py`
 * Add support for *geNomad* for viral binning instead of *VirFinder*.
+* More detailed error message for `binning-prokaryotic.py` penultimate step.
 * [CONTINGENT] Once *CheckM2* is peer-reviewed and available on Conda, it will replace *CheckM* and the automated CPR workflow implemented by *VEBA*.
 
 
@@ -53,6 +57,7 @@ ________________________________________________________________
 
 
 #### Change Log:
+* [2022.10.26] - Fixed symlinks to scripts for `install_veba.sh` and added missing `CHECKM_DATA_PATH` environment variable.
 * [2022.10.25] - Updated default `GTDB-Tk` database from `R202` to `R207_v2` and along with this updated `GTDB-Tk` in `VEBA-binning-prokaryotic_env` and `VEBA-classify_env`.  Also, updated the `binning-prokaryotic.py` to include the `checkm_output.filtered.tsv` instead of unfiltered `output.tsv`.
 * [2022.10.24] - Added new functionality to `compile_reads_table.py` by adding a method to compile reads tables from Fastq directories.  Compatible with `QIIME2` manifest. Defaults to absolute path with added option `--relative` for relative paths. Also added an experimental `amplicon.py` module for ASV detection/classification along with the appropriate environment recipe and README.md update.
 * [2022.10.18] - Replace `GRCh38 alt analysis set` with the `CHM13v2.0 telomere-to-telomere build` for the included human reference.  Also updated the `VEBA-database_env` to include `unzip` and added a patch for users to update their human reference if desired.
@@ -86,10 +91,9 @@ ________________________________________________________________
 * Add the [--name] prefix to all scaffolds to avoid rare situations where the contigs have the same name.
 * Automate feature compression ratios in cluster.py
 * Switch CheckM2 [Contingent on publication and Conda release]
-* Add `conda install -c bioconda sra-tools` to VEBA-preprocess_env
 * Fix ClobberError in VEBA-binning-prokaryotic_env and VEBA-classify_env
-* Add DADA2 pipeline as an amplicon.py module
 * Add spatial coverage to coverage.py script like in mapping.py script? Maybe just the samtools coverage output.
+
 
 ________________________________________________________________
 
