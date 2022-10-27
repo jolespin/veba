@@ -1,9 +1,10 @@
 #!/bin/bash
-# __VERSION__ = "2022.10.25"
+# __VERSION__ = "2022.10.26"
 # VEBA_DATABASE_VERSION = "VDB_v2"
 
 # Create database
 DATABASE_DIRECTORY=${1:-"."}
+REALPATH_DATABASE_DIRECTORY=$(realpath $DATABASE_DIRECTORY)
 
 # Database structure
 echo ". .. ... ..... ........ ............."
@@ -131,12 +132,11 @@ unzip -d ${DATABASE_DIRECTORY}/Contamination/ ${DATABASE_DIRECTORY}/chm13v2.0.zi
 rm -rf ${DATABASE_DIRECTORY}/chm13v2.0.zip
 
 echo ". .. ... ..... ........ ............."
-echo "xi * Adding the following environment variable to VEBA environments: export VEBA_DATABASE=${1}"
+echo "xi * Adding the following environment variable to VEBA environments: export VEBA_DATABASE=${REALPATH_DATABASE_DIRECTORY}"
 # CONDA_BASE=$(which conda | python -c "import sys; print('/'.join(sys.stdin.read().split('/')[:-2]))")
 CONDA_BASE=$(conda run -n base bash -c "echo \${CONDA_PREFIX}")
 
 # VEBA
-REALPATH_DATABASE_DIRECTORY=$(realpath $DATABASE_DIRECTORY)
 for ENV_PREFIX in ${CONDA_BASE}/envs/VEBA-*; do 
     echo $ENV_PREFIX;
     mkdir -v -p ${ENV_PREFIX}/etc/conda/activate.d/
