@@ -3,7 +3,15 @@
 Complete reinstalls of *VEBA* environments and databases is time consuming so we've detailed how to do specific patches **for advanced users**. If you don't feel comfortable running these commands, then just do a fresh install if you would like to update. 
 
 
-##### 1. Update human reference genome build (GRCh38 to CHM13v2)
+##### 1. Update environment variables of newly installed environments with an existing database
+
+* Run the install/update_environment_variables.sh script. 
+
+```
+bash update_environment_variables.sh /path/to/veba_database
+```
+
+##### 2. Update human reference genome build (GRCh38 to CHM13v2)
 
 * Remove the old build and download the new build
 
@@ -25,7 +33,7 @@ Complete reinstalls of *VEBA* environments and databases is time consuming so we
 
 	```
 
-##### 2. Update GTDB-Tk v1.x to v2.x
+##### 3. Update GTDB-Tk v1.x to v2.x
 
 * First, remove the old *GTDB-Tk* database and download the new one.
 	   
@@ -125,5 +133,4 @@ Complete reinstalls of *VEBA* environments and databases is time consuming so we
     done 
 
 	```
-	
 	
