@@ -53,10 +53,10 @@ Complete reinstalls of *VEBA* environments and databases is time consuming so we
 	* Second, remove and add the new Conda environment.
 
 	```
-	# Download the v1.0.2 version and decompress .tar.gz
-	wget https://github.com/jolespin/veba/archive/refs/tags/v1.0.2.tar.gz
+	# Download the v1.0.2a version and decompress .tar.gz
+	wget https://github.com/jolespin/veba/archive/refs/tags/v1.0.2a.tar.gz
 	
-	tar -xvf v1.0.2.tar.gz && mv veba-1.0.2 veba
+	tar -xvf v1.0.2a.tar.gz && mv veba-1.0.2a veba
 	
 	# Remove VEBA-binning-prokaryotic_env and VEBA-classify_env
 	conda env remove -n VEBA-binning-prokaryotic_env

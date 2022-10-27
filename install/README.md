@@ -26,8 +26,8 @@ ____________________________________________________________
 
 ```
 # For stable version, download and decompress the tarball:
-wget https://github.com/jolespin/veba/archive/refs/tags/v1.0.2.tar.gz
-tar -xvf v1.0.2.tar.gz && mv veba-1.0.2 veba
+wget https://github.com/jolespin/veba/archive/refs/tags/v1.0.2a.tar.gz
+tar -xvf v1.0.2a.tar.gz && mv veba-1.0.2a veba
 
 # For developmental version, clone the repository:
 # git clone https://github.com/jolespin/veba/
@@ -161,7 +161,7 @@ ____________________________________________________________
 
 * *VEBA Database* version: `VDB_v2`
 
-* Compatible with *VEBA* version: `v1.0.2+`
+* Compatible with *VEBA* version: `v1.0.2a+`
 	
 
 ```
@@ -389,9 +389,9 @@ ____________________________________________________________
 
 _______________________________________________________
 
-**VEBA v1.0.2 Specific Versions:**
+**VEBA v1.0.2a Specific Versions:**
 
-* As of `v1.0.2` *VEBA* uses *GTDB-Tk v2.x* which requires *GTDB R207_v2* and above. If you are using *GTDB-Tk v1.0.0/1* then you will need to use either *GTDB R202/R207*.
+* As of `v1.0.2a` *VEBA* uses *GTDB-Tk v2.x* which requires *GTDB R207_v2* and above. If you are using *GTDB-Tk v1.0.0/1* then you will need to use either *GTDB R202/R207*.
 
 **VEBA v1.0.0/1 Specific Versions:**
 

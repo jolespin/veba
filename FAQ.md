@@ -223,3 +223,7 @@ channels:
 
 report_errors: true
 ```
+
+**27. How can I make minor updates instead of reinstalling everything?**
+
+Please refer to our [patches](https://github.com/jolespin/veba/blob/main/install/PATCHES.md) section.
