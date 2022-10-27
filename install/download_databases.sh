@@ -145,14 +145,18 @@ for ENV_PREFIX in ${CONDA_BASE}/envs/VEBA-*; do
     echo "unset VEBA_DATABASE" > ${ENV_PREFIX}/etc/conda/deactivate.d/veba.sh
     done
 
-#GTDB-Tk
+#GTDB-Tk/CheckM
 echo ". .. ... ..... ........ ............."
 echo "xii * Adding the following environment variable to VEBA environments: export GTDBTK_DATA_PATH=${REALPATH_DATABASE_DIRECTORY}/Classify/GTDBTk/"
 for ENV_NAME in VEBA-binning-prokaryotic_env VEBA-classify_env; do 
     ENV_PREFIX=${CONDA_BASE}/envs/${ENV_NAME}
+    # GTDB-Tk
     # GTDBTK_DATABASE_VERSION=$(ls ${REALPATH_DATABASE_DIRECTORY}/Classify/GTDBTk)
     echo "export GTDBTK_DATA_PATH=${REALPATH_DATABASE_DIRECTORY}/Classify/GTDBTk/" >> ${ENV_PREFIX}/etc/conda/activate.d/veba.sh
     echo "unset GTDBTK_DATA_PATH" >> ${ENV_PREFIX}/etc/conda/deactivate.d/veba.sh
+    # CheckM
+    echo "export CHECKM_DATA_PATH=${REALPATH_DATABASE_DIRECTORY}/Classify/CheckM/" >> ${ENV_PREFIX}/etc/conda/activate.d/veba.sh
+    echo "unset CHECKM_DATA_PATH" >> ${ENV_PREFIX}/etc/conda/deactivate.d/veba.sh    
     done 
 
 # CheckV

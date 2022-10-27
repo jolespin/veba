@@ -25,7 +25,7 @@ ____________________________________________________________
 **1. Download repository**
 
 ```
-# For stable version, download and uncompress the tarball:
+# For stable version, download and decompress the tarball:
 wget https://github.com/jolespin/veba/archive/refs/tags/v1.0.2.tar.gz
 tar -xvf v1.0.2.tar.gz && mv veba-1.0.2 veba
 
@@ -52,7 +52,7 @@ bash install_veba.sh
 
 ⚠️ This step takes ~4.5 hrs using 8 threads with 128G memory and should be run using a compute grid via SLURM or SunGridEngine.  If this command is run on the head node it will likely fail or timeout if a connection is interrupted. The most computationally intensive steps are creating a `Diamond` database of NCBI's non-redundant reference and a `MMSEQS2` database of the microeukaryotic protein database.
 
-If issues arise, please [submit a GitHub issue](https://github.com/jolespin/veba/issues) prefixed with [DATABASE]. We are here to help :)
+If issues arise, please [submit a GitHub issue](https://github.com/jolespin/veba/issues) prefixed with `[Database]`. We are here to help :)
 
 **If you are running an interactive queue:**
 
@@ -144,6 +144,13 @@ ClobberError: This transaction has incompatible packages due to a shared path.
 ```
 
 These errors have been reported during the creation of `VEBA-binning-prokaryotic_env` and `VEBA-classify_env` both of which are the only environments that install `CheckM`.  However, the SafetyError [is easily reproducible](https://github.com/Ecogenomics/CheckM/issues/349) and similar ClobberErrors have been [reported in other software suites](https://github.com/bxlab/metaWRAP/issues/72) which are likely due to Perl dependencies.  Working on addressing these minor errors but they are non-fatal so not the highest priority.  
+
+____________________________________________________________
+
+#### Advanced users:
+
+Complete reinstalls of *VEBA* environments and databases is time consuming so [we've detailed how to do specific patches **for advanced users**](PATCHES.md). If you don't feel comfortable running these commands, then just do a fresh install if you would like to update. 
+
 ____________________________________________________________
 
 
@@ -249,7 +256,10 @@ tree -L 3 .
 
 **Previous:**
 <details>
-	<summary>VDB_v1</summary>
+	<summary>*VEBA Database* version: `VDB_v1`</summary>
+	
+
+* Compatible with *VEBA* version: `v1.0.0`, `v1.0.1`
 	
 ```
 tree -L 3 .

@@ -8,12 +8,12 @@ ________________________________________________________________
 #### Current Releases:
 
 ##### Release v1.0.2
-* Updated *GTDB-Tk* in `VEBA-binning-prokaryotic_env` from `1.x` to `2.x` (this version uses much less memory). 
-* Updated the *GTDB-Tk* database from `R202` to `R207_v2` to be compatible with *GTDB-Tk v2.x*
-* Updated the [GRCh38 no-alt analysis set](https://genome-idx.s3.amazonaws.com/bt/GRCh38_noalt_as.zip) to [T2T CHM13v2.0](https://genome-idx.s3.amazonaws.com/bt/chm13v2.0.zip) for the default human reference.
-* Added an experimental `amplicon.py` module for short-read ASV detection via the *DADA2* workflow of *QIIME2*.
-* Added additional functionality to `compile_reads_table.py` to handle advanced parsing of samples from fastq directories while also maintaining support for parsing filenames from `veba_output/preprocess`.
-* Added `sra-tools` to `VEBA-preprocess_env`
+* Updated *GTDB-Tk* in `VEBA-binning-prokaryotic_env` from `1.x` to `2.x` (this version uses much less memory): [f3507dd](https://github.com/jolespin/veba/commit/f3507dd13a42960e3671c9f8a106c9974fbfce21)
+* Updated the *GTDB-Tk* database from `R202` to `R207_v2` to be compatible with *GTDB-Tk v2.x*: [f3507dd](https://github.com/jolespin/veba/commit/f3507dd13a42960e3671c9f8a106c9974fbfce21)
+* Updated the [GRCh38 no-alt analysis set](https://genome-idx.s3.amazonaws.com/bt/GRCh38_noalt_as.zip) to [T2T CHM13v2.0](https://genome-idx.s3.amazonaws.com/bt/chm13v2.0.zip) for the default human reference: [5ccb4e2](https://github.com/jolespin/veba/commit/5ccb4e20564513707fcc3420b18237974455e196)
+* Added an experimental `amplicon.py` module for short-read ASV detection via the *DADA2* workflow of *QIIME2*: [cd4ed2b](https://github.com/jolespin/veba/commit/cd4ed2bfe35d5379a63dd3294c229f2c861f6f77)
+* Added additional functionality to `compile_reads_table.py` to handle advanced parsing of samples from fastq directories while also maintaining support for parsing filenames from `veba_output/preprocess`: [cd4ed2b](https://github.com/jolespin/veba/commit/cd4ed2bfe35d5379a63dd3294c229f2c861f6f77)
+* Added `sra-tools` to `VEBA-preprocess_env`: [f3507dd](https://github.com/jolespin/veba/commit/f3507dd13a42960e3671c9f8a106c9974fbfce21)
 
 
 ##### Release v1.0.1

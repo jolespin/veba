@@ -28,7 +28,7 @@ for ENV_YAML in ${PREFIX}/environments/VEBA*.yml; do
 
     # Symlink the accessory scripts to bin/
     echo -e "Symlinking VEBA scripts into ${ENV_NAME} environment path"
-    ln -sf ${PREFIX}/../src/scripts/* ${CONDA_BASE}/envs/${ENV_NAME}/bin/
+    ln -sf ${CONDA_BASE}/envs/${ENV_NAME}/bin/scripts/* ${CONDA_BASE}/envs/${ENV_NAME}/bin/
 
     done
 
