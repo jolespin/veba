@@ -20,7 +20,7 @@ for ENV_YAML in ${PREFIX}/environments/VEBA*.yml; do
 
     # Create conda environment
     echo "Creating ${ENV_NAME} environment"
-    conda env create -n $ENV_NAME -f $ENV_YAML
+    time(conda env create -n $ENV_NAME -f $ENV_YAML)
 
     # Copy over files to environment bin/
     echo -e "\t*Copying VEBA modules into ${ENV_NAME} environment path"

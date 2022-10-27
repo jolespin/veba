@@ -13,6 +13,8 @@ Each major version will be packaged as a [release](https://github.com/jolespin/v
 
 ____________________________________________________________
 
+### Install:
+
 **There are 3 steps to install *VEBA*:**
 
 * Download repository from GitHub
@@ -121,6 +123,33 @@ and check that `VEBA_DATABASE` environment variable is set. If not, then add it 
 
 Future versions will have `bioconda` installation available.
 
+#### Alternatively, if you just need to update environment variables with existing database:
+
+```
+bash update_environment_variables.sh
+```
+
+____________________________________________________________
+
+### Uninstall:
+
+**There are 2 steps to uninstall *VEBA*:**
+
+* Remove conda environments
+
+* Remove database directory
+
+```
+# Remove conda enivronments
+bash uninstall_veba.sh
+
+# Remove VEBA database
+rm -rfv /path/to/veba_database
+```
+
+
+____________________________________________________________
+
 #### Common installation errors that do not affect VEBA functionality:
 
 You may get the following **non-fatal** errors but you can ignore these: 
@@ -147,7 +176,7 @@ These errors have been reported during the creation of `VEBA-binning-prokaryotic
 
 ____________________________________________________________
 
-#### Advanced users:
+#### Patching existing installations for advanced users:
 
 Complete reinstalls of *VEBA* environments and databases is time consuming so [we've detailed how to do specific patches **for advanced users**](PATCHES.md). If you don't feel comfortable running these commands, then just do a fresh install if you would like to update. 
 
