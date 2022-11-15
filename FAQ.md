@@ -49,7 +49,13 @@ These are known errors that have to do with `CheckM` and `Perl` dependencies, re
 
 **12. Why did I get a `KeyError: 'TMPDIR'`?**
 
-This is because CheckM can't handle long directory paths.  By default, the temporary directory is set to the TMPDIR environment variable.  If you don't have a TMPDIR environment variable for some reason, add a TMPDIR environment variable to your path either in the script or your ~/.bash_profile.  For example, `export TMPDIR=/path/to/temporary/directory/with/read/write/access
+This is because CheckM can't handle long directory paths.  By default, the temporary directory is set to the TMPDIR environment variable.  If you don't have a TMPDIR environment variable for some reason, add a TMPDIR environment variable to your path either in the script or your ~/.bash_profile.  For example, `export TMPDIR=/path/to/temporary/directory/with/read/write/access.  
+
+Here's information about the canonical `TMPDIR` environment variable:
+
+>`TMPDIR` is the canonical environment variable in Unix and POSIX that should be used to specify a temporary directory for scratch space. Most Unix programs will honor this setting and use its value to denote the scratch area for temporary files instead of the common default of /tmp or /var/tmp.
+>
+>Source - https://en.wikipedia.org/wiki/TMPDIR
 
 **13. Why did I get an `AssertionError` The following path does not exist /path/to/scaffolds\_to\_bins.tsv?**
 
