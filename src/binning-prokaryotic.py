@@ -12,7 +12,7 @@ from soothsayer_utils import *
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2022.10.26"
+__version__ = "2022.11.08"
 
 # Assembly
 def get_coverage_cmd( input_filepaths, output_filepaths, output_directory, directories, opts):
@@ -595,6 +595,8 @@ def get_dastool_cmd(input_filepaths, output_filepaths, output_directory, directo
         "-d {}".format(os.path.join(directories[("intermediate",  "2__prodigal")], "gene_models.ffn")),
         "-a {}".format(os.path.join(directories[("intermediate",  "2__prodigal")], "gene_models.faa")),
         "-o {}".format(os.path.join(output_directory, "__DASTool_bins")),
+        "--use_mag_as_description",
+
         "&&",
         "rm -rf {} {}".format(
             os.path.join(output_directory, "_.seqlength"), 
@@ -604,45 +606,7 @@ def get_dastool_cmd(input_filepaths, output_filepaths, output_directory, directo
     ]
     return cmd
 
-# # Prodigal
-# def get_prodigal_cmd(input_filepaths, output_filepaths, output_directory, directories, opts):
-#     cmd = [
-#         "(",
-#         "cat",
-#         os.path.join(input_filepaths[0], "*.fa"),
-#         "|",
-#         os.environ["prodigal"],
-#         "-p meta",
-#         "-g {}".format(opts.prodigal_genetic_code),
-#         "-f gff",
-#         "-d {}".format(os.path.join(output_directory, "gene_models.ffn")),
-#         "-a {}".format(os.path.join(output_directory, "gene_models.faa")),
-#         "|",
-#         os.environ["append_geneid_to_prodigal_gff.py"],
-#         "-a gene_id",
-#         ">",
-#         os.path.join(output_directory, "gene_models.gff"),
-#         ")",
-#         "&&",
-#         "(",
-#         os.environ["partition_gene_models.py"],
-#         "-i {}".format(input_filepaths[1]),
-#         "-g {}".format(os.path.join(output_directory, "gene_models.gff")),
-#         "-d {}".format(os.path.join(output_directory, "gene_models.ffn")),
-#         "-a {}".format(os.path.join(output_directory, "gene_models.faa")),
-#         "-o {}".format(output_directory),
-#         ")",
-#         "&&",
-#         "(",
-#         "rm -f {}".format(os.path.join(output_directory, "gene_models.gff")),
-#         "&&",
-#         "rm -f {}".format(os.path.join(output_directory, "gene_models.ffn")),
-#         "&&",
-#         "rm -f {}".format(os.path.join(output_directory, "gene_models.faa")),
-#         ")",
 
-#     ]
-#     return cmd
 
 # CheckM
 def get_checkm_cmd(input_filepaths, output_filepaths, output_directory, directories, opts):
@@ -662,7 +626,7 @@ def get_checkm_cmd(input_filepaths, output_filepaths, output_directory, director
         # "--tmpdir {}".format(os.path.join(directories["tmp"], "checkm")),
         input_filepaths[0],
         output_directory,
-        "&&",
+            "&&",
         os.environ["filter_checkm_results.py"],
         "--retain_basal_bacteria",
         "-i {}".format(os.path.join(output_directory, "output.tsv")),
@@ -675,13 +639,13 @@ def get_checkm_cmd(input_filepaths, output_filepaths, output_directory, director
         "--contamination {}".format(opts.checkm_contamination),
         {True:"--strain_heterogeneity {}".format(opts.checkm_strain_heterogeneity),False:""}[bool(opts.checkm_strain_heterogeneity)],
         "-x fa",
-        "&&",
+            "&&",
         os.environ["scaffolds_to_bins.py"],
         "-x fa",
         "-i {}".format(os.path.join(output_directory, "filtered", "genomes")),
         ">",
         os.path.join(output_directory, "filtered", "scaffolds_to_bins.tsv"),
-        "&&",
+            "&&",
 
         "cat",
         input_filepaths[1],
@@ -695,352 +659,327 @@ def get_checkm_cmd(input_filepaths, output_filepaths, output_directory, director
         "--pattern-file {}".format(os.path.join(output_directory, "filtered", "unbinned.list")),
         ">",
         output_filepaths[-1],
-        "&&",
+            "&&",
         "rm -rf {}".format(os.path.join(output_directory, "bins")),
-        "&&",
+            "&&",
         "rm -rf {}".format(os.path.join(output_directory, "storage")),
 
     ]
     return cmd
 
 
+# # GTDB-Tk & CheckM
+# def get_cpr_adjustment_cmd( input_filepaths, output_filepaths, output_directory, directories, opts):
+# #gtdbtk classify_wf --genome_dir genomes --out_dir gtdbtk_output_batch1-3 -x fa --cpus 32"
+#     # This command needs to run GTDB-Tk, split out CPR bacteria from non-CPR prokaryotes, run CheckM for CPR, merge the other CheckM, then copy all the legit bins/genemodels into output/genomes
+#     # Command
+
+#         # Inputs:
+#         # os.path.join(directories["intermediate"], "*__checkm", "filtered", "scaffolds_to_bins.tsv"),
+#         # os.path.join(directories[("intermediate", "2__prodigal")], "gene_models.gff"),
+#         # os.path.join(directories[("intermediate", "2__prodigal")], "gene_models.ffn"),
+#         # os.path.join(directories[("intermediate", "2__prodigal")], "gene_models.faa"),
+
+
+#         # Outputs: 
+#     #         output_filenames =  [
+#     #     "scaffolds_to_bins.tsv", 
+#     #     "binned.list",
+#     #     "unbinned.fasta",
+#     #     "unbinned.list",
+#     #     "genomes/",
+#     #     "bins.list",
+#     #     "genome_statistics.tsv",
+#     #     "featurecounts.orfs.tsv.gz",
+#     # ]
+
+#     cmd = list()
+#     if opts.gtdbtk_database:
+#         cmd += [ 
+#         "export GTDBTK_DATA_PATH={}".format(opts.gtdbtk_database),
+#         "&&",
+#         ]
+
+#     cmd += [
+#         # Make temporary directories
+#         "mkdir -p {}".format(os.path.join(directories["tmp"],"genomes")),
+#         "&&",
+#         "mkdir -p {}".format(os.path.join(directories["tmp"],"proteins")),
+#         "&&",
+#         "mkdir -p {}".format(os.path.join(directories["tmp"],"proteins", "cpr_bacteria")),
+#         "&&",
+#         "mkdir -p {}".format(os.path.join(directories["tmp"], "proteins", "non-cpr_prokaryotes")),
+#         "&&",
+
+#         # Merge scaffolds_to_bins.tsv
+#         "cat",
+#         input_filepaths[0], # os.path.join(directories["intermediate"], "*__checkm", "filtered", "scaffolds_to_bins.tsv"),
+#         ">",
+#         os.path.join(directories["tmp"],"scaffolds_to_bins.tsv"),
+#         "&&",
+
+#         # Partition gene models
+#         os.environ["partition_gene_models.py"],
+#         "-i {}".format(os.path.join(directories["tmp"],"scaffolds_to_bins.tsv")),
+#         "-f {}".format(opts.fasta),
+#         "-g {}".format(input_filepaths[1]), # os.path.join(directories[("intermediate", "2__prodigal")], "gene_models.gff"),
+#         "-d {}".format(input_filepaths[2]), # os.path.join(directories[("intermediate", "2__prodigal")], "gene_models.ffn"),
+#         "-a {}".format(input_filepaths[3]), # os.path.join(directories[("intermediate", "2__prodigal")], "gene_models.faa"),
+#         "-o {}".format(os.path.join(directories["tmp"], "genomes")),
+#         "--use_mag_as_description",
+
+#         "&&",
+    
+ 
+
+#         # Run GTDB-Tk
+#         "mkdir -p {}".format(os.path.join(output_directory, "gtdbtk_output")),
+#         "&&",
+
+#         os.environ["gtdbtk"],
+#         "classify_wf",
+#         "--genome_dir {}".format(os.path.join(directories["tmp"], "genomes")),
+#         "--pplacer_cpus {}".format(opts.pplacer_threads),
+#         "--out_dir {}".format(os.path.join(output_directory, "gtdbtk_output")),
+#         "-x fa",
+#         "--cpus {}".format(opts.n_jobs),
+#         "--tmpdir {}".format(opts.tmpdir),
+#         opts.gtdbtk_options,
+#         "&&",
+
+  
+#         os.environ["concatenate_dataframes.py"],
+#         "--axis 0",
+#         "--allow_empty_or_missing_files",
+#         os.path.join(output_directory, "gtdbtk_output", "classify", "gtdbtk.ar122.summary.tsv"),
+#         os.path.join(output_directory, "gtdbtk_output",  "classify", "gtdbtk.bac120.summary.tsv"),
+#         ">",
+#         os.path.join(output_directory,  "gtdbtk_output", "gtdbtk.summary.tsv"),
+#         "&&",
+
+#         # CPR and bacterial genomes
+#         "(",
+#             "cat",
+#             os.path.join(output_directory, "gtdbtk_output", "classify", "gtdbtk.bac120.summary.tsv"),
+#             "|",
+#             "grep 'Patescibacteria'", 
+#             "|",
+#             "cut -f1",
+#             ">",
+#             os.path.join(directories["tmp"],  "genomes",  "cpr_bacteria.list"),
+#             "&&",
+#             # Non-CPR genomes
+#             "cat",
+#             os.path.join(output_directory, "gtdbtk_output", "classify", "gtdbtk.bac120.summary.tsv"),
+#             "|",
+#             "grep -v 'Patescibacteria'",
+#             "|",
+#             "cut -f1",
+#             "|",
+#             "tail -n +2",
+#             ">",
+#             os.path.join(directories["tmp"],  "genomes", "non-cpr_bacteria.list"),
+#         ")",
+#         "2> /dev/null",
+#         "||",
+#         "(",
+#             "echo 'No bacterial genomes'",
+#             "&&",
+#             ">",
+#             os.path.join(directories["tmp"],  "genomes", "cpr_bacteria.list"),
+#             "&&",
+#             ">",
+#             os.path.join(directories["tmp"],  "genomes", "non-cpr_bacteria.list"),
+#         ")",
+#         "&&",
+
+#         # Archaea
+#         "(",
+#             "cat",
+#             os.path.join(output_directory, "gtdbtk_output", "classify", "gtdbtk.ar122.summary.tsv"),
+#             "|",
+#             "cut -f1",
+#             "|",
+#             "tail -n +2",
+#             ">",
+#             os.path.join(directories["tmp"],  "genomes", "archaea.list"),
+#             ")",
+#             "2> /dev/null",
+#             "||",
+#             "(",
+#             "echo 'No archael genomes'",
+#             "&&",
+#             ">",
+#             os.path.join(directories["tmp"],  "genomes", "archaea.list"),
+#         ")",
+#         "&&",
+
+#         # Organize non-cpr genomes
+#         "for ID in $(cat %s %s); do cp %s %s; done"%( 
+#             os.path.join(directories["tmp"], "genomes",  "non-cpr_bacteria.list"),
+#             os.path.join(directories["tmp"],  "genomes", "archaea.list"),
+#             os.path.join(directories["tmp"],  "genomes", "${ID}.faa"),
+#             os.path.join(directories["tmp"], "proteins", "non-cpr_prokaryotes"),
+#         ),
+#         "&&",
+
+#         # Organize CPR genomes
+#         "for ID in $(cat %s); do cp %s %s; done"%( 
+#             os.path.join(directories["tmp"], "genomes",  "cpr_bacteria.list"),
+#             os.path.join(directories["tmp"],  "genomes", "${ID}.faa"),
+#             os.path.join(directories["tmp"], "proteins", "cpr_bacteria"),
+#         ),
+#         "&&",
+
+#        # CheckM directories
+#         "mkdir -p {}".format(os.path.join(output_directory, "checkm_output")),
+#         "&&",
+#         "mkdir -p {}".format(os.path.join(output_directory,"checkm_output", "non-cpr_prokaryotes")),
+#         "&&",
+#         "mkdir -p {}".format(os.path.join(output_directory, "checkm_output", "cpr_bacteria")),
+#         "&&",
+
+#         "(",
+#             "(",
+#                 os.environ["checkm"],
+#                 "lineage_wf",
+#                 {"full":"", "reduced":"-r"}[opts.checkm_tree],
+#                 "-g", 
+#                 "--tab_table",
+#                 "-f {}".format(os.path.join(output_directory, "checkm_output", "non-cpr_prokaryotes", "output.tsv")),
+#                 "--pplacer_threads {}".format(opts.pplacer_threads),
+#                 "-t {}".format(opts.n_jobs),
+#                 "-x faa",
+#                 "--tmpdir {}".format(opts.tmpdir), # Hack around: OSError: AF_UNIX path too long
+#                 # "--tmpdir {}".format(os.path.join(directories["tmp"], "checkm")),
+#                 os.path.join(directories["tmp"], "proteins", "non-cpr_prokaryotes"),
+#                 os.path.join(output_directory,"checkm_output", "non-cpr_prokaryotes"),
+#                 "&&",
+#                 "rm -rf {} {}".format(
+#                     os.path.join(output_directory, "checkm_output", "non-cpr_prokaryotes", "bins"),
+#                     os.path.join(output_directory, "checkm_output", "non-cpr_prokaryotes", "storage"),
+#                 ),
+#             ")",
+#             # "2>/dev/null",
+#             "||",
+#             ">",
+#             os.path.join(output_directory, "checkm_output", "non-cpr_prokaryotes", "output.tsv"),
+#             "&&",
+
+#             # CPR Bactiera
+#             "(",
+#                 os.environ["checkm"],
+#                 "analyze",
+#                 "-g",
+#                 "-x faa",
+#                 "-t {}".format(opts.n_jobs),
+#                 "--tmpdir {}".format(opts.tmpdir), # Hack around: OSError: AF_UNIX path too long
+#                 opts.cpr_database,
+#                 os.path.join(directories["tmp"], "proteins", "cpr_bacteria"),
+#                 os.path.join(output_directory, "checkm_output", "cpr_bacteria"),
+#                 "&&",
+
+#                 os.environ["checkm"],
+#                 "qa",
+#                 "--tab_table",
+#                 "-f {}".format(os.path.join(output_directory, "checkm_output", "cpr_bacteria", "output.tsv")),
+#                 opts.cpr_database,
+#                 os.path.join(output_directory, "checkm_output", "cpr_bacteria"),
+#                 "&&",
+#                 "rm -rf {} {}".format(
+#                     os.path.join(output_directory, "checkm_output", "cpr_bacteria", "bins"),
+#                     os.path.join(output_directory, "checkm_output", "cpr_bacteria", "storage"),
+#                 ),
+#             ")",
+#             "||",
+#             ">",
+#             os.path.join(output_directory,"checkm_output",  "cpr_bacteria", "output.tsv"),
+#         ")",
+#         "&&",
+
+#         os.environ["concatenate_dataframes.py"],
+#         "--axis 0",
+#         "--allow_empty_or_missing_files",
+#         os.path.join(output_directory, "checkm_output", "non-cpr_prokaryotes", "output.tsv"),
+#         os.path.join(output_directory, "checkm_output", "cpr_bacteria", "output.tsv"),
+#         ">",
+#         os.path.join(output_directory, "checkm_output", "output.concatenated.tsv"),
+#         "&&",
+        
+#         os.environ["filter_checkm_results.py"],
+#         "-i {}".format(os.path.join(output_directory, "checkm_output", "output.concatenated.tsv")),
+#         "-b {}".format(os.path.join(directories["tmp"], "genomes")),
+#         "-o {}".format(os.path.join(output_directory)),
+#         "-f {}".format(opts.fasta),
+#         "-m {}".format(opts.minimum_contig_length),
+#         "--unbinned",
+#         "--completeness {}".format(opts.checkm_completeness),
+#         "--contamination {}".format(opts.checkm_contamination),
+#         {True:"--strain_heterogeneity {}".format(opts.checkm_strain_heterogeneity),False:""}[bool(opts.checkm_strain_heterogeneity)],
+#         "-x fa",
+#         "&&",
+
+
+#             # Partion gene models
+#         os.environ["partition_gene_models.py"],
+#         "-i {}".format(os.path.join(output_directory, "scaffolds_to_bins.tsv")),
+#         # "-f {}".format(opts.fasta),
+#         "-g {}".format(input_filepaths[1]),
+#         "-d {}".format(input_filepaths[2]),
+#         "-a {}".format(input_filepaths[3]),
+#         "-o {}".format(os.path.join(output_directory, "genomes")),
+#         "--use_mag_as_description",
+
+#         "&&",
+ 
+    
+
+#         # Subset the GTDB-Tk output
+#         os.environ["subset_table.py"],
+#         "-t {}".format(os.path.join(output_directory,  "gtdbtk_output", "gtdbtk.summary.tsv")),
+#         "-i {}".format(os.path.join(output_directory,  "bins.list")),
+#         "--axis 0",
+#         ">",
+#         os.path.join(output_directory, "gtdbtk_output.filtered.tsv"),
+
+
+#         # "&&",
+#         # "rm -rf {}".format(
+#         #     os.path.join(directories["tmp"],"genomes"),
+#         #     os.path.join(directories["tmp"],"proteins"),
+#         # ),
+#     ]        
+#     return cmd
+
 # GTDB-Tk & CheckM
 def get_cpr_adjustment_cmd( input_filepaths, output_filepaths, output_directory, directories, opts):
-#gtdbtk classify_wf --genome_dir genomes --out_dir gtdbtk_output_batch1-3 -x fa --cpus 32"
-    # This command needs to run GTDB-Tk, split out CPR bacteria from non-CPR prokaryotes, run CheckM for CPR, merge the other CheckM, then copy all the legit bins/genemodels into output/genomes
-    # Command
-
-        # Inputs:
-        # os.path.join(directories["intermediate"], "*__checkm", "filtered", "scaffolds_to_bins.tsv"),
-        # os.path.join(directories[("intermediate", "2__prodigal")], "gene_models.gff"),
-        # os.path.join(directories[("intermediate", "2__prodigal")], "gene_models.ffn"),
-        # os.path.join(directories[("intermediate", "2__prodigal")], "gene_models.faa"),
-
-
-        # Outputs: 
-    #         output_filenames =  [
-    #     "scaffolds_to_bins.tsv", 
-    #     "binned.list",
-    #     "unbinned.fasta",
-    #     "unbinned.list",
-    #     "genomes/",
-    #     "bins.list",
-    #     "genome_statistics.tsv",
-    #     "featurecounts.orfs.tsv.gz",
-    # ]
-
-    cmd = list()
-    if opts.gtdbtk_database:
-        cmd += [ 
-        "export GTDBTK_DATA_PATH={}".format(opts.gtdbtk_database),
-        "&&",
-        ]
-
-    cmd += [
-        # Make temporary directories
-        "mkdir -p {}".format(os.path.join(directories["tmp"],"genomes")),
-        "&&",
-        "mkdir -p {}".format(os.path.join(directories["tmp"],"proteins")),
-        "&&",
-        "mkdir -p {}".format(os.path.join(directories["tmp"],"proteins", "cpr_bacteria")),
-        "&&",
-        "mkdir -p {}".format(os.path.join(directories["tmp"], "proteins", "non-cpr_prokaryotes")),
-        "&&",
-
-        # Merge scaffolds_to_bins.tsv
-        "cat",
-        input_filepaths[0], # os.path.join(directories["intermediate"], "*__checkm", "filtered", "scaffolds_to_bins.tsv"),
-        ">",
-        os.path.join(directories["tmp"],"scaffolds_to_bins.tsv"),
-        "&&",
-
-        # Partition gene models
-        os.environ["partition_gene_models.py"],
-        "-i {}".format(os.path.join(directories["tmp"],"scaffolds_to_bins.tsv")),
+    cmd = [ 
+        os.environ["adjust_genomes_for_cpr.py"],
         "-f {}".format(opts.fasta),
-        "-g {}".format(input_filepaths[1]), # os.path.join(directories[("intermediate", "2__prodigal")], "gene_models.gff"),
-        "-d {}".format(input_filepaths[2]), # os.path.join(directories[("intermediate", "2__prodigal")], "gene_models.ffn"),
-        "-a {}".format(input_filepaths[3]), # os.path.join(directories[("intermediate", "2__prodigal")], "gene_models.faa"),
-        "-o {}".format(os.path.join(directories["tmp"], "genomes")),
-        "&&",
-    
-        # # Genomes
-        # "for FP in %s; do cp $FP %s; done"%(
-        #     os.path.join(opts.genome_directory, "*.{}".format(opts.genome_extension)),
-        #     os.path.join(directories["tmp"],"genomes"),
-        #     ),
-        # "&&",
-
-        # # Proteins
-        # "for FP in %s; do cp $FP %s; done"%(
-        #     os.path.join(opts.genome_directory, "*.{}".format(opts.protein_extension)),
-        #     os.path.join(directories["tmp"],"proteins"),
-        #     ),
-        # "&&",
-
-
-        # Run GTDB-Tk
-        "mkdir -p {}".format(os.path.join(output_directory, "gtdbtk_output")),
-        "&&",
-
-        os.environ["gtdbtk"],
-        "classify_wf",
-        "--genome_dir {}".format(os.path.join(directories["tmp"], "genomes")),
-        "--pplacer_cpus {}".format(opts.pplacer_threads),
-        "--out_dir {}".format(os.path.join(output_directory, "gtdbtk_output")),
-        "-x fa",
-        "--cpus {}".format(opts.n_jobs),
-        "--tmpdir {}".format(opts.tmpdir),
-        opts.gtdbtk_options,
-        "&&",
-
-        # # Merge GTDB-Tk tables
-        # os.environ["merge_gtdbtk.py"],
-        # "-a {}".format(os.path.join(output_directory, "gtdbtk_output", "classify", "gtdbtk.ar122.summary.tsv")),
-        # "-b {}".format(os.path.join(output_directory, "gtdbtk_output", "classify", "gtdbtk.bac120.summary.tsv")),
-        # "-o {}".format(os.path.join(output_directory, "gtdbtk_output", "gtdbtk.summary.tsv")),
-        # "&&",
-
-        os.environ["concatenate_dataframes.py"],
-        "--axis 0",
-        "--allow_empty_or_missing_files",
-        os.path.join(output_directory, "gtdbtk_output", "classify", "gtdbtk.ar122.summary.tsv"),
-        os.path.join(output_directory, "gtdbtk_output",  "classify", "gtdbtk.bac120.summary.tsv"),
-        ">",
-        os.path.join(output_directory,  "gtdbtk_output", "gtdbtk.summary.tsv"),
-        "&&",
-
-        # CPR and bacterial genomes
-        "(",
-            "cat",
-            os.path.join(output_directory, "gtdbtk_output", "classify", "gtdbtk.bac120.summary.tsv"),
-            "|",
-            "grep 'Patescibacteria'", 
-            "|",
-            "cut -f1",
-            ">",
-            os.path.join(directories["tmp"],  "genomes",  "cpr_bacteria.list"),
-            "&&",
-            # Non-CPR genomes
-            "cat",
-            os.path.join(output_directory, "gtdbtk_output", "classify", "gtdbtk.bac120.summary.tsv"),
-            "|",
-            "grep -v 'Patescibacteria'",
-            "|",
-            "cut -f1",
-            "|",
-            "tail -n +2",
-            ">",
-            os.path.join(directories["tmp"],  "genomes", "non-cpr_bacteria.list"),
-        ")",
-        "2> /dev/null",
-        "||",
-        "(",
-            "echo 'No bacterial genomes'",
-            "&&",
-            ">",
-            os.path.join(directories["tmp"],  "genomes", "cpr_bacteria.list"),
-            "&&",
-            ">",
-            os.path.join(directories["tmp"],  "genomes", "non-cpr_bacteria.list"),
-        ")",
-        "&&",
-
-        # Archaea
-        "(",
-            "cat",
-            os.path.join(output_directory, "gtdbtk_output", "classify", "gtdbtk.ar122.summary.tsv"),
-            "|",
-            "cut -f1",
-            "|",
-            "tail -n +2",
-            ">",
-            os.path.join(directories["tmp"],  "genomes", "archaea.list"),
-            ")",
-            "2> /dev/null",
-            "||",
-            "(",
-            "echo 'No archael genomes'",
-            "&&",
-            ">",
-            os.path.join(directories["tmp"],  "genomes", "archaea.list"),
-        ")",
-        "&&",
-
-        # Organize non-cpr genomes
-        "for ID in $(cat %s %s); do cp %s %s; done"%( 
-            os.path.join(directories["tmp"], "genomes",  "non-cpr_bacteria.list"),
-            os.path.join(directories["tmp"],  "genomes", "archaea.list"),
-            os.path.join(directories["tmp"],  "genomes", "${ID}.faa"),
-            os.path.join(directories["tmp"], "proteins", "non-cpr_prokaryotes"),
-        ),
-        "&&",
-
-        # Organize CPR genomes
-        "for ID in $(cat %s); do cp %s %s; done"%( 
-            os.path.join(directories["tmp"], "genomes",  "cpr_bacteria.list"),
-            os.path.join(directories["tmp"],  "genomes", "${ID}.faa"),
-            os.path.join(directories["tmp"], "proteins", "cpr_bacteria"),
-        ),
-        "&&",
-
-       # CheckM directories
-        "mkdir -p {}".format(os.path.join(output_directory, "checkm_output")),
-        "&&",
-        "mkdir -p {}".format(os.path.join(output_directory,"checkm_output", "non-cpr_prokaryotes")),
-        "&&",
-        "mkdir -p {}".format(os.path.join(output_directory, "checkm_output", "cpr_bacteria")),
-        "&&",
-
-        "(",
-            "(",
-                os.environ["checkm"],
-                "lineage_wf",
-                {"full":"", "reduced":"-r"}[opts.checkm_tree],
-                "-g", 
-                "--tab_table",
-                "-f {}".format(os.path.join(output_directory, "checkm_output", "non-cpr_prokaryotes", "output.tsv")),
-                "--pplacer_threads {}".format(opts.pplacer_threads),
-                "-t {}".format(opts.n_jobs),
-                "-x faa",
-                "--tmpdir {}".format(opts.tmpdir), # Hack around: OSError: AF_UNIX path too long
-                # "--tmpdir {}".format(os.path.join(directories["tmp"], "checkm")),
-                os.path.join(directories["tmp"], "proteins", "non-cpr_prokaryotes"),
-                os.path.join(output_directory,"checkm_output", "non-cpr_prokaryotes"),
-                "&&",
-                "rm -rf {} {}".format(
-                    os.path.join(output_directory, "checkm_output", "non-cpr_prokaryotes", "bins"),
-                    os.path.join(output_directory, "checkm_output", "non-cpr_prokaryotes", "storage"),
-                ),
-            ")",
-            # "2>/dev/null",
-            "||",
-            ">",
-            os.path.join(output_directory, "checkm_output", "non-cpr_prokaryotes", "output.tsv"),
-            "&&",
-
-            # CPR Bactiera
-            "(",
-                os.environ["checkm"],
-                "analyze",
-                "-g",
-                "-x faa",
-                "-t {}".format(opts.n_jobs),
-                "--tmpdir {}".format(opts.tmpdir), # Hack around: OSError: AF_UNIX path too long
-                opts.cpr_database,
-                os.path.join(directories["tmp"], "proteins", "cpr_bacteria"),
-                os.path.join(output_directory, "checkm_output", "cpr_bacteria"),
-                "&&",
-
-                os.environ["checkm"],
-                "qa",
-                "--tab_table",
-                "-f {}".format(os.path.join(output_directory, "checkm_output", "cpr_bacteria", "output.tsv")),
-                opts.cpr_database,
-                os.path.join(output_directory, "checkm_output", "cpr_bacteria"),
-                "&&",
-                "rm -rf {} {}".format(
-                    os.path.join(output_directory, "checkm_output", "cpr_bacteria", "bins"),
-                    os.path.join(output_directory, "checkm_output", "cpr_bacteria", "storage"),
-                ),
-            ")",
-            "||",
-            ">",
-            os.path.join(output_directory,"checkm_output",  "cpr_bacteria", "output.tsv"),
-        ")",
-        "&&",
-
-        os.environ["concatenate_dataframes.py"],
-        "--axis 0",
-        "--allow_empty_or_missing_files",
-        os.path.join(output_directory, "checkm_output", "non-cpr_prokaryotes", "output.tsv"),
-        os.path.join(output_directory, "checkm_output", "cpr_bacteria", "output.tsv"),
-        ">",
-        os.path.join(output_directory, "checkm_output", "output.concatenated.tsv"),
-        "&&",
-        
-        os.environ["filter_checkm_results.py"],
-        "-i {}".format(os.path.join(output_directory, "checkm_output", "output.concatenated.tsv")),
-        "-b {}".format(os.path.join(directories["tmp"], "genomes")),
-        "-o {}".format(os.path.join(output_directory)),
-        "-f {}".format(opts.fasta),
+        "-g {}".format(os.path.join(directories[("intermediate", "2__prodigal")], "gene_models.gff")),
+        "-d {}".format(os.path.join(directories[("intermediate", "2__prodigal")], "gene_models.ffn")),
+        "-a {}".format(os.path.join(directories[("intermediate", "2__prodigal")], "gene_models.faa")),
+        "-o {}".format(output_directory),
         "-m {}".format(opts.minimum_contig_length),
-        "--unbinned",
-        "--completeness {}".format(opts.checkm_completeness),
-        "--contamination {}".format(opts.checkm_contamination),
-        {True:"--strain_heterogeneity {}".format(opts.checkm_strain_heterogeneity),False:""}[bool(opts.checkm_strain_heterogeneity)],
-        "-x fa",
-        "&&",
-
-
-            # Partion gene models
-        os.environ["partition_gene_models.py"],
-        "-i {}".format(os.path.join(output_directory, "scaffolds_to_bins.tsv")),
-        # "-f {}".format(opts.fasta),
-        "-g {}".format(input_filepaths[1]),
-        "-d {}".format(input_filepaths[2]),
-        "-a {}".format(input_filepaths[3]),
-        "-o {}".format(os.path.join(output_directory, "genomes")),
-        "&&",
- 
-        # os.environ["scaffolds_to_bins.py"],
-        # "-x fa",
-        # "-i {}".format(os.path.join(output_directory, "genomes")),
-        # ">",
-        # os.path.join(output_directory, "scaffolds_to_bins.tsv"),
-        # "&&",
-
-    #    # Unique bins
-    #     "cut -f2",
-    #     os.path.join(output_directory, "scaffolds_to_bins.tsv"),
-    #     "|",
-    #     "sort",
-    #     "-u",
-    #     ">",
-    #     os.path.join(output_directory, "bins.list"),
-    #     "&&",
-
-        # # Copy the rest of the files
-        # "for ID in $(cat %s); do cp %s %s; done"%(
-        #     os.path.join(output_directory, "bins.list"),
-        #     os.path.join(directories["tmp"], "genomes", "${ID}.*"),
-        #     os.path.join(output_directory, "genomes"),
-        #     ),
-        # "&&",
-        # "cat",
-        # os.path.join(output_directory, "genomes", "*.faa"),
-        # "|",
-        # "grep", # Get only headers
-        # "'^>'",
-        # "|",
-        # "cut -c2-", # Remove >
-        # "|",
-        # "cut -f1 -d ' '", # Remove description
-        # ">",
-        # os.path.join(directories["tmp"], "orfs.filtered.list"),
-        # "&&",
-
-
-        # Subset the GTDB-Tk output
-        os.environ["subset_table.py"],
-        "-t {}".format(os.path.join(output_directory,  "gtdbtk_output", "gtdbtk.summary.tsv")),
-        "-i {}".format(os.path.join(output_directory,  "bins.list")),
-        "--axis 0",
-        ">",
-        os.path.join(output_directory, "gtdbtk_output.filtered.tsv"),
-
-
-        # "&&",
-        # "rm -rf {}".format(
-        #     os.path.join(directories["tmp"],"genomes"),
-        #     os.path.join(directories["tmp"],"proteins"),
-        # ),
-
-    ]        
-    
-
+        "-s {}".format(opts.minimum_genome_length),
+        "-p {}".format(opts.n_jobs),
+        "--pplacer_threads {}".format(opts.pplacer_threads),
+        "--checkm_tree {}".format(opts.checkm_tree),
+        "--checkm_completeness {}".format(opts.checkm_completeness),
+        "--checkm_contamination {}".format(opts.checkm_contamination),
+        "--cpr_database {}".format(opts.cpr_database),
+        "--gtdbtk_database {}".format(opts.gtdbtk_database),
+        "-i {}".format(os.path.join(directories["intermediate"], "*__checkm", "filtered", "scaffolds_to_bins.tsv")),
+    ]
+    if opts.checkm_options:
+        cmd += ["--checkm_options {}".format(opts.checkm_options)]
+    if opts.gtdbtk_options:
+        cmd += ["--gtdbtk_options {}".format(opts.gtdbtk_options)]
+    if opts.tmpdir is not None:
+        cmd += ["--tmpdir {}".format(opts.tmpdir)]
+    if opts.checkm_strain_heterogeneity is not None:
+        cmd += ["--checkm_strain_heterogeneity {}".format(opts.checkm_strain_heterogeneity)]
     return cmd
-
 
 def get_featurecounts_cmd(input_filepaths, output_filepaths, output_directory, directories, opts):
     # ORF-Level Counts
@@ -1063,80 +1002,8 @@ def get_featurecounts_cmd(input_filepaths, output_filepaths, output_directory, d
     ]
     return cmd
 
-# # Domain classification
-# def get_domain_classification_cmd(input_filepaths, output_filepaths, output_directory, directories, opts):
-#     # ORF-Level Counts
-#     cmd = [
-#     "(",
-#     # Merge scaffolds to bins
-#     "cat",
-#     os.path.join(directories["intermediate"], "*__checkm", "filtered", "scaffolds_to_bins.tsv"),
-#     ">",
-#     os.path.join(directories["tmp"], "scaffolds_to_bins.tsv"),
-
-#     # Get binned contigs
-#     "&&",
-#     "cut",
-#     "-f1",
-#     os.path.join(directories["tmp"], "scaffolds_to_bins.tsv"),
-#     ">",
-#     os.path.join(directories["tmp"], "binned.list"),
-
-#     # Subset fasta
-#     "&&",
-#     "cat",
-#     opts.fasta,
-#     "|",
-#     os.environ["seqkit"],
-#     "seq",
-#     "-m {}".format(opts.minimum_contig_length),
-#     ">" ,
-#     os.path.join(directories["tmp"], "scaffolds.binned.fasta"),
-
-#     # Tiara
-#     "&&",
-#     os.environ["tiara"],
-#     "-i {}".format(os.path.join(directories["tmp"], "scaffolds.binned.fasta")),
-#     "-o {}".format(os.path.join(output_directory, "tiara_output.tsv")),
-#     "--probabilities",
-#     "-t {}".format(opts.n_jobs),
-#     opts.tiara_options,
-
-#     # Predict domain
-#     "&&",
-#     os.environ["consensus_domain_classification.py"],
-#     "-i {}".format(os.path.join(directories["tmp"], "scaffolds_to_bins.tsv")),
-#     "-t {}".format(os.path.join(output_directory, "tiara_output.tsv")),
-#     "-o {}".format(output_directory),
-#     "--logit_transform {}".format(opts.logit_transform),
-#     ]
-#     if opts.merge_prokaryota:
-#         cmd += ["--merge_prokaryota"]
-#     cmd += [
-#     ")",
-#     "&&",
-#     "cat",
-#     os.path.join(directories["tmp"], "scaffolds_to_bins.tsv"),
-#     "grep",
-#     "-f {}".format(os.path.join(output_directory, "eukaryota.list")),
-#     "|",
-#     "cut -f1",
-#     ">",
-#     os.path.join(output_directory, "eukaryota.scaffolds.list"),
-
-
-#     # Remove temporary files
-#     "&&",
-#     "rm -f {} {}".format( 
-#     os.path.join(directories["tmp"], "scaffolds_to_bins.tsv"),
-#     os.path.join(directories["tmp"], "binned.list"),
-#     ),
-#     ]
-#     return cmd
-
 
 def get_output_cmd(input_filepaths, output_filepaths, output_directory, directories, opts):
-    # checkm lineage_wf --tab_table -f checkm_output/${ID}/output.tab --pplacer_threads ${N_JOBS} -t ${N_JOBS} -x fa -r ${BINS} ${OUT_DIR}
     cmd = [
         "rm -rf {}".format(os.path.join(output_directory, "*")),
     ]
@@ -1171,192 +1038,8 @@ def get_output_cmd(input_filepaths, output_filepaths, output_directory, director
     ]
 
 
-        # # For pipeline purposes, most likely this file will be overwritten later in this step
-        # "cat",
-        # opts.fasta,
-        # "|",
-        # os.environ["seqkit"],
-        # "seq",
-        # "-m {}".format(opts.minimum_contig_length),
-        # ">" ,
-        # output_filepaths[2],
-        # "&&",
-        # # Get scaffolds_to_bins.tsv
-        # "cat",
-        # input_filepaths[0],
-        # ">",
-        # output_filepaths[0],
-        # # Get binned.list
-        # "&&",
-        # "cut -f1",
-        # output_filepaths[0],
-        # ">",
-        # output_filepaths[1],
-        # # Get unbinned.fasta 
-        # "&&",
-        # "cat",
-        # opts.fasta,
-        # "|",
-        # os.environ["seqkit"],
-        # "seq",
-        # "-m {}".format(opts.minimum_contig_length),
-        # "|",
-        # os.environ["seqkit"],
-        # "grep",
-        # "--pattern-file {}".format(output_filepaths[1]),
-        # "-v",
-        # ">",
-        # output_filepaths[2],
-        # # Get unbinned.list
-        # "&&",
-        # "cat",
-        # output_filepaths[2],
-        # "|",
-        # "grep",
-        # '"^>"',
-        # "|",
-        # "cut -c2-",
-        # ">",
-        # output_filepaths[3],
-        # # Partion gene models
-        # "&&",
-        # os.environ["partition_gene_models.py"],
-        # "-i {}".format(output_filepaths[0]),
-        # "-f {}".format(opts.fasta),
-        # "-g {}".format(input_filepaths[1]),
-        # "-d {}".format(input_filepaths[2]),
-        # "-a {}".format(input_filepaths[3]),
-        # "-o {}".format(os.path.join(output_directory, "genomes")),
-        # "&&",
-        # # Unique bins
-        # "cut -f2",
-        # output_filepaths[0],
-        # "|",
-        # "sort",
-        # "-u",
-        # ">",
-        # output_filepaths[5],
-
-        # "&&",
-        # # Statistics
-        # os.environ["seqkit"],
-        # "stats",
-        # "-a",
-        # "-b",
-        # "-T",
-        # "-j {}".format(opts.n_jobs),
-        # os.path.join(output_directory, "genomes", "*.fa"),
-        # ">",
-        # output_filepaths[6],
-        # "&&",
-        # "cp {} {}".format(input_filepaths[4], output_directory),
-        # "&&",
-        # "mkdir -p {}".format(os.path.join(output_directory, "genomes", "eukaryota")),
-
-        # "&&",
-        # # Move eukaryota
-        # "for ID_GENOME in $(cat %s); do mv %s/${ID_GENOME}.* %s; done"%(
-        #     os.path.join(directories[("intermediate",  "{}__domain_classification".format(step-1)), "eukaryota.list"]),
-        #     os.path.join(output_directory, "genomes"),
-        #     os.path.join(output_directory, "genomes", "eukaryota"),
-        #     ),
-        # "&&",
-
-        #  # identifier_mapping.tsv
-        # "cat",
-        #  "grep",
-        # "-v",
-        # "-f {}".format(os.path.join(directories[("intermediate",  "{}__domain_classification".format(step-1)), "eukaryota.list"])),
-        # ">",
-        # os.path.join(output_directory, "genomes",  "eukaryota", "identifier_mapping.no_eukaryota.tsv"),
-        # "&&",
-
-        # # featurecounts 
-        # "zgrep",
-        # "-v",
-        # "-f {}".format(os.path.join(directories[("intermediate",  "{}__domain_classification".format(step-1)), "eukaryota.scaffolds.list"])),
-        # os.path.join(directories[("intermediate", "{}__featurecounts".format(step-2))], "featurecounts.orfs.tsv.gz"),
-        # "|",
-        # "gzip",
-        # ">",
-        # os.path.join(output_directory, "genomes",  "eukaryota", "featurecounts.orfs.no_eukaryota.tsv"),
-
-
-
-        # # genome_statistics.tsv
-        # "cat",
-        # os.path.join(output_directory, "genome_statistics.tsv"),
-        # "grep",
-        # "-v",
-        # "-f {}".format(os.path.join(directories[("intermediate",  "{}__domain_classification".format(step-1)), "eukaryota.list"])),
-        # ">",
-        # os.path.join(output_directory, "genome_statistics.no_eukaryota.tsv"),
-        # "&&",
-
-        # # bins.list
-        # "cat",
-        # os.path.join(output_directory, "bins.list"),
-        # "grep",
-        # "-v",
-        # "-f {}".format(os.path.join(directories[("intermediate",  "{}__domain_classification".format(step-1)), "eukaryota.list"])),
-        # ">",
-        # os.path.join(output_directory, "bins.no_eukaryota.list"),
-        # "&&",
-
-        # # binned.list
-        # "cat",
-        # os.path.join(output_directory, "binned.list"),
-        # "grep",
-        # "-v",
-        # "-f {}".format(os.path.join(directories[("intermediate",  "{}__domain_classification".format(step-1)), "eukaryota.scaffolds.list"])),
-        # ">",
-        # os.path.join(output_directory, "binned.no_eukaryota.list"),
-        # "&&",
-
-        # # scaffolds_to_bins.tsv
-        # "cat",
-        # os.path.join(output_directory, "scaffolds_to_bins.tsv"),
-        # "grep",
-        # "-v",
-        # "-f {}".format(os.path.join(directories[("intermediate",  "{}__domain_classification".format(step-1)), "eukaryota.scaffolds.list"])),
-        # ">",
-        # os.path.join(output_directory, "scaffolds_to_bins.no_eukaryota.tsv"),
-        # "&&",
-
-        # # unbinned.fasta
-        # "cat",
-        # os.path.join(output_directory, "genomes", "eukaryota", "*.fa"),
-        # os.path.join(output_directory, "unbinned.fasta"),
-        # ">",
-        # os.path.join(output_directory, "unbinned.with_eukaryota.fasta"),
-        # "&&",
-
-        # # unbinned.list
-        # "cat",
-        # os.path.join(output_directory, "unbinned.with_eukaryota.fasta"),
-        # "|",
-        # "grep",
-        # '"^>"',
-        # "|",
-        # "cut -c2-",
-        # ">",
-        # os.path.join(output_directory, "unbinned.with_eukaryota.list"),
-
-        # Remove temporary directory contects
-
-
-    # ]
     return cmd
 
-# # Symlink
-# def get_symlink_cmd(input_filepaths, output_filepaths, output_directory, directories, opts):
-#     # Command
-#     cmd = ["("]
-#     for filepath in input_filepaths:
-#         cmd.append("ln -f -s {} {}".format(os.path.realpath(filepath), os.path.realpath(output_directory)))
-#         cmd.append("&&")
-#     cmd[-1] = ")"
-#     return cmd
 
 # ============
 # Run Pipeline
@@ -1718,49 +1401,6 @@ def create_pipeline(opts, directories, f_cmds):
 
         steps[program] = step
 
-
-        # PyTorch gets hung up when using subprocess
-        # # ==========
-        # # VAMB
-        # # ==========
-        # program = "binning_vamb"
-        # # Add to directories
-        # output_directory = directories[("intermediate",  program)] = create_directory(os.path.join(directories["intermediate"], "{}_output".format(program)))
-
-        # # Info
-        # step = 6
-        # description = "Binnig via VAMB"
-
-        # # i/o
-        # input_filepaths = [
-        #     opts.fasta, 
-        #     os.path.join(directories[("intermediate",  "coverage")], "coverage_vamb.tsv"),
-        # ]
-
-        # output_filenames = ["bins/*.fna", "scaffolds_to_bins.tsv"]
-        # output_filepaths = list(map(lambda filename: os.path.join(output_directory, filename), output_filenames))
-
-        # params = {
-        #     "input_filepaths":input_filepaths,
-        #     "output_filepaths":output_filepaths,
-        #     "output_directory":output_directory,
-        #     "opts":opts,
-        #     "directories":directories,
-        # }
-
-        # cmd = get_vamb_cmd(**params)
-        # pipeline.add_step(
-        #             id=program,
-        #             description = description,
-        #             step=step,
-        #             cmd=cmd,
-        #             input_filepaths = input_filepaths,
-        #             output_filepaths = output_filepaths,
-        #             validate_inputs=True,
-        #             validate_outputs=False,
-        #             errors_ok=False,
-        # )
-
         # ==========
         # DAS_Tool
         # ==========
@@ -1896,10 +1536,11 @@ def create_pipeline(opts, directories, f_cmds):
 
     # i/o
     input_filepaths = [
-        os.path.join(directories["intermediate"], "*__checkm", "filtered", "scaffolds_to_bins.tsv"),
         os.path.join(directories[("intermediate", "2__prodigal")], "gene_models.gff"),
         os.path.join(directories[("intermediate", "2__prodigal")], "gene_models.ffn"),
         os.path.join(directories[("intermediate", "2__prodigal")], "gene_models.faa"),
+        os.path.join(directories["intermediate"], "*__checkm", "filtered", "scaffolds_to_bins.tsv"),
+
     ]
 
 
@@ -1985,56 +1626,6 @@ def create_pipeline(opts, directories, f_cmds):
                 log_prefix=program_label,
     )
     
-    # # ==========
-    # # Tiara
-    # # ==========
-    # step += 1
-
-    # # Info
-    # program = "domain_classification"
-    # program_label = "{}__{}".format(step, program)
-    # description = "Consensus domain classification"
-
-    # # Add to directories
-    # output_directory = directories[("intermediate",  program_label)] = create_directory(os.path.join(directories["intermediate"], program_label))
-
-    # # i/o
-    # input_filepaths = [ 
-    #     os.path.join(directories["intermediate"], "*__checkm", "filtered", "scaffolds_to_bins.tsv")
-    #     opts.fasta,
-    # ]
-
-    # output_filenames = ["predictions.tsv", "prediction_probabilities.tsv.gz", "eukaryota.list"]
-    # if opts.merge_prokaryota:
-    #     output_filenames.append("prokaryota.list")
-    # else:
-    #     output_filenames += ["archaea.list", "bacteria.list"]
-
-    # output_filepaths = list(map(lambda filename: os.path.join(output_directory, filename), output_filenames))
-
-    # params = {
-    #     "input_filepaths":input_filepaths,
-    #     "output_filepaths":output_filepaths,
-    #     "output_directory":output_directory,
-    #     "opts":opts,
-    #     "directories":directories,
-    #     "step":step,
-    # }
-
-    # cmd = get_domain_classification_cmd(**params)
-    # pipeline.add_step(
-    #             id=program,
-    #             description = description,
-    #             step=step,
-    #             cmd=cmd,
-    #             input_filepaths = input_filepaths,
-    #             output_filepaths = output_filepaths,
-    #             validate_inputs=True,
-    #             validate_outputs=False,
-    #             errors_ok=False,
-    #             acceptable_returncodes={0,1,2},                    
-    #             log_prefix=program_label,
-    # )
     
     # =============
     # Output
@@ -2103,50 +1694,7 @@ def create_pipeline(opts, directories, f_cmds):
 
     )
 
-    # # =============
-    # # Symlink
-    # # =============
-    # program = "symlink"
-    # # Add to directories
-    # output_directory = directories["output"]
 
-    # # Info
-    # step = 3
-    # description = "Symlinking relevant output files"
-
-    # # i/o
-    # input_filepaths = [
-    #     os.path.join(directories[("intermediate", "bowtie2")], "mapped.sorted.bam"),
-    #     os.path.join(directories[("intermediate", "coverage")], "coverage.tsv"),
-
-    # ]
-
-    # output_filenames =  map(lambda fp: fp.split("/")[-1], input_filepaths)
-    # output_filepaths = list(map(lambda fn:os.path.join(directories["output"], fn), output_filenames))
-    #     # Prodigal
-    #     # os.path.join(directories["output"], "*"),
-    
-    # params = {
-    # "input_filepaths":input_filepaths,
-    # "output_filepaths":output_filepaths,
-    # "output_directory":output_directory,
-    # "opts":opts,
-    # "directories":directories,
-    # }
-
-    # cmd = get_symlink_cmd(**params)
-    # pipeline.add_step(
-    #         id=program,
-    #         description = description,
-    #         step=step,
-    #         cmd=cmd,
-    #         input_filepaths = input_filepaths,
-    #         output_filepaths = output_filepaths,
-    #         validate_inputs=True,
-    #         validate_outputs=False,
-    # )
-    # for k1, v1 in pipeline.executables.items():
-    #     print(k1, v1["step"])
     return pipeline
 
 # Set environment variables
@@ -2164,6 +1712,7 @@ def add_executables_to_environment(opts):
                 "consensus_domain_classification.py",
                 "concatenate_dataframes.py",
                 "subset_table.py",
+                "adjust_genomes_for_cpr.py",
                 }
 
     required_executables={

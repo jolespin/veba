@@ -4,7 +4,7 @@ from collections import defaultdict
 import pandas as pd
 
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2021.08.24"
+__version__ = "2022.11.07"
 
 def main(args=None):
     # Path info
@@ -28,6 +28,7 @@ def main(args=None):
     parser.add_argument("--separate", action="store_true", help = "Separate bins into their own subdirectories")
     parser.add_argument("--include_unbinned", action="store_true", help = "Include unbinned contigs from identifier_mapping.tsv")
     parser.add_argument("--include_header", action="store_true", help = "Include headers on output tables")
+    parser.add_argument("-M", "--use_mag_as_description", action="store_true", help = "Include MAG identifier for each contig in fasta header description")
 
 
     # Options
@@ -148,17 +149,24 @@ def main(args=None):
             files["protein"].close()
 
     # ===
-    # Protein
+    # Fasta
     # ===
     if opts.fasta:
         print("Parsing assembly file: {}".format(opts.fasta), file=sys.stderr)
         # Parse
         with open(opts.fasta, "r") as f_assembly:
-            for header, seq in SimpleFastaParser(f_assembly):
-                id_scaffold = header.split(" ")[0]
-                if id_scaffold in scaffold_to_bin:
-                    id_bin = scaffold_to_bin[id_scaffold]
-                    print(">{}\n{}".format(header, seq), file=file_objects[id_bin]["genome"])
+            if opts.use_mag_as_description:
+                for header, seq in SimpleFastaParser(f_assembly):
+                    id_scaffold = header.split(" ")[0]
+                    if id_scaffold in scaffold_to_bin:
+                        id_bin = scaffold_to_bin[id_scaffold]
+                        print(">{} {}\n{}".format(id_scaffold, id_bin, seq), file=file_objects[id_bin]["genome"])
+            else:
+                for header, seq in SimpleFastaParser(f_assembly):
+                    id_scaffold = header.split(" ")[0]
+                    if id_scaffold in scaffold_to_bin:
+                        id_bin = scaffold_to_bin[id_scaffold]
+                        print(">{}\n{}".format(header, seq), file=file_objects[id_bin]["genome"])
         # Close
         for id_bin, files in file_objects.items():
             files["genome"].close()

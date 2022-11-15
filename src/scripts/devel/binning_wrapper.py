@@ -12,7 +12,7 @@ from soothsayer_utils import *
 
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2022.04.11"
+__version__ = "2022.04.08"
 
 
 
@@ -34,7 +34,7 @@ def get_maxbin2_cmd( input_filepaths, output_filepaths, output_directory, direct
             "--threads {}".format(opts.n_jobs),
             "--methods metabat",
             "--bam-files",
-            " ".join(opts.bam),
+            opts.bam,
             "|",
             # Coverage for MaxBin2
             "cut -f1,4",
@@ -130,7 +130,7 @@ def get_metabat2_cmd( input_filepaths, output_filepaths, output_directory, direc
         "--threads {}".format(opts.n_jobs),
          "--methods metabat",
          "--bam-files",
-        " ".join(opts.bam),
+        opts.bam,
         ">",
         os.path.join(output_directory, "intermediate", "coverage.tsv"),
         
@@ -214,7 +214,7 @@ def get_concoct_cmd( input_filepaths, output_filepaths, output_directory, direct
         # concoct_coverage_table.py contigs_10K.bed mapping/Sample*.sorted.bam > coverage_table.tsv
         os.environ["concoct_coverage_table.py"],
         os.path.join(output_directory, "intermediate", "scaffolds_fragmented.bed"), 
-        " ".join(opts.bam), 
+        opts.bam, 
         ">",
         os.path.join(output_directory, "intermediate", "coverage_table.tsv"), 
 
@@ -388,6 +388,119 @@ def get_compile_cmd( input_filepaths, output_filepaths, output_directory, direct
     return cmd
 
 
+def get_compile_multisplit_cmd( input_filepaths, output_filepaths, output_directory, directories, opts):
+
+    # scaffolds_to_bins
+    cmd = [
+        os.environ["parition_multisplit_bins.py"],
+        "-i {}".format(opts.scaffolds_to_samples),
+        "-b {}".format(os.path.join(output_directory, "bins")),
+        "-o {}".format(os.path.join(output_directory, "bins_partitioned")),
+        "-x fa",
+    ]
+    if opts.bin_prefix:
+        cmd += ["--bin_prefix {}".format(opts.bin_prefix)]
+
+    cmd += [
+        ">",
+        os.path.join(output_directory, "scaffolds_to_bins.tsv"),
+
+        # "binned.list"
+       "&&",
+
+        "cut",
+        "-f1",
+        os.path.join(output_directory, "scaffolds_to_bins.tsv"),
+        ">",
+        os.path.join(output_directory, "binned.list"),
+
+        # bins.list
+        "&&",
+
+        "cut -f2",
+        os.path.join(output_directory, "scaffolds_to_bins.tsv"),
+        "|",
+        "sort",
+        "-u",
+        ">",
+        os.path.join(output_directory, "bins.list"),
+
+        # unbinned.list
+        "&&",
+        "cat",
+        opts.fasta,
+        "|",
+        "grep",
+        '"^>"',
+        "|",
+        "cut -c2-",
+        ">",
+        os.path.join(output_directory, "unbinned.list"),
+    ]
+
+    # unbinned.fasta
+    if opts.retain_unbinned_fasta:
+        cmd += [ 
+        "&&",
+        "cat",
+        opts.fasta,
+        "|",
+        os.environ["seqkit"],
+        "grep",
+        "--pattern-file {}".format(os.path.join(output_directory, "binned.list")),
+        "-v",
+        ">",
+        os.path.join(output_directory, "unbinned.fasta"),
+        ]
+
+    # relabel with prefix
+    if opts.bin_prefix:
+        cmd += [ 
+    """
+
+    for FP in %s;
+        do ID_GENOME=$(basename ${FP} .fa);
+        mv $FP %s/%s${ID_GENOME}.fa
+        done
+
+    """%( 
+        os.path.join(output_directory, "bins", "*.fa"),
+        os.path.join(output_directory, "bins"),
+        opts.bin_prefix,
+        )
+        ]
+    else:
+        cmd += ["&&"]
+
+    cmd += [ 
+        # "genome_statistics.tsv"
+        # "&&",
+        os.environ["seqkit"],
+        "stats",
+        "--basename",
+        "--all",
+        "-T",
+        "-j {}".format(opts.n_jobs),
+        os.path.join(output_directory, "bins", "*.fa"),
+        ">",
+        os.path.join(output_directory,  "genome_statistics.tsv"),
+    ]
+
+
+    if opts.remove_bins:
+        cmd += [ 
+            "&&",
+            "rm -rf {}".format(os.path.join(output_directory,"bins")),
+        ]
+
+    # if opts.remove_intermediate_files:
+    #     cmd += [ 
+    #         "&&",
+    #         "rm -rf {}".format(os.path.join(output_directory,"intermediate")),
+    #     ]
+
+    return cmd
+
 # ============
 # Run Pipeline
 # ============
@@ -452,7 +565,7 @@ def create_pipeline(opts, directories, f_cmds):
         if opts.bam:
             input_filepaths = [
                 opts.fasta, 
-                *opts.bam,
+                opts.bam,
                 ]
         else:
             input_filepaths = [
@@ -479,7 +592,7 @@ def create_pipeline(opts, directories, f_cmds):
         if opts.bam:
             input_filepaths = [
                 opts.fasta, 
-                *opts.bam,
+                opts.bam,
                 ]
         else:
             input_filepaths = [
@@ -528,48 +641,94 @@ def create_pipeline(opts, directories, f_cmds):
 
     description = "Compiling results for output"
 
-    # i/o
-    input_filepaths = [
-        os.path.join(directories["output"],  "bins","*.fa"),
-    ]
+    if not opts.multisplit:
+        # i/o
+        input_filepaths = [
+            os.path.join(directories["output"],  "bins","*.fa"),
+        ]
 
 
-    output_filenames =  [
-        "scaffolds_to_bins.tsv", 
-        "binned.list",
-        "unbinned.list",
-        "bins.list",
-        "genome_statistics.tsv",
-    ]
-    if not opts.remove_bins:
-        output_filenames += ["bins/*.fa"]
-    if opts.retain_unbinned_fasta:
-        output_filenames += ["unbinned.fasta"]
+        output_filenames =  [
+            "scaffolds_to_bins.tsv", 
+            "binned.list",
+            "unbinned.list",
+            "bins.list",
+            "genome_statistics.tsv",
+        ]
+        if not opts.remove_bins:
+            output_filenames += ["bins/*.fa"]
+        if opts.retain_unbinned_fasta:
+            output_filenames += ["unbinned.fasta"]
 
-    output_filepaths = list(map(lambda fn:os.path.join(directories["output"], fn), output_filenames))
+        output_filepaths = list(map(lambda fn:os.path.join(directories["output"], fn), output_filenames))
 
-    
-    params = {
-    "input_filepaths":input_filepaths,
-    "output_filepaths":output_filepaths,
-    "output_directory":output_directory,
-    "opts":opts,
-    "directories":directories,
-    }
+        
+        params = {
+        "input_filepaths":input_filepaths,
+        "output_filepaths":output_filepaths,
+        "output_directory":output_directory,
+        "opts":opts,
+        "directories":directories,
+        }
 
-    cmd = get_compile_cmd(**params)
-    pipeline.add_step(
-            id=program_label,
-            description = description,
-            step=step,
-            cmd=cmd,
-            input_filepaths = input_filepaths,
-            output_filepaths = output_filepaths,
-            validate_inputs=True,
-            validate_outputs=True,
-            log_prefix=program_label,
+        cmd = get_compile_cmd(**params)
+        pipeline.add_step(
+                id=program_label,
+                description = description,
+                step=step,
+                cmd=cmd,
+                input_filepaths = input_filepaths,
+                output_filepaths = output_filepaths,
+                validate_inputs=True,
+                validate_outputs=True,
+                log_prefix=program_label,
 
-    )
+        )
+
+    else:
+        # i/o
+        input_filepaths = [
+            os.path.join(directories["output"],  "bins","*.fa"),
+            opts.multisplit,
+        ]
+
+
+        output_filenames =  [
+            "*/scaffolds_to_bins.tsv", 
+            "*/binned.list",
+            "*/unbinned.list",
+            "*/bins.list",
+            "*/genome_statistics.tsv",
+        ]
+        if not opts.remove_bins:
+            output_filenames += ["*/bins/*.fa"]
+        if opts.retain_unbinned_fasta:
+            output_filenames += ["*/unbinned.fasta"]
+
+        output_filepaths = list(map(lambda fn:os.path.join(directories["output"], fn), output_filenames))
+
+        
+        params = {
+        "input_filepaths":input_filepaths,
+        "output_filepaths":output_filepaths,
+        "output_directory":output_directory,
+        "opts":opts,
+        "directories":directories,
+        }
+
+        cmd = get_compile_multisplit_cmd(**params)
+        pipeline.add_step(
+                id=program_label,
+                description = description,
+                step=step,
+                cmd=cmd,
+                input_filepaths = input_filepaths,
+                output_filepaths = output_filepaths,
+                validate_inputs=True,
+                validate_outputs=True,
+                log_prefix=program_label,
+
+        )
 
     return pipeline
 
@@ -582,6 +741,8 @@ def add_executables_to_environment(opts):
     """
     accessory_scripts = {
         "scaffolds_to_bins.py",
+        "partition_multisplit_bins.py",
+
     }
 
     required_executables={
@@ -692,10 +853,10 @@ def main(argv=None):
     # Pipeline
     parser_io = parser.add_argument_group('Required I/O arguments')
     parser_io.add_argument("-f","--fasta", type=str, required=True, help = "path/to/scaffolds.fasta")
-    parser_io.add_argument("-b","--bam", type=str, required=False, nargs="+", help = "path/to/mapped.sorted.bam files separated by spaces. Can be used with any binning algorithm but cannot be used with --coverage")
+    parser_io.add_argument("-b","--bam", type=str, nargs="?", required=False, help = "path/to/mapped.sorted.bam. If --multibin then this should probably be a list of bam files. Can be used with any binning algorithm but cannot be used with --coverage")
     parser_io.add_argument("-c","--coverage", type=str, required=False, help = "path/to/coverage.tsv. Can be used with --algorithm metabat2 maxbin2 but not available for --algorithm concoct and cannot be used with --bam")
     parser_io.add_argument("-o","--output_directory", type=str,  help = "path/to/binning_output [Default: binning_output/[algorithm_name]]")
-    # parser_io.add_argument("-M","--multisplit", type=str,  help = "path/to/scaffolds_to_samples.tsv. Use this to perform multisplit binning. Expected table input is the following format: [id_scaffold]<tab>[id_sample], No header. [Optional]")
+    parser_io.add_argument("-M","--multisplit", type=str,  help = "path/to/scaffolds_to_samples.tsv. Use this to perform multisplit binning. Expected table input is the following format: [id_scaffold]<tab>[id_sample], No header. [Optional]")
 
     # Utility
     parser_utility = parser.add_argument_group('Utility arguments')
@@ -751,16 +912,25 @@ def main(argv=None):
     # Directories
 
     assert_acceptable_arguments(opts.algorithm, {"concoct", "metabat2", "maxbin2"})
-    # if opts.multisplit:
-    #     assert opts.algorithm != "maxbin2", "MaxBin2 is marker-based and cannot be used for multisplit binning"
-
-
 
     if not opts.output_directory:
         if opts.algorithm == "maxbin2":
             opts.output_directory = "binning_output/{}-{}".format(opts.algorithm, opts.maxbin2_markerset)
         else:
             opts.output_directory = "binning_output/{}".format(opts.algorithm)
+
+    number_of_bam_files = 0
+    if opts.bam:
+        number_of_bam_files = len(opts.bam)
+        print("--bam contains {} bam files".format(opts.number_of_bam_files), file=sys.stdout)
+        opts.bam = " ".join(opts.bam)
+
+
+
+    if opts.multisplit:
+        if not opts.coverage:
+            if len(number_of_bam_files) == 1:
+                warnings.warn("If --multisplit is performed then you should probably have more than {} bam files".format(number_of_bam_files))
 
     directories = dict()
     directories["output"] = create_directory(opts.output_directory)

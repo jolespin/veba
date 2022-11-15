@@ -12,7 +12,7 @@ from soothsayer_utils import *
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2022.03.25"
+__version__ = "2022.11.14"
 
 # .............................................................................
 # Notes
@@ -27,25 +27,53 @@ __version__ = "2022.03.25"
 def get_assembly_cmd( input_filepaths, output_filepaths, output_directory, directories, opts):
 
     # Command
-    cmd = [
-        "(",
-    os.environ[opts.spades_program],
-    ]
-    if "restart-from" not in str(opts.spades_options):
-        cmd += [
-        "-1 {}".format(input_filepaths[0]),
-        "-2 {}".format(input_filepaths[1]),
-        ]
-    cmd += [
-    "-o {}".format(output_directory),
-    "--tmp-dir {}".format(os.path.join(directories["tmp"], "spades")),
-    "--threads {}".format(opts.n_jobs),
-    "--memory {}".format(opts.memory),
-    opts.spades_options,
-    ")",
-    ]
+    # MEGAHIT
+    if opts.program == "megahit":
+        cmd = []
+        if "--continue" not in str(opts.assembler_options):
+            cmd += ["rm -rf {} && ".format(output_directory)] # Can't have existing directory
 
-    if opts.spades_program == "rnaspades.py":
+        cmd += [
+            "(",
+        os.environ[opts.program],
+        ]
+        if "--continue" not in str(opts.assembler_options):
+            cmd += [
+            "-1 {}".format(input_filepaths[0]),
+            "-2 {}".format(input_filepaths[1]),
+            ]
+        cmd += [
+        "-o {}".format(output_directory),
+        "--tmp-dir {}".format(directories["tmp"]),
+        "--num-cpu-threads {}".format(opts.n_jobs),
+        "--memory {}".format(opts.megahit_memory),
+        opts.assembler_options,
+        ")",
+        "&&",
+        "echo 'Renaming final.contigs.fa -> scaffolds.fasta' && mv {} {}".format(os.path.join(output_directory, "final.contigs.fa"), os.path.join(output_directory, "scaffolds.fasta")),
+        ]
+    # SPAdes-based assemblers
+    else:
+        cmd = [
+            "(",
+        os.environ[opts.program],
+        ]
+        if "restart-from" not in str(opts.assembler_options):
+            cmd += [
+            "-1 {}".format(input_filepaths[0]),
+            "-2 {}".format(input_filepaths[1]),
+            ]
+        cmd += [
+        "-o {}".format(output_directory),
+        "--tmp-dir {}".format(os.path.join(directories["tmp"], "assembly")),
+        "--threads {}".format(opts.n_jobs),
+        "--memory {}".format(opts.spades_memory),
+        opts.assembler_options,
+        ")",
+        ]
+
+    # Create SAF file
+    if opts.program == "rnaspades.py":
         cmd += [ 
             "&&",
             os.environ["fasta_to_saf.py"],
@@ -66,13 +94,18 @@ def get_assembly_cmd( input_filepaths, output_filepaths, output_directory, direc
         ]
 
 
-    for fn in [ 
+    if opts.program == "megahit":
+        files_to_remove = ["intermediate_contigs", "done"]
+    else:
+        files_to_remove = [ 
         "before_rr.fasta",
         "K*",
         "misc",
         "corrected",
         "first_pe_contigs.fasta",
-        ]:
+        ]
+
+    for fn in files_to_remove:
         cmd += [ 
             "&&",
             "rm -rf {}".format(os.path.join(output_directory, fn)),
@@ -209,7 +242,7 @@ def add_executables_to_environment(opts):
 
     required_executables={
  
-                opts.spades_program,
+                opts.program,
                 "bowtie2-build",
                 "bowtie2",
                 "samtools",
@@ -270,7 +303,7 @@ def create_pipeline(opts, directories, f_cmds):
 
     # i/o
     input_filepaths = [opts.forward_reads, opts.reverse_reads]
-    if opts.spades_program == "rnaspades.py":
+    if opts.program == "rnaspades.py":
         output_filenames = ["transcripts.fasta", "transcripts.fasta.saf"]
     else:
         output_filenames = ["scaffolds.fasta", "scaffolds.fasta.saf"]
@@ -319,7 +352,7 @@ def create_pipeline(opts, directories, f_cmds):
         opts.reverse_reads,
     ]
 
-    if opts.spades_program == "rnaspades.py":
+    if opts.program == "rnaspades.py":
         input_filepaths += [ 
             os.path.join(directories[("intermediate", "1__assembly")], "transcripts.fasta"),
         ]
@@ -370,7 +403,7 @@ def create_pipeline(opts, directories, f_cmds):
     output_directory = directories[("intermediate",  program_label)] = create_directory(os.path.join(directories["intermediate"], program_label))
 
     # i/o
-    if opts.spades_program == "rnaspades.py":
+    if opts.program == "rnaspades.py":
         input_filepaths = [ 
             os.path.join(directories[("intermediate", "1__assembly")], "transcripts.fasta"),
             os.path.join(directories[("intermediate", "1__assembly")], "transcripts.fasta.saf"),
@@ -473,7 +506,7 @@ def create_pipeline(opts, directories, f_cmds):
     output_directory = directories["output"]
 
     # i/o
-    if opts.spades_program == "rnaspades.py":
+    if opts.program == "rnaspades.py":
         input_filepaths = [ 
             os.path.join(directories[("intermediate", "1__assembly")], "transcripts.fasta"),
             os.path.join(directories[("intermediate", "1__assembly")], "transcripts.fasta.*"),
@@ -522,8 +555,10 @@ def configure_parameters(opts, directories):
     # os.environ[]
 
     assert opts.forward_reads != opts.reverse_reads, "You probably mislabeled the input files because `forward_reads` should not be the same as `reverse_reads`: {}".format(opts.forward_reads)
-        # assert not bool(opts.unpaired_reads), "Cannot have --unpaired_reads if --forward_reads.  Note, this behavior may be changed in the future but it's an adaptation of interleaved reads."
 
+    assert_acceptable_arguments(opts.program, {"spades.py", "metaspades.py", "rnaspades.py", "megahit", "metaplasmidspades.py", "plasmidspades.py", "coronaspades.py"}) 
+    if opts.program in {"metaplasmidspades.py", "plasmidspades.py", "coronaspades.py"}:
+        print("UserWarning: {} has not been thoroughly tested with VEBA.  If any issues arise, please use one of the following instead: {spades.py, metaspades.py, rnaspades.py, megahit}".format(opts.program), file=sys.stdout)
     # Set environment variables
     add_executables_to_environment(opts=opts)
 
@@ -556,10 +591,17 @@ def main(args=None):
     parser_utility.add_argument("--tmpdir", type=str, help="Set temporary directory")  #site-packges in future
 
     # Assembler
-    parser_assembler = parser.add_argument_group('SPAdes arguments')
-    parser_assembler.add_argument("-P", "--spades_program", type=str, default="metaspades.py", help="SPAdes | More options (e.g. --arg 1 ) [Default: 'metaspades.py']\nhttp://cab.spbu.ru/files/release3.11.1/manual.html")
-    parser_assembler.add_argument("-m", "--memory", type=int, default=250, help="SPAdes | RAM limit in Gb (terminates if exceeded). [Default: 250]")
-    parser_assembler.add_argument("--spades_options", type=str, default="", help="SPAdes | More options (e.g. --arg 1 ) [Default: '']\nhttp://cab.spbu.ru/files/release3.11.1/manual.html")
+    parser_assembler = parser.add_argument_group('Assembler arguments')
+    parser_assembler.add_argument("-P", "--program", type=str, default="metaspades.py", help="Assembler |  {spades.py, metaspades.py, rnaspades.py, megahit, metaplasmidspades.py, plasmidspades.py, coronaspades.py}} [Default: 'metaspades.py']")
+    parser_assembler.add_argument("--assembler_options", type=str, default="", help="Assembler options for SPAdes-based programs and MEGAHIT (e.g. --arg 1 ) [Default: '']")
+
+    # SPAdes
+    parser_spades = parser.add_argument_group('SPAdes arguments')
+    parser_spades.add_argument( "--spades_memory", type=int, default=250, help="SPAdes | RAM limit in Gb (terminates if exceeded). [Default: 250]")
+
+    # MEGAHIT
+    parser_megahit = parser.add_argument_group('MEGAHIT arguments')
+    parser_megahit.add_argument("--megahit_memory", type=float, default=0.9, help="MEGAHIT | RAM limit in Gb (terminates if exceeded). [Default: 0.9]")
 
     # Aligner
     parser_aligner = parser.add_argument_group('Bowtie2 arguments')

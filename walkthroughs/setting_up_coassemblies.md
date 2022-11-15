@@ -41,7 +41,7 @@ cat veba_output/preprocess/*/output/cleaned_2.fastq.gz > veba_output/misc/concat
 
 #### 2. Assemble reads, map reads to assembly, calculate assembly statistics, and index the assembly
 
-Here we are going to coassemble all of the reads using `metaSPAdes` which is default but if you are using metatranscriptomics then use `--spades_program rnaSPAdes.py`.  
+Here we are going to coassemble all of the reads using `metaSPAdes` which is default but if you are using metatranscriptomics then use `-P rnaSPAdes.py`.  
 
 **Conda Environment:** `conda activate VEBA-assembly_env`
 
@@ -70,7 +70,7 @@ R2=veba_output/misc/concatenated_2.fastq.gz
 CMD="source activate VEBA-assembly_env && assembly.py -1 ${R1} -2 ${R2} -n ${ID} -o ${OUT_DIR} -p ${N_JOBS}"
 
 # Use this for metatranscriptomics
-# CMD="source activate VEBA-assembly_env && assembly.py -1 ${R1} -2 ${R2} -n ${ID} -o ${OUT_DIR} -p ${N_JOBS} --spades_program rnaspades.py"
+# CMD="source activate VEBA-assembly_env && assembly.py -1 ${R1} -2 ${R2} -n ${ID} -o ${OUT_DIR} -p ${N_JOBS} -P rnaspades.py"
 	
 # Either run this command or use SunGridEnginge/SLURM
 	

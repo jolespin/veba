@@ -57,7 +57,10 @@ ________________________________________________________________
 
 
 #### Change Log:
-* [2022.11.01] - Added `antismash_genbanks_to_table.py` to scripts as precursor to upcoming `biosynthetic.py` module.  Takes in antismash result directory
+* [2022.11.14] - Added `megahit` support for `assembly.py` module (not yet available in `assembly-sequential.py`).  Changed `-P/--spades_program` to `-P/--program` for `assembly.py`.
+* [2022.11.8] - Replaced penultimate step in `binning-prokaryotic.py` to use `adjust_genomes_for_cpr.py` instead of the extremely long series of bash commands.  This will make it easier to diagnose errors in this critical step.  Also added support for contig descriptions and added MAG identifier in fasta files in `binning-eukaryotic.py`.  Now uses the `metaeuk_wrapper.py` script for the `MetaEuk` step.  Added separate option of `--run_metaplasmidspades` for `assembly-sequential.py` instead of making it mandatory (now it just runs `biosyntheticSPAdes` and `metaSPAdes` by default).
+* [2022.11.7] - Added `--use_mag_as_description` in `parition_gene_models.py` script to include the MAG identifier in the contig description of the fasta header which is default in `binning-prokaryotic.py`. Added `adjust_genomes_for_cpr.py` script to easier run and understand the CPR adjustment step of `binning-prokaryotic.py`. Added support for fasta header descriptions in `binning-prokaryotic.py`.
+* [2022.11.4] - Added functionality to `replace_fasta_descriptions.py` script to be able to use a string for replacing fasta headers in addition to the original functionality.
 * [2022.10.26] - Fixed symlinks to scripts for `install_veba.sh` and added missing `CHECKM_DATA_PATH` environment variable.  Also added `uninstall_veba.sh`, added `update_environment_variables.sh` scripts, and cleaned up install/database scripts.
 * [2022.10.25] - Updated default `GTDB-Tk` database from `R202` to `R207_v2` and along with this updated `GTDB-Tk` in `VEBA-binning-prokaryotic_env` and `VEBA-classify_env`.  Also, updated the `binning-prokaryotic.py` to include the `checkm_output.filtered.tsv` instead of unfiltered `output.tsv`.
 * [2022.10.24] - Added new functionality to `compile_reads_table.py` by adding a method to compile reads tables from Fastq directories.  Compatible with `QIIME2` manifest. Defaults to absolute path with added option `--relative` for relative paths. Also added an experimental `amplicon.py` module for ASV detection/classification along with the appropriate environment recipe and README.md update.
@@ -100,14 +103,18 @@ ________________________________________________________________
 
 #### Upcoming Modules:
 
-* Adapt DADA2_pipeline to amplicon.py module
 * biosynthetic.py module: antiSMASH
-* noncoding.py module that runs t-RNAscan-SE and BARRNAP (and CORDON?)
+* noncoding.py module: t-RNAscan-SE, BARRNAP, CORDON
 * metabolism.py module: gapseq
+* reassembly.py module: SPAdes
 
 ________________________________________________________________
 
 #### Additional:
+
+**GenoPype:**
+
+* Get a mapping between {step:intermediate directory} and clear out intermediate directories for `--restart_from_checkpoint`.
 
 **Binning:**
 

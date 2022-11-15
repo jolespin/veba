@@ -12,7 +12,7 @@ from soothsayer_utils import *
 
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2022.08.27"
+__version__ = "2022.11.08"
 
 
 # MetaEuk
@@ -62,6 +62,7 @@ def get_metaeuk_cmd(input_filepaths, output_filepaths, output_directory, directo
         "-d {}".format(os.path.join(output_directory, "{}.ffn".format(opts.basename))),
         "-a {}".format(os.path.join(output_directory, "{}.faa".format(opts.basename))),
         "-o {}".format(os.path.join(output_directory, "genomes")),
+        "--use_mag_as_description",
 
         "&&",
         "rm -rf {}".format(os.path.join(output_directory, "{}.*".format(opts.basename))),

@@ -30,8 +30,18 @@
  
 * **mapping** – Aligns reads to local or global index of genomes
 
-* **⚠️[EXPERIMENTAL] amplicon** - Automated read trim position detection, DADA2 ASV detection, taxonomic classification, and file conversion
 
+**Developmental and Experimental:**
+
+* **biosynthetic** – Identify biosynthetic gene clusters in prokaryotes and fungi
+
+* **assembly-sequential** – Assemble metagenomes sequentially
+
+* **amplicon** - Automated read trim position detection, DADA2 ASV detection, taxonomic classification, and file conversion
+
+________________________________________________________
+
+### Stable
 
 #### preprocess – Fastq quality trimming, adapter removal, decontamination, and read statistics calculations
 The preprocess module is a wrapper around our [fastq_preprocessor](https://github.com/jolespin/fastq_preprocessor) which is a modernized reimplementation of [KneadData](https://github.com/biobakery/kneaddata) that relies on fastp for ultra-fast automated adapter removal and quality trimming. Pairing of the trimmed reads is assessed and corrected using [BBTools’ repair.sh](https://sourceforge.net/projects/bbmap). If the user provides a contamination database (e.g., the human reference genome), then trimmed reads are aligned using Bowtie2 (Langmead & Salzberg, 2012) and reads that do not map to the contamination database are stored. If the --retain_contaminated_reads flag is used then the contaminated reads are stored as well. Similarly, if a k-mer reference database is provided (e.g., ribosomal k-mers) then the trimmed or decontaminated reads are aligned against the reference database using BBTools’ bbduk.sh with an option for storing. By default, the none of the contaminated or k-mer analyzed reads are stored but regardless of the choice for retaining reads, the read sets are quantified using seqkit (Shen, Le, Li, & Hu, 2016) for accounting purposes (e.g., % contamination or % ribosomal). All sequences included were downloaded using Kingfisher (https://github.com/wwood/kingfisher-download), included in the preprocess environment, which a fast and flexible program for the procurement of sequencing files and their annotations from public data sources including ENA, NCBI SRA, Amazon AWS, and Google Cloud.
@@ -108,14 +118,14 @@ BBDuk arguments:
 * seqkit_stats.concatenated.tsv - Concatenated read statistics for all intermediate steps (e.g., fastp, bowtie2 removal of contaminated reads if provided, bbduk.sh removal of contaminated reads if provided)
 
 #### assembly – Assemble reads, align reads to assembly, and count mapped reads
-The assembly module optimizes the output for typical metagenomics workflows. In particular, the module does the following: 1) assembles reads using either metaSPAdes (Nurk, Meleshko, Korobeynikov, & Pevzner, 2017), SPAdes (A et al., 2012), rnaSPAdes (Bushmanova, Antipov, Lapidus, & Prjibelski, 2019), or any of the other task-specific assemblers installed with the SPAdes package (Antipov, Raiko, Lapidus, & Pevzner, 2020; Meleshko, Hajirasouliha, & Korobeynikov, 2021); 2) builds a Bowtie2 index for the scaffolds.fasta (or transcripts.fasta if rnaSPAdes is used); 3) aligns the reads using Bowtie2 to the assembly; 4) pipes the alignment file into Samtools (Li et al., 2009) to produce a sorted BAM file (necessary for many coverage applications); 5) counts the reads mapping to each scaffold via featureCounts (Liao, Smyth, & Shi, 2014); and 6) seqkit for useful assembly statistics such as N50, number of scaffolds, and total assembly size. This module automates many critical yet overlooked workflows dealing with assemblies. 
+The assembly module optimizes the output for typical metagenomics workflows. In particular, the module does the following: 1) assembles reads using either metaSPAdes (Nurk, Meleshko, Korobeynikov, & Pevzner, 2017), SPAdes (A et al., 2012), rnaSPAdes (Bushmanova, Antipov, Lapidus, & Prjibelski, 2019), any of the other task-specific assemblers installed with the SPAdes package (Antipov, Raiko, Lapidus, & Pevzner, 2020; Meleshko, Hajirasouliha, & Korobeynikov, 2021), or, as of 2022.11.14, MEGAHIT; 2) builds a Bowtie2 index for the scaffolds.fasta (or transcripts.fasta if rnaSPAdes is used); 3) aligns the reads using Bowtie2 to the assembly; 4) pipes the alignment file into Samtools (Li et al., 2009) to produce a sorted BAM file (necessary for many coverage applications); 5) counts the reads mapping to each scaffold via featureCounts (Liao, Smyth, & Shi, 2014); and 6) seqkit for useful assembly statistics such as N50, number of scaffolds, and total assembly size. This module automates many critical yet overlooked workflows dealing with assemblies. 
 
 **Conda Environment**: `conda activate VEBA-assembly_env`
 
 ```
 usage: assembly.py -1 <forward_reads.fq> -2 <reverse_reads.fq> -n <name> -o <output_directory>
 
-    Running: assembly.py v2022.03.25 via Python v3.8.5 | /Users/jespinoz/anaconda3/bin/python
+    Running: assembly.py v2022.11.14 via Python v3.9.7 | /Users/jespinoz/anaconda3/bin/python
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -141,15 +151,19 @@ Utility arguments:
   -v, --version         show program's version number and exit
   --tmpdir TMPDIR       Set temporary directory
 
+Assembler arguments:
+  -P PROGRAM, --program PROGRAM
+                        Assembler |  {spades.py, metaspades.py, rnaspades.py, megahit, metaplasmidspades.py, plasmidspades.py, coronaspades.py}} [Default: 'metaspades.py']
+  --assembler_options ASSEMBLER_OPTIONS
+                        Assembler options for SPAdes-based programs and MEGAHIT (e.g. --arg 1 ) [Default: '']
+
 SPAdes arguments:
-  -P SPADES_PROGRAM, --spades_program SPADES_PROGRAM
-                        SPAdes | More options (e.g. --arg 1 ) [Default: 'metaspades.py']
-                        http://cab.spbu.ru/files/release3.11.1/manual.html
-  -m MEMORY, --memory MEMORY
+  --spades_memory SPADES_MEMORY
                         SPAdes | RAM limit in Gb (terminates if exceeded). [Default: 250]
-  --spades_options SPADES_OPTIONS
-                        SPAdes | More options (e.g. --arg 1 ) [Default: '']
-                        http://cab.spbu.ru/files/release3.11.1/manual.html
+
+MEGAHIT arguments:
+  --megahit_memory MEGAHIT_MEMORY
+                        MEGAHIT | RAM limit in Gb (terminates if exceeded). [Default: 0.9]
 
 Bowtie2 arguments:
   --bowtie2_index_options BOWTIE2_INDEX_OPTIONS
@@ -160,6 +174,8 @@ Bowtie2 arguments:
 featureCounts arguments:
   --featurecounts_options FEATURECOUNTS_OPTIONS
                         featureCounts | More options (e.g. --arg 1 ) [Default: ''] | http://bioinf.wehi.edu.au/featureCounts/
+
+Copyright 2021 Josh L. Espinoza (jespinoz@jcvi.org)
 
 ```
 
@@ -1080,8 +1096,138 @@ Copyright 2022 Josh L. Espinoza (jespinoz@jcvi.org)
 * unmapped_1.fastq.gz - Unmapped reads (forward)
 * unmapped_2.fastq.gz - Unmapped reads (reverse)
 
+
 ___________________________________________________________________
-**⚠️[EXPERIMENTAL]**
+## Developmental
+
+#### biosynthetic – Identify biosynthetic gene clusters in prokaryotes and fungi
+
+The biosynthetic module is a wrapper around antiSMASH.  It produces a tabular output that is machie-readale and easier to parse than the GBK and JSON files produced by antiSMASH.
+
+```
+
+usage: biosynthetic.py -m <mags> -g <gene_models> -o <output_directory> -t bacteria
+
+    Running: biosynthetic.py v2022.10.16 via Python v3.9.7 | /Users/jespinoz/anaconda3/bin/python
+
+optional arguments:
+  -h, --help            show this help message and exit
+
+Required I/O arguments:
+  -m MAGS, --mags MAGS  Tab-seperated value table of [id_mag]<tab>[path/to/genome.fasta]
+  -g GENE_MODELS, --gene_models GENE_MODELS
+                        Tab-seperated value table of [id_mag]<tab>[path/to/gene_models.gff]. Must be gff3.
+  -o OUTPUT_DIRECTORY, --output_directory OUTPUT_DIRECTORY
+                        path/to/project_directory [Default: veba_output/cluster]
+  --mags_extension MAGS_EXTENSION
+                        Fasta file extension for --mags if a list is provided [Default: fa]
+  --gene_models_extension GENE_MODELS_EXTENSION
+                        File extension for gene models if a list is provided [Default: gff]
+
+Utility arguments:
+  --path_config PATH_CONFIG
+                        path/to/config.tsv [Default: CONDA_PREFIX]
+  -p N_JOBS, --n_jobs N_JOBS
+                        Number of threads [Default: 1]
+  --random_state RANDOM_STATE
+                        Random state [Default: 0]
+  --restart_from_checkpoint RESTART_FROM_CHECKPOINT
+                        Restart from a particular checkpoint [Default: None]
+  -v, --version         show program's version number and exit
+
+antiSMASH arguments:
+  -t TAXON, --taxon TAXON
+                        Taxonomic classification of input sequence {bacteria,fungi} [Default: bacteria]
+  --minimum_contig_length MINIMUM_CONTIG_LENGTH
+                        Minimum contig length.  [Default: 1500]
+  -d ANTISMASH_DATABASE, --antismash_database ANTISMASH_DATABASE
+                        antiSMASH | Database directory path [Default: /Users/jespinoz/anaconda3/lib/python3.9/site-packages/antismash/databases]
+  -s HMMDETECTION_STRICTNESS, --hmmdetection_strictness HMMDETECTION_STRICTNESS
+                        antiSMASH | Defines which level of strictness to use for HMM-based cluster detection {strict,relaxed,loose}  [Default: relaxed]
+  --tta_threshold TTA_THRESHOLD
+                        antiSMASH | Lowest GC content to annotate TTA codons at [Default: 0.65]
+  --antismash_options ANTISMASH_OPTIONS
+                        antiSMASH | More options (e.g. --arg 1 ) [Default: '']
+
+Copyright 2022 Josh L. Espinoza (jespinoz@jcvi.org)
+```
+
+**Output:**
+
+* biosynthetic\_gene\_clusters.features.tsv - All of the BGC features in tabular format organized by genome, contig, region, and gene.
+* biosynthetic\_gene\_clusters.type_counts.tsv - Summary of BGCs detected organized by type.  Also includes summary of BGCs that are NOT on contig edge.
+
+#### assembly-sequential – Assemble metagenomes sequentially
+
+This method first uses biosyntheticSPAdes followed by either 1) [default] metaSPAdes; or 2) metaplasmidSPAdes and metaSPAdes.  The reads that are not mapped to the scaffolds in step N are used for assembly in step N+1. The contigs/scaffolds are concatenated for the finally assembly. The purpose of this module is to properly handle biosynthetic gene clusters in addition to metagenomes.
+
+```
+usage: assembly-sequential.py -1 <forward_reads.fq> -2 <reverse_reads.fq> -n <name> -o <output_directory>
+
+    Running: assembly-sequential.py v2022.11.14 via Python v3.9.7 | /Users/jespinoz/anaconda3/bin/python
+
+optional arguments:
+  -h, --help            show this help message and exit
+
+Required I/O arguments:
+  -1 FORWARD_READS, --forward_reads FORWARD_READS
+                        path/to/forward_reads.fq
+  -2 REVERSE_READS, --reverse_reads REVERSE_READS
+                        path/to/reverse_reads.fq
+  -n NAME, --name NAME  Name of sample
+  -o PROJECT_DIRECTORY, --project_directory PROJECT_DIRECTORY
+                        path/to/project_directory [Default: veba_output/assembly_sequential]
+
+Utility arguments:
+  --path_config PATH_CONFIG
+                        path/to/config.tsv [Default: CONDA_PREFIX]
+  -p N_JOBS, --n_jobs N_JOBS
+                        Number of threads [Default: 1]
+  --random_state RANDOM_STATE
+                        Random state [Default: 0]
+  --restart_from_checkpoint RESTART_FROM_CHECKPOINT
+                        Restart from a particular checkpoint [Default: None]
+  -v, --version         show program's version number and exit
+  --tmpdir TMPDIR       Set temporary directory
+  -S, --remove_intermediate_scaffolds
+                        Remove intermediate scaffolds.fasta.*. If this option is chosen, output files are not validated [Default is to keep]
+  -B, --remove_intermediate_bam
+                        Remove intermediate mapped.sorted.bam.*. If this option is chosen, output files are not validated [Default is to keep]
+
+SPAdes arguments:
+  --run_metaplasmidspades
+                        SPAdes | Run metaplasmidSPAdes.  This may sacrifice MAG completeness for plasmid completeness.
+  -m MEMORY, --memory MEMORY
+                        SPAdes | RAM limit in Gb (terminates if exceeded). [Default: 250]
+  --spades_options SPADES_OPTIONS
+                        SPAdes | More options (e.g. --arg 1 ) [Default: '']
+                        http://cab.spbu.ru/files/release3.11.1/manual.html
+
+Bowtie2 arguments:
+  --bowtie2_index_options BOWTIE2_INDEX_OPTIONS
+                        bowtie2-build | More options (e.g. --arg 1 ) [Default: '']
+  --bowtie2_options BOWTIE2_OPTIONS
+                        bowtie2 | More options (e.g. --arg 1 ) [Default: '']
+
+featureCounts arguments:
+  --featurecounts_options FEATURECOUNTS_OPTIONS
+                        featureCounts | More options (e.g. --arg 1 ) [Default: ''] | http://bioinf.wehi.edu.au/featureCounts/
+
+Copyright 2021 Josh L. Espinoza (jespinoz@jcvi.org)
+```
+
+**Output:**
+
+* featurecounts.tsv.gz - featureCounts output for contig-level counts
+* mapped.sorted.bam - Sorted BAM
+* mapped.sorted.bam.bai - Sorted BAM index
+* scaffolds.fasta - Assembly scaffolds (preferred over contigs by SPAdes documentation)
+* scaffolds.fasta.\*.bt2 - Bowtie2 index of scaffolds
+* scaffolds.fasta.saf - SAF formatted file for contig-level counts with featureCounts
+* seqkit_stats.tsv.gz - Assembly statistics
+
+___________________________________________________________________
+###⚠️EXPERIMENTAL
 
 ####  **amplicon** - Automated read trim position detection, DADA2 ASV detection, taxonomic classification, and file conversion
 
@@ -1156,84 +1302,4 @@ Copyright 2021 Josh L. Espinoza (jespinoz@jcvi.org)
 * taxonomy.tsv - Taxonomy table [ASV]<tab>[Lineage]<tab>[Confidence]
 * tree.nwk - Newick formatted tree
 
-
-
-___________________________________________________________________
-#### References:
-
-
-Alneberg, J., Bjarnason, B.S., De Bruijn, I., Schirmer, M., Quick, J., Ijaz, U.Z., Lahti, L., Loman, N.J., Andersson, A.F., and Quince, C. (2014). Binning metagenomic contigs by coverage and composition. Nat. Methods 11, 1144–1146.
-
-Antipov, D., Raiko, M., Lapidus, A., and Pevzner, P.A. (2020). Metaviral SPAdes: assembly of viruses from metagenomic data. Bioinformatics 36, 4126–4129.
-
-Aramaki, T., Blanc-Mathieu, R., Endo, H., Ohkubo, K., Kanehisa, M., Goto, S., and Ogata, H. (2020). KofamKOALA: KEGG Ortholog assignment based on profile HMM and adaptive score threshold. Bioinformatics 36, 2251–2252.
-
-Bankevich, A., Nurk, S., Antipov, D., Gurevich, A.A., Dvorkin, M., Kulikov, A.S., Lesin, V.M., Nikolenko, S.I., Pham, S., Prjibelski, A.D., et al. (2012). SPAdes: a new genome assembly algorithm and its applications to single-cell  sequencing. J. Comput. Biol.  a J. Comput. Mol. Cell  Biol. 19, 455–477.
-
-Buchfink, B., Xie, C., and Huson, D.H. (2014). Fast and sensitive protein alignment using DIAMOND. Nat. Methods 2014 121 12, 59–60.
-
-Buchfink, B., Reuter, K., and Drost, H.G. (2021). Sensitive protein alignments at tree-of-life scale using DIAMOND. Nat. Methods 2021 184 18, 366–368.
-
-Bushmanova, E., Antipov, D., Lapidus, A., and Prjibelski, A.D. (2019). rnaSPAdes: a de novo transcriptome assembler and its application to RNA-Seq data. Gigascience 8, 1–13.
-
-Chaumeil, P.-A., Mussig, A.J., Hugenholtz, P., and Parks, D.H. (2020). GTDB-Tk: a toolkit to classify genomes with the Genome Taxonomy Database. Bioinformatics 36, 1925–1927.
-
-Chen, S., Zhou, Y., Chen, Y., and Gu, J. (2018). fastp: an ultra-fast all-in-one FASTQ preprocessor. Bioinformatics 34, i884–i890.
-
-Edgar, R.C. (2004). MUSCLE: A multiple sequence alignment method with reduced time and space complexity. BMC Bioinformatics 5, 1–19.
-
-Emms, D.M., and Kelly, S. (2019). OrthoFinder: phylogenetic orthology inference for comparative genomics. Genome Biol. 2019 201 20, 1–14.
-
-Eren, A.M., Esen, O.C., Quince, C., Vineis, J.H., Morrison, H.G., Sogin, M.L., and Delmont, T.O. (2015). Anvi’o: An advanced analysis and visualization platformfor ’omics data. PeerJ 2015, e1319.
-
-Hagberg, A.A., Schult, D.A., and Swart, P.J. (2008). Exploring Network Structure, Dynamics, and Function using NetworkX.
-
-Hyatt, D., Chen, G.-L., Locascio, P.F., Land, M.L., Larimer, F.W., and Hauser, L.J. (2010). Prodigal: prokaryotic gene recognition and translation initiation site identification. BMC Bioinformatics 11, 119.
-
-Jain, C., Rodriguez-R, L.M., Phillippy, A.M., Konstantinidis, K.T., and Aluru, S. (2018). High throughput ANI analysis of 90K prokaryotic genomes reveals clear species boundaries. Nat. Commun. 2018 91 9, 1–8.
-
-Kang, D.D., Li, F., Kirton, E., Thomas, A., Egan, R., An, H., and Wang, Z. (2019). MetaBAT 2: an adaptive binning algorithm for robust and efficient genome reconstruction from metagenome assemblies. PeerJ 7.
-
-Karlicki, M., Antonowicz, S., and Karnkowska, A. (2022). Tiara: deep learning-based classification system for eukaryotic sequences. Bioinformatics 38, 344–350.
-
-Krinos, A., Hu, S., Cohen, N., and Alexander, H. (2021). EUKulele: Taxonomic annotation of the unsung eukaryotic microbes. J. Open Source Softw. 6, 2817.
-
-Langmead, B., and Salzberg, S.L. (2012). Fast gapped-read alignment with Bowtie 2. Nat. Methods 9, 357.
-
-Levy Karin, E., Mirdita, M., and Söding, J. (2020). MetaEuk-sensitive, high-throughput gene discovery, and annotation for large-scale eukaryotic metagenomics. Microbiome 8, 1–15.
-
-Li, H., Handsaker, B., Wysoker, A., Fennell, T., Ruan, J., Homer, N., Marth, G., Abecasis, G., and Durbin, R. (2009). The Sequence Alignment/Map format and SAMtools. Bioinformatics 25, 2078–2079.
-Liao, Y., Smyth, G.K., and Shi, W. (2014). featureCounts: an efficient general purpose program for assigning sequence reads to genomic features. Bioinformatics 30, 923–930.
-
-Manni, M., Berkeley, M.R., Seppey, M., Simão, F.A., and Zdobnov, E.M. (2021). BUSCO Update: Novel and Streamlined Workflows along with Broader and Deeper Phylogenetic Coverage for Scoring of Eukaryotic, Prokaryotic, and Viral Genomes. Mol. Biol. Evol. 38, 4647–4654.
-
-Meleshko, D., Hajirasouliha, I., and Korobeynikov, A. (2021). coronaSPAdes: from biosynthetic gene clusters to RNA viral assemblies. Bioinformatics.
-
-Minh, B.Q., Schmidt, H.A., Chernomor, O., Schrempf, D., Woodhams, M.D., Von Haeseler, A., Lanfear, R., and Teeling, E. (2020). IQ-TREE 2: New Models and Efficient Methods for Phylogenetic Inference in the Genomic Era. Mol. Biol. Evol. 37, 1530–1534.
-
-Mistry, J., Finn, R.D., Eddy, S.R., Bateman, A., and Punta, M. (2013). Challenges in homology search: HMMER3 and convergent evolution of coiled-coil regions. Nucleic Acids Res. 41, e121–e121.
-
-Mistry, J., Chuguransky, S., Williams, L., Qureshi, M., Salazar, G.A., Sonnhammer, E.L.L., Tosatto, S.C.E., Paladin, L., Raj, S., Richardson, L.J., et al. (2021). Pfam: The protein families database in 2021. Nucleic Acids Res. 49, D412–D419.
-
-Nayfach, S. (2021).  Recommended cutoffs for analyzing CheckV results?
-
-Nayfach, S., Camargo, A.P., Schulz, F., Eloe-Fadrosh, E., Roux, S., and Kyrpides, N.C. (2020). CheckV assesses the quality and completeness of metagenome-assembled viral genomes. Nat. Biotechnol. 2020 395 39, 578–585.
-
-Nurk, S., Meleshko, D., Korobeynikov, A., and Pevzner, P.A. (2017). metaSPAdes: a new versatile metagenomic assembler. Genome Res. 27, 824–834.
-
-Price, M.N., Dehal, P.S., and Arkin, A.P. (2010). FastTree 2--approximately maximum-likelihood trees for large alignments. PLoS One 5, e9490.
-
-Ren, J., Ahlgren, N.A., Lu, Y.Y., Fuhrman, J.A., and Sun, F. (2017). VirFinder: a novel k-mer based tool for identifying viral sequences from assembled  metagenomic data. Microbiome 5, 69.
-
-Roux, S., Adriaenssens, E.M., Dutilh, B.E., Koonin, E. V., Kropinski, A.M., Krupovic, M., Kuhn, J.H., Lavigne, R., Brister, J.R., Varsani, A., et al. (2018). Minimum Information about an Uncultivated Virus Genome (MIUViG). Nat. Biotechnol. 2018 371 37, 29–37.
-
-Shen, W., Le, S., Li, Y., and Hu, F. (2016). SeqKit: A Cross-Platform and Ultrafast Toolkit for FASTA/Q File Manipulation. PLoS One 11, e0163962.
-
-Sieber, C.M.K., Probst, A.J., Sharrar, A., Thomas, B.C., Hess, M., Tringe, S.G., and Banfield, J.F. (2018). Recovery of genomes from metagenomes via a dereplication, aggregation and scoring strategy. Nat. Microbiol. 2018 37 3, 836–843.
-
-Steenwyk, J.L., Buida, T.J., Li, Y., Shen, X.X., and Rokas, A. (2020). ClipKIT: A multiple sequence alignment trimming software for accurate phylogenomic inference. PLOS Biol. 18, e3001007.
-
-West, P.T., Probst, A.J., Grigoriev, I. V., Thomas, B.C., and Banfield, J.F. (2018). Genome-reconstruction for eukaryotes from complex natural microbial communities. Genome Res. 28, 569–580.
-
-Wu, Y.-W., Simmons, B.A., and Singer, S.W. (2016). MaxBin 2.0: an automated binning algorithm to recover genomes from multiple metagenomic datasets. Bioinformatics 32, 605–607.
 

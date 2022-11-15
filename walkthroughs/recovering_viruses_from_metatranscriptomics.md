@@ -53,7 +53,7 @@ for ID in $(cat identifiers.list); do
 	R2=veba_output/preprocess/${ID}/output/cleaned_2.fastq.gz
 	
 	# Set up command
-	CMD="source activate VEBA-assembly_env && assembly.py -1 ${R1} -2 ${R2} -n ${ID} -o ${OUT_DIR} -p ${N_JOBS} --spades_program rnaspades.py"
+	CMD="source activate VEBA-assembly_env && assembly.py -1 ${R1} -2 ${R2} -n ${ID} -o ${OUT_DIR} -p ${N_JOBS} --P rnaspades.py"
 	
 	# Either run this command or use SunGridEnginge/SLURM
 	

@@ -7,7 +7,7 @@ import pandas as pd
 from tqdm import tqdm
 
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2022.03.28"
+__version__ = "2022.11.07"
 
 def main(args=None):
     # Path info
@@ -120,7 +120,8 @@ def main(args=None):
                 for line in f_fasta.readlines():
                     line = line.strip()
                     if line.startswith(">"):
-                        id_contig = line[1:]
+                        header = line[1:]
+                        id_contig = header.split(" ")[0] # Remove fasta description
                         print(id_contig, file=f_binned_list)
                         binned_contigs.append(id_contig)
                         scaffold_to_mag[id_contig] = id_mag
@@ -158,7 +159,7 @@ def main(args=None):
                             len(seq) >= opts.minimum_contig_length,
                         ]
                         if all(conditions):
-                            print(">{}\n{}".format(header, seq), file=f_unbinned_fasta)
+                            print(">{}\n{}".format(id_contig, seq), file=f_unbinned_fasta)
                 f_unbinned_fasta.close()
 
     

@@ -13,7 +13,7 @@ from soothsayer_utils import *
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2022.10.20"
+__version__ = "2022.11.08"
 
 # DATABASE_METAEUK="/usr/local/scratch/CORE/jespinoz/db/veba/v1.0/Classify/Eukaryotic/eukaryotic"
 
@@ -227,6 +227,66 @@ def get_binning_cmd( input_filepaths, output_filepaths, output_directory, direct
 
 
 
+# def get_metaeuk_cmd(input_filepaths, output_filepaths, output_directory, directories, opts):
+
+#     cmd = [
+#         # Get the eukaryotic contigs
+#         "cat",
+#         opts.fasta,
+#         "|",
+#         os.environ["seqkit"],
+#         "seq",
+#         "-m {}".format(opts.minimum_contig_length),
+#         "|",
+#         os.environ["seqkit"],
+#         "grep",
+#         "--pattern-file {}".format(os.path.join(directories[("intermediate",  "1__binning_{}".format(opts.algorithm))], "binned.list")),
+#         ">",
+#         os.path.join(directories["tmp"], "scaffolds.binned.eukaryotic.fasta"), # contigs
+
+#         # Run MetaEuk
+#         "&&",
+#         os.environ["metaeuk"],
+#         "easy-predict",
+#         "--threads {}".format(opts.n_jobs),
+#         "-s {}".format(opts.metaeuk_sensitivity),
+#         "-e {}".format(opts.metaeuk_evalue),
+#         opts.metaeuk_options,
+#         os.path.join(directories["tmp"], "scaffolds.binned.eukaryotic.fasta"), # contigs
+#         opts.metaeuk_database, # db
+#         os.path.join(output_directory, "metaeuk"), # output prefix
+#         os.path.join(directories["tmp"],"metaeuk"),
+
+#         # Convert MetaEuk identifiers
+#         "&&",
+#         os.environ["compile_metaeuk_identifiers.py"],
+#         "--cds {}".format(os.path.join(output_directory, "metaeuk.codon.fas")),
+#         "--protein {}".format(os.path.join(output_directory, "metaeuk.fas")),
+#         "-o {}".format(output_directory),
+#         "-b gene_models",
+
+#         # Partition the gene models and genomes
+#         "&&",
+#         os.environ["partition_gene_models.py"],
+#         "-i {}".format(input_filepaths[1]),
+#         "-f {}".format(os.path.join(directories["tmp"], "scaffolds.binned.eukaryotic.fasta")),
+#         "-g {}".format(os.path.join(output_directory, "gene_models.gff")),
+#         "-d {}".format(os.path.join(output_directory, "gene_models.ffn")),
+#         "-a {}".format(os.path.join(output_directory, "gene_models.faa")),
+#         "-o {}".format(os.path.join(output_directory, "genomes")),
+
+#         # Remove temporary files
+#         "&&",
+#         "rm -rf {} {} {} {} {}".format(
+#             os.path.join(output_directory, "*.fas"), # output prefix
+#             os.path.join(output_directory, "metaeuk.gff"), # output prefix
+#             os.path.join(output_directory, "gene_models.*"), # output prefix
+#             os.path.join(directories["tmp"], "scaffolds.binned.eukaryotic.fasta"),
+#             os.path.join(directories["tmp"],"metaeuk", "*"),
+#         )
+#     ]
+#     return cmd
+
 def get_metaeuk_cmd(input_filepaths, output_filepaths, output_directory, directories, opts):
 
     cmd = [
@@ -246,45 +306,19 @@ def get_metaeuk_cmd(input_filepaths, output_filepaths, output_directory, directo
 
         # Run MetaEuk
         "&&",
-        os.environ["metaeuk"],
-        "easy-predict",
-        "--threads {}".format(opts.n_jobs),
-        "-s {}".format(opts.metaeuk_sensitivity),
-        "-e {}".format(opts.metaeuk_evalue),
-        opts.metaeuk_options,
-        os.path.join(directories["tmp"], "scaffolds.binned.eukaryotic.fasta"), # contigs
-        opts.metaeuk_database, # db
-        os.path.join(output_directory, "metaeuk"), # output prefix
-        os.path.join(directories["tmp"],"metaeuk"),
-
-        # Convert MetaEuk identifiers
-        "&&",
-        os.environ["compile_metaeuk_identifiers.py"],
-        "--cds {}".format(os.path.join(output_directory, "metaeuk.codon.fas")),
-        "--protein {}".format(os.path.join(output_directory, "metaeuk.fas")),
+        os.environ["metaeuk_wrapper.py"],
+        "--metaeuk_database {}".format(opts.metaeuk_database),
+        "--fasta {}".format(os.path.join(directories["tmp"], "scaffolds.binned.eukaryotic.fasta")),
+        "--scaffolds_to_bins {}".format(os.path.join(directories[("intermediate",  "1__binning_{}".format(opts.algorithm))], "scaffolds_to_bins.tsv")),
         "-o {}".format(output_directory),
-        "-b gene_models",
-
-        # Partition the gene models and genomes
-        "&&",
-        os.environ["partition_gene_models.py"],
-        "-i {}".format(input_filepaths[1]),
-        "-f {}".format(os.path.join(directories["tmp"], "scaffolds.binned.eukaryotic.fasta")),
-        "-g {}".format(os.path.join(output_directory, "gene_models.gff")),
-        "-d {}".format(os.path.join(output_directory, "gene_models.ffn")),
-        "-a {}".format(os.path.join(output_directory, "gene_models.faa")),
-        "-o {}".format(os.path.join(output_directory, "genomes")),
-
-        # Remove temporary files
-        "&&",
-        "rm -rf {} {} {} {} {}".format(
-            os.path.join(output_directory, "*.fas"), # output prefix
-            os.path.join(output_directory, "metaeuk.gff"), # output prefix
-            os.path.join(output_directory, "gene_models.*"), # output prefix
-            os.path.join(directories["tmp"], "scaffolds.binned.eukaryotic.fasta"),
-            os.path.join(directories["tmp"],"metaeuk", "*"),
-        )
+        "--n_jobs {}".format(opts.n_jobs),
+        "--metaeuk_sensitivity {}".format(opts.metaeuk_sensitivity),
+        "--metaeuk_evalue {}".format(opts.metaeuk_evalue),
     ]
+
+    if opts.metaeuk_options:
+        cmd += ["--metaeuk_options {}".format(opts.metaeuk_options)]
+
     return cmd
 
 # def get_busco_offline_cmd(input_filepaths, output_filepaths, output_directory, directories, opts):
@@ -803,6 +837,7 @@ def add_executables_to_environment(opts):
         "consensus_domain_classification.py",
         "merge_busco_json.py",
         "filter_busco_results.py",
+        "metaeuk_wrapper.py",
     }
 
     required_executables={
