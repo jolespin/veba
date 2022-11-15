@@ -2,6 +2,8 @@
 # Modules
 [![Schematic](../images/Schematic.png)](../images/Schematic.pdf)
 
+**Stable:**
+
 * **preprocess** – Fastq quality trimming, adapter removal, decontamination, and read statistics calculations
 
 * **assembly** – Assemble reads, align reads to assembly, and count mapped reads
@@ -1227,7 +1229,8 @@ Copyright 2021 Josh L. Espinoza (jespinoz@jcvi.org)
 * seqkit_stats.tsv.gz - Assembly statistics
 
 ___________________________________________________________________
-###⚠️EXPERIMENTAL
+
+### ⚠️EXPERIMENTAL
 
 ####  **amplicon** - Automated read trim position detection, DADA2 ASV detection, taxonomic classification, and file conversion
 

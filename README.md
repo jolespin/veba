@@ -17,7 +17,7 @@ ___________________________________________________________________
 ### Installation and databases
 Please refer to the [*Installation and Database Configuration Guide*](install/README.md) for software installation and database configuration.
 
-**Current Version:** [`v1.0.2a`](https://github.com/jolespin/veba/releases/tag/v1.0.2a)
+**Current Version:** [`v1.0.3`](https://github.com/jolespin/veba/releases/tag/v1.0.3)
 
 ___________________________________________________________________
 ### Getting started with *VEBA*
@@ -41,6 +41,7 @@ Please refer to the [*Modules*](src/README.md) for a description of all *VEBA* m
 
 [![Schematic](images/Schematic.png)](images/Schematic.pdf)
 
+**Stable:**
 
 * **preprocess** – Fastq quality trimming, adapter removal, decontamination, and read statistics calculations
 
@@ -70,7 +71,15 @@ Please refer to the [*Modules*](src/README.md) for a description of all *VEBA* m
  
 * **mapping** – Aligns reads to local or global index of genomes
 
-* **⚠️[EXPERIMENTAL] amplicon** - Automated read trim position detection, DADA2 ASV detection, taxonomic classification, and file conversion
+
+**Developmental and Experimental:**
+
+* **biosynthetic** – Identify biosynthetic gene clusters in prokaryotes and fungi
+
+* **assembly-sequential** – Assemble metagenomes sequentially
+
+* **amplicon** - Automated read trim position detection, DADA2 ASV detection, taxonomic classification, and file conversion
+
 ___________________________________________________________________
 
 ### Output structure
