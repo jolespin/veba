@@ -12,7 +12,7 @@ from soothsayer_utils import *
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2022.11.08"
+__version__ = "2022.11.14"
 
 # Assembly
 def get_coverage_cmd( input_filepaths, output_filepaths, output_directory, directories, opts):
@@ -622,7 +622,7 @@ def get_checkm_cmd(input_filepaths, output_filepaths, output_directory, director
         "--pplacer_threads {}".format(opts.pplacer_threads),
         "-t {}".format(opts.n_jobs),
         "-x faa",
-        "--tmpdir {}".format(os.environ["TMPDIR"]), # Hack around: OSError: AF_UNIX path too long
+        "--tmpdir {}".format(os.environ["TMPDIR"] if "TMPDIR" in os.environ else directories["tmp"]), # Hack around: OSError: AF_UNIX path too long
         # "--tmpdir {}".format(os.path.join(directories["tmp"], "checkm")),
         input_filepaths[0],
         output_directory,
