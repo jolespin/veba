@@ -502,15 +502,13 @@ cat veba_output/binning/*/*/output/genomes/*.faa > veba_output/misc/all_genomes.
 # especially for viruses
 cat veba_output/binning/*/*/output/genomes/identifier_mapping.tsv > veba_output/misc/all_genomes.identifier_mapping.tsv
 
-# If you are restricted by resources or time you may want to do this in batches.  
-# You can split up the proteins into separate batches with SeqKit.
-# This would make 100 files: stdin.part_001.fasta - stdin.part_100.fasta
+```
 
-N_PARTITIONS=100
-mkdir -p veba_output/misc/partitions/
-veba_output/misc/all_genomes.proteins.faa | seqkit split2 -p ${N_PARTITIONS} -O veba_output/misc/partitions/
+**Simple usage by running all at once**
 
-# However, we aren't doing that for sake of simplicity.  Let's just annotate everything at once:
+For sake of simplicity, let's just annotate everything at once (see next section to speed this up):
+
+```
 
 # Let's use a higher number of threads here
 N_JOBS=32
@@ -527,6 +525,51 @@ IDENTIFIER_MAPPING=veba_output/misc/all_genomes.identifier_mapping.tsv
 CMD="source activate VEBA-annotate_env && annotate.py -a ${PROTEINS} -i ${IDENTIFIER_MAPPING} -o ${OUT_DIR} -p ${N_JOBS}"
 
 # Either run this command or use SunGridEnginge/SLURM
+
+```
+
+
+**Advanced usage by splitting up fasta into multiple files**
+
+If you are restricted by resources or time you may want to do this in batches.  
+You can split up the proteins into separate batches with `SeqKit`.
+This would make 100 files: stdin.part_001.fasta - stdin.part_100.fasta
+
+```
+# Split fasta file into multiple partitions
+N_PARTITIONS=100
+PARTITION_DIRECTORY=veba_output/misc/partitions/
+mkdir -p ${PARTITION_DIRECTORY}
+cat veba_output/misc/all_genomes.proteins.faa | seqkit split2 -p ${N_PARTITIONS} -O ${PARTITION_DIRECTORY}
+
+# Now get the identifiers for each partition
+IDENTIFIER_MAPPING=veba_output/misc/all_genomes.identifier_mapping.tsv
+
+for i in $(seq -f "%03g" 1 ${N_PARTITIONS}); do # This iterates through 1-100 and zero pads
+	PROTEINS=${PARTITION_DIRECTORY}/stdin.part_${i}.fasta
+	IDENTIFIERS=${PARTITION_DIRECTORY}/stdin.part_${i}.list
+	cat ${PROTEINS } | grep "^>" | cut -c2- > ${IDENTIFIERS}
+	subset_table.py -i ${IDENTIFIERS} -t ${IDENTIFIER_MAPPING} -o ${PARTITION_DIRECTORY}/stdin.part_${i}.identifier_mapping.tsv
+	done
+
+# Drop down the number of threads used since we are running 100 jobs now
+N_JOBS=1
+
+# Set up log names and output paths
+OUT_DIR="veba_output/annotations_partitioned"
+mkdir -p ${OUT_DIR}
+
+# Now run annotate for each partition
+for i in $(seq -f "%03g" 1 ${N_PARTITIONS}); do 
+	N="annotate-${i}"
+	rm -f logs/${N}.*
+	FAA=${PARTITION_DIRECTORY}/stdin.part_${i}.fasta
+	IDS=${PARTITION_DIRECTORY}/stdin.part_${i}.identifier_mapping.tsv
+	CMD="source activate VEBA-annotate_env && annotate.py -a ${FAA} -i ${IDS} -o ${OUT_DIR}/${i} -p ${N_JOBS}"
+
+	# Either run this command or use SunGridEnginge/SLURM
+	
+	done
 
 ```
 
