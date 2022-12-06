@@ -128,7 +128,7 @@ ORTHOGROUPS=veba_output/misc/all_genomes.orthogroups.tsv
 merge_contig_mapping.py -m ${MAPPING_DIRECTORY} -c ${CLUSTERS}  -i ${SCAFFOLDS_TO_BINS} -o ${OUT_DIR}
 
 # Merge ORF-level counts
-merge_orf_mapping.py -m ${MAPPING_DIRECTORY} -c ${ORTHOGROUPS}  -i ${SCAFFOLDS_TO_BINS} -o ${OUT_DIR}
+merge_orf_mapping.py -m ${MAPPING_DIRECTORY} -c ${ORTHOGROUPS} -o ${OUT_DIR}
 ```
 
 The following output files will produced: 
