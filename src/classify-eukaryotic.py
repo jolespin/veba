@@ -15,7 +15,7 @@ from soothsayer_utils import *
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2022.12.07"
+__version__ = "2022.12.07b"
 
 
 # GTDB-Tk
@@ -334,7 +334,7 @@ def create_pipeline(opts, directories, f_cmds):
         cmd = get_hmmsearch_cmd(**params)
 
         pipeline.add_step(
-                    id=program_label,
+                    id=program,
                     description = description,
                     step=step,
                     cmd=cmd,
