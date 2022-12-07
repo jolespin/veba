@@ -7,7 +7,7 @@ from Bio.SeqIO.FastaIO import SimpleFastaParser
 from tqdm import tqdm
 
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2022.03.18"
+__version__ = "2022.12.07"
 
 def parse_header(header:str, include_strand_in_geneid=True, strand_notation="+/-"):
     """
@@ -224,12 +224,18 @@ def main(argv=None):
     # Handle duplicates
     geneid_value_counts = df_metaeuk_headers["gene_id"].value_counts()
     if geneid_value_counts.max() > 1:
-        print("There are {} duplicate gene identifiers:{}".format((geneid_value_counts > 1).sum()), file=sys.stderr)
+        number_of_genes_with_duplicate_identifiers = np.sum(geneid_value_counts.values > 1)
+        genes_with_duplicate_identifiers = geneid_value_counts[geneid_value_counts > 1].index.tolist()
+        print("There are {} duplicate gene identifiers:\n{}".format(
+            number_of_genes_with_duplicate_identifiers,
+            "\n".join(genes_with_duplicate_identifiers),
+            ), file=sys.stderr)
+
         
         if opts.assert_no_duplicate_headers:
-            raise AssertionError("There are {} duplicate gene identifiers:{}".format( 
-                (geneid_value_counts > 1).sum(),
-                "\n".join(geneid_value_counts[geneid_value_counts > 1].index)
+            raise AssertionError("There are {} duplicate gene identifiers:\n{}".format( 
+                number_of_genes_with_duplicate_identifiers,
+                "\n".join(genes_with_duplicate_identifiers),
                 ))
         # Get indicies of highest bit scores
         index_highest_bitscores = df_metaeuk_headers.groupby("gene_id")["bitscore"].idxmax()
