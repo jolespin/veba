@@ -15,7 +15,7 @@ from soothsayer_utils import *
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2022.7.8"
+__version__ = "2022.12.07"
 
 
 # GTDB-Tk
@@ -284,7 +284,7 @@ def create_pipeline(opts, directories, f_cmds):
     cmd = get_preprocess_cmd(**params)
 
     pipeline.add_step(
-                id=program_label,
+                id=program,
                 description = description,
                 step=step,
                 cmd=cmd,
@@ -384,7 +384,7 @@ def create_pipeline(opts, directories, f_cmds):
     cmd = get_compile_cmd(**params)
 
     pipeline.add_step(
-                id=program_label,
+                id=program,
                 description = description,
                 step=step,
                 cmd=cmd,
@@ -425,7 +425,7 @@ def create_pipeline(opts, directories, f_cmds):
     cmd = get_consensus_genome_classification_cmd(**params)
 
     pipeline.add_step(
-                id=program_label,
+                id=program,
                 description = description,
                 step=step,
                 cmd=cmd,
@@ -467,7 +467,7 @@ def create_pipeline(opts, directories, f_cmds):
         cmd = get_consensus_cluster_classification_cmd(**params)
 
         pipeline.add_step(
-                    id=program_label,
+                    id=program,
                     description = description,
                     step=step,
                     cmd=cmd,

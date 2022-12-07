@@ -9,7 +9,7 @@ from tqdm import tqdm
 # DATABASE_EUKARYOTIC="/usr/local/scratch/CORE/jespinoz/db/veba/v1.0/Classify/Eukaryotic/"
 
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2022.7.8"
+__version__ = "2022.12.07"
 
 
 def main(args=None):
@@ -50,7 +50,7 @@ def main(args=None):
     # Scaffolds -> Bins
     fp = opts.scaffolds_to_bins
     print("* Reading scaffolds to bins table {}".format(fp), file=sys.stderr)
-    scaffold_to_bin = pd.read_csv(fp, sep="\t", index_col=0, header=None, squeeze=True)#.iloc[:,0]
+    scaffold_to_bin = pd.read_csv(fp, sep="\t", index_col=0, header=None).iloc[:,0]
     if opts.debug:
         print(fp, file=sys.stderr)
         scaffold_to_bin.head().to_csv(sys.stderr, sep="\t", header=None)
