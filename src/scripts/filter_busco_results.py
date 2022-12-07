@@ -6,7 +6,7 @@ import pandas as pd
 from tqdm import tqdm
 
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2022.04.04"
+__version__ = "2022.12.07"
 
 def main(args=None):
     # Path info
@@ -133,7 +133,7 @@ def main(args=None):
             for line in f_fasta.readlines():
                 line = line.strip()
                 if line.startswith(">"):
-                    id_contig = line[1:]
+                    id_contig = line[1:].split(" ")[0]
                     scaffolds_to_bins[id_contig] = id_mag
                     print(id_contig, file=f_binned_list)
                     binned_contigs.append(id_contig)
@@ -161,12 +161,12 @@ def main(args=None):
 
     # identifier_mapping.metaeuk.tsv
     df_metaeuk_identifiers = pd.read_csv(os.path.join(opts.metaeuk_directory, "identifier_mapping.metaeuk.tsv"), sep="\t", index_col=0)
-    mask = df_metaeuk_identifiers["C_acc"].map(lambda x: x in binned_contigs).values
+    mask = df_metaeuk_identifiers["C_acc"].map(lambda x: x in binned_contigs).values.astype(bool)
     df_metaeuk_identifiers.loc[mask].to_csv(os.path.join(opts.output_directory, "identifier_mapping.metaeuk.tsv"), sep="\t")
 
     # metaeuk_to_simple.tsv
     metaeuk_to_simple = pd.read_csv(os.path.join(opts.metaeuk_directory,"metaeuk_to_simple.tsv"), sep="\t", index_col=0, header=None).iloc[:,0]
-    mask = metaeuk_to_simple.map(lambda x: "_".join(x.split("_")[:-1]) in binned_contigs).values
+    mask = metaeuk_to_simple.map(lambda x: "_".join(x.split("_")[:-1]) in binned_contigs).values.astype(bool)
     metaeuk_to_simple[mask].to_frame().to_csv(os.path.join(opts.output_directory, "metaeuk_to_simple.tsv"), sep="\t", header=None)
 
     # Get unbinned contigs
