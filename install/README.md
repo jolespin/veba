@@ -28,8 +28,8 @@ ____________________________________________________________
 
 ```
 # For stable version, download and decompress the tarball:
-wget https://github.com/jolespin/veba/archive/refs/tags/v1.0.3a.tar.gz
-tar -xvf v1.0.3a.tar.gz && mv veba-1.0.3a veba
+wget https://github.com/jolespin/veba/archive/refs/tags/v1.0.3b.tar.gz
+tar -xvf v1.0.3b.tar.gz && mv veba-1.0.3b veba
 
 # For developmental version, clone the repository:
 # git clone https://github.com/jolespin/veba/

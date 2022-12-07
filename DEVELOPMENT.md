@@ -7,7 +7,9 @@ ________________________________________________________________
 
 #### Current Releases:
 
-##### Release v1.0.3
+##### Release v1.0.3b
+* Patch fix for `compile_metaeuk_identifiers.py` where [an error](https://github.com/jolespin/veba/issues/11) arised when duplicate gene identifiers were present.  [c248527](https://github.com/jolespin/veba/commit/c248527da9edef5ba2ebee348d707d8ece29fbee)
+* Patch fix for `install_veba.sh` where `install/environments/VEBA-preprocess_env.yml` raised [a compatibilty error](https://github.com/jolespin/veba/issues/10) when creating the `VEBA-preprocess_env` environment [8ed6eea](https://github.com/jolespin/veba/commit/8ed6eeaee1037694cf324d8fa4da6190578b9688)
 * Added `biosynthetic.py` module which runs antiSMASH and converts genbank files to tabular format. [6c0ed82](https://github.com/jolespin/veba/commit/6c0ed82c804ad60a4f1ae51f3e5fecd14dba845f)
 * Added `megahit` support for `assembly.py` module (not yet available in `assembly-sequential.py`). [6c0ed82](https://github.com/jolespin/veba/commit/6c0ed82c804ad60a4f1ae51f3e5fecd14dba845f) 
 * Changed `-P/--spades_program` to `-P/--program` for `assembly.py`. [6c0ed82](https://github.com/jolespin/veba/commit/6c0ed82c804ad60a4f1ae51f3e5fecd14dba845f)
@@ -119,7 +121,6 @@ ________________________________________________________________
 
 #### Upcoming Modules:
 
-* biosynthetic.py module: antiSMASH
 * noncoding.py module: t-RNAscan-SE, BARRNAP, CORDON
 * metabolism.py module: gapseq
 * reassembly.py module: SPAdes
@@ -131,6 +132,10 @@ ________________________________________________________________
 **GenoPype:**
 
 * Get a mapping between {step:intermediate directory} and clear out intermediate directories for `--restart_from_checkpoint`.
+
+**Classify:**
+
+* Adapt `classify-eukaryotic.py` to handle actual genomes instead of just the results from `binning-eukaryotic.py`.  This should be straightforward, it will just need to run `metaeuk_wrapper.py` and use the output.
 
 **Binning:**
 
@@ -158,6 +163,7 @@ https://github.com/alexdobin/STAR/issues/867
 * If --identifier_mapping is `[id_orf]<tab>[id_contig]<tab>[id_mag]<tab>[id_orthogroup] then it does consensus annotations for orthogroups using UniFunc
 
 **Scripts:**
+
 * get_orthogroup\_consensus\_annotation.py [Not working w/ stdin]
 
 
