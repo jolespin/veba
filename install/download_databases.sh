@@ -6,6 +6,8 @@
 DATABASE_DIRECTORY=${1:-"."}
 REALPATH_DATABASE_DIRECTORY=$(realpath $DATABASE_DIRECTORY)
 
+# N_JOBS=$(2:-"1")
+
 # Database structure
 echo ". .. ... ..... ........ ............."
 echo "Creating directories"
