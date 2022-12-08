@@ -11,6 +11,9 @@ Total size is 372G but if you have certain databases installed already then you 
 
 Each major version will be packaged as a [release](https://github.com/jolespin/veba/releases) which will include a log of module and script versions. 
 
+**Download Anaconda:** 
+[https://www.anaconda.com/products/distribution](https://www.anaconda.com/products/distribution)
+
 ____________________________________________________________
 
 ### Install:
@@ -44,7 +47,7 @@ cd veba/install
 
 **2. Install VEBA environments**
 
-This is not resource intensive and does not require grid access but took ~1.5 hours (~90 minutes) to download and configure the dependencies.  Advanced users may speed this up by replacing `conda` with [`mamba`](https://github.com/mamba-org/mamba) in the installation script assuming `mamba` is in the base environment.  Though, `mamba` only dropped the time down by 10 minutes.
+This is not resource intensive and does not require grid access but took ~1.5 hours (~90 minutes) to download and configure the dependencies.  Advanced users may speed this up by replacing [`conda`](https://github.com/conda/conda) with [`mamba`](https://github.com/mamba-org/mamba) in the installation script assuming `mamba` is in the base environment.  Though, `mamba` only dropped the time down by 10 minutes.
 
 ```
 bash install_veba.sh
