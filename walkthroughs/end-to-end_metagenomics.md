@@ -248,7 +248,7 @@ mkdir -p veba_output/misc
 
 # Get all the identifiers from all of the MAGs
 
-cat veba_output/binning/*/*/output/genomes/*.fa | grep "^>" | cut -c2- > veba_output/misc/all_sample_specific_mags.binned_contigs.list
+cat veba_output/binning/*/*/output/genomes/*.fa | grep "^>" | cut -c2- | cut -f1 -d " " > veba_output/misc/all_sample_specific_mags.binned_contigs.list
 
 # Most VEBA environments should have SeqKit installed.  
 # I recommend having this light-weight program in base environment 
