@@ -2,8 +2,20 @@
 
 Complete reinstalls of *VEBA* environments and databases is time consuming so we've detailed how to do specific patches **for advanced users**. If you don't feel comfortable running these commands, then just do a fresh install if you would like to update. 
 
+##### 1. Update VEBA environments with existing or most recent scripts
 
-##### 1. Update environment variables of newly installed environments with an existing database
+* Run the `update_environment_scripts.sh` to replace the modules and scripts in all VEBA environments. 
+
+```bash
+# To download the most recent scripts from GitHub and update environments, do not provide an argument: 
+bash update_environment_scripts.sh
+
+# If you already have a repository downloaded, then provide the path to the repository: 
+bash update_environment_scripts.sh /path/to/veba_repository
+
+```
+
+##### 2. Update environment variables of newly installed environments with an existing database
 
 * Run the install/update_environment_variables.sh script. 
 
@@ -11,7 +23,7 @@ Complete reinstalls of *VEBA* environments and databases is time consuming so we
 bash update_environment_variables.sh /path/to/veba_database
 ```
 
-##### 2. Update human reference genome build (GRCh38 to CHM13v2)
+##### 3. Update human reference genome build (GRCh38 to CHM13v2)
 
 * Remove the old build and download the new build
 
@@ -33,7 +45,7 @@ bash update_environment_variables.sh /path/to/veba_database
 
 	```
 
-##### 3. Update GTDB-Tk v1.x to v2.x
+##### 4. Update GTDB-Tk v1.x to v2.x
 
 * First, remove the old *GTDB-Tk* database and download the new one.
 	   
