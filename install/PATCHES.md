@@ -7,11 +7,15 @@ Complete reinstalls of *VEBA* environments and databases is time consuming so we
 * Run the `update_environment_scripts.sh` to replace the modules and scripts in all VEBA environments. 
 
 	```bash
-	# To download the most recent scripts from GitHub and update environments, do not provide an argument: 
-	bash update_environment_scripts.sh
+	# Clone the repository (or download a release)
+	git clone https://github.com/jolespin/veba
 	
-	# If you already have a repository downloaded, then provide the path to the repository: 
-	bash update_environment_scripts.sh /path/to/veba_repository
+	# To download the most recent scripts from GitHub and update environments, do not provide an argument: 
+	bash veba/install/update_environment_scripts.sh
+	
+	# If you already have a repository downloaded (which you just did with the git clone command, then provide the path to the repository: 
+	
+	bash veba/install/update_environment_scripts.sh veba/
 	
 	```
 
@@ -20,7 +24,7 @@ Complete reinstalls of *VEBA* environments and databases is time consuming so we
 * Run the install/update_environment_variables.sh script. 
 
 	```bash
-	bash update_environment_variables.sh /path/to/veba_database
+	bash veba/install/update_environment_variables.sh /path/to/veba_database
 	```
 
 ##### 3. Update human reference genome build (GRCh38 to CHM13v2)

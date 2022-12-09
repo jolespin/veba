@@ -179,9 +179,14 @@ These errors have been reported during the creation of `VEBA-binning-prokaryotic
 
 ____________________________________________________________
 
-#### Patching existing installations for advanced users:
+#### Updating VEBA: 
 
-Complete reinstalls of *VEBA* environments and databases is time consuming so [we've detailed how to do specific patches **for advanced users**](PATCHES.md). If you don't feel comfortable running these commands, then just do a fresh install if you would like to update. 
+There are currently 2 ways to update veba:
+
+1. Basic uninstall reinstall - You can uninstall and reinstall using the scripts in `veba/install/` directory. 
+2. Patching existing installation - Complete reinstalls of *VEBA* environments and databases is time consuming so [we've detailed how to do specific patches **for advanced users**](PATCHES.md). If you don't feel comfortable running these commands, then just do a fresh install if you would like to update. 
+
+
 
 ____________________________________________________________
 
