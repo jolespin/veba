@@ -566,6 +566,9 @@ Virus arguments:
 #### classify-prokaryotic – Taxonomic classification and candidate phyla radiation adjusted quality assessment of prokaryotic genomes
 The prokaryotic classification module is a useful wrapper around GTDB-Tk which either combines the resulting archaea and bacteria summary tables or runs GTDB-Tk lineage_wf from the beginning.  If genome clusters are provided, then it performs consensus lineage classification.
 
+**Conda Environment**: `conda activate VEBA-classify_env`
+
+
 ```
 usage: classify-prokaryotic.py -i <prokaryotic_binning_directory> -o <output_directory>
 
@@ -608,7 +611,6 @@ Consensus genome classification arguments:
   -l LENIENCY, --leniency LENIENCY
                         Leniency parameter. Lower value means more conservative weighting. A value of 1 indiciates no weight bias. A value greater than 1 puts higher weight on higher level taxonomic assignments. A value less than 1 puts lower weights on higher level taxonomic assignments.  [Default: 1.382]
 
-**Conda Environment**: `conda activate VEBA-classify_env`
 
 ```
 
