@@ -1023,7 +1023,7 @@ def main(args=None):
 
     # Assembler
     parser_assembler = parser.add_argument_group('SPAdes arguments')
-    parser_assembler.add_argument("--run_metaplasmidspades", action="store_true",  help="SPAdes | Run metaplasmidSPAdes.  This may sacrifice MAG completeness for plasmid completeness.")
+    parser_assembler.add_argument("--run_metaplasmidspades", action="store_true",  help="SPAdes | Run metaplasmidSPAdes.  This may sacrifice MAG completeness for plasmid completeness.  Will fail if there are no extrachromosomal contigs assembled.")
     # parser_assembler.add_argument("--run_metaviralspades", action="store_true",  help="SPAdes | Run metaviralSPAdes.  This will result in a separete set of scaffolds.")
     parser_assembler.add_argument("-m", "--memory", type=int, default=250, help="SPAdes | RAM limit in Gb (terminates if exceeded). [Default: 250]")
     parser_assembler.add_argument("--spades_options", type=str, default="", help="SPAdes | More options (e.g. --arg 1 ) [Default: '']\nhttp://cab.spbu.ru/files/release3.11.1/manual.html")

@@ -84,6 +84,7 @@ ________________________________________________________________
 
 
 #### Change Log:
+* [2022.12.12] - Fixed duplicate `step__step__program` labels for `classify-prokaryotic.py` module.  Added support for prepending index/column levels and `index_col` selection in `concatenate_dataframes.py`.
 * [2022.12.07] - Fixed the compatibility issues for `VEBA-preprocess_env.yml` and issues with the following scripts: `compile_metaeuk_identifiers.py`, `filter_busco_results.py`, and `VirFinder_wrapper.R`.
 * [2022.11.14] - Added `megahit` support for `assembly.py` module (not yet available in `assembly-sequential.py`).  Changed `-P/--spades_program` to `-P/--program` for `assembly.py`. Added `biosynthetic` module which runs antiSMASH and converts genbank files to tabular format.  `binning-prokaryotic.py` defaults to `TMPDIR` environment variable for CheckM step, if not available, then it uses `[PROJECT_DIRECTORY]/[ID]/tmp`.  See #12 of [FAQ](https://github.com/jolespin/veba/blob/main/FAQ.md). 
 * [2022.11.8] - Replaced penultimate step in `binning-prokaryotic.py` to use `adjust_genomes_for_cpr.py` instead of the extremely long series of bash commands.  This will make it easier to diagnose errors in this critical step.  Also added support for contig descriptions and added MAG identifier in fasta files in `binning-eukaryotic.py`.  Now uses the `metaeuk_wrapper.py` script for the `MetaEuk` step.  Added separate option of `--run_metaplasmidspades` for `assembly-sequential.py` instead of making it mandatory (now it just runs `biosyntheticSPAdes` and `metaSPAdes` by default).
@@ -148,7 +149,7 @@ ________________________________________________________________
 * Adapt `classify-eukaryotic.py` to handle actual genomes instead of just the results from `binning-eukaryotic.py`.  This should be straightforward, it will just need to run `metaeuk_wrapper.py` and use the output.
 
 **Binning:**
-
+* Make a `--skip_concoct` option because `CONCOCT` is slow when there's a lot of BAM files while `MaxBin2` is slow when there's a lot of contigs. 
 * Make a wrapper that does coassembly binning but then splits out the bins into individual samples like in VAMB
 * Need to replace the grep -v with non-eukaryota.list for final scaffolds_to_bins.tsv in binning-eukaryotic with subset_table.py using --inverse because sometimes it is returned as empty when list of contigs is large
 * Add geNomad as main option: https://github.com/apcamargo/genomad/

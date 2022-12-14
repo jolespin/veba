@@ -1,5 +1,5 @@
 #!/bin/bash
-# __VERSION__ = "2022.10.26"
+# __VERSION__ = "2022.12.09"
 SCRIPT_PATH=$(realpath $0)
 PREFIX=$(echo $SCRIPT_PATH | python -c "import sys; print('/'.join(sys.stdin.read().split('/')[:-1]))")
 CONDA_BASE=$(conda run -n base bash -c "echo \${CONDA_PREFIX}")
@@ -20,7 +20,7 @@ for ENV_YAML in ${PREFIX}/environments/VEBA*.yml; do
 
     # Create conda environment
     echo "Creating ${ENV_NAME} environment"
-    time(conda env create -n $ENV_NAME -f $ENV_YAML)
+    time(conda env create -n $ENV_NAME -f $ENV_YAML || echo "Error when creating VEBA environment: ${ENV_YAML}" ; exit 1)
 
     # Copy over files to environment bin/
     echo -e "\t*Copying VEBA modules into ${ENV_NAME} environment path"

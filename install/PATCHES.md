@@ -4,7 +4,7 @@ Complete reinstalls of *VEBA* environments and databases is time consuming so we
 
 ##### 1. Update VEBA environments with existing or most recent scripts
 
-* Run the `update_environment_scripts.sh` to replace the modules and scripts in all VEBA environments. 
+* Run the `veba/install/update_environment_scripts.sh` to replace the modules and scripts in all VEBA environments. 
 
 	```bash
 	# Clone the repository (or download a release)
@@ -21,7 +21,7 @@ Complete reinstalls of *VEBA* environments and databases is time consuming so we
 
 ##### 2. Update environment variables of newly installed environments with an existing database
 
-* Run the install/update_environment_variables.sh script. 
+* Run the `veba/install/update_environment_variables.sh` script. 
 
 	```bash
 	bash veba/install/update_environment_variables.sh /path/to/veba_database
