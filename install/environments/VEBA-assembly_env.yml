@@ -11,6 +11,7 @@ dependencies:
   - _sysroot_linux-64_curr_repodata_hack=3=h5bd9786_13
   - alsa-lib=1.2.8=h166bdaf_0
   - bbmap=39.01=h5c4e2a8_0
+  - biopython=1.80=py39hb9d737c_0
   - bowtie2=2.5.0=py39h3321a2d_0
   - brotlipy=0.7.0=py39hb9d737c_1005
   - bz2file=0.98=py_0
