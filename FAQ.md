@@ -235,3 +235,9 @@ report_errors: true
 **27. How can I make minor updates instead of reinstalling everything?**
 
 Please refer to our [patches](https://github.com/jolespin/veba/blob/main/install/PATCHES.md) section.
+
+**28.  While running `assembly.py` my job errored (e.g., timed out or ran out of memory), how can I resume the assembly without starting over?** 
+
+If you're using a `SPAdes`-based program (e.g., `metaSPAdes`) you can use the following option: `--assembler_options='--restart-from last'`.  
+
+For example, the following `assembly.py` command: `source activate VEBA-assembly_env && assembly.py -1 ${R1} -2 ${R2} -n ${ID} -o ${OUT_DIR} -p ${N_JOBS} --assembler_options='--restart-from last'`
