@@ -241,3 +241,42 @@ Please refer to our [patches](https://github.com/jolespin/veba/blob/main/install
 If you're using a `SPAdes`-based program (e.g., `metaSPAdes`) you can use the following option: `--assembler_options='--restart-from last'`.  
 
 For example, the following `assembly.py` command: `source activate VEBA-assembly_env && assembly.py -1 ${R1} -2 ${R2} -n ${ID} -o ${OUT_DIR} -p ${N_JOBS} --assembler_options='--restart-from last'`
+
+**29. My job errored in the middle of a step because of a minor issue, how can I continue from the middle of a step and created a checkpoint?**
+
+Let's say you were running `assembly.py` and the module failed right after the computationally expensive assembly because of a missing Python library in `fasta_to_saf.py`.   You obviously don't want to recompute the assembly and your step is almost complete as the remaining commands will take a few seconds.
+
+Here's the original command that failed because of a minor error: 
+
+```
+assembly.py -1 ${R1} -2 ${R2} -n ${ID} -o ${OUT_DIR} -p ${N_JOBS}
+```
+
+1. First check out the `commands.sh` file in the subdirectory for your sample. 
+
+
+```
+(base) head -n 2 veba_output/assembly/SRR5720219/commands.sh
+# 1__assembly
+( /expanse/projects/jcl110/anaconda3/envs/VEBA-assembly_env/bin/metaspades.py -o veba_output/assembly/SRR5720219/intermediate/1__assembly --tmp-dir veba_output/assembly/SRR5720219/tmp/assembly --threads 4 --memory 250 --restart-from last ) && python /expanse/projects/jcl110/anaconda3/envs/VEBA-assembly_env/bin/scripts/fasta_to_saf.py -i veba_output/assembly/SRR5720219/intermediate/1__assembly/scaffolds.fasta > veba_output/assembly/SRR5720219/intermediate/1__assembly/scaffolds.fasta.saf && rm -rf veba_output/assembly/SRR5720219/intermediate/1__assembly/before_rr.fasta && rm -rf veba_output/assembly/SRR5720219/intermediate/1__assembly/K* && rm -rf veba_output/assembly/SRR5720219/intermediate/1__assembly/misc && rm -rf veba_output/assembly/SRR5720219/intermediate/1__assembly/corrected && rm -rf veba_output/assembly/SRR5720219/intermediate/1__assembly/first_pe_contigs.fasta
+```
+
+2. Run the reminaing steps manually.  
+
+```
+python /expanse/projects/jcl110/anaconda3/envs/VEBA-assembly_env/bin/scripts/fasta_to_saf.py -i veba_output/assembly/SRR5720219/intermediate/1__assembly/scaffolds.fasta > veba_output/assembly/SRR5720219/intermediate/1__assembly/scaffolds.fasta.saf 
+
+rm -rf veba_output/assembly/SRR5720219/intermediate/1__assembly/before_rr.fasta && rm -rf veba_output/assembly/SRR5720219/intermediate/1__assembly/K* && rm -rf veba_output/assembly/SRR5720219/intermediate/1__assembly/misc && rm -rf veba_output/assembly/SRR5720219/intermediate/1__assembly/corrected && rm -rf veba_output/assembly/SRR5720219/intermediate/1__assembly/first_pe_contigs.fasta
+```
+
+3. Lastly, create a manual checkpoint.  It can say anything in the text file but I usually add the date: 
+
+```
+echo "Manual run: $(date)" > veba_output/assembly/SRR5720219/checkpoints/1__assembly
+```
+
+4. Now rerun the original command: `assembly.py -1 ${R1} -2 ${R2} -n ${ID} -o ${OUT_DIR} -p ${N_JOBS}
+
+*VEBA* should register that step 1 is complete and will continue with step 2. 
+
+
