@@ -7,8 +7,12 @@ ________________________________________________________________
 
 #### Current Releases:
 
+##### Realse v1.0.4
+* Added `biopython` to `VEBA-assembly_env` which is needed when running `MEGAHIT` as the scaffolds are rewritten and [an error](https://github.com/jolespin/veba/issues/17) was raised. [aea51c3](https://github.com/jolespin/veba/commit/aea51c3e0b775aec90f7343f01cad6911f526f0a)
+* Updated Microeukaryotic protein database to exclude a few higher eukaryotes that were present in database, changed naming scheme to hash identifiers (from `cat reference.faa | seqkit fx2tab -s -n > id_to_hash.tsv`)
+
 ##### Release v1.0.3e
-* Patch fix for `install_veba.sh` where `install/environments/VEBA-assembly_env.yml` raised [a compatibilty error](https://github.com/jolespin/veba/issues/15) when creating the `VEBA-assembly_env` environment [c2ab957](https://github.com/jolespin/veba/commit/c2ab957be132d34e6b99d6dea394be4572b83066)
+* Patch fix for `install_veba.sh` where `install/environments/VEBA-assembly_env.yml` raised [a compatibilty error](https://github.com/jolespin/veba/issues/15) when creating the `VEBA-assembly_env` environment. [c2ab957](https://github.com/jolespin/veba/commit/c2ab957be132d34e6b99d6dea394be4572b83066)
 * Patch fix for `VirFinder_wrapper.R` where `__version__ = ` variable was throwing [an R error](https://github.com/jolespin/veba/issues/13) when running `binning-viral.py` module. [19e8f38](https://github.com/jolespin/veba/commit/19e8f38a5050328b7ba88b2271f0221073748cbb)
 * Patch fix for `filter_busco_results.py` where [an error](https://github.com/jolespin/veba/issues/12) arose that produced empty `identifier_mapping.metaeuk.tsv` subset tables. [359e4569](https://github.com/jolespin/veba/commit/359e45699fc6d6fdf739350263fd34c6e4a62f94)
 * Patch fix for `compile_metaeuk_identifiers.py` where [a Python error](https://github.com/jolespin/veba/issues/11) arised when duplicate gene identifiers were present.  [c248527](https://github.com/jolespin/veba/commit/c248527da9edef5ba2ebee348d707d8ece29fbee)
@@ -85,6 +89,7 @@ ________________________________________________________________
 
 
 #### Change Log:
+* [2022.12.21] - Added `biopython` to `VEBA-assembly_env` which is needed when running `MEGAHIT` as the scaffolds are rewritten.
 * [2022.12.12] - Fixed duplicate `step__step__program` labels for `classify-prokaryotic.py` module.  Added support for prepending index/column levels and `index_col` selection in `concatenate_dataframes.py`.
 * [2022.12.07] - Fixed the compatibility issues for `VEBA-preprocess_env.yml` and issues with the following scripts: `compile_metaeuk_identifiers.py`, `filter_busco_results.py`, and `VirFinder_wrapper.R`.
 * [2022.11.14] - Added `megahit` support for `assembly.py` module (not yet available in `assembly-sequential.py`).  Changed `-P/--spades_program` to `-P/--program` for `assembly.py`. Added `biosynthetic` module which runs antiSMASH and converts genbank files to tabular format.  `binning-prokaryotic.py` defaults to `TMPDIR` environment variable for CheckM step, if not available, then it uses `[PROJECT_DIRECTORY]/[ID]/tmp`.  See #12 of [FAQ](https://github.com/jolespin/veba/blob/main/FAQ.md). 
@@ -134,12 +139,15 @@ ________________________________________________________________
 #### Upcoming Modules:
 
 * noncoding.py module: t-RNAscan-SE, BARRNAP, CORDON
-* metabolism.py module: gapseq
+* metabolism.py module: gapseq? Metage2Metabo?
 * reassembly.py module: SPAdes
 
 ________________________________________________________________
 
 #### Additional:
+	
+* Add a wrapper around `transDecoder` for metatranscriptomic assembly.
+
 
 **GenoPype:**
 
