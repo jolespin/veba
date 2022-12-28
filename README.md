@@ -17,7 +17,7 @@ ___________________________________________________________________
 ### Installation and databases
 Please refer to the [*Installation and Database Configuration Guide*](install/README.md) for software installation and database configuration.
 
-**Current Version:** [`v1.0.3e`](https://github.com/jolespin/veba/releases/tag/v1.0.3e)
+**Current Version:** [`v1.0.4`](https://github.com/jolespin/veba/releases/tag/v1.0.4)
 
 ___________________________________________________________________
 ### Getting started with *VEBA*

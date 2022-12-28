@@ -150,3 +150,33 @@ Complete reinstalls of *VEBA* environments and databases is time consuming so we
 
 	```
 	
+##### 5. Update Microeukaryotic protein database (VDB-Microeukaryotic\_v1 to VDB-Microeukaryotic\_v2)
+
+* First, remove the old Microeukaryotic protein database.
+
+	```
+	# Specify your database directory
+	DATABASE_DIRECTORY=/path/to/veba_database # You need to edit this line
+	
+	# Remove old database
+	rm -rf ${DATABASE_DIRECTORY}/Classify/Microeukaryotic
+	```
+	
+* Second, download and decompress the new database
+		
+	```
+	wget -v -O ${DATABASE_DIRECTORY}/Microeukaryotic.tar.gz https://zenodo.org/record/7485114/files/VDB-Microeukaryotic_v2.tar.gz?download=1
+	mkdir -p ${DATABASE_DIRECTORY}/Classify/Microeukaryotic && tar -xvzf ${DATABASE_DIRECTORY}/Microeukaryotic.tar.gz -C ${DATABASE_DIRECTORY}/Classify/Microeukaryotic --strip-components=1
+	```	
+* Third, create a MMSEQS2 database from the `reference.faa.gz` fasta file. Make sure you allocated enough memory (e.g., 10GB should do it)
+
+	```
+	mmseqs createdb ${DATABASE_DIRECTORY}/Classify/Microeukaryotic/reference.faa.gz ${DATABASE_DIRECTORY}/Classify/Microeukaryotic/microeukaryotic
+	```	
+	
+* Fourth, remove the compressed archive
+	
+	```
+	rm -rf ${DATABASE_DIRECTORY}/Microeukaryotic.tar.gz
+	```
+	

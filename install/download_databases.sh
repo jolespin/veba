@@ -1,6 +1,6 @@
 #!/bin/bash
-# __VERSION__ = "2022.10.26"
-# VEBA_DATABASE_VERSION = "VDB_v2"
+# __VERSION__ = "2022.12.27"
+# VEBA_DATABASE_VERSION = "VDB_v3"
 
 # Create database
 DATABASE_DIRECTORY=${1:-"."}
@@ -73,12 +73,20 @@ rm -rf ${DATABASE_DIRECTORY}/checkm_data_2015_01_16.tar.gz
 echo ". .. ... ..... ........ ............."
 echo "v * Processing Microeukaryotic MMSEQS2 database"
 echo ". .. ... ..... ........ ............."
-# Download from FigShare
-wget -v -O ${DATABASE_DIRECTORY}/Microeukaryotic.tar.gz https://figshare.com/ndownloader/files/34929255
-tar xvzf ${DATABASE_DIRECTORY}/Microeukaryotic.tar.gz -C ${DATABASE_DIRECTORY}/Classify
-mmseqs createdb ${DATABASE_DIRECTORY}/Classify/Microeukaryotic/reference.rmdup.iupac.relabeled.no_deprecated.complete_lineage.faa.gz ${DATABASE_DIRECTORY}/Classify/Microeukaryotic/microeukaryotic
+
+# # Download v1 from FigShare
+# wget -v -O ${DATABASE_DIRECTORY}/Microeukaryotic.tar.gz https://figshare.com/ndownloader/files/34929255
+# tar xvzf ${DATABASE_DIRECTORY}/Microeukaryotic.tar.gz -C ${DATABASE_DIRECTORY}/Classify
+# mmseqs createdb ${DATABASE_DIRECTORY}/Classify/Microeukaryotic/reference.rmdup.iupac.relabeled.no_deprecated.complete_lineage.faa.gz ${DATABASE_DIRECTORY}/Classify/Microeukaryotic/microeukaryotic
+# rm -rf ${DATABASE_DIRECTORY}/Microeukaryotic.tar.gz
+# # rm -rf ${DATABASE_DIRECTORY}/Classify/Microeukaryotic/reference.rmdup.iupac.relabeled.no_deprecated.complete_lineage.faa.gz
+
+# Download v2 from Zenodo
+wget -v -O ${DATABASE_DIRECTORY}/Microeukaryotic.tar.gz https://zenodo.org/record/7485114/files/VDB-Microeukaryotic_v2.tar.gz?download=1
+mkdir -p ${DATABASE_DIRECTORY}/Classify/Microeukaryotic && tar -xvzf ${DATABASE_DIRECTORY}/Microeukaryotic.tar.gz -C ${DATABASE_DIRECTORY}/Classify/Microeukaryotic --strip-components=1
+mmseqs createdb ${DATABASE_DIRECTORY}/Classify/Microeukaryotic/reference.faa.gz ${DATABASE_DIRECTORY}/Classify/Microeukaryotic/microeukaryotic
 rm -rf ${DATABASE_DIRECTORY}/Microeukaryotic.tar.gz
-# rm -rf ${DATABASE_DIRECTORY}/Classify/Microeukaryotic/reference.rmdup.iupac.relabeled.no_deprecated.complete_lineage.faa.gz
+# rm -rf ${DATABASE_DIRECTORY}/Classify/Microeukaryotic/reference.faa.gz
 
 # MarkerSets
 echo ". .. ... ..... ........ ............."

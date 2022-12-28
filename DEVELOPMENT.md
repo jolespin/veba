@@ -9,7 +9,8 @@ ________________________________________________________________
 
 ##### Realse v1.0.4
 * Added `biopython` to `VEBA-assembly_env` which is needed when running `MEGAHIT` as the scaffolds are rewritten and [an error](https://github.com/jolespin/veba/issues/17) was raised. [aea51c3](https://github.com/jolespin/veba/commit/aea51c3e0b775aec90f7343f01cad6911f526f0a)
-* Updated Microeukaryotic protein database to exclude a few higher eukaryotes that were present in database, changed naming scheme to hash identifiers (from `cat reference.faa | seqkit fx2tab -s -n > id_to_hash.tsv`)
+* Updated Microeukaryotic protein database to exclude a few higher eukaryotes that were present in database, changed naming scheme to hash identifiers (from `cat reference.faa | seqkit fx2tab -s -n > id_to_hash.tsv`).  Switching database from [FigShare](https://figshare.com/articles/dataset/Microeukaryotic_Protein_Database/19668855) to [Zenodo](https://zenodo.org/record/7485114#.Y6vZO-zMKDU).
+___
 
 ##### Release v1.0.3e
 * Patch fix for `install_veba.sh` where `install/environments/VEBA-assembly_env.yml` raised [a compatibilty error](https://github.com/jolespin/veba/issues/15) when creating the `VEBA-assembly_env` environment. [c2ab957](https://github.com/jolespin/veba/commit/c2ab957be132d34e6b99d6dea394be4572b83066)
@@ -17,9 +18,6 @@ ________________________________________________________________
 * Patch fix for `filter_busco_results.py` where [an error](https://github.com/jolespin/veba/issues/12) arose that produced empty `identifier_mapping.metaeuk.tsv` subset tables. [359e4569](https://github.com/jolespin/veba/commit/359e45699fc6d6fdf739350263fd34c6e4a62f94)
 * Patch fix for `compile_metaeuk_identifiers.py` where [a Python error](https://github.com/jolespin/veba/issues/11) arised when duplicate gene identifiers were present.  [c248527](https://github.com/jolespin/veba/commit/c248527da9edef5ba2ebee348d707d8ece29fbee)
 * Patch fix for `install_veba.sh` where `install/environments/VEBA-preprocess_env.yml` raised [a compatibilty error](https://github.com/jolespin/veba/issues/10) when creating the `VEBA-preprocess_env` environment [8ed6eea](https://github.com/jolespin/veba/commit/8ed6eeaee1037694cf324d8fa4da6190578b9688)
-
-___
-
 * Added `biosynthetic.py` module which runs antiSMASH and converts genbank files to tabular format. [6c0ed82](https://github.com/jolespin/veba/commit/6c0ed82c804ad60a4f1ae51f3e5fecd14dba845f)
 * Added `megahit` support for `assembly.py` module (not yet available in `assembly-sequential.py`). [6c0ed82](https://github.com/jolespin/veba/commit/6c0ed82c804ad60a4f1ae51f3e5fecd14dba845f) 
 * Changed `-P/--spades_program` to `-P/--program` for `assembly.py`. [6c0ed82](https://github.com/jolespin/veba/commit/6c0ed82c804ad60a4f1ae51f3e5fecd14dba845f)

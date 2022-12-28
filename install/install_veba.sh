@@ -1,5 +1,5 @@
 #!/bin/bash
-# __VERSION__ = "2022.12.09"
+# __VERSION__ = "2022.12.27"
 SCRIPT_PATH=$(realpath $0)
 PREFIX=$(echo $SCRIPT_PATH | python -c "import sys; print('/'.join(sys.stdin.read().split('/')[:-1]))")
 CONDA_BASE=$(conda run -n base bash -c "echo \${CONDA_PREFIX}")

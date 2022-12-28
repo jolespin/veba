@@ -1,6 +1,5 @@
 #!/bin/bash
-# __VERSION__ = "2022.10.26"
-# VEBA_DATABASE_VERSION = "VDB_v2"
+# __VERSION__ = "2022.12.27"
 
 # Create database
 DATABASE_DIRECTORY=${1:-"."}

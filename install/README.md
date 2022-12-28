@@ -7,7 +7,7 @@ The basis for these environments is creating a separate environment for each mod
 
 The majority of the time taken to build database is decompressing large archives, `Diamond` database creation of NR, and `MMSEQS2` database creation of microeukaryotic protein database.
 
-Total size is 372G but if you have certain databases installed already then you can just symlink them. 
+Total size is 375G but if you have certain databases installed already then you can just symlink them. 
 
 Each major version will be packaged as a [release](https://github.com/jolespin/veba/releases) which will include a log of module and script versions. 
 
@@ -32,7 +32,7 @@ ____________________________________________________________
 ```
 # For stable version, download and decompress the tarball:
 
-VERSION="1.0.3d"
+VERSION="1.0.4"
 wget https://github.com/jolespin/veba/archive/refs/tags/v${VERSION}.tar.gz
 tar -xvf v${VERSION}.tar.gz && mv veba-${VERSION} veba
 
@@ -151,11 +151,19 @@ bash uninstall_veba.sh
 # Remove VEBA database
 rm -rfv /path/to/veba_database
 ```
+____________________________________________________________
+
+### Updating VEBA: 
+
+There are currently 2 ways to update veba:
+
+1. Basic uninstall reinstall - You can uninstall and reinstall using the scripts in `veba/install/` directory. 
+2. Patching existing installation - Complete reinstalls of *VEBA* environments and databases is time consuming so [we've detailed how to do specific patches **for advanced users**](PATCHES.md). If you don't feel comfortable running these commands, then just do a fresh install if you would like to update. 
 
 
 ____________________________________________________________
 
-#### Common installation errors that do not affect VEBA functionality:
+### Common installation errors that do not affect VEBA functionality:
 
 You may get the following **non-fatal** errors but you can ignore these: 
 
@@ -181,25 +189,113 @@ These errors have been reported during the creation of `VEBA-binning-prokaryotic
 
 ____________________________________________________________
 
-#### Updating VEBA: 
 
-There are currently 2 ways to update veba:
-
-1. Basic uninstall reinstall - You can uninstall and reinstall using the scripts in `veba/install/` directory. 
-2. Patching existing installation - Complete reinstalls of *VEBA* environments and databases is time consuming so [we've detailed how to do specific patches **for advanced users**](PATCHES.md). If you don't feel comfortable running these commands, then just do a fresh install if you would like to update. 
-
-
-
-____________________________________________________________
-
-
-#### Database Structure:
+### Database Structure:
 
 
 **Current:**
 
-* *VEBA Database* version: `VDB_v2`
+* *VEBA Database* version: `VDB_v3`
 
+```
+tree -L 3 .
+.
+├── ACCESS_DATE
+├── Annotate
+│   ├── KOFAM
+│   │   ├── ko_list
+│   │   └── profiles
+│   ├── nr
+│   │   └── nr.dmnd
+│   └── Pfam
+│       └── Pfam-A.hmm.gz
+├── Classify
+│   ├── CheckM
+│   │   ├── distributions
+│   │   ├── genome_tree
+│   │   ├── hmms
+│   │   ├── hmms_ssu
+│   │   ├── img
+│   │   ├── pfam
+│   │   ├── selected_marker_sets.tsv
+│   │   ├── taxon_marker_sets.tsv
+│   │   └── test_data
+│   ├── CheckV
+│   │   ├── genome_db
+│   │   ├── hmm_db
+│   │   └── README.txt
+│   ├── GTDBTk
+│   │   ├── fastani
+│   │   ├── markers
+│   │   ├── masks
+│   │   ├── metadata
+│   │   ├── mrca_red
+│   │   ├── msa
+│   │   ├── pplacer
+│   │   ├── radii
+│   │   ├── split
+│   │   ├── taxonomy
+│   │   └── temp
+│   ├── Microeukaryotic
+│   │   ├── humann_uniref50_annotations.tsv.gz
+│   │   ├── md5_checksums
+│   │   ├── microeukaryotic
+│   │   ├── microeukaryotic.dbtype
+│   │   ├── microeukaryotic_h
+│   │   ├── microeukaryotic_h.dbtype
+│   │   ├── microeukaryotic_h.index
+│   │   ├── microeukaryotic.index
+│   │   ├── microeukaryotic.lookup
+│   │   ├── microeukaryotic.source
+│   │   ├── reference.faa.gz
+│   │   ├── RELEASE_NOTES
+│   │   ├── source_taxonomy.tsv.gz
+│   │   ├── source_to_lineage.dict.pkl.gz
+│   │   └── target_to_source.dict.pkl.gz
+│   └── NCBITaxonomy
+│       ├── citations.dmp
+│       ├── delnodes.dmp
+│       ├── division.dmp
+│       ├── gc.prt
+│       ├── gencode.dmp
+│       ├── merged.dmp
+│       ├── names.dmp
+│       ├── nodes.dmp
+│       ├── prot.accession2taxid.FULL.gz
+│       ├── readme.txt
+│       ├── taxa.sqlite
+│       └── taxa.sqlite.traverse.pkl
+├── Contamination
+│   ├── chm13v2.0
+│   │   ├── chm13v2.0.1.bt2
+│   │   ├── chm13v2.0.2.bt2
+│   │   ├── chm13v2.0.3.bt2
+│   │   ├── chm13v2.0.4.bt2
+│   │   ├── chm13v2.0.rev.1.bt2
+│   │   └── chm13v2.0.rev.2.bt2
+│   └── kmers
+│       └── ribokmers.fa.gz
+├── MarkerSets
+│   ├── Archaea_76.hmm
+│   ├── Bacteria_71.hmm
+│   ├── CPR_43.hmm
+│   ├── eukaryota_odb10.hmm
+│   ├── eukaryota_odb10.scores_cutoff.tsv.gz
+│   ├── Fungi_593.hmm
+│   ├── Protista_83.hmm
+│   └── README
+└── SIZE
+
+35 directories, 50 files
+```
+
+
+
+**Previous:**
+
+<details>
+	<summary>*VEBA Database* version: `VDB_v2`</summary>
+	
 * Compatible with *VEBA* version: `v1.0.2a+`
 	
 
@@ -292,8 +388,9 @@ tree -L 3 .
 35 directories, 47 files
 
 ```
+</details>
 
-**Previous:**
+
 <details>
 	<summary>*VEBA Database* version: `VDB_v1`</summary>
 	
@@ -391,7 +488,7 @@ tree -L 3 .
 </details>
 ____________________________________________________________
 
-#### Profile HMM Sources:
+### Profile HMM Sources:
 Please cite the following sources if these marker sets are used in any way:
 
 ```
@@ -413,7 +510,8 @@ Espinoza, Josh (2022): Profile HMM marker sets. figshare. Dataset. https://doi.o
 #### Microeukaryotic protein database:
 A protein database is required not only for eukaryotic gene calls using MetaEuk but can also be used for MAG annotation.  Many eukaryotic protein databases exist such as MMETSP, EukZoo, and EukProt, yet these are limited to marine environments, include prokaryotic sequences, or include eukaryotic sequences for organisms that would not be expected to be binned out of metagenomes such as metazoans.  We combined and dereplicated MMETSP, EukZoo, EukProt, and NCBI non-redundant to include only microeukaryotes such as protists and fungi.  This optimized microeukaryotic database ensures that only eukaryotic exons expected to be represented in metagenomes are utilized for eukaryotic gene modeling and the resulting MetaEuk reference targets are used for eukaryotic MAG classification.  VEBA’s microeukaryotic protein database includes 48,006,918 proteins from 42,922 microeukaryotic strains.  
 
-Espinoza, Josh (2022): Microeukaryotic Protein Database. figshare. Dataset. https://doi.org/10.6084/m9.figshare.19668855.v1 
+* [VDB-Microeukaryotic\_v2](https://zenodo.org/record/7485114#.Y6vZO-zMKDU) available on Zenodo
+* [VDB-Microeukaryotic\_v1](https://figshare.com/articles/dataset/Microeukaryotic_Protein_Database/19668855) available on FigShare [Deprecated]
 
 ____________________________________________________________
 
