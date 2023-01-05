@@ -279,4 +279,39 @@ echo "Manual run: $(date)" > veba_output/assembly/SRR5720219/checkpoints/1__asse
 
 *VEBA* should register that step 1 is complete and will continue with step 2. 
 
+**30. How can I install a developmental module environment on my VEBA?**
 
+Developmental environmnts such as `VEBA-biosynthetic_env` can be installed separately.  They are not installed automatically because they use far more compute resources and time than the other environments.  Currently, `VEBA-biosynthetic_env` is the only environment that falls in this category and should only be installed for users that are interested in identifying biosynthetic gene clusters.  
+
+The below code shows how to install this environment:
+
+1. Specify the path to the VEBA repository directory: 
+
+```
+VEBA_REPOSITORY_DIRECTORY=path/to/veba_repository_directory (e.g., a release or from git clone https://github.com/jolespin/veba)
+```
+
+2. Create the environment: 
+
+```
+conda env create -n VEBA-biosynthetic_env -f veba/install/environments/devel/biosynthetic_env.yml
+```
+
+3. Add the scripts to the environments: 
+
+```
+bash ${VEBA_REPOSITORY_DIRECTORY}/install/update_environment_scripts.sh ${VEBA_REPOSITORY_DIRECTORY}
+```
+
+4. Update the environment variables:
+
+```
+VEBA_DATABASE=/path/to/veba_database
+
+bash ${VEBA_REPOSITORY_DIRECTORY}/install/update_environment_variables.sh ${VEBA_DATABASE}
+```
+
+For more information, please refer the the [patch update documentation](https://github.com/jolespin/veba/blob/main/install/PATCHES.md#patches).
+
+
+    
