@@ -6,7 +6,7 @@ from Bio import SeqIO
 from tqdm import tqdm
 
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.01.05"
+__version__ = "2023.01.08"
 
 def main(args=None):
     # Path info
@@ -50,7 +50,7 @@ def main(args=None):
             contig_edge = None
             for feature in tqdm(seq_record.features, "Parsing genbanke file: {}".format(fp), unit=" features"):
                 if feature.type == "CDS":
-                    data = {"genome_id":id_genome, "region_id":id_region, "start":feature.location.start, "end":feature.location.end, "strand":feature.location.strand}
+                    data = {"genome_id":id_genome, "region_id":id_region, "start":int(feature.location.start), "end":int(feature.location.end), "strand":feature.location.strand}
                     for k,v in feature.qualifiers.items():
                         if isinstance(v,list):
                             if len(v) == 1:
@@ -82,6 +82,8 @@ def main(args=None):
             df.insert(1, "cluster_on_contig_edge", contig_edge)
             output.append(df)
     df_bgcs = pd.concat(output, axis=0).sort_values(["genome_id", "contig_id", "start", "end"])
+    # for field in ["start","end"]:
+    #     df_bgcs[field] = df_bgcs[field].astype(int)
     df_bgcs = df_bgcs.set_index(["genome_id", "contig_id", "region_id", "gene_id"]).sort_index()
     df_bgcs["translation"] = df_bgcs.pop("translation")
 

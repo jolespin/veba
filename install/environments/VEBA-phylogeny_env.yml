@@ -1,4 +1,4 @@
-name: VEBA-phylogeny_env
+name: VEBA-phylogeny_env__v2023.01.04
 channels:
   - conda-forge
   - bioconda
@@ -60,6 +60,7 @@ dependencies:
   - readline=8.1.2=h0f457ee_0
   - requests=2.28.1=pyhd8ed1ab_1
   - scandir=1.10.0=py311hd4cff14_6
+  - seqkit=2.3.1=h9ee0642_0
   - setuptools=65.6.3=pyhd8ed1ab_0
   - six=1.16.0=pyh6c4a22f_0
   - soothsayer_utils=2022.2.9=py_0
@@ -70,4 +71,4 @@ dependencies:
   - urllib3=1.26.13=pyhd8ed1ab_0
   - wheel=0.38.4=pyhd8ed1ab_0
   - xz=5.2.6=h166bdaf_0
-prefix: /expanse/projects/jcl110/anaconda3/envs/VEBA-phylogeny_env
+prefix: /expanse/projects/jcl110/anaconda3/envs/VEBA-phylogeny_env__v2023.01.04

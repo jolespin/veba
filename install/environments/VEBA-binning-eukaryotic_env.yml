@@ -1,12 +1,14 @@
-name: VEBA-binning-eukaryotic_env
+name: VEBA-binning-eukaryotic_env__v2023.01.08
 channels:
-  - jolespin
   - conda-forge
-  - defaults
   - bioconda
+  - jolespin
+  - defaults
+  - qiime2/label/r2022.2
 dependencies:
   - _libgcc_mutex=0.1=conda_forge
   - _openmp_mutex=4.5=1_gnu
+  - _pytorch_select=0.1=cpu_0
   - _r-mutex=1.0.1=anacondar_1
   - augustus=3.4.0=pl526h0faeac2_0
   - backports=1.0=py_2
@@ -26,10 +28,10 @@ dependencies:
   - bz2file=0.98=py_0
   - bzip2=1.0.8=h7f98852_4
   - c-ares=1.18.1=h7f98852_0
-  - ca-certificates=2022.4.26=h06a4308_0
+  - ca-certificates=2022.12.7=ha878542_0
   - cairo=1.16.0=h9f066cc_1006
   - cdbtools=0.99=hd03093a_7
-  - certifi=2022.5.18.1=py38h06a4308_0
+  - certifi=2022.12.7=pyhd8ed1ab_0
   - cffi=1.15.0=py38h3931269_0
   - charset-normalizer=2.0.12=pyhd8ed1ab_0
   - colorama=0.4.4=pyh9f0ad1d_0
@@ -73,8 +75,9 @@ dependencies:
   - htslib=1.10.2=hd3b49d5_1
   - icu=67.1=he1b5a44_0
   - idna=3.3=pyhd8ed1ab_0
-  - intel-openmp=2022.0.1=h06a4308_3633
+  - intel-openmp=2019.4=243
   - jbig=2.1=h7f98852_2003
+  - joblib=0.17.0=py_0
   - jpeg=9e=h7f98852_0
   - k8=0.2.5=hd03093a_2
   - kernel-headers_linux-64=2.6.32=he073ed8_15
@@ -82,22 +85,24 @@ dependencies:
   - krb5=1.17.2=h926e7f8_0
   - ld_impl_linux-64=2.36.1=hea4e1c9_2
   - lerc=2.2.1=h9c3ff4c_0
-  - libblas=3.9.0=13_linux64_mkl
-  - libcblas=3.9.0=13_linux64_mkl
+  - libblas=3.9.0=1_h86c2bf4_netlib
+  - libcblas=3.9.0=5_h92ddd45_netlib
   - libcurl=7.76.1=hc4aaa36_1
   - libdeflate=1.6=h516909a_0
   - libedit=3.1.20210714=h7f8727e_0
   - libev=4.33=h516909a_1
   - libffi=3.4.2=h7f98852_5
   - libgcc-devel_linux-64=9.4.0=hd854feb_13
-  - libgcc-ng=11.2.0=h1d223b6_13
+  - libgcc-ng=12.2.0=h65d4601_19
   - libgfortran-ng=11.2.0=h69a702a_13
   - libgfortran5=11.2.0=h5c6108e_13
   - libglib=2.70.2=h174f98d_4
-  - libgomp=11.2.0=h1d223b6_13
+  - libgomp=12.2.0=h65d4601_19
   - libiconv=1.16=h516909a_0
   - libidn2=2.3.2=h7f98852_0
-  - liblapack=3.9.0=13_linux64_mkl
+  - liblapack=3.9.0=5_h92ddd45_netlib
+  - libllvm10=10.0.1=he513fc3_3
+  - libmklml=2019.0.5=h06a4308_0
   - libnghttp2=1.47.0=h727a467_0
   - libnsl=2.0.0=h7f98852_0
   - libopenblas=0.3.18=pthreads_h8fe5266_0
@@ -114,6 +119,7 @@ dependencies:
   - libxml2=2.9.10=h68273f3_2
   - libzlib=1.2.11=h36c2ea0_1013
   - llvm-openmp=8.0.1=hc9558a2_0
+  - llvmlite=0.35.0=py38h4630a5e_1
   - lp_solve=5.5.2.5=h14c3975_1001
   - lz4-c=1.9.3=h9c3ff4c_1
   - make=4.3=hd18ef5c_1
@@ -121,15 +127,18 @@ dependencies:
   - metaeuk=5.34c21f2=h95f258a_0
   - metis=5.1.0=h58526e2_1006
   - minimap2=2.17=h5bf99c6_4
-  - mkl=2022.0.1=h06a4308_117
+  - mkl=2020.2=256
   - mpfr=4.1.0=h9202a9a_1
   - mysql-connector-c=6.1.11=h6eb9d5d_1007
   - ncurses=6.2=h58526e2_4
+  - ninja=1.11.0=h924138e_0
   - nose=1.3.7=py38h32f6830_1004
+  - numba=0.52.0=py38h51da96c_0
+  - numpy=1.19.5=py38h8246c76_3
   - openblas=0.3.18=pthreads_h4748800_0
   - openjdk=11.0.13=h87a67e3_0
   - openmp=8.0.1=0
-  - openssl=1.1.1o=h7f8727e_0
+  - openssl=1.1.1s=h0b41bf4_1
   - pandas=1.4.1=py38h43a58ef_0
   - pango=1.42.4=h69149e4_5
   - pathlib2=2.3.7.post1=py38h578d9bd_0
@@ -225,6 +234,7 @@ dependencies:
   - python-dateutil=2.8.2=pyhd8ed1ab_0
   - python-tzdata=2021.5=pyhd8ed1ab_0
   - python_abi=3.8=2_cp38
+  - pytorch=1.7.1=cpu_py38h6a09485_0
   - pytz=2021.3=pyhd8ed1ab_0
   - r-assertthat=0.2.1=r36h6115d3f_2
   - r-backports=1.2.1=r36hcfec24a_0
@@ -287,17 +297,23 @@ dependencies:
   - seqkit=2.1.0=h9ee0642_0
   - setuptools=60.9.3=py38h578d9bd_0
   - six=1.16.0=pyh6c4a22f_0
+  - skorch=0.9.0=pyh7b7c402_0
   - soothsayer_utils=2022.2.9=py_0
   - sqlite=3.38.0=hc218d9a_0
   - starcode=1.4=hec16e2b_2
   - subread=2.0.1=h7132678_2
-  - suitesparse=5.10.1=h9e50725_1
+  - suitesparse=5.10.1=hd8046ac_0
   - sysroot_linux-64=2.12=he073ed8_15
+  - tabulate=0.9.0=pyhd8ed1ab_1
   - tar=1.34=ha1f6473_0
-  - tbb=2021.5.0=h4bd325d_0
+  - tbb=2020.2=h4bd325d_4
   - threadpoolctl=3.1.0=pyh8a188c0_0
+  - tiara=1.0.3=pyhd8ed1ab_0
   - tk=8.6.12=h27826a3_0
   - tktable=2.10=hb7b940f_3
+  - tqdm=4.54.1=pyhd8ed1ab_1
+  - typing-extensions=4.4.0=hd8ed1ab_0
+  - typing_extensions=4.4.0=pyha770c72_0
   - tzdata=2021e=he74cb21_0
   - tzlocal=3.0=py38h578d9bd_2
   - ucsc-fatotwobit=377=ha8a8165_5
@@ -318,14 +334,4 @@ dependencies:
   - xz=5.2.5=h516909a_1
   - zlib=1.2.11=h36c2ea0_1013
   - zstd=1.4.9=ha95c52a_0
-  - pip:
-    - joblib==0.17.0
-    - llvmlite==0.38.1
-    - numba==0.55.2
-    - numpy==1.19.5
-    - skorch==0.9.0
-    - tabulate==0.8.10
-    - tiara==1.0.2
-    - torch==1.7.1
-    - tqdm==4.54.1
-    - typing-extensions==4.3.0
+prefix: /expanse/projects/jcl110/anaconda3/envs/VEBA-binning-eukaryotic_env__v2023.01.08

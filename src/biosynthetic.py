@@ -12,7 +12,7 @@ from soothsayer_utils import *
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2022.11.16"
+__version__ = "2023.01.08"
 
 
 # Assembly
@@ -106,22 +106,32 @@ do read -r -a ARRAY <<< $LINE
     GENOME=${ARRAY[1]}
     GENE_MODELS=${ARRAY[2]}
 
-    # Remove directory
-    rm -rf %s/${ID}
+    ANTISMASH_OUTPUT_TABLE="%s/${ID}/antismash_features.tsv"
 
-    START_TIME=${SECONDS}
+    if [ ! -f ${ANTISMASH_OUTPUT_TABLE} ]; then
 
-    # Run antiSMASH
-    %s --allow-long-headers --verbose --skip-zip-file -c %d --output-dir %s/${ID} --html-title ${ID} --taxon %s --minlength %d --databases %s --hmmdetection-strictness %s --logfile %s/${ID}/log.txt --genefinding-gff3 ${GENE_MODELS} ${GENOME}
+        echo "[Running ${ID}]"
 
-    # Genbanks to table
-    %s -i %s/${ID} -o %s/${ID}/antismash_features.tsv -s %s/${ID}/synopsis.tsv
+        # Remove directory
+        rm -rf %s/${ID}
 
-    END_TIME=${SECONDS}
-    RUN_TIME=$((END_TIME-START_TIME))
-    echo "*** n=${n} // ${ID} // Duration: ${RUN_TIME} seconds ***"
+        START_TIME=${SECONDS}
 
-    n=$(($n+1))
+        # Run antiSMASH
+        %s --allow-long-headers --verbose --skip-zip-file -c %d --output-dir %s/${ID} --html-title ${ID} --taxon %s --minlength %d --databases %s --hmmdetection-strictness %s --logfile %s/${ID}/log.txt --genefinding-gff3 ${GENE_MODELS} ${GENOME}
+
+        # Genbanks to table
+        %s -i %s/${ID} -o %s/${ID}/antismash_features.tsv -s %s/${ID}/synopsis.tsv
+
+        END_TIME=${SECONDS}
+        RUN_TIME=$((END_TIME-START_TIME))
+        echo "*** n=${n} // ${ID} // Duration: ${RUN_TIME} seconds ***"
+
+        n=$(($n+1))
+
+    else
+        echo "[Skipping ${ID}] Found the following file: ${ANTISMASH_OUTPUT_TABLE}"
+    fi  
 
 done < %s
 
@@ -131,6 +141,7 @@ done < %s
 
 """%( 
     # Args
+    output_directory,
     output_directory,
     output_directory,
 
