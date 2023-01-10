@@ -281,9 +281,12 @@ echo "Manual run: $(date)" > veba_output/assembly/SRR5720219/checkpoints/1__asse
 
 **30. How can I install a developmental module environment on my VEBA?**
 
-Developmental environmnts such as `VEBA-biosynthetic_env` can be installed separately.  They are not installed automatically because they use far more compute resources and time than the other environments.  Currently, `VEBA-biosynthetic_env` is the only environment that falls in this category and should only be installed for users that are interested in identifying biosynthetic gene clusters.  
+Developmental/experimental environments can be installed separately.  They are not installed automatically because they use far more compute resources and time than the other environments.  These include the following: 
 
-The below code shows how to install this environment:
+* `VEBA-amplicon_env`
+* `VEBA-biosynthetic_env`
+
+The below code shows how to install the `VEBA-biosynthetic_env` environment as an example:
 
 1. Specify the path to the VEBA repository directory: 
 
