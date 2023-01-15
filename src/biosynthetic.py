@@ -12,7 +12,7 @@ from soothsayer_utils import *
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.01.08"
+__version__ = "2023.01.11"
 
 
 # Assembly
@@ -123,6 +123,9 @@ do read -r -a ARRAY <<< $LINE
         # Genbanks to table
         %s -i %s/${ID} -o %s/${ID}/antismash_features.tsv -s %s/${ID}/synopsis.tsv
 
+        # Remove large assembly files
+        rm -rf %s/${ID}/assembly.*
+
         END_TIME=${SECONDS}
         RUN_TIME=$((END_TIME-START_TIME))
         echo "*** n=${n} // ${ID} // Duration: ${RUN_TIME} seconds ***"
@@ -157,6 +160,7 @@ done < %s
 
     # Summary table
     os.environ["antismash_genbanks_to_table.py"],
+    output_directory,
     output_directory,
     output_directory,
     output_directory,

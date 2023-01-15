@@ -88,7 +88,8 @@ ________________________________________________________________
 
 
 #### Change Log:
-
+* [2023.01.12] - Updated `VDB-Microeukaryotic_v2` to `VDB-Microeukaryotic_v2.1` to include a `reference.eukaryota_odb10.list` containing all the eukaryotic core markers. To accomodate this, I've also updated `VDB_v3` to `VDB_v3.1`, the `download_databases.sh` script, and the `VEBA-database_env.yml` environment file.  Now a `microeukaryotic.eukaryota_odb10` will be available for streamlined eukaryotic classification.
+* [2023.01.11] - `biosynthetic.py` automatically removes assembly.gbk and assembly.json files because they are big and unnecessary.
 * [2023.01.08] - Added an internal checkpoint system for `biosynthetic.py` when re-running an incomplete `antiSMASH` step (useful when running large numbers of genomes).  Fixed the follow environment files: `VEBA-amplicon_env.yml`, `VEBA-binning-prokaryotic_env.yml`, and `VEBA-binning-eukaryotic_env.yml` as they had either PyPI or package conflict errors during installation.
 * [2023.01.05] - Added start, end, and strand to antismash output table in `antismash_genbanks_to_table.py`. Output is sorted by `["genome_id", "contig_id", "start", "end"]` Fixed `VEBA-phylogney_env.yml` environment file.  Important fix in `update_environment_scripts.sh` for symlinking scripts in path. 
 * [2023.01.03] - Moving `VEBA-biosynthetic_env` as a developmental environment so it won't be installed automatically.  The reasoning for this is that `antiSMASH` downloads and configures that `antiSMASH database` in the backend which uses a lot of compute resources and takes a long time.  Didn't want to slow up the installation more. 

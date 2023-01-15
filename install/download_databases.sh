@@ -1,6 +1,7 @@
 #!/bin/bash
-# __VERSION__ = "2022.12.27"
-# VEBA_DATABASE_VERSION = "VDB_v3"
+# __VERSION__ = "2023.1.12"
+# VEBA_DATABASE_VERSION = "VDB_v3.1"
+# MICROEUKAYROTIC_DATABASE_VERSION = "VDB-Microeukaryotic_v2.1"
 
 # Create database
 DATABASE_DIRECTORY=${1:-"."}
@@ -81,11 +82,17 @@ echo ". .. ... ..... ........ ............."
 # rm -rf ${DATABASE_DIRECTORY}/Microeukaryotic.tar.gz
 # # rm -rf ${DATABASE_DIRECTORY}/Classify/Microeukaryotic/reference.rmdup.iupac.relabeled.no_deprecated.complete_lineage.faa.gz
 
-# Download v2 from Zenodo
+# Download v2.1 from Zenodo
 wget -v -O ${DATABASE_DIRECTORY}/Microeukaryotic.tar.gz https://zenodo.org/record/7485114/files/VDB-Microeukaryotic_v2.tar.gz?download=1
 mkdir -p ${DATABASE_DIRECTORY}/Classify/Microeukaryotic && tar -xvzf ${DATABASE_DIRECTORY}/Microeukaryotic.tar.gz -C ${DATABASE_DIRECTORY}/Classify/Microeukaryotic --strip-components=1
 mmseqs createdb ${DATABASE_DIRECTORY}/Classify/Microeukaryotic/reference.faa.gz ${DATABASE_DIRECTORY}/Classify/Microeukaryotic/microeukaryotic
 rm -rf ${DATABASE_DIRECTORY}/Microeukaryotic.tar.gz
+
+# eukaryota_odb10 subset of Microeukaryotic Protein Database
+wget -v -O ${DATABASE_DIRECTORY}/reference.eukaryota_odb10.list https://zenodo.org/record/7485114/files/reference.eukaryota_odb10.list?download=1
+seqkit grep -f ${DATABASE_DIRECTORY}/reference.eukaryota_odb10.list ${DATABASE_DIRECTORY}/Classify/Microeukaryotic/reference.faa.gz > ${DATABASE_DIRECTORY}/Classify/Microeukaryotic/reference.eukaryota_odb10.faa
+mmseqs createdb ${DATABASE_DIRECTORY}/Classify/Microeukaryotic/reference.eukaryota_odb10.faa ${DATABASE_DIRECTORY}/Classify/Microeukaryotic/microeukaryotic.eukaryota_odb10
+rm -rf ${DATABASE_DIRECTORY}/Classify/Microeukaryotic/reference.eukaryota_odb10.faa
 # rm -rf ${DATABASE_DIRECTORY}/Classify/Microeukaryotic/reference.faa.gz
 
 # MarkerSets

@@ -1,9 +1,10 @@
-name: VEBA-database_env
+name: VEBA-database_env__v2023.1.12
 channels:
-  - jolespin
   - conda-forge
-  - defaults
   - bioconda
+  - jolespin
+  - defaults
+  - qiime2
 dependencies:
   - _libgcc_mutex=0.1=conda_forge
   - _openmp_mutex=4.5=1_gnu
@@ -12,8 +13,8 @@ dependencies:
   - brotlipy=0.7.0=py39hb9d737c_1004
   - bz2file=0.98=py_0
   - bzip2=1.0.8=h7f98852_4
-  - ca-certificates=2022.9.24=ha878542_0
-  - certifi=2022.9.24=pyhd8ed1ab_0
+  - ca-certificates=2022.12.7=ha878542_0
+  - certifi=2022.12.7=pyhd8ed1ab_0
   - cffi=1.15.0=py39h4bc2ebd_0
   - charset-normalizer=2.0.12=pyhd8ed1ab_0
   - colorama=0.4.4=pyh9f0ad1d_0
@@ -99,6 +100,7 @@ dependencies:
   - requests=2.27.1=pyhd8ed1ab_0
   - scandir=1.10.0=py39hb9d737c_5
   - scipy=1.8.0=py39hee8e79c_1
+  - seqkit=2.3.1=h9ee0642_0
   - setuptools=62.1.0=py39hf3d152e_0
   - six=1.16.0=pyh6c4a22f_0
   - soothsayer_utils=2022.2.9=py_0
@@ -126,3 +128,4 @@ dependencies:
   - xz=5.2.5=h516909a_1
   - zlib=1.2.11=h166bdaf_1014
   - zstd=1.5.2=ha95c52a_0
+prefix: /expanse/projects/jcl110/anaconda3/envs/VEBA-database_env__v2023.1.12

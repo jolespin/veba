@@ -111,7 +111,6 @@ sbatch -A ${ACCOUNT} -p ${PARTITION} -J ${N} -N 1 -c ${N_JOBS} --ntasks-per-node
 You should be done now. If you want to double check the installation and database configuration worked then activate a `VEBA` environment: 
 
 ```
-VEBA-amplicon_env
 VEBA-annotate_env
 VEBA-assembly_env
 VEBA-binning-eukaryotic_env
@@ -195,8 +194,115 @@ ____________________________________________________________
 
 **Current:**
 
-* *VEBA Database* version: `VDB_v3`
+* *VEBA Database* version: `VDB_v3.1`
+The same as `VDB_v3` but updates `VDB-Microeukaryotic_v2` to `VDB-Microeukaryotic_v2.1` which has a `reference.eukaryota_odb10.list` containing only the subset of identifiers that core eukaryotic markers (useful for classification).
 
+```
+tree -L 3 .
+.
+├── ACCESS_DATE
+├── Annotate
+│   ├── KOFAM
+│   │   ├── ko_list
+│   │   └── profiles
+│   ├── nr
+│   │   └── nr.dmnd
+│   └── Pfam
+│       └── Pfam-A.hmm.gz
+├── Classify
+│   ├── CheckM
+│   │   ├── distributions
+│   │   ├── genome_tree
+│   │   ├── hmms
+│   │   ├── hmms_ssu
+│   │   ├── img
+│   │   ├── pfam
+│   │   ├── selected_marker_sets.tsv
+│   │   ├── taxon_marker_sets.tsv
+│   │   └── test_data
+│   ├── CheckV
+│   │   ├── genome_db
+│   │   ├── hmm_db
+│   │   └── README.txt
+│   ├── GTDBTk
+│   │   ├── fastani
+│   │   ├── markers
+│   │   ├── masks
+│   │   ├── metadata
+│   │   ├── mrca_red
+│   │   ├── msa
+│   │   ├── pplacer
+│   │   ├── radii
+│   │   ├── split
+│   │   ├── taxonomy
+│   │   └── temp
+│   ├── Microeukaryotic
+│   │   ├── humann_uniref50_annotations.tsv.gz
+│   │   ├── md5_checksums
+│   │   ├── microeukaryotic
+│   │   ├── microeukaryotic.dbtype
+│   │   ├── microeukaryotic.eukaryota_odb10
+│   │   ├── microeukaryotic.eukaryota_odb10.dbtype
+│   │   ├── microeukaryotic.eukaryota_odb10_h
+│   │   ├── microeukaryotic.eukaryota_odb10_h.dbtype
+│   │   ├── microeukaryotic.eukaryota_odb10_h.index
+│   │   ├── microeukaryotic.eukaryota_odb10.index
+│   │   ├── microeukaryotic.eukaryota_odb10.lookup
+│   │   ├── microeukaryotic.eukaryota_odb10.source
+│   │   ├── microeukaryotic_h
+│   │   ├── microeukaryotic_h.dbtype
+│   │   ├── microeukaryotic_h.index
+│   │   ├── microeukaryotic.index
+│   │   ├── microeukaryotic.lookup
+│   │   ├── microeukaryotic.source
+│   │   ├── reference.eukaryota_odb10.list
+│   │   ├── reference.eukaryota_odb10.list.md5
+│   │   ├── reference.faa.gz
+│   │   ├── RELEASE_NOTES
+│   │   ├── source_taxonomy.tsv.gz
+│   │   ├── source_to_lineage.dict.pkl.gz
+│   │   └── target_to_source.dict.pkl.gz
+│   └── NCBITaxonomy
+│       ├── citations.dmp
+│       ├── delnodes.dmp
+│       ├── division.dmp
+│       ├── gc.prt
+│       ├── gencode.dmp
+│       ├── merged.dmp
+│       ├── names.dmp
+│       ├── nodes.dmp
+│       ├── prot.accession2taxid.FULL.gz
+│       ├── readme.txt
+│       ├── taxa.sqlite
+│       └── taxa.sqlite.traverse.pkl
+├── Contamination
+│   ├── chm13v2.0
+│   │   ├── chm13v2.0.1.bt2
+│   │   ├── chm13v2.0.2.bt2
+│   │   ├── chm13v2.0.3.bt2
+│   │   ├── chm13v2.0.4.bt2
+│   │   ├── chm13v2.0.rev.1.bt2
+│   │   └── chm13v2.0.rev.2.bt2
+│   └── kmers
+│       └── ribokmers.fa.gz
+├── MarkerSets
+│   ├── Archaea_76.hmm
+│   ├── Bacteria_71.hmm
+│   ├── CPR_43.hmm
+│   ├── eukaryota_odb10.hmm
+│   ├── eukaryota_odb10.scores_cutoff.tsv.gz
+│   ├── Fungi_593.hmm
+│   ├── Protista_83.hmm
+│   └── README
+└── SIZE
+
+35 directories, 60 files
+```
+
+**Previous:**
+
+<details>
+	<summary>*VEBA Database* version: `VDB_v3`</summary>
 ```
 tree -L 3 .
 .
@@ -288,10 +394,8 @@ tree -L 3 .
 
 35 directories, 50 files
 ```
+</details>
 
-
-
-**Previous:**
 
 <details>
 	<summary>*VEBA Database* version: `VDB_v2`</summary>
@@ -396,6 +500,109 @@ tree -L 3 .
 	
 
 * Compatible with *VEBA* version: `v1.0.0`, `v1.0.1`
+	
+	
+```
+tree -L 3 .
+.
+├── ACCESS_DATE
+├── Annotate
+│   ├── KOFAM
+│   │   ├── ko_list
+│   │   └── profiles
+│   ├── nr
+│   │   └── nr.dmnd
+│   └── Pfam
+│       └── Pfam-A.hmm.gz
+├── Classify
+│   ├── CheckM
+│   │   ├── distributions
+│   │   ├── genome_tree
+│   │   ├── hmms
+│   │   ├── hmms_ssu
+│   │   ├── img
+│   │   ├── pfam
+│   │   ├── selected_marker_sets.tsv
+│   │   ├── taxon_marker_sets.tsv
+│   │   └── test_data
+│   ├── CheckV
+│   │   ├── genome_db
+│   │   ├── hmm_db
+│   │   └── README.txt
+│   ├── GTDBTk
+│   │   ├── fastani
+│   │   ├── markers
+│   │   ├── masks
+│   │   ├── metadata
+│   │   ├── mrca_red
+│   │   ├── msa
+│   │   ├── pplacer
+│   │   ├── radii
+│   │   ├── split
+│   │   ├── taxonomy
+│   │   └── temp
+│   ├── Microeukaryotic
+│   │   ├── humann_uniref50_annotations.tsv.gz
+│   │   ├── md5_checksums
+│   │   ├── microeukaryotic
+│   │   ├── microeukaryotic.dbtype
+│   │   ├── microeukaryotic.eukaryota_odb10
+│   │   ├── microeukaryotic.eukaryota_odb10.dbtype
+│   │   ├── microeukaryotic.eukaryota_odb10_h
+│   │   ├── microeukaryotic.eukaryota_odb10_h.dbtype
+│   │   ├── microeukaryotic.eukaryota_odb10_h.index
+│   │   ├── microeukaryotic.eukaryota_odb10.index
+│   │   ├── microeukaryotic.eukaryota_odb10.lookup
+│   │   ├── microeukaryotic.eukaryota_odb10.source
+│   │   ├── microeukaryotic_h
+│   │   ├── microeukaryotic_h.dbtype
+│   │   ├── microeukaryotic_h.index
+│   │   ├── microeukaryotic.index
+│   │   ├── microeukaryotic.lookup
+│   │   ├── microeukaryotic.source
+│   │   ├── reference.eukaryota_odb10.list
+│   │   ├── reference.eukaryota_odb10.list.md5
+│   │   ├── reference.faa.gz
+│   │   ├── RELEASE_NOTES
+│   │   ├── source_taxonomy.tsv.gz
+│   │   ├── source_to_lineage.dict.pkl.gz
+│   │   └── target_to_source.dict.pkl.gz
+│   └── NCBITaxonomy
+│       ├── citations.dmp
+│       ├── delnodes.dmp
+│       ├── division.dmp
+│       ├── gc.prt
+│       ├── gencode.dmp
+│       ├── merged.dmp
+│       ├── names.dmp
+│       ├── nodes.dmp
+│       ├── prot.accession2taxid.FULL.gz
+│       ├── readme.txt
+│       ├── taxa.sqlite
+│       └── taxa.sqlite.traverse.pkl
+├── Contamination
+│   ├── chm13v2.0
+│   │   ├── chm13v2.0.1.bt2
+│   │   ├── chm13v2.0.2.bt2
+│   │   ├── chm13v2.0.3.bt2
+│   │   ├── chm13v2.0.4.bt2
+│   │   ├── chm13v2.0.rev.1.bt2
+│   │   └── chm13v2.0.rev.2.bt2
+│   └── kmers
+│       └── ribokmers.fa.gz
+├── MarkerSets
+│   ├── Archaea_76.hmm
+│   ├── Bacteria_71.hmm
+│   ├── CPR_43.hmm
+│   ├── eukaryota_odb10.hmm
+│   ├── eukaryota_odb10.scores_cutoff.tsv.gz
+│   ├── Fungi_593.hmm
+│   ├── Protista_83.hmm
+│   └── README
+└── SIZE
+
+35 directories, 60 files
+```
 	
 ```
 tree -L 3 .
@@ -510,7 +717,7 @@ Espinoza, Josh (2022): Profile HMM marker sets. figshare. Dataset. https://doi.o
 #### Microeukaryotic protein database:
 A protein database is required not only for eukaryotic gene calls using MetaEuk but can also be used for MAG annotation.  Many eukaryotic protein databases exist such as MMETSP, EukZoo, and EukProt, yet these are limited to marine environments, include prokaryotic sequences, or include eukaryotic sequences for organisms that would not be expected to be binned out of metagenomes such as metazoans.  We combined and dereplicated MMETSP, EukZoo, EukProt, and NCBI non-redundant to include only microeukaryotes such as protists and fungi.  This optimized microeukaryotic database ensures that only eukaryotic exons expected to be represented in metagenomes are utilized for eukaryotic gene modeling and the resulting MetaEuk reference targets are used for eukaryotic MAG classification.  VEBA’s microeukaryotic protein database includes 48,006,918 proteins from 42,922 microeukaryotic strains.  
 
-* [VDB-Microeukaryotic\_v2](https://zenodo.org/record/7485114#.Y6vZO-zMKDU) available on Zenodo
+* [VDB-Microeukaryotic\_v2.1](https://zenodo.org/record/7485114) available on Zenodo
 * [VDB-Microeukaryotic\_v1](https://figshare.com/articles/dataset/Microeukaryotic_Protein_Database/19668855) available on FigShare [Deprecated]
 
 ____________________________________________________________
