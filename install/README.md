@@ -353,6 +353,7 @@ tree -L 3 .
 
 <details>
 	<summary>*VEBA Database* version: `VDB_v3`</summary>
+
 ```
 tree -L 3 .
 .
@@ -444,6 +445,7 @@ tree -L 3 .
 
 35 directories, 50 files
 ```
+
 </details>
 
 
