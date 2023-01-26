@@ -26,6 +26,50 @@ ____________________________________________________________
 
 * Download/configure databases
 
+**0. Clean up your conda installation [Optional, but recommended]**
+
+The `VEBA` installation is going to configure some `conda` environments for you and some of them have quite a bit of packages.  To minimize the likelihood of [weird errors](https://forum.qiime2.org/t/valueerror-unsupported-format-character-t-0x54-at-index-3312-when-creating-environment-from-environment-file/25237), it's recommended to do the following:
+
+
+* Use this as your [`~/.condarc`](https://conda.io/projects/conda/en/latest/user-guide/configuration/use-condarc.html).  If you're not familiar with the `.condarc` file, then you probably don't have one configured.  You can use an editor like [nano](https://anaconda.org/conda-forge/nano) (which is what I use), [vim](https://anaconda.org/conda-forge/vim), or [emacs](https://anaconda.org/conda-forge/emacs) to copy/paste the following into `~/.condarc`.
+	
+	```
+	channel_priority: flexible
+	channels:
+	  - conda-forge
+	  - bioconda
+	  - jolespin
+	  - defaults
+	  - qiime2
+		
+	report_errors: true
+	```
+	
+* Make sure your `conda` is [initialized](https://docs.conda.io/projects/conda/en/latest/commands/init.html). I use `bash` for my initialization.  
+	
+	```
+	conda init bash
+	```
+	
+	
+* Clean up your `conda` environment with the following command.
+	
+	```
+	conda clean --all -y
+	```
+	
+* Update your `conda`.
+	
+	```
+	conda update -n base --all -y
+	```
+	
+* Install and update [`mamba`](https://mamba.readthedocs.io/en/latest/installation.html).
+	
+	```
+	conda install -c conda-forge mamba -y
+	conda update mamba -y
+	```
 
 **1. Download repository**
 
@@ -49,7 +93,7 @@ cd veba/install
 
 **2. Install VEBA environments**
 
-This is not resource intensive and does not require grid access but took ~1.5 hours (~90 minutes) to download and configure the dependencies.  Advanced users may speed this up by replacing [`conda`](https://github.com/conda/conda) with [`mamba`](https://github.com/mamba-org/mamba) in the installation script assuming `mamba` is in the base environment.  Though, `mamba` only dropped the time down by 10 minutes.
+Versions <= 1.0.4 are not resource intensive and do not require grid access but took ~1.5 hours (~90 minutes) to download and configure the dependencies.  However, with the update from CheckM1 -> CheckM2 and antiSMASH, at least 15GB of memory must be available so grid access may be necessary.
 
 ```
 bash install_veba.sh
@@ -57,7 +101,7 @@ bash install_veba.sh
 
 **3. Activate the database conda environment, download, and configure databases**
 
-⚠️ This step takes ~4.5 hrs using 8 threads with 128G memory and should be run using a compute grid via SLURM or SunGridEngine.  If this command is run on the head node it will likely fail or timeout if a connection is interrupted. The most computationally intensive steps are creating a `Diamond` database of NCBI's non-redundant reference and a `MMSEQS2` database of the microeukaryotic protein database.
+⚠️ This step takes ~4.5 hrs with 128G memory and should be run using a compute grid via SLURM or SunGridEngine.  If this command is run on the head node it will likely fail or timeout if a connection is interrupted. The most computationally intensive steps are creating a `Diamond` database of NCBI's non-redundant reference and a `MMSEQS2` database of the microeukaryotic protein database.
 
 If issues arise, please [submit a GitHub issue](https://github.com/jolespin/veba/issues) prefixed with `[Database]`. We are here to help :)
 
@@ -83,7 +127,7 @@ conda activate base
 
 # Set the number of threads you want to use.  
 # Keep in mind that not all steps are parallelized (e.g., wget)
-N_JOBS=8 
+N_JOBS=1
 
 # Create a log directory
 mkdir -p logs/
@@ -108,7 +152,7 @@ ACCOUNT=[account name]
 sbatch -A ${ACCOUNT} -p ${PARTITION} -J ${N} -N 1 -c ${N_JOBS} --ntasks-per-node=1 -o logs/${N}.o -e logs/${N}.e --export=ALL -t 12:00:00 --mem=128G --wrap="${CMD}"
 ```
 
-You should be done now. If you want to double check the installation and database configuration worked then activate a `VEBA` environment: 
+Now, you should have the following environments:
 
 ```
 VEBA-annotate_env
@@ -123,7 +167,13 @@ VEBA-mapping_env
 VEBA-phylogeny_env
 VEBA-preprocess_env
 ```
-and check that `VEBA_DATABASE` environment variable is set. If not, then add it manually to ~/.bash_profile: `export VEBA_DATABASE=/path/to/veba_database`.
+All the environments should have the `VEBA_DATABASE` environment variable set. If not, then add it manually to ~/.bash_profile: `export VEBA_DATABASE=/path/to/veba_database`.
+
+You can check to make sure the `conda` environments were created and all of the environment variables were created using the following command:
+
+```
+bash check_installation.sh
+```
 
 Future versions will have `bioconda` installation available.
 

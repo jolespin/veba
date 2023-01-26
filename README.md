@@ -13,10 +13,15 @@ Espinoza JL, Dupont CL. VEBA: a modular end-to-end suite for in silico recovery,
 
 ___________________________________________________________________
 
+
 ### Installation and databases
 Please refer to the [*Installation and Database Configuration Guide*](install/README.md) for software installation and database configuration.
 
 **Current Version:** [`v1.0.4`](https://github.com/jolespin/veba/releases/tag/v1.0.4)
+
+⚠️ **Announcement:**
+
+Release `v1.1` is coming very soon which uses `CheckM2` and improved clustering.
 
 ___________________________________________________________________
 ### Getting started with *VEBA*
