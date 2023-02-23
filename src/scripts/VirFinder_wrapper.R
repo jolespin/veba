@@ -1,6 +1,6 @@
 #!/usr/bin/env Rscript
 #https://github.com/jessieren/VirFinder/blob/master/bin/VirFinder_wrapper.R
-version = "2022.12.07"
+version = "2023.2.23"
 
 library("optparse")
  
@@ -29,7 +29,8 @@ print(paste0("Running VirFinder on ", opt$fasta))
 
 predResult <- VF.pred(opt$fasta)
 if (opt$qvalue){
-predResult$qvalue <- VF.qvalue(predResult$pvalue)
+# predResult$qvalue <- VF.qvalue(predResult$pvalue)
+  predResult$qvalue <- p.adjust(predResult$pvalue, method="fdr")
 }
 if (opt$sort && opt$qvalue){
    predResult<-predResult[order(predResult$qvalue),]

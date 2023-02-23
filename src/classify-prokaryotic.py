@@ -3,7 +3,7 @@ from __future__ import print_function, division
 from pdb import Restart
 import sys, os, argparse, glob
 from collections import OrderedDict, defaultdict
-from Bio.SeqIO.FastaIO import SimpleFastaParser
+# from Bio.SeqIO.FastaIO import SimpleFastaParser
 
 import pandas as pd
 
@@ -11,68 +11,68 @@ import pandas as pd
 from genopype import *
 from soothsayer_utils import *
 
-# DATABASE_GTDBTK="/usr/local/scratch/CORE/jespinoz/db/gtdbtk/release202/"
-
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2022.12.12"
-
-# .............................................................................
-# Notes
-# .............................................................................
-
-# GTDB-Tk
-def get_concatenate_gtdbtk_cmd( input_filepaths, output_filepaths, output_directory, directories, opts):
-    cmd = [ 
-# """
-# python -c "import sys, glob, pandas as pd; pd.concat(map(lambda fp: pd.read_csv(fp, sep='\t', index_col=0), glob.glob('{}')), axis=0).to_csv('{}', sep='\t')"
-# """.format(
-#     os.path.join(opts.prokaryotic_binning_directory,"*", "output", "gtdbtk_output.filtered.tsv"),
-#     os.path.join(directories["preprocessing"], "prokaryotic_taxonomy.tsv"),
-#     ),
-
-        os.environ["concatenate_dataframes.py"],
-        "--axis 0",
-        "--allow_empty_or_missing_files",
-        os.path.join(opts.prokaryotic_binning_directory,"*", "output", "gtdbtk_output.filtered.tsv"),
-        ">",
-        os.path.join(directories["output"], "prokaryotic_taxonomy.tsv"),
-    ]
-    return cmd
-
-
+__version__ = "2023.2.17"
 
 # GTDB-Tk
 def get_gtdbtk_cmd( input_filepaths, output_filepaths, output_directory, directories, opts):
 #gtdbtk classify_wf --genome_dir genomes --out_dir gtdbtk_output_batch1-3 -x fa --cpus 32"
 
     # Command
-    cmd = [
-        "for FP in $(cat %s); do cp $FP %s; done"%(
-            opts.prokaryotic_binning_directory,
-            directories["tmp"],
-            ),
-        "&&",
-    ]
-    if opts.gtdbtk_database:
-        cmd += [ 
+    cmd = [ 
         "export GTDBTK_DATA_PATH={}".format(opts.gtdbtk_database),
+
         "&&",
+
+        "mkdir -p {}".format(os.path.join(directories["tmp"], "gtdbtk")),
+
+        "&&",
+
+        "mkdir -p {}".format(os.path.join(directories["tmp"], "genomes")),
+    ]
+
+    if opts.prokaryotic_binning_directory:
+        cmd += [ 
+                "&&",
+
+            "ls {}".format(os.path.join(opts.prokaryotic_binning_directory, "*", "output", "genomes", "*.fa")),
+            ">",
+            os.path.join(directories["tmp"], "genomes.list"),
+        ]
+
+    if opts.genomes:
+        cmd += [ 
+                "&&",
+
+            "cp",
+            opts.genomes,
+            os.path.join(directories["tmp"], "genomes.list"),
         ]
 
     cmd += [
-        # "mkdir -p {}".format(os.path.join(directories["tmp"], "gtdbtk")),
-        # "&&",
+
+            "&&",
+
+        "(for FP in $(cat %s); do cp $FP %s; done)"%(
+            os.path.join(directories["tmp"], "genomes.list"),
+            os.path.join(directories["tmp"],"genomes"),
+            ),
+
+            "&&",
+
         os.environ["gtdbtk"],
         "classify_wf",
-        "--genome_dir {}".format(os.path.join(directories["tmp"])),
+        "--genome_dir {}".format(os.path.join(directories["tmp"], "genomes")),
         "--out_dir {}".format(output_directory),
         "-x {}".format(opts.extension),
         "--cpus {}".format(opts.n_jobs),
-        "--tmpdir {}".format(opts.tmpdir),
+        "--tmpdir {}".format(os.path.join(directories["tmp"], "gtdbtk")),
+        "--skip_ani_screen",
         opts.gtdbtk_options,
-        "&&",
+
+            "&&",
 
         os.environ["concatenate_dataframes.py"],
         "--axis 0",
@@ -81,7 +81,9 @@ def get_gtdbtk_cmd( input_filepaths, output_filepaths, output_directory, directo
         os.path.join(output_directory, "classify", "gtdbtk.bac120.summary.tsv"),
         ">",
         os.path.join(directories["output"], "prokaryotic_taxonomy.tsv"),
-        "&&",
+
+            "&&",
+
         "rm -rf {}".format(os.path.join(directories["tmp"], "*")),
     ]
 
@@ -94,38 +96,24 @@ def get_consensus_cluster_classification_cmd( input_filepaths, output_filepaths,
 
         # cat gtdbtk.summary.tsv | cut -f1,3,18 | tail -n +2 |
         "cat",
-        input_filepaths[0],
+        input_filepaths[0], #[id_mag]<tab>[id_genome_cluster]<tab>[classification]<tab>[weight]
         "|",
-        "cut -f1,2,17",
+        os.environ["cut_table_by_column_labels.py"],
+        "-f classification,msa_percent"
         "|",
         "tail -n +2",
         "|",
         os.environ["insert_column_to_table.py"],
         "-c {}".format(opts.clusters),
-        "-n id_slc",
+        "-n id_genome_cluster",
         "-i 0",
         "|",
         os.environ["consensus_genome_classification.py"],
         "--leniency {}".format(opts.leniency),
         "-o {}".format(output_filepaths[0]),
-
-
     ]
     return cmd
 
-
-
-# Symlink
-# def get_symlink_cmd(input_filepaths, output_filepaths, output_directory, directories, opts):
-    
-#     # Command
-#     cmd = ["("]
-#     for filepath in input_filepaths:
-#         # cmd.append("ln -f -s {} {}".format(os.path.realpath(filepath), os.path.realpath(output_directory)))
-#         cmd.append("ln -f -s {} {}".format(os.path.realpath(filepath), output_directory))
-#         cmd.append("&&")
-#     cmd[-1] = ")"
-#     return cmd
 
 # ============
 # Run Pipeline
@@ -136,6 +124,7 @@ def add_executables_to_environment(opts):
     Adapted from Soothsayer: https://github.com/jolespin/soothsayer
     """
     accessory_scripts = set([ 
+        "cut_table_by_column_labels.py",
         "concatenate_dataframes.py",
         "consensus_genome_classification.py",
         "insert_column_to_table.py",
@@ -183,93 +172,53 @@ def create_pipeline(opts, directories, f_cmds):
     # Commands file
     pipeline = ExecutablePipeline(name=__program__,  f_cmds=f_cmds, checkpoint_directory=directories["checkpoints"], log_directory=directories["log"])
 
-    if os.path.isdir(opts.prokaryotic_binning_directory):
-        # ==========
-        # Preprocess
-        # ==========
-        step = 1
 
-        program = "concatenate_gtdbtk"
-        program_label = "{}__{}".format(step, program)
-        # Add to directories
-        output_directory = directories["output"]
+    # ==========
+    # GTDB-Tk
+    # ==========
+    step = 1
 
-        # Info
-        description = "Merge GTDB-Tk results"
+    program = "gtdbtk"
+    program_label = "{}__{}".format(step, program)
+    # Add to directories
+    output_directory = directories[("intermediate",  program_label)] = create_directory(os.path.join(directories["intermediate"], program_label))
+
+    # Info
+    description = "GTDB-Tk classification"
 
 
-        # i/o
+    # i/o
+    if opts.prokaryotic_binning_directory:
         input_filepaths = [
             opts.prokaryotic_binning_directory,
             ]
-        output_filenames = ["prokaryotic_taxonomy.tsv"]
-        output_filepaths = list(map(lambda filename: os.path.join(directories["output"], filename), output_filenames))
-
-        params = {
-            "input_filepaths":input_filepaths,
-            "output_filepaths":output_filepaths,
-            "output_directory":output_directory,
-            "opts":opts,
-            "directories":directories,
-        }
-
-        cmd = get_concatenate_gtdbtk_cmd(**params)
-
-        pipeline.add_step(
-                    id=program,
-                    description = description,
-                    step=step,
-                    cmd=cmd,
-                    input_filepaths = input_filepaths,
-                    output_filepaths = output_filepaths,
-                    validate_inputs=True,
-                    validate_outputs=True,
-        )
-
-
-    else:
-  
-        # ==========
-        # GTDB-Tk
-        # ==========
-        step = 1
-
-        program = "gtdbtk"
-        program_label = "{}__{}".format(step, program)
-        # Add to directories
-        output_directory = directories[("intermediate",  program_label)] = create_directory(os.path.join(directories["intermediate"], program_label))
-
-        # Info
-        description = "GTDB-Tk classification"
-
-
-        # i/o
+    if opts.genomes:
         input_filepaths = [
-            opts.prokaryotic_binning_directory,
+            opts.genomes,
             ]
-        output_filenames = ["prokaryotic_taxonomy.tsv"]
-        output_filepaths = list(map(lambda filename: os.path.join(directories["output"], filename), output_filenames))
+    output_filenames = ["prokaryotic_taxonomy.tsv"]
+    output_filepaths = list(map(lambda filename: os.path.join(directories["output"], filename), output_filenames))
 
-        params = {
-            "input_filepaths":input_filepaths,
-            "output_filepaths":output_filepaths,
-            "output_directory":output_directory,
-            "opts":opts,
-            "directories":directories,
-        }
+    params = {
+        "input_filepaths":input_filepaths,
+        "output_filepaths":output_filepaths,
+        "output_directory":output_directory,
+        "opts":opts,
+        "directories":directories,
+    }
 
-        cmd = get_gtdbtk_cmd(**params)
+    cmd = get_gtdbtk_cmd(**params)
 
-        pipeline.add_step(
-                    id=program,
-                    description = description,
-                    step=step,
-                    cmd=cmd,
-                    input_filepaths = input_filepaths,
-                    output_filepaths = output_filepaths,
-                    validate_inputs=True,
-                    validate_outputs=True,
-        )
+    pipeline.add_step(
+                id=program,
+                description = description,
+                step=step,
+                cmd=cmd,
+                input_filepaths = input_filepaths,
+                output_filepaths = output_filepaths,
+                validate_inputs=True,
+                validate_outputs=True,
+    )
 
     if opts.clusters:
         # ==========
@@ -320,6 +269,8 @@ def create_pipeline(opts, directories, f_cmds):
 
 # Configure parameters
 def configure_parameters(opts, directories):
+    assert bool(opts.prokaryotic_binning_directory) != bool(opts.genomes), "Must choose either --prokaryotic_binning_directory or --genomes, not both."
+
     # Set environment variables
     add_executables_to_environment(opts=opts)
 
@@ -330,16 +281,15 @@ def main(args=None):
     # Path info
     description = """
     Running: {} v{} via Python v{} | {}""".format(__program__, __version__, sys.version.split(" ")[0], sys.executable)
-    usage = "{} -i <prokaryotic_binning_directory> -o <output_directory>".format(__program__)
+    usage = "{} -i <prokaryotic_binning_directory>|-g <genomes.list> -o <output_directory>".format(__program__)
     epilog = "Copyright 2021 Josh L. Espinoza (jespinoz@jcvi.org)"
 
     # Parser
     parser = argparse.ArgumentParser(description=description, usage=usage, epilog=epilog, formatter_class=argparse.RawTextHelpFormatter)
     # Pipeline
     parser_io = parser.add_argument_group('Required I/O arguments')
-    # parser_io.add_argument("-i","--genomes", required=False, type=str, help = "path/to/genomes.list")
-    parser_io.add_argument("-i","--prokaryotic_binning_directory", type=str, required=True, help = "path/to/prokaryotic_binning_directory")
-
+    parser_io.add_argument("-i","--prokaryotic_binning_directory", type=str, required=False, help = "path/to/prokaryotic_binning_directory [Cannot be used with --genomes]")
+    parser_io.add_argument("-g","--genomes", required=False, type=str, help = "path/to/genomes.list [Cannot be ued with --prokaryotic_binning_directory]")
     parser_io.add_argument("-c","--clusters", type=str, help = "path/to/clusters.tsv, Format: [id_mag]<tab>[id_cluster], No header.")
     parser_io.add_argument("-o","--output_directory", type=str, default="veba_output/classify/prokaryotic", help = "path/to/output_directory [Default: veba_output/classify/prokaryotic]")
     parser_io.add_argument("-x", "--extension", type=str, default="fa", help = "Fasta file extension for genomes if a list is provided [Default: fa]")
@@ -347,7 +297,7 @@ def main(args=None):
     # Utility
     parser_utility = parser.add_argument_group('Utility arguments')
     parser_utility.add_argument("--path_config", type=str,  default="CONDA_PREFIX", help="path/to/config.tsv [Default: CONDA_PREFIX]")  #site-packges in future
-    parser_utility.add_argument("--tmpdir", type=str,  default=os.environ["TMPDIR"], help="path/to/TMPDIR [Default: {}]".format(os.environ["TMPDIR"]))  #site-packges in future
+    parser_utility.add_argument("--tmpdir", type=str, help="path/to/TMPDIR")  #site-packges in future
     parser_utility.add_argument("-p", "--n_jobs", type=int, default=1, help = "Number of threads [Default: 1]")
     parser_utility.add_argument("--random_state", type=int, default=0, help = "Random state [Default: 0]")
     parser_utility.add_argument("--restart_from_checkpoint", type=str, default=None, help = "Restart from a particular checkpoint [Default: None]")
@@ -356,16 +306,16 @@ def main(args=None):
     # Databases
     parser_databases = parser.add_argument_group('Database arguments')
     parser_databases.add_argument("--veba_database", type=str,  help=f"VEBA database location.  [Default: $VEBA_DATABASE environment variable]")
+    # parser_databases.add_argument("--mash_database", type=str,  help=f"Default is to create a MASH database")
 
     # GTDB-Tk
     parser_gtdbtk = parser.add_argument_group('GTDB-Tk arguments')
-    # parser_gtdbtk.add_argument("--gtdbtk_database", type=str, default=DATABASE_GTDBTK, help="GTDB-Tk | path/to/gtdbtk_database (e.g. --arg 1 ) [Default: {}]".format(DATABASE_GTDBTK))
+    # parser_gtdbtk.add_argument("--skip_ani_screen", action="store_true", help = "Skip ANI screen [Default: Don't skip ANI screen]")
     parser_gtdbtk.add_argument("--gtdbtk_options", type=str, default="", help="GTDB-Tk | classify_wf options (e.g. --arg 1 ) [Default: '']")
 
 
     # Consensus genome classification
     parser_consensus = parser.add_argument_group('Consensus genome classification arguments')
-
     parser_consensus.add_argument("-l","--leniency", default=1.382, type=float, help = "Leniency parameter. Lower value means more conservative weighting. A value of 1 indiciates no weight bias. A value greater than 1 puts higher weight on higher level taxonomic assignments. A value less than 1 puts lower weights on higher level taxonomic assignments.  [Default: 1.382]")
     # parser_consensus.add_argument("-r", "--rank_prefixes", type=str, default=RANK_PREFIXES, help = "Rank prefixes separated by , delimiter'\n[Default: {}]".format(RANK_PREFIXES))
     # parser_consensus.add_argument("-d", "--delimiter", type=str, default=";", help = "Taxonomic delimiter [Default: ; ]")
@@ -377,6 +327,24 @@ def main(args=None):
     opts.script_directory  = script_directory
     opts.script_filename = script_filename
 
+    # Threads
+    if opts.n_jobs == -1:
+        from multiprocessing import cpu_count 
+        opts.n_jobs = cpu_count()
+    assert opts.n_jobs >= 1, "--n_jobs must be ≥ 1.  To select all available threads, use -1."
+
+    # Directories
+    directories = dict()
+    directories["project"] = create_directory(opts.output_directory)
+    directories["output"] = create_directory(os.path.join(directories["project"], "output"))
+    directories["log"] = create_directory(os.path.join(directories["project"], "log"))
+    directories["checkpoints"] = create_directory(os.path.join(directories["project"], "checkpoints"))
+    directories["intermediate"] = create_directory(os.path.join(directories["project"], "intermediate"))
+    if not opts.tmpdir:
+        opts.tmpdir = create_directory(os.path.join(directories["project"], "tmp"))
+    directories["tmp"] = opts.tmpdir
+    os.environ["TMPDIR"] = directories["tmp"]
+
     # Database
     if opts.veba_database is None:
         assert "VEBA_DATABASE" in os.environ, "Please set the following environment variable 'export VEBA_DATABASE=/path/to/veba_database' or provide path to --veba_database"
@@ -384,16 +352,9 @@ def main(args=None):
 
     opts.gtdbtk_database = os.path.join(opts.veba_database, "Classify", "GTDBTk")
 
-
-    # Directories
-    directories = dict()
-    directories["project"] = create_directory(opts.output_directory)
-    directories["output"] = create_directory(os.path.join(directories["project"], "output"))
-    directories["log"] = create_directory(os.path.join(directories["project"], "log"))
-    directories["tmp"] = create_directory(os.path.join(directories["project"], "tmp"))
-    directories["checkpoints"] = create_directory(os.path.join(directories["project"], "checkpoints"))
-    directories["intermediate"] = create_directory(os.path.join(directories["project"], "intermediate"))
-    # os.environ["TMPDIR"] = directories["tmp"]
+    # if opts.mash_database is None:
+    #     opts.mash_database = os.path.join(directories["tmp"], "gtdbtk.msh")
+    
 
     # Info
     print(format_header(__program__, "="), file=sys.stdout)

@@ -330,3 +330,24 @@ cat veba_output/assembly/${ID}/output/scaffolds.fasta | seqkit seq -m ${M} | gre
 # If the output is 0 then the explanation above holds.
 ```
   
+#### 32. Does **VEBA** support Trinity for transcriptome assembly?
+
+I've considered adding this but it adds [A LOT of dependencies](https://github.com/bioconda/bioconda-recipes/blob/master/recipes/trinity/meta.yaml) including R dependencies (which usually complicate environments) and post-processing analysis tools which are out-of-scope.  As a result of this, *VEBA* will not support Trinity.  However, you can easily use Trinity-based transcripts with other *VEBA* modules but may need to generate the `mapped.sorted.bam` files yourself.
+
+#### 33. If I have counts (i.e., reads mapped) to a Species-Level Cluster (SLC), does that mean I have a corresponding MAG in the sample?
+
+Yes and no.
+ 
+Let’s say there actually was *organism\_A* in *sample\_1* but *organism\_B* was at much higher abundance. In the sequencing process, you are shredding up DNA and sequencing those fragmented bits.  That means organisms that are in higher abundance will take up more of the slots available that are going to be sequenced.  The total number of slots would be analogous to sequencing depth. So in the end you’re not getting a true measure of absolute abundances but a sample of relative abundances.
+ 
+It’s possible that not all of *organism\_A* got sequenced because more abundant organisms like *organism\_B* took up more of the available slots available by the sequencer.   In this case, it is possible that not enough reads were sampled from *organism\_A* to produce long enough of contigs or contigs that had the marker genes so *sample\_1* wasn’t able to yield any high quality MAG for that particular organism (i.e., *organism\_A*).  
+ 
+Then consider *sample\_2* where the abundance and coverage was high enough for *organism\_A* that it could produce long contigs and these long contigs had enough marker genes to be considered high quality; this could yield the fully assembled MAG.
+ 
+When we map the reads back using global mapping, we are mapping to ALL the MAGs not just the MAGs from the corresponding sample. That means the reads from the low abundance *organism\_A* in *sample\_1* would have reads that mapped to *organism\_A* from the *sample\_2* MAG; even though we were not able to recover a complete *organism\_A* MAG from *sample\_1* it could still be in there, albeit, fragmented.
+
+If this is NOT what you want, then use local mapping mode instead of global mapping.
+
+#### 34. Why can't I run multiple instances of `transdecoder_wrapper.py` at the same time?
+
+In short, the tool forces the output files to be in the current working directory (even though an output directory is specified).  I've submitted a feature request issue on GitHub (https://github.com/TransDecoder/TransDecoder/issues/169).  I considered forking and making an unofficial update but I don't know Perl and further updating *VEBA* takes priority.

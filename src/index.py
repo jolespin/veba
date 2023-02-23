@@ -6,8 +6,7 @@ from genopype import *
 from soothsayer_utils import *
 
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2022.02.17"
-
+__version__ = "2023.2.1"
 
 # ==============
 # Agostic commands
@@ -515,6 +514,12 @@ def main(args=None):
     opts = parser.parse_args()
     opts.script_directory  = script_directory
     opts.script_filename = script_filename
+
+    # Threads
+    if opts.n_jobs == -1:
+        from multiprocessing import cpu_count 
+        opts.n_jobs = cpu_count()
+    assert opts.n_jobs >= 1, "--n_jobs must be ≥ 1.  To select all available threads, use -1."
 
     # Directories
     directories = dict()

@@ -3,7 +3,7 @@ import sys, os, glob, argparse
 import pandas as pd
 
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2022.02.23"
+__version__ = "2023.2.6"
 
 def main(args=None):
     # Path info
@@ -19,7 +19,7 @@ def main(args=None):
     parser = argparse.ArgumentParser(description=description, usage=usage, epilog=epilog, formatter_class=argparse.RawTextHelpFormatter)
     # Pipeline
     parser.add_argument("-i","--scaffolds_to_bins", type=str, required=True,  help = "path/to/scaffolds_to_bins.tsv, Format: [id_scaffold]<tab>[id_bin], No header")
-    parser.add_argument("-c","--clusters", type=str, required=True, help = "path/to/clusters.tsv, Format: [id_mag]<tab>[id_cluster], No header")
+    parser.add_argument("-c","--bins_to_clusters", type=str, required=True, help = "path/to/clusters.tsv, Format: [id_mag]<tab>[id_cluster], No header")
     parser.add_argument("-o","--output", type=str, default="stdout", help = "path/to/output.tsv [Default: stdout]")
     parser.add_argument("--header", action="store_true", help="Specify if header should be in output")
 
@@ -31,7 +31,7 @@ def main(args=None):
 
     # Organize identifiers
     scaffold_to_mag = pd.read_csv(opts.scaffolds_to_bins, sep="\t", index_col=0, header=None).iloc[:,0]
-    mag_to_cluster = pd.read_csv(opts.clusters, sep="\t", index_col=0, header=None).iloc[:,0]
+    mag_to_cluster = pd.read_csv(opts.bins_to_clusters, sep="\t", index_col=0, header=None).iloc[:,0]
     scaffold_to_cluster = scaffold_to_mag.map(lambda id_mag: mag_to_cluster[id_mag])
 
     # Create output table

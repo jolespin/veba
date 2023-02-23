@@ -6,7 +6,7 @@ from Bio import SeqIO
 from tqdm import tqdm
 
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.01.08"
+__version__ = "2023.2.3"
 
 def main(args=None):
     # Path info
@@ -25,6 +25,8 @@ def main(args=None):
     parser.add_argument("-o","--output", type=str, default="stdout", help = "path/to/output.tsv [Default: stdout]")
     parser.add_argument("-e","--exclude_contig_edges", action="store_true", help = "Exclude clusters that are on contig edges")
     parser.add_argument("-s","--synopsis", type=str, help = "Summary file output")
+    parser.add_argument("-f","--fasta", type=str, help = "Fasta file output")
+    parser.add_argument("--sep", type=str, default=" ", help = "Seperator between [id_gene]<sep>[bgc_description].  The space makes it a id and description.  If duplicate identifiers, you can separate with underscores (e.g., '__') [Default: <space>]")
 
     # Options
     opts = parser.parse_args()
@@ -72,12 +74,16 @@ def main(args=None):
                     genes = df["ID"]
                 elif "locus_tag" in df.columns:
                     genes = df["locus_tag"]
+                elif "protein_id" in df.columns:
+                    genes = df["protein_id"]
+                elif "gene" in df.columns:
+                    genes = df["gene"]
+
                 df["gene_id"] = genes
             # If no contig identifiers, add it.  This prioritizes gff fields.
             if "contig_id" not in df.columns:
                 df["contig_id"] = id_contig
 
-            
             df.insert(0, "bgc_type", product)
             df.insert(1, "cluster_on_contig_edge", contig_edge)
             output.append(df)
@@ -87,6 +93,35 @@ def main(args=None):
     df_bgcs = df_bgcs.set_index(["genome_id", "contig_id", "region_id", "gene_id"]).sort_index()
     df_bgcs["translation"] = df_bgcs.pop("translation")
 
+    # Add position on BGC
+    i_to_position = OrderedDict()
+    for (id_genome, id_contig, id_region), df in tqdm(df_bgcs.groupby(["genome_id", "contig_id", "region_id"])):
+        df = df.sort_values(["start", "end"])
+        d = dict(zip(df.index, range(1, df.shape[0] + 1)))
+        i_to_position.update(d)
+    i_to_position = pd.Series(i_to_position)
+    j = df_bgcs.columns.get_loc("start")
+    df_bgcs.insert(loc=j, column="position_in_bgc", value=i_to_position)
+
+    # BGC ID
+    i_to_bgc = OrderedDict()
+    for (id_genome, id_contig, id_region), df in tqdm(df_bgcs.groupby(["genome_id", "contig_id", "region_id"])):
+        id_bgc = "|".join([id_genome, id_contig, id_region])
+        d = dict(zip(df.index, [id_bgc]*df.shape[0]))
+        i_to_bgc.update(d)
+    i_to_bgc = pd.Series(i_to_bgc)
+    df_bgcs.insert(loc=0, column="bgc_id", value=i_to_bgc)
+
+    # Component
+    i_to_component = OrderedDict()
+    for i, row in df_bgcs.iterrows():
+        id_component = "{}_{}|{}-{}({})".format(*row[["bgc_id", "position_in_bgc", "start", "end"]], {1:"+",-1:"-"}[row["strand"]])
+        i_to_component[i] = id_component 
+    i_to_component = pd.Series(i_to_component)
+    df_bgcs.insert(loc=1, column="component_id", value=i_to_component)
+
+
+    # df_bgcs = df_bgcs.set_index(drop=False)
     if opts.synopsis:
         tmp = df_bgcs.reset_index().set_index(["genome_id", "contig_id", "region_id", "bgc_type"]).index.unique().value_counts()
         value_counts = tmp.groupby(lambda x: (x[0], x[3])).sum()
@@ -104,7 +139,25 @@ def main(args=None):
         df_bgcs = df_bgcs.loc[~df_bgcs["cluster_on_contig_edge"].map(eval).values]
 
     # Output
-    df_bgcs.to_csv(opts.output, sep="\t")
+    df_bgcs.reset_index(drop=False).set_index(["bgc_id", "component_id"]).to_csv(opts.output, sep="\t")
+
+    # Fasta
+    if opts.fasta:
+        with open(opts.fasta, "w") as f:
+            for (id_genome, id_contig, id_region, id_gene), row in tqdm(df_bgcs.iterrows(), "Writing genes to fasta file: {}".format(opts.fasta)):
+                header = "{}{}{}|{}|{}_{}|{}-{}({})".format(
+                    id_gene,
+                    opts.sep, 
+                    id_genome, 
+                    id_contig, 
+                    id_region, 
+                    row["position_in_bgc"], 
+                    row["start"], 
+                    row["end"], 
+                    {1:"+",-1:"-"}[row["strand"]],
+                )
+                seq = row["translation"]
+                print(">{}\n{}".format(header, seq), file=f)
 
 if __name__ == "__main__":
     main()

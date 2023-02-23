@@ -1,11 +1,12 @@
 #!/usr/bin/env python
 from __future__ import print_function, division
 import sys, os, argparse
+from collections import OrderedDict
 import pandas as pd
 
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2022.04.20"
+__version__ = "2023.2.1"
 
 #
 def main(args=None):
@@ -26,6 +27,8 @@ def main(args=None):
     parser.add_argument("-o","--output_table", default="stdout", type=str, help = "path/to/output_table.tsv [Default: stdout]")
     parser.add_argument("-a","--axis", type=int, default=0, help = "index:axis=0, columns:axis=1")
     # parser.add_argument("--column", type=int, help = "Column to look for index")
+    parser.add_argument("--index_column", type=int, default=0, help = "Index column [Default: 0]")
+    parser.add_argument("-d", "--drop_duplicates", action="store_true", help = "Drop duplicates")
 
     parser.add_argument("--sep", type=str, default="\t", help = "Separator [Default: <tab>]")
     parser.add_argument("--skiprows", type=int, help = "Skiprows")
@@ -55,7 +58,9 @@ def main(args=None):
         opts.output_table = sys.stdout 
 
     # Read Table
-    df = pd.read_csv(opts.table, sep=opts.sep, index_col=0, skiprows=opts.skiprows)
+    df = pd.read_csv(opts.table, sep=opts.sep, index_col=opts.index_column, skiprows=opts.skiprows)
+    if opts.drop_duplicates:
+        df = pd.DataFrame(df.to_dict(into=OrderedDict))
     if not opts.inverse:
         if opts.axis == 0:
             assert set(index) <= set(df.index), "--index isn't a subset of --table index"

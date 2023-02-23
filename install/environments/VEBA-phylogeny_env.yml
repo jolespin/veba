@@ -1,10 +1,9 @@
-name: VEBA-phylogeny_env__v2023.01.04
+name: VEBA-phylogeny_env__v2023.1.4
 channels:
   - conda-forge
   - bioconda
   - jolespin
   - defaults
-  - qiime2/label/r2022.2
 dependencies:
   - _libgcc_mutex=0.1=conda_forge
   - _openmp_mutex=4.5=2_gnu
@@ -71,4 +70,3 @@ dependencies:
   - urllib3=1.26.13=pyhd8ed1ab_0
   - wheel=0.38.4=pyhd8ed1ab_0
   - xz=5.2.6=h166bdaf_0
-prefix: /expanse/projects/jcl110/anaconda3/envs/VEBA-phylogeny_env__v2023.01.04

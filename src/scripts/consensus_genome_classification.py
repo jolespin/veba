@@ -9,7 +9,7 @@ import numpy as np
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2022.7.13"
+__version__ = "2023.2.13"
 
 # RANK_TO_PREFIX="superkingdom:d__,phylum:p__,class:c__,order:o__,family:f__,genus:g__,species:s__"
 
@@ -25,9 +25,9 @@ def fill_empty_taxonomy_levels(
     rank_prefixes = list(rank_prefixes)
     number_of_taxonomic_levels = len(rank_prefixes)
     classifications_ = dict()
-    for id_genome, classification in pd.Series(classifications).items():
+    for id_mag, classification in pd.Series(classifications).items():
         taxonomy = classification.split(delimiter)
-        classifications_[id_genome] = delimiter.join(taxonomy + rank_prefixes[len(taxonomy):])
+        classifications_[id_mag] = delimiter.join(taxonomy + rank_prefixes[len(taxonomy):])
     return pd.Series(classifications_)[classifications.index]
 
 # Get consensus classification
@@ -87,8 +87,10 @@ def get_consensus_classification(
     slc_taxa_scores = defaultdict(lambda: defaultdict(float))
     
     # Iterate through MAG, classification, and score
-    df = pd.concat([genome_to_slc.to_frame("id_slc"), classification.to_frame("classification"), classification_weights.to_frame("weight")], axis=1)
-    for id_genome, (id_slc, classification, w) in df.iterrows():
+    df = pd.concat([genome_to_slc.to_frame("id_genome_cluster"), classification.to_frame("classification"), classification_weights.to_frame("weight")], axis=1)
+    slc_to_mags = defaultdict(list)
+    for id_mag, (id_slc, classification, w) in df.iterrows():
+        slc_to_mags[id_slc].append(id_mag)
         # Split the taxonomy classification by levels
         levels = classification.split(delimiter)
         # Remove the empty taxonomy levels (e.g., g__Corynebacterium;s__ --> g__Corynebacterium)
@@ -98,16 +100,18 @@ def get_consensus_classification(
         for i in range(1, number_of_query_levels + 1):
             weighted_score = float(w) * scaling_factors[i-1]
             slc_taxa_scores[id_slc][tuple(levels[:i])] += weighted_score
-            
+    slc_to_mags = pd.Series(slc_to_mags)
+
     # Build datafarme
     slc_taxa_scores = pd.Series(slc_taxa_scores)
     df_consensus_classification = pd.DataFrame(slc_taxa_scores.map(lambda taxa_scores: sorted(taxa_scores.items(), key=lambda x:(x[1], len(x[0])), reverse=True)[0]).to_dict(), index=["consensus_classification", "score"]).T
     df_consensus_classification["consensus_classification"] = df_consensus_classification["consensus_classification"].map(";".join)
     df_consensus_classification["number_of_unique_classifications"] = df["classification"].groupby(genome_to_slc).apply(lambda x: len(set(x)))
-    df_consensus_classification["number_of_genomes"] = df["classification"].groupby(genome_to_slc).apply(len)
+    df_consensus_classification["number_of_genomes"] = slc_to_mags.map(len) #df["classification"].groupby(genome_to_slc).apply(len)
+    df_consensus_classification["genomes"] = slc_to_mags
     df_consensus_classification["classifications"] = df["classification"].groupby(genome_to_slc).apply(lambda x: list(x))
     df_consensus_classification["weights"] = df["weight"].groupby(genome_to_slc).apply(lambda x: list(x))
-    df_consensus_classification.index.name = "id_slc"
+    df_consensus_classification.index.name = "id_genome_cluster"
     
     # Homogeneity
     slc_taxa_homogeneity = defaultdict(lambda: defaultdict(float))
@@ -116,8 +120,17 @@ def get_consensus_classification(
             slc_taxa_homogeneity[id_slc][c] += w
     df_consensus_classification["homogeneity"] = pd.DataFrame(slc_taxa_homogeneity).T.apply(lambda x: np.nanmax(x)/np.nansum(x), axis=1)
         
-    
-    return df_consensus_classification
+    fields = [
+        "consensus_classification", 
+        "homogeneity", 
+        "number_of_unique_classifications",
+        "number_of_genomes",
+        "genomes",
+        "classifications", 
+        "weights", 
+        "score",
+    ]
+    return df_consensus_classification.loc[:,fields]
 
 
 
@@ -134,7 +147,7 @@ def main(args=None):
     # Parser
     parser = argparse.ArgumentParser(description=description, usage=usage, epilog=epilog, formatter_class=argparse.RawTextHelpFormatter)
     # Pipeline
-    parser.add_argument("-i","--input", default="stdin", type=str, help = "path/to/mag_to_classification.tsv  [id_mag]<tab>[id_slc]<tab>[classification]<tab>[weight] [Default: stdin]")
+    parser.add_argument("-i","--input", default="stdin", type=str, help = "path/to/mag_to_classification.tsv  [id_mag]<tab>[id_genome_cluster]<tab>[classification]<tab>[weight]; No header. [Default: stdin]")
     parser.add_argument("-o","--output", type=str, default="stdout", help = "Output table with consensus classification [Default: stdout]")
     parser.add_argument("-l","--leniency", default=1.382, type=float, help = "Leniency parameter. Lower value means more conservative weighting. A value of 1 indiciates no weight bias. A value greater than 1 puts higher weight on higher level taxonomic assignments. A value less than 1 puts lower weights on higher level taxonomic assignments.  [Default: 1.382]")
     parser.add_argument("-r", "--rank_prefixes", type=str, default=RANK_PREFIXES, help = "Rank prefixes separated by , delimiter'\n[Default: {}]".format(RANK_PREFIXES))

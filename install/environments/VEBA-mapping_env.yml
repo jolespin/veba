@@ -1,11 +1,9 @@
-name: VEBA-mapping_env
+name: VEBA-mapping_env__v2022.4.19
 channels:
-  - jolespin
-  - bioconda
   - conda-forge
+  - bioconda
+  - jolespin
   - defaults
-  - etetoolkit
-  - r
 dependencies:
   - _libgcc_mutex=0.1=conda_forge
   - _openmp_mutex=4.5=1_gnu

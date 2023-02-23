@@ -15,13 +15,11 @@ from soothsayer_utils import *
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2022.12.07b"
+__version__ = "2023.2.16"
 
-
-# GTDB-Tk
 # Assembly
-def get_preprocess_cmd( input_filepaths, output_filepaths, output_directory, directories, opts):
-    if not os.path.exists(os.path.join(directories["checkpoints"], "0__preprocess")):
+def get_concatenate_cmd( input_filepaths, output_filepaths, output_directory, directories, opts):
+    if not os.path.exists(os.path.join(directories["checkpoints"], "1__concatenate")):
 
         # MAG -> Filepath
         mag_to_filepath = dict()
@@ -33,19 +31,17 @@ def get_preprocess_cmd( input_filepaths, output_filepaths, output_directory, dir
             assert id_mag not in mag_to_filepath, f"Dataset has non-unique MAG identifiers: {id_mag}"
             mag_to_filepath[id_mag] = fp
         mag_to_filepath = pd.Series(mag_to_filepath)
-        mag_to_filepath.to_frame().to_csv(os.path.join(output_directory, "all_samples.genomes.tsv"), sep="\t", header=None)
-
+        mag_to_filepath.to_frame().to_csv(os.path.join(output_directory, "genomes.tsv"), sep="\t", header=None)
 
         # Scaffolds -> MAG
         scaffold_to_bin = OrderedDict()
-
         for id_mag, fp in mag_to_filepath.items():
             with open(fp, "r") as f:
                 for header, seq in pv(SimpleFastaParser(f), f"Getting scaffold identifiers from {id_mag}", unit=" scaffolds"):
                     id_scaffold = header.split(" ")[0]
                     scaffold_to_bin[id_scaffold] = id_mag 
         scaffold_to_bin = pd.Series(scaffold_to_bin)
-        scaffold_to_bin.to_frame().to_csv(os.path.join(output_directory, "all_samples.scaffolds_to_bins.tsv"), sep="\t", header=None)
+        scaffold_to_bin.to_frame().to_csv(os.path.join(output_directory, "scaffolds_to_bins.tsv"), sep="\t", header=None)
 
         # Identifier Mapping
         dataframes = list() 
@@ -53,13 +49,13 @@ def get_preprocess_cmd( input_filepaths, output_filepaths, output_directory, dir
         assert len(filepaths) > 0, "No files found with wildcard: {}".format(os.path.join(opts.eukaryotic_binning_directory, "*", "output", "identifier_mapping.metaeuk.tsv"))
         
         for fp in filepaths:
-            dataframes.append(pd.read_csv(fp, sep="\t", index_col=4))
+            dataframes.append(pd.read_csv(fp, sep="\t", index_col=0))
         df_metaeuk = pd.concat(dataframes, axis=0)
         df_metaeuk = pd.DataFrame(df_metaeuk.to_dict(into=OrderedDict)) # HACK: Remove duplicates
-        df_metaeuk.to_csv(os.path.join(output_directory, "all_samples.identifier_mapping.metaeuk.tsv"), sep="\t")
+        df_metaeuk.to_csv(os.path.join(output_directory, "identifier_mapping.metaeuk.tsv"), sep="\t")
 
         # Concatenate proteins
-        f_out = open(os.path.join(directories["tmp"], "proteins.faa"), "w")
+        f_out = open(os.path.join(directories["tmp"], "concatenated_proteins.faa"), "w")
 
         filepaths = glob.glob(os.path.join(opts.eukaryotic_binning_directory, "*", "output", "genomes", "*.faa"))
         assert len(filepaths) > 0, "No files found with wildcard: {}".format(os.path.join(opts.eukaryotic_binning_directory, "*", "output", "genomes", "*.fa"))
@@ -72,6 +68,65 @@ def get_preprocess_cmd( input_filepaths, output_filepaths, output_directory, dir
 
     return []
 
+def get_metaeuk_cmd( input_filepaths, output_filepaths, output_directory, directories, opts):
+    cmd = [ 
+        os.environ["scaffolds_to_bins.py"],
+        "-g {}".format(opts.genomes),
+        "-x {}".format(opts.extension),
+        ">",
+        os.path.join(output_directory, "scaffolds_to_bins.tsv"),
+
+            "&&",
+        os.environ["seqkit"],
+        "seq",
+        "$(cat {})".format(opts.genomes),
+        ">",
+        os.path.join(directories["tmp"], "concatenated_genomes.fa"),
+
+            "&&",
+
+        os.environ["metaeuk_wrapper.py"],
+        "-f {}".format(os.path.join(directories["tmp"], "concatenated_genomes.fa")),
+        "-o {}".format(output_directory),
+        "--metaeuk_database {}".format(os.path.join(opts.veba_database, "Classify", "Microeukaryotic", "microeukaryotic.eukaryota_odb10")),
+        "--n_jobs {}".format(opts.n_jobs),
+        "--scaffolds_to_bins {}".format(os.path.join(output_directory, "scaffolds_to_bins.tsv")),
+
+            "&&",
+
+        "cat",
+        os.path.join(output_directory, "genomes", "*.faa"),
+        ">",
+        os.path.join(directories["tmp"], "concatenated_proteins.faa"),
+
+    ]
+
+#     cmd += [
+# """
+
+# for FP in $(cat %s);
+# do
+#     ID_MAG=$(basename $FP .%s)
+#     echo "ID_MAG=${ID_MAG}"
+#     echo "GENOME=${FP}"
+#     %s --fasta $FP --metaeuk_database %s -o %s/${ID_MAG} --n_jobs %d --scaffolds_to_bins %s
+# done
+# """%(
+#     opts.genomes,
+#     opts.extension,
+#     os.environ["metaeuk_wrapper.py"],
+#     os.path.join(opts.veba_database, "Classify", "Microeukaryotic", "microeukaryotic.eukaryota_odb10"),
+#     output_directory, 
+#     opts.n_jobs,
+#     os.path.join(output_directory, "scaffolds_to_bins.tsv"),
+# )
+#     ]
+
+    return cmd
+
+
+
+
 def get_hmmsearch_cmd( input_filepaths, output_filepaths, output_directory, directories, opts):
     cmd = [ 
         os.environ["hmmsearch"],
@@ -80,9 +135,9 @@ def get_hmmsearch_cmd( input_filepaths, output_filepaths, output_directory, dire
         "--seed {}".format(opts.random_state + 1),
         "--{}".format(opts.hmmsearch_threshold) if opts.hmmsearch_threshold != "e" else "-E {}".format(opts.hmmsearch_evalue),
         opts.hmms,
-        os.path.join(directories["tmp"], "proteins.faa"),
+        os.path.join(directories["tmp"], "concatenated_proteins.faa"),
 
-        "&&",
+            "&&",
 
         os.environ["filter_hmmsearch_results.py"],
         "-i {}".format(os.path.join(output_directory, "hmmsearch_tblout.tsv")),
@@ -91,27 +146,31 @@ def get_hmmsearch_cmd( input_filepaths, output_filepaths, output_directory, dire
         ">",
        os.path.join(output_directory, "hmmsearch_tblout.score_filtered.tsv"),
 
-       "&&",
+            "&&",
 
        "cat",
         os.path.join(output_directory, "hmmsearch_tblout.score_filtered.tsv"),
         "|",
         "tail -n +3",
         "|",
-         "cut -f1",
-         "|",
-         "sort -u",
-         "|",
+        "cut -f1",
+        "|",
+        "sort -u",
+        "|",
         # os.path.join(output_directory, "hmmsearch_tblout.score_filtered.identifiers.list"),
         os.environ["subset_table.py"],
-        "-t {}".format(os.path.join(directories["preprocessing"], "all_samples.identifier_mapping.metaeuk.tsv")),
+        "-t {}".format(os.path.join(directories["intermediate"], "identifier_mapping.metaeuk.tsv")),
+        "--drop_duplicates",
+        "--index_column 4",
         ">",
-        os.path.join(directories["preprocessing"], "all_samples.identifier_mapping.metaeuk.score_filtered.tsv"),
-
+        os.path.join(directories["intermediate"], "identifier_mapping.metaeuk.score_filtered.tsv"),
     ]
 
-
     return cmd
+
+
+
+
 
 def get_compile_cmd( input_filepaths, output_filepaths, output_directory, directories, opts):
     cmd = [ 
@@ -164,7 +223,7 @@ def get_consensus_cluster_classification_cmd( input_filepaths, output_filepaths,
         "|",
         os.environ["insert_column_to_table.py"],
         "-c {}".format(opts.clusters),
-        "-n id_slc",
+        "-n id_genome_cluster",
         "-i 0",
         "|",
         os.environ["consensus_genome_classification.py"],
@@ -202,6 +261,7 @@ def add_executables_to_environment(opts):
     """
     required_executables = {
         "hmmsearch",
+        "seqkit",
     }
     accessory_scripts = set([ 
         "filter_hmmsearch_results.py",
@@ -209,6 +269,8 @@ def add_executables_to_environment(opts):
         "compile_eukaryotic_classifications.py",
         "consensus_genome_classification.py",
         "insert_column_to_table.py",
+        "metaeuk_wrapper.py",
+        "scaffolds_to_bins.py",
         # "consensus_orthogroup_annotation.py",
     ])
 
@@ -254,74 +316,23 @@ def create_pipeline(opts, directories, f_cmds):
     # ==========
     # Preprocess
     # ==========
-    # if not opts.scaffolds_to_bins:
-    step = 0
+    step = 1
 
-    program = "preprocess"
-    program_label = "{}__{}".format(step, program)
-    # Add to directories
-    output_directory = directories["preprocessing"]
-
-    # Info
-    description = "Getting scaffolds to bins for genomes"
-
-
-    # i/o
-    input_filepaths = [
-        opts.eukaryotic_binning_directory,
-        ]
-    output_filenames = ["all_samples.scaffolds_to_bins.tsv", "all_samples.identifier_mapping.metaeuk.tsv"]
-    output_filepaths = list(map(lambda filename: os.path.join(directories["preprocessing"], filename), output_filenames))
-
-    params = {
-        "input_filepaths":input_filepaths,
-        "output_filepaths":output_filepaths,
-        "output_directory":output_directory,
-        "opts":opts,
-        "directories":directories,
-    }
-
-    cmd = get_preprocess_cmd(**params)
-
-    pipeline.add_step(
-                id=program,
-                description = description,
-                step=step,
-                cmd=cmd,
-                input_filepaths = input_filepaths,
-                output_filepaths = output_filepaths,
-                validate_inputs=True,
-                validate_outputs=True,
-    )
-    # opts.scaffolds_to_bins = os.path.join(directories["preprocessing"], "scaffolds_to_bins.tsv")
-
-   # ==========
-    # Get classifications
-    # ==========
-    if not opts.include_all_genes:
-        step += 1
-
-        program = "hmmsearch"
+    if opts.eukaryotic_binning_directory:
+        program = "concatenate"
         program_label = "{}__{}".format(step, program)
         # Add to directories
         output_directory = directories["intermediate"]
 
         # Info
-        description = "Identify eukaryotic core markers"
-
+        description = "Getting scaffolds to bins for genomes"
 
         # i/o
         input_filepaths = [
             opts.eukaryotic_binning_directory,
-            os.path.join(directories["preprocessing"], "all_samples.identifier_mapping.metaeuk.tsv"),
-            os.path.join(directories["preprocessing"], "all_samples.scaffolds_to_bins.tsv"),
-            opts.hmms,
-            opts.scores_cutoff,
             ]
-        # if opts.clusters:
-        #     input_filepaths += [opts.clusters]
-        output_filepaths = [os.path.join(directories["preprocessing"], "all_samples.identifier_mapping.metaeuk.score_filtered.tsv")]
-
+        output_filenames = ["scaffolds_to_bins.tsv", "identifier_mapping.metaeuk.tsv"]
+        output_filepaths = list(map(lambda filename: os.path.join(directories["intermediate"], filename), output_filenames))
 
         params = {
             "input_filepaths":input_filepaths,
@@ -331,7 +342,7 @@ def create_pipeline(opts, directories, f_cmds):
             "directories":directories,
         }
 
-        cmd = get_hmmsearch_cmd(**params)
+        cmd = get_concatenate_cmd(**params)
 
         pipeline.add_step(
                     id=program,
@@ -343,7 +354,91 @@ def create_pipeline(opts, directories, f_cmds):
                     validate_inputs=True,
                     validate_outputs=True,
         )
-  
+
+    if opts.genomes:
+        program = "metaeuk"
+        program_label = "{}__{}".format(step, program)
+        # Add to directories
+        output_directory = directories["intermediate"]
+
+        # Info
+        description = "Modeling eukaryotic genes with MetaEuk"
+
+
+        # i/o
+        input_filepaths = [
+            opts.genomes,
+            ]
+        output_filenames = ["scaffolds_to_bins.tsv", "identifier_mapping.metaeuk.tsv"]
+        output_filepaths = list(map(lambda filename: os.path.join(directories["intermediate"], filename), output_filenames))
+
+        params = {
+            "input_filepaths":input_filepaths,
+            "output_filepaths":output_filepaths,
+            "output_directory":output_directory,
+            "opts":opts,
+            "directories":directories,
+        }
+
+        cmd = get_metaeuk_cmd(**params)
+
+        pipeline.add_step(
+                    id=program,
+                    description = description,
+                    step=step,
+                    cmd=cmd,
+                    input_filepaths = input_filepaths,
+                    output_filepaths = output_filepaths,
+                    validate_inputs=True,
+                    validate_outputs=True,
+        )
+   # ==========
+    # Get classifications
+    # ==========
+    # if not opts.include_all_genes:
+    step += 1
+
+    program = "hmmsearch"
+    program_label = "{}__{}".format(step, program)
+    # Add to directories
+    output_directory = directories["intermediate"]
+
+    # Info
+    description = "Identify eukaryotic core markers"
+
+
+    # i/o
+    input_filepaths = [
+        os.path.join(directories["intermediate"], "identifier_mapping.metaeuk.tsv"),
+        os.path.join(directories["intermediate"], "scaffolds_to_bins.tsv"),
+        opts.hmms,
+        opts.scores_cutoff,
+        ]
+
+    output_filepaths = [os.path.join(directories["intermediate"], "identifier_mapping.metaeuk.score_filtered.tsv")]
+
+
+    params = {
+        "input_filepaths":input_filepaths,
+        "output_filepaths":output_filepaths,
+        "output_directory":output_directory,
+        "opts":opts,
+        "directories":directories,
+    }
+
+    cmd = get_hmmsearch_cmd(**params)
+
+    pipeline.add_step(
+                id=program,
+                description = description,
+                step=step,
+                cmd=cmd,
+                input_filepaths = input_filepaths,
+                output_filepaths = output_filepaths,
+                validate_inputs=True,
+                validate_outputs=True,
+    )
+
     # ==========
     # Get classifications
     # ==========
@@ -359,13 +454,13 @@ def create_pipeline(opts, directories, f_cmds):
 
 
     # i/o
-    if opts.include_all_genes:
-        input_filepaths = [ os.path.join(directories["preprocessing"], "all_samples.identifier_mapping.metaeuk.tsv")]
-    else:
-        input_filepaths = [ os.path.join(directories["preprocessing"], "all_samples.identifier_mapping.metaeuk.score_filtered.tsv")]
+    # if opts.include_all_genes:
+    #     input_filepaths = [ os.path.join(directories["preprocessing"], "identifier_mapping.metaeuk.tsv")]
+    # else:
+    input_filepaths = [ os.path.join(directories["intermediate"], "identifier_mapping.metaeuk.score_filtered.tsv")]
 
     input_filepaths += [
-        os.path.join(directories["preprocessing"], "all_samples.scaffolds_to_bins.tsv"),
+        os.path.join(directories["intermediate"], "scaffolds_to_bins.tsv"),
         opts.eukaryotic_database,
         ]
     # if opts.clusters:
@@ -482,10 +577,10 @@ def create_pipeline(opts, directories, f_cmds):
 
 # Configure parameters
 def configure_parameters(opts, directories):
-    if not opts.include_all_genes:
-        assert opts.hmms is not None, "If not --include_all_genes then you must provide --hmms"
-        assert opts.scores_cutoff is not None, "If not --include_all_genes then you must provide --scores_cutoff"
-
+    # if not opts.include_all_genes:
+    #     assert opts.hmms is not None, "If not --include_all_genes then you must provide --hmms"
+    #     assert opts.scores_cutoff is not None, "If not --include_all_genes then you must provide --scores_cutoff"
+    assert bool(opts.eukaryotic_binning_directory) != bool(opts.genomes), "Must choose either --eukaryotic_binning_directory or --genomes, not both."
     # Set environment variables
     add_executables_to_environment(opts=opts)
 
@@ -496,19 +591,18 @@ def main(args=None):
     # Path info
     description = """
     Running: {} v{} via Python v{} | {}""".format(__program__, __version__, sys.version.split(" ")[0], sys.executable)
-    usage = "{} -i <eukaryotic_binning_directory> -o <output_directory>".format(__program__)
+    usage = "{} -i <eukaryotic_binning_directory>|-g <genomes.list> -o <output_directory>".format(__program__)
     epilog = "Copyright 2021 Josh L. Espinoza (jespinoz@jcvi.org)"
 
     # Parser
     parser = argparse.ArgumentParser(description=description, usage=usage, epilog=epilog, formatter_class=argparse.RawTextHelpFormatter)
-    # Pipeline
+    # Pipeline 
     parser_io = parser.add_argument_group('Required I/O arguments')
-    parser_io.add_argument("-i","--eukaryotic_binning_directory", type=str, required=True, help = "path/to/eukaryotic_binng_directory")
-    # parser_io.add_argument("-m","--mags", type=str, required=True, help = "Tab-seperated value table of [id_mag]<tab>[path/to/genome.fasta]")
-    # parser_io.add_argument("-i","--metaeuk_identifier_mapping", type=str, required=True, help = "path/to/identifier_mapping.metaeuk.tsv")
-    # parser_io.add_argument("-s","--scaffolds_to_bins", type=str, required=False, help = "path/to/scaffolds_to_bins.tsv")
+    parser_io.add_argument("-i","--eukaryotic_binning_directory", type=str, help = "path/to/eukaryotic_binning_directory [Cannot be used with --genomes]")
+    parser_io.add_argument("-g","--genomes", type=str, help = "path/to/genomes.list where each line is a path to a genome.fasta [Cannot be ued with --eukaryotic_binning_directory]")
     parser_io.add_argument("-c","--clusters", type=str, help = "path/to/clusters.tsv, Format: [id_mag]<tab>[id_cluster], No header.")
     parser_io.add_argument("-o","--output_directory", type=str, default="veba_output/classify/eukaryotic", help = "path/to/output_directory [Default: veba_output/classify/eukaryotic]")
+    parser_io.add_argument("-x","--extension", type=str, default="fa", help = "path/to/output_directory.  Does not support gzipped. [Default: fa]")
 
     # Utility
     parser_utility = parser.add_argument_group('Utility arguments')
@@ -527,10 +621,7 @@ def main(args=None):
     # Databases
     parser_databases = parser.add_argument_group('Database arguments')
     parser_databases.add_argument("--veba_database", type=str,  help=f"VEBA database location.  [Default: $VEBA_DATABASE environment variable]")
-    # parser_databases.add_argument("--eukaryotic_database", type=str, default=DATABASE_EUKARYOTIC, help="Database | path/to/eukaryotic_database (e.g. --arg 1 ) [Default: {}]".format(DATABASE_EUKARYOTIC))
-    # parser_databases.add_argument("--hmms", type=str, default=os.path.join(DATABASE_EUKARYOTIC, "hmms", "eukaryota_odb10.hmm"), help="Core HMMs for HMMER's hmmsearch [Default: {}]".format(os.path.join(DATABASE_EUKARYOTIC, "hmms", "eukaryota_odb10.hmm"))) # 
-    # parser_databases.add_argument("--scores_cutoff", default=os.path.join(DATABASE_EUKARYOTIC, "hmms", "eukaryota_odb10.scores_cutoff.tsv.gz"), help="Tab-separated value file with [id_query]<tab>[score] [Default: {}]".format(os.path.join(DATABASE_EUKARYOTIC, "hmms", "eukaryota_odb10.scores_cutoff.tsv.gz")))
-    parser_databases.add_argument("--include_all_genes",  action="store_true", help="Use if you want to include all genes for taxonomy classification instead of only core markers from BUSCO's eukaryota_odb10")
+    # parser_databases.add_argument("--include_all_genes",  action="store_true", help="Use if you want to include all genes for taxonomy classification instead of only core markers from BUSCO's eukaryota_odb10")
 
     # Consensus genome classification
     parser_consensus= parser.add_argument_group('Consensus genome arguments')
@@ -545,6 +636,12 @@ def main(args=None):
     opts.script_directory  = script_directory
     opts.script_filename = script_filename
 
+    # Threads
+    if opts.n_jobs == -1:
+        from multiprocessing import cpu_count 
+        opts.n_jobs = cpu_count()
+    assert opts.n_jobs >= 1, "--n_jobs must be ≥ 1.  To select all available threads, use -1."
+
     # Database
     if opts.veba_database is None:
         assert "VEBA_DATABASE" in os.environ, "Please set the following environment variable 'export VEBA_DATABASE=/path/to/veba_database' or provide path to --veba_database"
@@ -556,7 +653,7 @@ def main(args=None):
     # Directories
     directories = dict()
     directories["project"] = create_directory(opts.output_directory)
-    directories["preprocessing"] = create_directory(os.path.join(directories["project"], "preprocessing"))
+    # directories["preprocessing"] = create_directory(os.path.join(directories["project"], "preprocessing"))
     directories["output"] = create_directory(os.path.join(directories["project"], "output"))
     directories["log"] = create_directory(os.path.join(directories["project"], "log"))
     directories["tmp"] = create_directory(os.path.join(directories["project"], "tmp"))

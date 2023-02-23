@@ -1,4 +1,4 @@
-name: VEBA-annotate_env
+name: VEBA-annotate_env__v2022.4.19
 channels:
   - bioconda
   - conda-forge

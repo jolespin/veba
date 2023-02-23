@@ -12,7 +12,7 @@ from soothsayer_utils import *
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2022.11.14"
+__version__ = "2023.2.22"
 
 # .............................................................................
 # Notes
@@ -75,12 +75,23 @@ def get_assembly_cmd( input_filepaths, output_filepaths, output_directory, direc
     # Create SAF file
     if opts.program == "rnaspades.py":
         cmd += [ 
-            "&&",
+                "&&",
+
             os.environ["fasta_to_saf.py"],
             "-i",
             os.path.join(output_directory, "transcripts.fasta"),
             ">",
             os.path.join(output_directory, "transcripts.fasta.saf"),
+            
+                "&&",
+
+            os.environ["transcripts_to_genes.py"],
+            "-i",
+            os.path.join(output_directory, "transcripts.fasta"),
+            "--column_order gene,transcript",
+            "--gene_prefix g",
+            ">",
+            os.path.join(output_directory, "genes_to_transcripts.tsv"),
         ]
 
     else:
@@ -237,7 +248,8 @@ def add_executables_to_environment(opts):
     Adapted from Soothsayer: https://github.com/jolespin/soothsayer
     """
     accessory_scripts = {
-                "fasta_to_saf.py"
+                "fasta_to_saf.py",
+                "transcripts_to_genes.py",
                 }
 
     required_executables={
@@ -304,7 +316,7 @@ def create_pipeline(opts, directories, f_cmds):
     # i/o
     input_filepaths = [opts.forward_reads, opts.reverse_reads]
     if opts.program == "rnaspades.py":
-        output_filenames = ["transcripts.fasta", "transcripts.fasta.saf"]
+        output_filenames = ["transcripts.fasta", "transcripts.fasta.saf", "genes_to_transcripts.tsv"]
     else:
         output_filenames = ["scaffolds.fasta", "scaffolds.fasta.saf"]
     output_filepaths = list(map(lambda filename: os.path.join(output_directory, filename), output_filenames))
@@ -464,8 +476,6 @@ def create_pipeline(opts, directories, f_cmds):
 
     ]
 
-
-
     output_filenames = ["seqkit_stats.tsv.gz"]
     output_filepaths = list(map(lambda filename: os.path.join(output_directory, filename), output_filenames))
 
@@ -510,6 +520,8 @@ def create_pipeline(opts, directories, f_cmds):
         input_filepaths = [ 
             os.path.join(directories[("intermediate", "1__assembly")], "transcripts.fasta"),
             os.path.join(directories[("intermediate", "1__assembly")], "transcripts.fasta.*"),
+            os.path.join(directories[("intermediate", "1__assembly")], "genes_to_transcripts.tsv"),
+
         ]
     else:
         input_filepaths = [ 
@@ -617,6 +629,13 @@ def main(args=None):
     opts = parser.parse_args()
     opts.script_directory  = script_directory
     opts.script_filename = script_filename
+
+    # Threads
+    if opts.n_jobs == -1:
+        from multiprocessing import cpu_count 
+        opts.n_jobs = cpu_count()
+    assert opts.n_jobs >= 1, "--n_jobs must be ≥ 1.  To select all available threads, use -1."
+
 
     # Directories
     directories = dict()

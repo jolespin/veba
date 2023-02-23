@@ -6,6 +6,96 @@
 ________________________________________________________________
 
 #### Current Releases:
+##### Release v1.1 (Currently testing before official release)
+
+* **Modules**:
+
+	* `assembly.py`
+		* Added a `transcripts_to_genes.py` script which creates a `genes_to_transcripts.tsv` table that can be used with `TransDecoder`.
+	
+	* `binning-prokaryotic.py`
+		* Updated `CheckM` → `CheckM2`.  This removes the dependency of `GTDB-Tk` and EXTREMELY REDUCES compute resource requirements (e.g., memory and time) as `CheckM2` automatically handles candidate phyla radiation.  With this, several backend scripts were deprecated.  This cleans up the binning pipeline and error messages SUBSTANTIALLY.
+		* Uses `binning_wrapper.py` for all binning.  This makes it easier to add new binning algorithms in the future (e.g., `VAMB`).  Also, check out the new multi-split binning functionality described below.
+		* Added `--skip_concoct` in addition to the already existing `--skip_maxbin2` option as `MaxBin2` takes very long when there's a lot of contigs and `CONCOCT` takes a long time when there are a lot of samples (i.e., BAM files).  `MetaBAT2` is not optional.  
+		
+		
+	* `binning-viral.py`
+		* Complete rewrite of this module which now uses `geNomad` as the default binning algorithm but still supports `VirFinder`.
+		* If `VirFinder` is used, the `genomad annotate` is run via the `genomad_taxonomy_wrapper.py` script included in the update. 
+		* Updated `Prodigal` → `Prodigal-GV` to handle additional viral genetic codes.
+		
+	* `classify-prokaryotic.py`
+		* Updated `GTDB-Tk v2.1.1` →  `GTDB-Tk v2.2.3`.  For now, `--skip_ani_screen` is the only option because of [this thread](https://forum.gtdb.ecogenomic.org/t/how-can-i-use-the-mash-db-option-of-classify-wf/429/4).  However, `--mash_db` may be an option in the near future.
+		* Added functionality to classify prokaryotic genomes that were not binned via `VEBA` which is available with the `--genomes` option (`--prokaryotic_binning_directory` is still available which can leverage existing intermediate files).		
+	* `classify-eukaryotic.py`
+		* Added functionality to classify eukaryotic genomes that were not binned via `VEBA` which is available with the `--genomes` option (`--eukaryotic_binning_directory` is still available which can leverage existing intermediate files). This is implemented by using the `eukaryota_odb10` markers from the `VEBA Microeukaryotic Database` to substantially improve performance and decrease resources required for gene models.
+	
+	* `classify-viral.py`
+		* Complete rewrite of this module which does not rely on (deprecated) intermediate files from `CheckV`.
+		* Uses taxonomy generated from `geNomad` and `consensus_genome_classification_unranked.py` (a wrapper around `taxopy`) that can handle the chaotic taxonomy of viruses.
+		* Added functionality to classify viral genomes that were not binned via `VEBA` which is available with the `--genomes` option (`--viral_binning_directory` is still available which can leverage existing intermediate files).
+
+	* `cluster.py`
+		* Complete rewrite of this module which now uses `MMSEQS2` as the orthogroup detection algorithm instead of `OrthoFinder`.  `OrthoFinder` is overkill for creating protein clusters and it generates thousands of intermediate files (e.g., fasta, alignments, trees, etc.) which substantially increases the compute time.  `MMSEQS2` has very similar performance with a fraction of the resources and compute time.  Clustered the entire [Plastisphere dataset](https://figshare.com/articles/dataset/Genome_assemblies_gene_models_gene_annotations_taxonomy_classifications_clusters_and_counts_tables/20263974) on a local machine in ~30 minutes compared to several days on a HPC.
+		* Now that the resources are minimal, clustering is performed at global level as before (i.e., all samples in the dataset) and now at the local level, optionally but ON by default, which clusters all genomes within a sample.  Accompanying wrapper scripts are `global_clustering.py` and `local_clustering.py`.
+		* The genomic and functional feature compression ratios (FCR) (described [here](https://bmcbioinformatics.biomedcentral.com/articles/10.1186/s12859-022-04973-8)]) are now calculated automatically.  The calculation is `1 - number_of_clusters/number_of_features` which can easily be converted into an unsupervised biodiversity metric.  This is calculated at the global (original implementation) and local levels.
+		* Input is now a table with the following columns: `[organism_type]<tab>[id_sample]<tab>[id_mag]<tab>[genome]<tab>[proteins]` and is generated easily with the `compile_genomes_table.py` script.  This allows clustering to be performed for prokaryotes, eukaryotes, and viruses all at the same time.
+		* SLC-specific orthogroups (SSO) are now refered to as SLC-specific protein clusters (SSPC).
+		* Support zfilling (e.g., `zfill=3, SLC7 → SLC007`) for genomic and protein clusters.
+		* Deprecated `fastani_to_clusters.py` to now use the more generalizable `edgelist_to_clusters.py` which is used for both genomic and protein clusters.  This also outputs a `NetworkX` graph and a pickled dictionary `{"cluster_a":{"component_1", "component_2", ..., "component_n"}}`
+		
+* **`VEBA Database`**:
+	* `VDB_v3.1` → `VDB_v4`
+		* Updated `CheckV DB v1.0` → `CheckV DB v1.5`
+		* Added `geNomad DB v1.2`
+		* Added `CheckM2 DB`
+		* Removed `CheckM DB`
+		* Added `reference.eukaryota_odb10.list` and corresponding `MMSEQS2` database (i.e., `microeukaryotic.eukaryota_odb10`)
+
+* **Scripts:**
+	* Added:
+		* `append_geneid_to_transdecoder_gff.py`
+		* `bowtie2_wrapper.py`
+		* `compile_genomes_table.py`
+		* `consensus_genome_classification_unranked.py`
+		* `cut_table.py`
+		* `cut_table_by_column_labels.py`
+		* `drop_missing_values.py`
+		* `edgelist_to_clusters.py`
+		* `filter_checkm2_results.py`
+		* `genomad_taxonomy_wrapper.py`
+		* `global_clustering.py`
+		* `local_clustering.py`
+		* `partition_multisplit_bins.py`
+		* `scaffolds_to_clusters.py`
+		* `scaffolds_to_samples.py`
+		* `transcripts_to_genes.py`
+		* `transdecoder_wrapper.py` (Note: Requires separate environment to run due to dependency conflicts)
+
+	* Updated:
+		* `antismash_genbanks_to_table.py` - Added option to output biosynthetic gene cluster (BGC) fasta. Adds unique (and parseable) BGC identifiers making the output much more useful.
+		* `binning_wrapper.py` - This binning wrapper now includes functionality to use multi-split binning (i.e., concatenated contigs from different assemblies, map all reads to the contigs, bin all together, and then parition bins by sample).  This concept AFAIK was first introduced in the [`VAMB`](https://www.nature.com/articles/s41587-020-00777-4) paper.
+		* `compile_reads_table.py` - Minimal change but now the extension excludes the `.` to make usage more consistent with other tools.
+		* `consensus_genome_classification.py` - Changed the output to match that of `consensus_genome_classification_unranked.py`.
+		* `filter_checkv_results.py` - Option to use taxonomy and viral summaries generated by `geNomad`.
+		* `scaffolds_to_bins.py` - Support for getting scaffolds to bins for a list of genomes via `--genomes` argument while maintaining original support with `--binning_directory` argument.
+		* `subset_table.py` - Added option to set index column and to drop duplicates.
+		* `virfinder_wrapper.r` - Used to be `VirFinder_wrapper.R`.  This now has an option to use FDR values instead of P values.
+
+	* Deprecated:
+		* `adjust_genomes_for_cpr.py`
+		* `filter_checkm_results.py`
+		* `fastani_to_clusters.py`
+		* `partition_orthogroups.py`
+		* `partition_clusters.py`
+		* `compile_viral_classifications.py`
+
+* **Miscellaneous**:
+	* Updated environments and now add versions to environments.
+	* Added `mamba` to installation to speed up.
+	* Added `transdecoder_wrapper.py` which is a wrapper around `TransDecoder` with direct support for `Diamond` and `HMMSearch` homology searches.  Also includes `append_geneid_to_transdecoder_gff.py` which is run in the backend to clean up the GFF file and make them compatible with what is output by `Prodigal` and `MetaEuk` runs of `VEBA`.
+	* Added support for using `n_jobs -1` to use all available threads (similar to `scikit-learn` methodology).
+
 
 ##### Release v1.0.4
 * Added `biopython` to `VEBA-assembly_env` which is needed when running `MEGAHIT` as the scaffolds are rewritten and [an error](https://github.com/jolespin/veba/issues/17) was raised. [aea51c3](https://github.com/jolespin/veba/commit/aea51c3e0b775aec90f7343f01cad6911f526f0a)
@@ -69,18 +159,20 @@ ________________________________________________________________
 
 Completed:
 
+* √ Update *CheckM* to *CheckM2* to more efficiently handle CPR.
 * √ Change default human reference genome from [GRCh38 no-alt analysis set](https://genome-idx.s3.amazonaws.com/bt/GRCh38_noalt_as.zip) to [T2T CHM13v2.0](https://genome-idx.s3.amazonaws.com/bt/chm13v2.0.zip)
 * √ Update *GTDBTk* v1.x to v2.x and the database from [R202](https://data.gtdb.ecogenomic.org/releases/release202/202.0/auxillary_files/gtdbtk_r202_data.tar.gz) to [R207_v2](https://data.gtdb.ecogenomic.org/releases/latest/auxillary_files/gtdbtk_v2_data.tar.gz)
 * √ Add **experimental** `amplicon.py` module for ASV detection via DADA2 implemented in QIIME2. 
 * √ Add `conda install -c bioconda sra-tools` to `VEBA-preprocess_env` and update environment
-* √ More detailed error message for `binning-prokaryotic.py` penultimate step.
+* √ ~~More detailed error message for `binning-prokaryotic.py` penultimate step.~~
  
 Pending:
+
 * Create a `assembly_longreads.py` module that uses `MetaFlye`
 * Add an option for sample name prefix in `assembly.py`
 * Add support for *geNomad* for viral binning instead of *VirFinder*.
 
-* [CONTINGENT] Once *CheckM2* is peer-reviewed and available on Conda, it will replace *CheckM* and the automated CPR workflow implemented by *VEBA*.
+
 
 
 ________________________________________________________________
@@ -88,6 +180,8 @@ ________________________________________________________________
 
 
 #### Change Log:
+* [2023.2.23] - The largest update to date.  Please refer to v1.1 for details on what has been changed.
+* [2023.01.20] - Changed `-a --ani` to `-t --threshold` in `fastani_to_clusters.py` to match the usage in `edgelist_to_clusters.py` which is a generalization of `fastani_to_clusters.py` developed for `MMSEQS2` and `Diamond` implementations.
 * [2023.01.12] - Updated `VDB-Microeukaryotic_v2` to `VDB-Microeukaryotic_v2.1` to include a `reference.eukaryota_odb10.list` containing all the eukaryotic core markers. To accomodate this, I've also updated `VDB_v3` to `VDB_v3.1`, the `download_databases.sh` script, and the `VEBA-database_env.yml` environment file.  Now a `microeukaryotic.eukaryota_odb10` will be available for streamlined eukaryotic classification.
 * [2023.01.11] - `biosynthetic.py` automatically removes assembly.gbk and assembly.json files because they are big and unnecessary.
 * [2023.01.08] - Added an internal checkpoint system for `biosynthetic.py` when re-running an incomplete `antiSMASH` step (useful when running large numbers of genomes).  Fixed the follow environment files: `VEBA-amplicon_env.yml`, `VEBA-binning-prokaryotic_env.yml`, and `VEBA-binning-eukaryotic_env.yml` as they had either PyPI or package conflict errors during installation.

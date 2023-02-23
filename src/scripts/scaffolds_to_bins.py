@@ -4,7 +4,7 @@ from collections import OrderedDict
 import pandas as pd
 
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2021.03.26"
+__version__ = "2023.2.16"
 
 def main(args=None):
     # Path info
@@ -19,7 +19,8 @@ def main(args=None):
     # Parser
     parser = argparse.ArgumentParser(description=description, usage=usage, epilog=epilog, formatter_class=argparse.RawTextHelpFormatter)
     # Pipeline
-    parser.add_argument("-i","--binning_directory", type=str, help = "path/to/binning_directory")
+    parser.add_argument("-i","--binning_directory", type=str, help = "path/to/binning_directory [Cannot use with --genomes]")
+    parser.add_argument("-g","--genomes", type=str, help = "path/to/genomes.list with each line as a path to genome.fasta [Cannot use with --binning_directory]")
     parser.add_argument("-x","--extension", default="fa", type=str, help = "Binning file extension [Default: fa]")
     parser.add_argument("--sep", type=str, default="\t",  help = "Seperator [Default: '\t'")
     parser.add_argument("--scaffold_column_name", type=str, default="Scaffold", help="Scaffold column name [Default: Scaffold]")
@@ -36,30 +37,59 @@ def main(args=None):
     # Parse
     assert opts.column_order in {"scaffold,bin", "bin,scaffold"}, "Must choose either 'scaffold,bin' or 'bin,scaffold' for --column_order"
 
-    assert os.path.exists(opts.binning_directory), "{} does not exist".format(opts.binning_directory)
+    assert bool(opts.binning_directory) != bool(opts.genomes), "Must choose either --eukaryotic_binning_directory or --genomes, not both."
+
 
     if not opts.bin_prefix:
         opts.bin_prefix = ""
         
-    scaffold_to_bin = OrderedDict()
-    for filepath in glob.glob(os.path.join(opts.binning_directory, "*.{}".format(opts.extension))):
-        id_bin = filepath.split("/")[-1][:-1*(len(opts.extension)+1)]
-        id_bin = "{}{}".format(opts.bin_prefix, id_bin)
 
-        if opts.extension.endswith(".gz"):
-            f = gzip.open(filepath, "rt")
-        else:
-            f = open(filepath, "r")
-        for line in f:
-            if opts.header:
-                if line.startswith(">"):
-                    id_scaffold = line.strip()[1:]
-                    scaffold_to_bin[id_scaffold] = id_bin 
+
+    scaffold_to_bin = OrderedDict()
+
+    if opts.binning_directory:
+        assert os.path.exists(opts.binning_directory), "{} does not exist".format(opts.binning_directory)
+        for filepath in glob.glob(os.path.join(opts.binning_directory, "*.{}".format(opts.extension))):
+            id_bin = filepath.split("/")[-1][:-1*(len(opts.extension)+1)]
+            id_bin = "{}{}".format(opts.bin_prefix, id_bin)
+
+            if opts.extension.endswith(".gz"):
+                f = gzip.open(filepath, "rt")
             else:
-                if line.startswith(">"):
-                    id_scaffold = line.strip()[1:].split(" ")[0]
-                    scaffold_to_bin[id_scaffold] = id_bin 
-        f.close()
+                f = open(filepath, "r")
+            for line in f:
+                if opts.header:
+                    if line.startswith(">"):
+                        id_scaffold = line.strip()[1:]
+                        scaffold_to_bin[id_scaffold] = id_bin 
+                else:
+                    if line.startswith(">"):
+                        id_scaffold = line.strip()[1:].split(" ")[0]
+                        scaffold_to_bin[id_scaffold] = id_bin 
+            f.close()
+
+    if opts.genomes:
+        with open(opts.genomes, "r") as f_list:
+            for line in f_list.readlines():
+                filepath = line.strip()
+                
+                id_bin = filepath.split("/")[-1][:-1*(len(opts.extension)+1)]
+                id_bin = "{}{}".format(opts.bin_prefix, id_bin)
+
+                if opts.extension.endswith(".gz"):
+                    f = gzip.open(filepath, "rt")
+                else:
+                    f = open(filepath, "r")
+                for line in f:
+                    if opts.header:
+                        if line.startswith(">"):
+                            id_scaffold = line.strip()[1:]
+                            scaffold_to_bin[id_scaffold] = id_bin 
+                    else:
+                        if line.startswith(">"):
+                            id_scaffold = line.strip()[1:].split(" ")[0]
+                            scaffold_to_bin[id_scaffold] = id_bin 
+                f.close()
         
     df = pd.Series(scaffold_to_bin).to_frame(opts.bin_column_name)
     df.index.name = opts.scaffold_column_name 

@@ -1,10 +1,9 @@
-name: VEBA-assembly_env
+name: VEBA-assembly_env__2022.12.21
 channels:
   - conda-forge
   - bioconda
   - jolespin
   - defaults
-  - qiime2/label/r2022.2
 dependencies:
   - _libgcc_mutex=0.1=conda_forge
   - _openmp_mutex=4.5=2_gnu
@@ -139,4 +138,3 @@ dependencies:
   - xz=5.2.6=h166bdaf_0
   - zlib=1.2.13=h166bdaf_4
   - zstd=1.5.2=h6239696_4
-prefix: /expanse/projects/jcl110/anaconda3/envs/VEBA-assembly_env

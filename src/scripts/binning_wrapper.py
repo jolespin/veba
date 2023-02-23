@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 from __future__ import print_function, division
-import sys, os, argparse, glob, random
+import sys, os, argparse, glob, random, shutil
 from collections import OrderedDict, defaultdict
 
 import pandas as pd
@@ -12,9 +12,7 @@ from soothsayer_utils import *
 
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2022.04.11"
-
-
+__version__ = "2023.2.7"
 
 def get_maxbin2_cmd( input_filepaths, output_filepaths, output_directory, directories, opts):
     # Create dummy scaffolds_to_bins.tsv to overwrite later. This makes DAS_Tool easier to run
@@ -274,7 +272,35 @@ for FP in %s;
 
     return cmd
 
-
+# # VAMB
+# def get_vamb_cmd(input_filepaths, output_filepaths, output_directory, directories, opts):
+#     os.environ["TMPDIR"] = directories["tmp"]
+#     # Command
+#     cmd = [
+#     "(echo $CONDA_PREFIX && echo $PATH)",
+#     "&&",
+#     # VAMB
+#     "(",
+#     "rm -r {}".format(output_directory), # There can't be an existing directory for some reason
+#     "&&",
+#     os.environ["vamb"],
+#     "--fasta {}".format(input_filepaths[0]),
+#     "--jgi {}".format(input_filepaths[1]),
+#     "-m {}".format(opts.minimum_contig_length),
+#     # "-p {}".format(opts.n_jobs),
+#     "--outdir {}".format(output_directory),
+#     opts.vamb_options,
+#         "&&",
+#     os.environ["scaffolds_to_bins.py"],
+#     "-x fna",
+#     "-i {}".format(output_directory),
+#     # "--sep '\t'",
+#     "--bin_prefix VAMB__",
+#     ">",
+#     os.path.join(output_directory, "scaffolds_to_bins.tsv"),
+#     ")",
+#     ]
+#     return cmd
 
 def get_compile_cmd( input_filepaths, output_filepaths, output_directory, directories, opts):
 
@@ -368,7 +394,14 @@ def get_compile_cmd( input_filepaths, output_filepaths, output_directory, direct
         "-T",
         "-j {}".format(opts.n_jobs),
         os.path.join(output_directory, "bins", "*.fa"),
-        ">",
+
+            "|",
+
+        # Remove extension
+        """python -c 'import sys, pandas as pd; df = pd.read_csv(sys.stdin, sep="\t", index_col=0); df.index = df.index.map(lambda x: x[:-3]); df.to_csv(sys.stdout, sep="\t")'"""
+
+            ">",
+
         os.path.join(output_directory,  "genome_statistics.tsv"),
     ]
 
@@ -379,15 +412,54 @@ def get_compile_cmd( input_filepaths, output_filepaths, output_directory, direct
             "rm -rf {}".format(os.path.join(output_directory,"bins")),
         ]
 
-    # if opts.remove_intermediate_files:
-    #     cmd += [ 
-    #         "&&",
-    #         "rm -rf {}".format(os.path.join(output_directory,"intermediate")),
-    #     ]
 
     return cmd
 
+def get_multisplit_cmd( input_filepaths, output_filepaths, output_directory, directories, opts):
 
+    cmd = [
+
+        os.environ["partition_multisplit_bins.py"],
+        "--scaffolds_to_samples {}".format(opts.multisplit),
+        "--binning_directory {}".format(input_filepaths[0]),
+        "--output_directory {}".format(output_directory),
+        "-x fa",
+        "-d {}".format(opts.delimiter),
+
+    ]
+
+    if not opts.remove_bins:
+        cmd += [
+
+            "&&",
+
+        os.environ["seqkit"],
+        "stats",
+        "--basename",
+        "--all",
+        "-T",
+        "-j {}".format(opts.n_jobs),
+        os.path.join(output_directory, "*", "bins", "*.fa"),
+
+            "|",
+
+        # Remove extension
+        """python -c 'import sys, pandas as pd; df = pd.read_csv(sys.stdin, sep="\t", index_col=0); df.index = df.index.map(lambda x: x[:-3]); df.to_csv(sys.stdout, sep="\t")'"""
+
+            ">",
+
+        os.path.join(output_directory,  "genome_statistics.tsv"),
+
+            "&&",
+
+        "for FP in %s; do DIR=$(dirname $FP); %s -i $FP -t %s -o ${DIR}/genome_statistics.tsv; done"%(
+            os.path.join(output_directory, "*", "bins.list"),
+            os.environ["subset_table.py"],
+            os.path.join(output_directory,  "genome_statistics.tsv"),
+            ),
+    ]
+
+    return cmd
 # ============
 # Run Pipeline
 # ============
@@ -432,7 +504,10 @@ def create_pipeline(opts, directories, f_cmds):
         # Output directory
 
 
-        input_filepaths = [opts.fasta, opts.bam]
+        input_filepaths = [
+            opts.fasta, 
+            *opts.bam,
+            ]
 
         params = {
             "input_filepaths":input_filepaths,
@@ -571,6 +646,62 @@ def create_pipeline(opts, directories, f_cmds):
 
     )
 
+    if opts.multisplit:
+        step = 3
+        program = "multisplit"
+
+        program_label = "{}__{}".format(step, program)
+
+        # Add to directories
+        output_directory = os.path.join(directories["output"], "multisplit")
+
+        # Info
+
+        description = "Partition bins by sample"
+
+        # i/o
+        input_filepaths = [
+            directories["output"], 
+        ]
+
+
+        output_filenames =  [
+            "*/scaffolds_to_bins.tsv", 
+            "*/binned.list",
+            "*/bins.list",
+        ]
+        if not opts.remove_bins:
+            output_filenames += [ 
+            "*/genome_statistics.tsv",
+            "*/bins/*.fa",
+            ]
+
+
+        output_filepaths = list(map(lambda fn:os.path.join(output_directory, fn), output_filenames))
+
+        
+        params = {
+        "input_filepaths":input_filepaths,
+        "output_filepaths":output_filepaths,
+        "output_directory":output_directory,
+        "opts":opts,
+        "directories":directories,
+        }
+
+        cmd = get_multisplit_cmd(**params)
+        pipeline.add_step(
+                id=program_label,
+                description = description,
+                step=step,
+                cmd=cmd,
+                input_filepaths = input_filepaths,
+                output_filepaths = output_filepaths,
+                validate_inputs=True,
+                validate_outputs=True,
+                log_prefix=program_label,
+
+        )
+
     return pipeline
 
 
@@ -582,11 +713,12 @@ def add_executables_to_environment(opts):
     """
     accessory_scripts = {
         "scaffolds_to_bins.py",
+        "partition_multisplit_bins.py",
+        "subset_table.py",
     }
 
     required_executables={
                 "seqkit",
-                # "tiara",
      } 
     if opts.algorithm in {"maxbin2", "metabat2"}:
         if opts.bam:
@@ -610,7 +742,10 @@ def add_executables_to_environment(opts):
             } 
     # if opts.algorithm == "metacoag":
     #     required_executables |= {"MetaCoAG"}
-        
+
+    # if opts.algorithm == "vamb":
+    #     required_executables |= {"vamb"}
+            
 
     required_executables |= accessory_scripts
 
@@ -695,8 +830,13 @@ def main(argv=None):
     parser_io.add_argument("-b","--bam", type=str, required=False, nargs="+", help = "path/to/mapped.sorted.bam files separated by spaces. Can be used with any binning algorithm but cannot be used with --coverage")
     parser_io.add_argument("-c","--coverage", type=str, required=False, help = "path/to/coverage.tsv. Can be used with --algorithm metabat2 maxbin2 but not available for --algorithm concoct and cannot be used with --bam")
     parser_io.add_argument("-o","--output_directory", type=str,  help = "path/to/binning_output [Default: binning_output/[algorithm_name]]")
-    # parser_io.add_argument("-M","--multisplit", type=str,  help = "path/to/scaffolds_to_samples.tsv. Use this to perform multisplit binning. Expected table input is the following format: [id_scaffold]<tab>[id_sample], No header. [Optional]")
 
+    parser_multisplit = parser.add_argument_group('Multisplit arguments')
+    parser_multisplit.add_argument("-M","--multisplit", type=str,  help = "path/to/scaffolds_to_samples.tsv. Use this to perform multisplit binning. Expected table input is the following format: [id_scaffold]<tab>[id_sample], No header. [Optional]")
+    parser_multisplit.add_argument("-d", "--delimiter", type=str,  default="__", help="Delimiter between [id_sample]<delimiter>[id_bin].  Only used with multisplit. a[Default: __ which is [id_sample]__[id_bin]")
+
+    # Multi-split will make the output/sample_x/ and then all of the files that are normally in output but per sample
+    
     # Utility
     parser_utility = parser.add_argument_group('Utility arguments')
 
@@ -714,7 +854,7 @@ def main(argv=None):
     parser_binning.add_argument("-P","--bin_prefix", type=str,  default="DEFAULT", help = "Prefix for bin names. Special strings include: 1) --bin_prefix NONE which does not include a bin prefix; and 2) --bin_prefix DEFAULT then prefix is [ALGORITHM_UPPERCASE]__")
     parser_binning.add_argument("-B", "--remove_bins", action="store_true", help="Remove fasta files for bins")
     parser_binning.add_argument("-U", "--retain_unbinned_fasta", action="store_true", help="Retain unbinned fasta")
-    # parser_binning.add_argument("-R", "--remove_intermediate_files", action="store_true", help="Remove intermediate files")
+    parser_binning.add_argument("-R", "--remove_intermediate_files", action="store_true", help="Remove intermediate files. Warning: Cannot use checkpoints after this.")
 
 
     parser_maxbin2 = parser.add_argument_group('MaxBin2 arguments')
@@ -733,13 +873,8 @@ def main(argv=None):
     # parser_metacoag = parser.add_argument_group('MetaCoAG arguments')
     # parser_metacoag.add_argument("--metacoag_options", type=str, default="", help="MetaCoAG | More options (e.g. --arg 1 ) [Default: '']")
 
-
-    # # Tiara
-    # parser_domain = parser.add_argument_group('Domain classification arguments')
-    # parser_domain.add_argument("--logit_transform", type=str, default="softmax", help = " Transformation for consensus_domain_classification: {softmax, tss} [Default: softmax")
-    # parser_domain.add_argument("--tiara_minimum_length", type=int, default=3000, help="Tiara | Minimum contig length. Anything lower than 3000 is not recommended. [Default: 3000]")
-    # parser_domain.add_argument("--tiara_options", type=str, default="", help="Tiara | More options (e.g. --arg 1 ) [Default: ''] | https://github.com/ibe-uw/tiara")
-
+    # parser_vamb = parser.add_argument_group('VAMB arguments')
+    # parser_vamb.add_argument("--vamb_options", type=str, default="", help="VAMB | More options (e.g. --arg 1 ) [Default: '']")
 
     # Options
     opts = parser.parse_args(argv)
@@ -747,14 +882,16 @@ def main(argv=None):
     opts.script_directory  = script_directory
     opts.script_filename = script_filename
     
+    # Threads
+    if opts.n_jobs == -1:
+        from multiprocessing import cpu_count 
+        opts.n_jobs = cpu_count()
+    assert opts.n_jobs >= 1, "--n_jobs must be ≥ 1.  To select all available threads, use -1."
 
     # Directories
-
     assert_acceptable_arguments(opts.algorithm, {"concoct", "metabat2", "maxbin2"})
-    # if opts.multisplit:
-    #     assert opts.algorithm != "maxbin2", "MaxBin2 is marker-based and cannot be used for multisplit binning"
-
-
+    if opts.multisplit:
+        assert opts.algorithm != "maxbin2", "MaxBin2 is marker-based and cannot be used for multisplit binning"
 
     if not opts.output_directory:
         if opts.algorithm == "maxbin2":
@@ -769,7 +906,6 @@ def main(argv=None):
     directories["tmp"] = create_directory(os.path.join(directories["output"],"intermediate", "tmp"))
     directories["checkpoints"] = create_directory(os.path.join(directories["output"],"intermediate", "checkpoints"))
     os.environ["TMPDIR"] = directories["tmp"]
-
 
     # Info
     print(format_header(__program__, "="), file=sys.stdout)
@@ -793,8 +929,9 @@ def main(argv=None):
         )
         pipeline.compile()
         pipeline.execute(restart_from_checkpoint=opts.restart_from_checkpoint)
-   
 
+    if opts.remove_intermediate_files:
+        shutil.rmtree(directories["intermediate"], ignore_errors=True)
 
 if __name__ == "__main__":
     main(sys.argv[1:])

@@ -21,7 +21,7 @@ def main(args=None):
     # Parser
     parser = argparse.ArgumentParser(description=description, usage=usage, epilog=epilog, formatter_class=argparse.RawTextHelpFormatter)
     # Pipeline
-    parser.add_argument("-i","--checkv_results", type=str, required=True, help = "path/to/checkv/quality_summary.tsv")
+    parser.add_argument("-i","--checkv_results", type=str, required=True, help = "path/to/checkv/checkv_results.filtered.tsv")
     parser.add_argument("-c","--clusters", type=str,  help = "path/to/clusters.tsv, Format: [id_mag]<tab>[id_cluster], No header [Optional]")
     parser.add_argument("-o","--output", type=str, default="stdout", help = "path/to/output.tsv [Default: stdout]")
     parser.add_argument("--checkv_database", type=str, default=None, required=True, help="CheckV | path/to/checkv_database (e.g. --arg 1 )")
@@ -83,7 +83,7 @@ def main(args=None):
     # Add clusters if provided
     if opts.clusters:
         mag_to_cluster = pd.read_csv(opts.clusters, sep="\t", index_col=0, header=None).iloc[:,0]
-        df_mag_classifications.insert(loc=0, column="id_cluster", value=mag_to_cluster[df_mag_classifications.index])
+        df_mag_classifications.insert(loc=0, column="id_genome_cluster", value=mag_to_cluster[df_mag_classifications.index])
 
     # Output
     df_mag_classifications.to_csv(opts.output, sep="\t", header=bool(opts.header))

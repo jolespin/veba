@@ -4,7 +4,6 @@ channels:
   - bioconda
   - jolespin
   - defaults
-  - qiime2/label/r2022.2
 dependencies:
   - _libgcc_mutex=0.1=conda_forge
   - _openmp_mutex=4.5=2_gnu

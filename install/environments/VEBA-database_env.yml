@@ -4,7 +4,6 @@ channels:
   - bioconda
   - jolespin
   - defaults
-  - qiime2
 dependencies:
   - _libgcc_mutex=0.1=conda_forge
   - _openmp_mutex=4.5=1_gnu
@@ -128,4 +127,3 @@ dependencies:
   - xz=5.2.5=h516909a_1
   - zlib=1.2.11=h166bdaf_1014
   - zstd=1.5.2=ha95c52a_0
-prefix: /expanse/projects/jcl110/anaconda3/envs/VEBA-database_env__v2023.1.12

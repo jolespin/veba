@@ -7,7 +7,7 @@ import pandas as pd
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2022.10.24"
+__version__ = "2023.1.26"
 
 def parse_basename(query: str, naming_scheme: str):
     """
@@ -47,7 +47,7 @@ def main(args=None):
     parser_fastq_directory = parser.add_argument_group('[Mode 2] Fastq Directory arguments')
     parser_fastq_directory.add_argument("-f","--fastq_directory",  type=str, help = "path/to/fastq_directory [Cannot be used with --preprocess_directory]")
     parser_fastq_directory.add_argument("-n","--naming_scheme", default="[ID]_R[DIRECTION]_001.fastq.gz", type=str, help = "Naming scheme.  Use [ID] for identifier name and [DIRECTION] for 1 or 2. [Default: [ID]_R[DIRECTION]_001.fastq.gz]")
-    parser_fastq_directory.add_argument("-x","--extension", default=".fastq.gz", type=str, help = "File extension. Include the . [Default: .fastq.gz]")
+    parser_fastq_directory.add_argument("-x","--extension", default="fastq.gz", type=str, help = "File extension. Don't include the period/fullstop/. [Default: fastq.gz]")
 
     parser_output = parser.add_argument_group('Output arguments')
     parser_output.add_argument("-o","--output", default="stdout", type=str, help = "Output filepath [Default: stdout]")
@@ -76,7 +76,7 @@ def main(args=None):
             output[id_sample][opts.reverse_label] = fp
     # Build table from fastq directory
     if opts.fastq_directory:
-        for fp in glob.glob(os.path.join(opts.fastq_directory, "*{}".format(opts.extension))):
+        for fp in glob.glob(os.path.join(opts.fastq_directory, "*.{}".format(opts.extension))):
             basename = fp.split("/")[-1]
             id_sample, direction = parse_basename(basename, naming_scheme=opts.naming_scheme)
             # id_sample = "_R".join(basename.split("_R")[:-1])

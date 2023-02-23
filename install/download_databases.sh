@@ -1,6 +1,6 @@
 #!/bin/bash
-# __VERSION__ = "2023.1.12"
-# VEBA_DATABASE_VERSION = "VDB_v3.1"
+# __VERSION__ = "2023.2.23"
+# VEBA_DATABASE_VERSION = "VDB_v4"
 # MICROEUKAYROTIC_DATABASE_VERSION = "VDB-Microeukaryotic_v2.1"
 
 # Create database
@@ -39,12 +39,6 @@ echo ". .. ... ..... ........ ............."
 echo "ii * Processing GTDB-Tk"
 echo ". .. ... ..... ........ ............."
 
-# For GTDBTk v1
-# wget -v -P ${DATABASE_DIRECTORY} https://data.gtdb.ecogenomic.org/releases/release202/202.0/auxillary_files/gtdbtk_r202_data.tar.gz
-# tar xvzf ${DATABASE_DIRECTORY}/gtdbtk_r202_data.tar.gz -C ${DATABASE_DIRECTORY}
-# mv ${DATABASE_DIRECTORY}/release202 ${DATABASE_DIRECTORY}/Classify/GTDBTk
-# rm -rf ${DATABASE_DIRECTORY}/gtdbtk_r202_data.tar.gz
-
 # For GTDBTk v2
 wget -v -P ${DATABASE_DIRECTORY} https://data.gtdb.ecogenomic.org/releases/release207/207.0/auxillary_files/gtdbtk_r207_v2_data.tar.gz
 tar xvzf ${DATABASE_DIRECTORY}/gtdbtk_r207_v2_data.tar.gz -C ${DATABASE_DIRECTORY}
@@ -55,20 +49,36 @@ rm -rf ${DATABASE_DIRECTORY}/gtdbtk_r207_v2_data.tar.gz
 echo ". .. ... ..... ........ ............."
 echo "iii * Processing CheckV"
 echo ". .. ... ..... ........ ............."
-mkdir -v -p ${DATABASE_DIRECTORY}/Classify/CheckV
-wget -v -P ${DATABASE_DIRECTORY} https://portal.nersc.gov/CheckV/checkv-db-v1.0.tar.gz
-tar xvzf ${DATABASE_DIRECTORY}/checkv-db-v1.0.tar.gz -C ${DATABASE_DIRECTORY}
-mv ${DATABASE_DIRECTORY}/checkv-db-v1.0 ${DATABASE_DIRECTORY}/Classify/CheckV
-rm -rf ${DATABASE_DIRECTORY}/checkv-db-v1.0.tar.gz
+rm -rf ${DATABASE_DIRECTORY}/Classify/CheckV
+wget -v -P ${DATABASE_DIRECTORY} https://portal.nersc.gov/CheckV/checkv-db-v1.5.tar.gz
+tar xvzf ${DATABASE_DIRECTORY}/checkv-db-v1.5.tar.gz -C ${DATABASE_DIRECTORY}
+mv ${DATABASE_DIRECTORY}/checkv-db-v1.5 ${DATABASE_DIRECTORY}/Classify/CheckV
+diamond makedb --in ${DATABASE_DIRECTORY}/Classify/CheckV/genome_db/checkv_reps.faa --db ${DATABASE_DIRECTORY}/Classify/CheckV/genome_db/checkv_reps.dmnd
+rm -rf ${DATABASE_DIRECTORY}/checkv-db-v1.5.tar.gz
 
-# CheckM
+# geNomad
+mkdir -p ${DATABASE_DIRECTORY}/Classify/geNomad
+wget -v -O ${DATABASE_DIRECTORY}/genomad_db_v1.2.tar.gz https://zenodo.org/record/7586412/files/genomad_db_v1.2.tar.gz?download=1
+tar xvzf ${DATABASE_DIRECTORY}/genomad_db_v1.2.tar.gz -C ${DATABASE_DIRECTORY}/Classify/geNomad --strip-components=1
+rm -rf ${DATABASE_DIRECTORY}/genomad_db_v1.2.tar.gz
+
+# # CheckM
+# echo ". .. ... ..... ........ ............."
+# echo "iv * Processing CheckM"
+# echo ". .. ... ..... ........ ............."
+# mkdir -v -p ${DATABASE_DIRECTORY}/Classify/CheckM
+# wget -v -P ${DATABASE_DIRECTORY} https://data.ace.uq.edu.au/public/CheckM_databases/checkm_data_2015_01_16.tar.gz
+# tar xvzf ${DATABASE_DIRECTORY}/checkm_data_2015_01_16.tar.gz -C ${DATABASE_DIRECTORY}/Classify/CheckM
+# rm -rf ${DATABASE_DIRECTORY}/checkm_data_2015_01_16.tar.gz
+
+# CheckM2
 echo ". .. ... ..... ........ ............."
-echo "iv * Processing CheckM"
+echo "iv * Processing CheckM2"
 echo ". .. ... ..... ........ ............."
-mkdir -v -p ${DATABASE_DIRECTORY}/Classify/CheckM
-wget -v -P ${DATABASE_DIRECTORY} https://data.ace.uq.edu.au/public/CheckM_databases/checkm_data_2015_01_16.tar.gz
-tar xvzf ${DATABASE_DIRECTORY}/checkm_data_2015_01_16.tar.gz -C ${DATABASE_DIRECTORY}/Classify/CheckM
-rm -rf ${DATABASE_DIRECTORY}/checkm_data_2015_01_16.tar.gz
+mkdir -v -p ${DATABASE_DIRECTORY}/Classify/CheckM2
+wget -v -P ${DATABASE_DIRECTORY} https://zenodo.org/api/files/fd3bc532-cd84-4907-b078-2e05a1e46803/checkm2_database.tar.gz
+tar xzfv ${DATABASE_DIRECTORY}/checkm2_database.tar.gz -C ${DATABASE_DIRECTORY}/Classify/CheckM2 --strip-components=1
+rm -rf ${DATABASE_DIRECTORY}/checkm2_database.tar.gz
 
 # Microeukaryotic 
 echo ". .. ... ..... ........ ............."
@@ -89,8 +99,8 @@ mmseqs createdb ${DATABASE_DIRECTORY}/Classify/Microeukaryotic/reference.faa.gz 
 rm -rf ${DATABASE_DIRECTORY}/Microeukaryotic.tar.gz
 
 # eukaryota_odb10 subset of Microeukaryotic Protein Database
-wget -v -O ${DATABASE_DIRECTORY}/reference.eukaryota_odb10.list https://zenodo.org/record/7485114/files/reference.eukaryota_odb10.list?download=1
-seqkit grep -f ${DATABASE_DIRECTORY}/reference.eukaryota_odb10.list ${DATABASE_DIRECTORY}/Classify/Microeukaryotic/reference.faa.gz > ${DATABASE_DIRECTORY}/Classify/Microeukaryotic/reference.eukaryota_odb10.faa
+wget -v -O ${DATABASE_DIRECTORY}/Classify/Microeukaryotic/reference.eukaryota_odb10.list https://zenodo.org/record/7485114/files/reference.eukaryota_odb10.list?download=1
+seqkit grep -f ${DATABASE_DIRECTORY}/Classify/Microeukaryotic/reference.eukaryota_odb10.list ${DATABASE_DIRECTORY}/Classify/Microeukaryotic/reference.faa.gz > ${DATABASE_DIRECTORY}/Classify/Microeukaryotic/reference.eukaryota_odb10.faa
 mmseqs createdb ${DATABASE_DIRECTORY}/Classify/Microeukaryotic/reference.eukaryota_odb10.faa ${DATABASE_DIRECTORY}/Classify/Microeukaryotic/microeukaryotic.eukaryota_odb10
 rm -rf ${DATABASE_DIRECTORY}/Classify/Microeukaryotic/reference.eukaryota_odb10.faa
 # rm -rf ${DATABASE_DIRECTORY}/Classify/Microeukaryotic/reference.faa.gz
@@ -137,12 +147,6 @@ mkdir -v -p ${DATABASE_DIRECTORY}/Contamination
 mkdir -v -p ${DATABASE_DIRECTORY}/Contamination/kmers
 wget -v -O ${DATABASE_DIRECTORY}/Contamination/kmers/ribokmers.fa.gz https://figshare.com/ndownloader/files/36220587
 
-# # GRCh38
-# mkdir -v -p ${DATABASE_DIRECTORY}/Contamination/grch38
-# wget -v -P ${DATABASE_DIRECTORY} https://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/000/001/405/GCF_000001405.40_GRCh38.p14/GRCh38_major_release_seqs_for_alignment_pipelines/GCA_000001405.15_GRCh38_no_alt_analysis_set.fna.bowtie_index.tar.gz
-# tar xvzf ${DATABASE_DIRECTORY}/GCA_000001405.15_GRCh38_no_alt_analysis_set.fna.bowtie_index.tar.gz -C ${DATABASE_DIRECTORY}/Contamination/grch38
-# rm -rf ${DATABASE_DIRECTORY}/GCA_000001405.15_GRCh38_no_alt_analysis_set.fna.bowtie_index.tar.gz
-
 # Replacing GRCh38 with CHM13v2.0 in v2022.10.18
 wget -v -P ${DATABASE_DIRECTORY} https://genome-idx.s3.amazonaws.com/bt/chm13v2.0.zip
 unzip -d ${DATABASE_DIRECTORY}/Contamination/ ${DATABASE_DIRECTORY}/chm13v2.0.zip
@@ -162,23 +166,30 @@ for ENV_PREFIX in ${CONDA_BASE}/envs/VEBA-*; do
     echo "unset VEBA_DATABASE" > ${ENV_PREFIX}/etc/conda/deactivate.d/veba.sh
     done
 
-#GTDB-Tk/CheckM
+#CheckM2
 echo ". .. ... ..... ........ ............."
-echo "xii * Adding the following environment variable to VEBA environments: export GTDBTK_DATA_PATH=${REALPATH_DATABASE_DIRECTORY}/Classify/GTDBTk/"
-for ENV_NAME in VEBA-binning-prokaryotic_env VEBA-classify_env; do 
+echo "xii * Adding the following environment variable to VEBA environments: export CHECKM2DB=${REALPATH_DATABASE_DIRECTORY}/Classify/CheckM2/uniref100.KO.1.dmnd"
+for ENV_NAME in VEBA-binning-prokaryotic_env; do 
+    ENV_PREFIX=${CONDA_BASE}/envs/${ENV_NAME}
+
+    # CheckM2
+    echo "export CHECKM2DB=${REALPATH_DATABASE_DIRECTORY}/Classify/CheckM2/uniref100.KO.1.dmnd" >> ${ENV_PREFIX}/etc/conda/activate.d/veba.sh
+    echo "unset CHECKM2DB" >> ${ENV_PREFIX}/etc/conda/deactivate.d/veba.sh    
+    done 
+
+#GTDB-Tk
+echo ". .. ... ..... ........ ............."
+echo "xiii * Adding the following environment variable to VEBA environments: export GTDBTK_DATA_PATH=${REALPATH_DATABASE_DIRECTORY}/Classify/GTDBTk/"
+for ENV_NAME in VEBA-classify_env; do 
     ENV_PREFIX=${CONDA_BASE}/envs/${ENV_NAME}
     # GTDB-Tk
-    # GTDBTK_DATABASE_VERSION=$(ls ${REALPATH_DATABASE_DIRECTORY}/Classify/GTDBTk)
     echo "export GTDBTK_DATA_PATH=${REALPATH_DATABASE_DIRECTORY}/Classify/GTDBTk/" >> ${ENV_PREFIX}/etc/conda/activate.d/veba.sh
     echo "unset GTDBTK_DATA_PATH" >> ${ENV_PREFIX}/etc/conda/deactivate.d/veba.sh
-    # CheckM
-    echo "export CHECKM_DATA_PATH=${REALPATH_DATABASE_DIRECTORY}/Classify/CheckM/" >> ${ENV_PREFIX}/etc/conda/activate.d/veba.sh
-    echo "unset CHECKM_DATA_PATH" >> ${ENV_PREFIX}/etc/conda/deactivate.d/veba.sh    
     done 
 
 # CheckV
 echo ". .. ... ..... ........ ............."
-echo "xiii * Adding the following environment variable to VEBA environments: export CHECKVDB=${REALPATH_DATABASE_DIRECTORY}/Classify/CheckV/"
+echo "xiv * Adding the following environment variable to VEBA environments: export CHECKVDB=${REALPATH_DATABASE_DIRECTORY}/Classify/CheckV/"
 for ENV_NAME in VEBA-binning-viral_env; do 
     ENV_PREFIX=${CONDA_BASE}/envs/${ENV_NAME}
     echo "export CHECKVDB=${REALPATH_DATABASE_DIRECTORY}/Classify/CheckV" >> ${ENV_PREFIX}/etc/conda/activate.d/veba.sh

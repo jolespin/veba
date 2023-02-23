@@ -5,7 +5,7 @@ import pandas as pd
 import networkx as nx
 
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2021.11.16"
+__version__ = "2023.1.20"
 
 def main(args=None):
     # Path info
@@ -22,10 +22,9 @@ def main(args=None):
     # Pipeline
     parser.add_argument("-i","--input", type=str, default="stdin", help = "path/to/fastani.tsv [Default: stdin]")
     parser.add_argument("-o","--output", type=str, default="stdout", help = "path/to/clusters.tsv [Default: stdout]")
-    parser.add_argument("-a","--ani", type=str, default="95",  help = "FastANI threshold.  Can be either scalar or comma-separated list (e.g., 95,96.5) [Default: 95]")
+    parser.add_argument("-t","--threshold", type=str, default="95",  help = "FastANI threshold.  Can be either scalar or comma-separated list (e.g., 95,96.5) [Default: 95]")
     parser.add_argument("-g","--genomes", type=str,  help = "path/to/genomes.list. If filepath, then the basename is taken")
 
-    # parser.add_argument("-p","--cluster_prefix", type=str, default="",  help = "Cluster prefix [Default: '']")
     parser.add_argument("-p", "--cluster_prefix", type=str, default="SLC", help="Cluster prefix [Default: 'SLC")
     parser.add_argument("-s", "--cluster_suffix", type=str, default="", help="Cluster suffix [Default: '")
 
@@ -64,7 +63,7 @@ def main(args=None):
     else:
         f_interval = operator.gte
 
-    opts.ani = list(map(lambda x: float(x.strip()), opts.ani.split(",")))
+    opts.threshold = list(map(lambda x: float(x.strip()), opts.threshold.split(",")))
     df_fastani = pd.read_csv(opts.input, sep="\t", header=None)
 
     if not opts.no_trim:
@@ -99,7 +98,7 @@ def main(args=None):
         assert inclusion_set <= identifiers, "There are {} identifiers that are not in --input: {}".format(len(inclusion_set - identifiers))
     
     connected_components = defaultdict(dict)
-    for tol in opts.ani:
+    for tol in opts.threshold:
         tol_label = "Cluster({})".format(tol)
         # Construct graph
         graph = nx.Graph()

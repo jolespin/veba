@@ -12,7 +12,7 @@ from soothsayer_utils import *
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2022.10.24"
+__version__ = "2023.2.1"
 
 # Reads archive
 def get_reads_cmd( input_filepaths, output_filepaths, output_directory, directories, opts):
@@ -547,8 +547,6 @@ def main(args=None):
     parser_io.add_argument("-o","--project_directory", type=str, default="veba_output/amplicon", help = "path/to/project_directory [Default: veba_output/amplicon]")
     # parser_io.add_argument("--input_reads_format", type=str, default="PairedEndFastqManifestPhred33V2", help = "qiime tools import --input-format [Default: PairedEndFastqManifestPhred33V2]")
 
-
-
     # Utility
     parser_utility = parser.add_argument_group('Utility arguments')
     # parser_utility.add_argument("--path_config", type=str,  default="CONDA_PREFIX", help="path/to/config.tsv [Default: CONDA_PREFIX]")  #site-packges in future
@@ -585,6 +583,11 @@ def main(args=None):
     opts.script_filename = script_filename
     opts.path_config = "CONDA_PREFIX"
     opts.input_reads_format = "PairedEndFastqManifestPhred33V2"
+
+    if opts.n_jobs == -1:
+        from multiprocessing import cpu_count 
+        opts.n_jobs = cpu_count()
+    assert opts.n_jobs >= 1, "--n_jobs must be ≥ 1.  To select all available threads, use -1."
 
     if opts.project_directory.endswith("/"):
         opts.project_directory = opts.project_directory[:-1]
