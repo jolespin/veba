@@ -3,11 +3,11 @@ ____________________________________________________________
 #### Software installation
 One issue with having large-scale pipeline suites with open-source software is the issue of dependencies.  One solution for this is to have a modular software structure where each module has its own `conda` environment.  This allows for minimizing dependency constraints as this software suite uses an array of diverse packages from different developers. 
 
-The basis for these environments is creating a separate environment for each module with the `VEBA-` prefix and `_env` as the suffix.  For example `VEBA-assembly_env` or `VEBA-binning-prokaryotic_env`.  Because of this, `VEBA` is currently not available as a `conda` package but each module will be in the near future.  In the meantime, please use the `install/install_veba.sh` script which installs each environment from the yaml files in `install/environments/`. After installing the environments, use the `install/download_databases` script to download and configure the databases while also adding the environment variables to the activate/deactivate scripts in each environment.  To install anything manually, just read the scripts as they are well documented and refer to different URL and paths for specific installation options.
+The basis for these environments is creating a separate environment for each module with the `VEBA-` prefix and `_env` as the suffix.  For example `VEBA-assembly_env` or `VEBA-binning-prokaryotic_env`.  Because of this, `VEBA` is currently not available as a `conda` package but each module will be in the near future.  In the meantime, please use the `veba/install/install_veba.sh` script which installs each environment from the yaml files in `veba/install/environments/`. After installing the environments, use the `veba/install/download_databases` script to download and configure the databases while also adding the environment variables to the activate/deactivate scripts in each environment.  To install anything manually, just read the scripts as they are well documented and refer to different URL and paths for specific installation options.
 
 The majority of the time taken to build database is decompressing large archives, `Diamond` database creation of NR, and `MMSEQS2` database creation of microeukaryotic protein database.
 
-Total size is 375G but if you have certain databases installed already then you can just symlink them. 
+Total size is 375G but if you have certain databases installed already then you can just symlink them so the `VEBA_DATABASE` path has the correct structure.
 
 Each major version will be packaged as a [release](https://github.com/jolespin/veba/releases) which will include a log of module and script versions. 
 
@@ -76,7 +76,7 @@ The `VEBA` installation is going to configure some `conda` environments for you 
 ```
 # For stable version, download and decompress the tarball:
 
-VERSION="1.0.4"
+VERSION="1.1.0"
 wget https://github.com/jolespin/veba/archive/refs/tags/v${VERSION}.tar.gz
 tar -xvf v${VERSION}.tar.gz && mv veba-${VERSION} veba
 
@@ -93,7 +93,7 @@ cd veba/install
 
 **2. Install VEBA environments**
 
-Versions <= 1.0.4 are not resource intensive and do not require grid access but took ~1.5 hours (~90 minutes) to download and configure the dependencies.  However, with the update from CheckM1 -> CheckM2 and antiSMASH, at least 15GB of memory must be available so grid access may be necessary.
+For v1.1.0, this should take ~1.75 hours (~108 minutes).  With the update from `CheckM1` -> `CheckM2` and installation of `antiSMASH`, at ~15GB of memory must be available so grid access may be necessary.
 
 ```
 bash install_veba.sh
@@ -160,6 +160,7 @@ VEBA-assembly_env
 VEBA-binning-eukaryotic_env
 VEBA-binning-prokaryotic_env
 VEBA-binning-viral_env
+VEBA-biosynthetic_env
 VEBA-classify_env
 VEBA-cluster_env
 VEBA-database_env
@@ -212,41 +213,57 @@ There are currently 2 ways to update veba:
 
 ____________________________________________________________
 
-### Common installation errors that do not affect VEBA functionality:
 
-You may get the following **non-fatal** errors but you can ignore these: 
+### VEBA Database:
 
-* *SafetyError* from `CheckM v1.1.3`
+
+#### Profile HMM Sources:
+Please cite the following sources if these marker sets are used in any way:
 
 ```
-SafetyError: The package for checkm-genome located at /path/to/anaconda3/pkgs/checkm-genome-1.1.3-py_1
-appears to be corrupted. The path 'site-packages/checkm/DATA_CONFIG'
-has an incorrect size.
-  reported size: 215 bytes
-  actual size: 251 bytes
+* Archaea_76.hmm - (Anvi'o) Lee, https://doi.org/10.1093/bioinformatics/btz188 (https://github.com/merenlab/anvio/tree/master/anvio/data/hmm/Archaea_76)
+
+* Bacteria_71.hmm - (Anvi'o) Lee modified, https://doi.org/10.1093/bioinformatics/btz188 (https://github.com/merenlab/anvio/tree/master/anvio/data/hmm/Bacteria_71)
+
+* Protista_83.hmm - (Anvi'o) Delmont, http://merenlab.org/delmont-euk-scgs (https://github.com/merenlab/anvio/tree/master/anvio/data/hmm/Protista_83)
+
+* Fungi_593.hmm - (FGMP) https://bmcbioinformatics.biomedcentral.com/articles/10.1186/s12859-019-2782-9
+
+* CPR_43.hmm - (CheckM) https://github.com/Ecogenomics/CheckM/tree/master/custom_marker_sets
+
+* eukaryota_odb10 - (BUSCO) https://busco-data.ezlab.org/v5/data/lineages/eukaryota_odb10.2020-09-10.tar.gz
 ```
 
-* *ClobberError* from `Perl` packages
- 
-```
-ClobberError: This transaction has incompatible packages due to a shared path.
-  packages: bioconda/linux-64::perl-params-util-1.07-pl526h6bb024c_4, bioconda/linux-64::perl-package-stash-0.38-pl526hf484d3e_1
-  path: 'lib/site_perl/5.26.2/x86_64-linux-thread-multi/auto/Params/Util/.packlist'
-```
+Espinoza, Josh (2022): Profile HMM marker sets. figshare. Dataset. https://doi.org/10.6084/m9.figshare.19616016.v1 
 
-These errors have been reported during the creation of `VEBA-binning-prokaryotic_env` and `VEBA-classify_env` both of which are the only environments that install `CheckM`.  However, the SafetyError [is easily reproducible](https://github.com/Ecogenomics/CheckM/issues/349) and similar ClobberErrors have been [reported in other software suites](https://github.com/bxlab/metaWRAP/issues/72) which are likely due to Perl dependencies.  Working on addressing these minor errors but they are non-fatal so not the highest priority.  
-
-____________________________________________________________
-
-
-### Database Structure:
-
+#### Microeukaryotic protein database:
+A protein database is required not only for eukaryotic gene calls using MetaEuk but can also be used for MAG annotation.  Many eukaryotic protein databases exist such as MMETSP, EukZoo, and EukProt, yet these are limited to marine environments, include prokaryotic sequences, or include eukaryotic sequences for organisms that would not be expected to be binned out of metagenomes such as metazoans.  We combined and dereplicated MMETSP, EukZoo, EukProt, and NCBI non-redundant to include only microeukaryotes such as protists and fungi.  This optimized microeukaryotic database ensures that only eukaryotic exons expected to be represented in metagenomes are utilized for eukaryotic gene modeling and the resulting MetaEuk reference targets are used for eukaryotic MAG classification.  VEBA’s microeukaryotic protein database includes 48,006,918 proteins from 42,922 microeukaryotic strains.  
 
 **Current:**
 
-* *VEBA Database* version: `VDB_v3.1`
-The same as `VDB_v3` but updates `VDB-Microeukaryotic_v2` to `VDB-Microeukaryotic_v2.1` which has a `reference.eukaryota_odb10.list` containing only the subset of identifiers that core eukaryotic markers (useful for classification).
+* [VDB-Microeukaryotic\_v2.1](https://zenodo.org/record/7485114) available on Zenodo
 
+**Deprecated:**
+
+* [VDB-Microeukaryotic\_v1](https://figshare.com/articles/dataset/Microeukaryotic_Protein_Database/19668855) available on FigShare
+
+#### Database Structure:
+
+**Current:**
+
+* *VEBA Database* version: `VDB_v4`
+
+`VDB_v3.1` with the following changes: 1) `CheckM1` database swapped for `CheckM2` database;  includes `geNomad` database; and 3) updates `CheckV` database.  Refer to [development log](https://github.com/jolespin/veba/blob/main/DEVELOPMENT.md#release-v11-currently-testing-before-official-release) for specifics.
+
+
+**Deprecated:**
+
+
+<details>
+	<summary>*VEBA Database* version: VDB_v3.1</summary>
+	
+The same as `VDB_v3` but updates `VDB-Microeukaryotic_v2` to `VDB-Microeukaryotic_v2.1` which has a `reference.eukaryota_odb10.list` containing only the subset of identifiers that core eukaryotic markers (useful for classification).
+	
 ```
 tree -L 3 .
 .
@@ -348,11 +365,11 @@ tree -L 3 .
 
 35 directories, 60 files
 ```
+</details>
 
-**Previous:**
 
 <details>
-	<summary>*VEBA Database* version: `VDB_v3`</summary>
+	<summary>*VEBA Database* version: VDB_v3</summary>
 
 ```
 tree -L 3 .
@@ -450,7 +467,7 @@ tree -L 3 .
 
 
 <details>
-	<summary>*VEBA Database* version: `VDB_v2`</summary>
+	<summary>*VEBA Database* version: VDB_v2</summary>
 	
 * Compatible with *VEBA* version: `v1.0.2a+`
 	
@@ -548,7 +565,7 @@ tree -L 3 .
 
 
 <details>
-	<summary>*VEBA Database* version: `VDB_v1`</summary>
+	<summary>*VEBA Database* version: VDB_v1</summary>
 	
 
 * Compatible with *VEBA* version: `v1.0.0`, `v1.0.1`
@@ -745,32 +762,7 @@ tree -L 3 .
 ```
 
 </details>
-____________________________________________________________
 
-### Profile HMM Sources:
-Please cite the following sources if these marker sets are used in any way:
-
-```
-* Archaea_76.hmm - (Anvi'o) Lee, https://doi.org/10.1093/bioinformatics/btz188 (https://github.com/merenlab/anvio/tree/master/anvio/data/hmm/Archaea_76)
-
-* Bacteria_71.hmm - (Anvi'o) Lee modified, https://doi.org/10.1093/bioinformatics/btz188 (https://github.com/merenlab/anvio/tree/master/anvio/data/hmm/Bacteria_71)
-
-* Protista_83.hmm - (Anvi'o) Delmont, http://merenlab.org/delmont-euk-scgs (https://github.com/merenlab/anvio/tree/master/anvio/data/hmm/Protista_83)
-
-* Fungi_593.hmm - (FGMP) https://bmcbioinformatics.biomedcentral.com/articles/10.1186/s12859-019-2782-9
-
-* CPR_43.hmm - (CheckM) https://github.com/Ecogenomics/CheckM/tree/master/custom_marker_sets
-
-* eukaryota_odb10 - (BUSCO) https://busco-data.ezlab.org/v5/data/lineages/eukaryota_odb10.2020-09-10.tar.gz
-```
-
-Espinoza, Josh (2022): Profile HMM marker sets. figshare. Dataset. https://doi.org/10.6084/m9.figshare.19616016.v1 
-
-#### Microeukaryotic protein database:
-A protein database is required not only for eukaryotic gene calls using MetaEuk but can also be used for MAG annotation.  Many eukaryotic protein databases exist such as MMETSP, EukZoo, and EukProt, yet these are limited to marine environments, include prokaryotic sequences, or include eukaryotic sequences for organisms that would not be expected to be binned out of metagenomes such as metazoans.  We combined and dereplicated MMETSP, EukZoo, EukProt, and NCBI non-redundant to include only microeukaryotes such as protists and fungi.  This optimized microeukaryotic database ensures that only eukaryotic exons expected to be represented in metagenomes are utilized for eukaryotic gene modeling and the resulting MetaEuk reference targets are used for eukaryotic MAG classification.  VEBA’s microeukaryotic protein database includes 48,006,918 proteins from 42,922 microeukaryotic strains.  
-
-* [VDB-Microeukaryotic\_v2.1](https://zenodo.org/record/7485114) available on Zenodo
-* [VDB-Microeukaryotic\_v1](https://figshare.com/articles/dataset/Microeukaryotic_Protein_Database/19668855) available on FigShare [Deprecated]
 
 ____________________________________________________________
 
@@ -779,11 +771,14 @@ ____________________________________________________________
 * The `nr.dmnd` should be built using NCBI's taxonomy info.  The `download_database.sh` takes care of this but if you are using a prebuilt `nr.dmnd` database then use following command for reference: `diamond makedb --in ${DATABASE_DIRECTORY}/nr.gz --db ${DATABASE_DIRECTORY}/Annotate/nr.dmnd --taxonmap ${DATABASE_DIRECTORY}/Classify/NCBITaxonomy/prot.accession2taxid.FULL.gz --taxonnodes ${DATABASE_DIRECTORY}/Classify/NCBITaxonomy/nodes.dmp --taxonnames ${DATABASE_DIRECTORY}/Classify/NCBITaxonomy/names.dmp`
 * The NCBI taxonomy should be downloaded on the same date as NR to make sure the identifiers match up between datasets.  NCBI deprecates taxonomy identifiers and adds new ones between versions so downloading on the same day should minimize that discrepancy.  One caveat NCBI NR and taxonomy databases is the versioning is difficult to discern.
 * For the human contamination, if you use `KneadData` and already have a `Bowtie2` index for human then you can use that instead.  The only module that uses this is `preprocess.py` and you have to specify this directly when running (i.e., it's optional) so it doesn't matter if it's in the database directory or not (same with ribokmers.fa.gz). 
-* `CheckM` and `CheckV` only have 1 database version at this time so it isn't an issue. 
+* `CheckM2` only has 1 database version at this time so it isn't an issue. 
 * `KOFAM` and `Pfam` just uses these as annotations so any version should work perfectly.
 * Again, if you are low on disk space and already have these installed then just symlink them with the structure above. If so, them just comment out those sections of `download_databases.sh`.  
 
 _______________________________________________________
+**VEBA v1.1.0 Specific Versions:**
+* As of `v1.1.0` *VEBA* requires `CheckM2` database instead of `CheckM` database, the `geNomad` database, and v1.5 `CheckV` database.
+
 
 **VEBA v1.0.2a Specific Versions:**
 
