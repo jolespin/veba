@@ -1,5 +1,5 @@
 #!/bin/bash
-# __VERSION__ = "2023.2.23"
+# __VERSION__ = "2023.2.24"
 # VEBA_DATABASE_VERSION = "VDB_v4"
 # MICROEUKAYROTIC_DATABASE_VERSION = "VDB-Microeukaryotic_v2.1"
 
@@ -103,7 +103,7 @@ wget -v -O ${DATABASE_DIRECTORY}/Classify/Microeukaryotic/reference.eukaryota_od
 seqkit grep -f ${DATABASE_DIRECTORY}/Classify/Microeukaryotic/reference.eukaryota_odb10.list ${DATABASE_DIRECTORY}/Classify/Microeukaryotic/reference.faa.gz > ${DATABASE_DIRECTORY}/Classify/Microeukaryotic/reference.eukaryota_odb10.faa
 mmseqs createdb ${DATABASE_DIRECTORY}/Classify/Microeukaryotic/reference.eukaryota_odb10.faa ${DATABASE_DIRECTORY}/Classify/Microeukaryotic/microeukaryotic.eukaryota_odb10
 rm -rf ${DATABASE_DIRECTORY}/Classify/Microeukaryotic/reference.eukaryota_odb10.faa
-# rm -rf ${DATABASE_DIRECTORY}/Classify/Microeukaryotic/reference.faa.gz
+rm -rf ${DATABASE_DIRECTORY}/Classify/Microeukaryotic/reference.faa.gz # Comment this out if you want to keep the actual protein sequences
 
 # MarkerSets
 echo ". .. ... ..... ........ ............."
@@ -135,7 +135,7 @@ echo "ix * Processing NCBI non-redundant diamond database"
 echo ". .. ... ..... ........ ............."
 mkdir -v -p ${DATABASE_DIRECTORY}/Annotate/nr
 wget -v -P ${DATABASE_DIRECTORY} https://ftp.ncbi.nlm.nih.gov/blast/db/FASTA/nr.gz
-diamond makedb --in ${DATABASE_DIRECTORY}/nr.gz --db ${DATABASE_DIRECTORY}/Annotate/nr.dmnd --taxonmap ${DATABASE_DIRECTORY}/Classify/NCBITaxonomy/prot.accession2taxid.FULL.gz --taxonnodes ${DATABASE_DIRECTORY}/Classify/NCBITaxonomy/nodes.dmp --taxonnames ${DATABASE_DIRECTORY}/Classify/NCBITaxonomy/names.dmp
+diamond makedb --in ${DATABASE_DIRECTORY}/nr.gz --db ${DATABASE_DIRECTORY}/Annotate/nr/nr.dmnd --taxonmap ${DATABASE_DIRECTORY}/Classify/NCBITaxonomy/prot.accession2taxid.FULL.gz --taxonnodes ${DATABASE_DIRECTORY}/Classify/NCBITaxonomy/nodes.dmp --taxonnames ${DATABASE_DIRECTORY}/Classify/NCBITaxonomy/names.dmp
 rm -rf ${DATABASE_DIRECTORY}/nr.gz
 
 # Contamination

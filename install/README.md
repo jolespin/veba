@@ -5,9 +5,9 @@ One issue with having large-scale pipeline suites with open-source software is t
 
 The basis for these environments is creating a separate environment for each module with the `VEBA-` prefix and `_env` as the suffix.  For example `VEBA-assembly_env` or `VEBA-binning-prokaryotic_env`.  Because of this, `VEBA` is currently not available as a `conda` package but each module will be in the near future.  In the meantime, please use the `veba/install/install_veba.sh` script which installs each environment from the yaml files in `veba/install/environments/`. After installing the environments, use the `veba/install/download_databases` script to download and configure the databases while also adding the environment variables to the activate/deactivate scripts in each environment.  To install anything manually, just read the scripts as they are well documented and refer to different URL and paths for specific installation options.
 
-The majority of the time taken to build database is decompressing large archives, `Diamond` database creation of NR, and `MMSEQS2` database creation of microeukaryotic protein database.
+The majority of the time taken to build database is downloading/decompressing large archives, `Diamond` database creation of NR, and `MMSEQS2` database creation of microeukaryotic protein database.
 
-Total size is 375G but if you have certain databases installed already then you can just symlink them so the `VEBA_DATABASE` path has the correct structure.
+Total size is `390 GB` but if you have certain databases installed already then you can just symlink them so the `VEBA_DATABASE` path has the correct structure.  Note, the exact size may vary as Pfam and NR are updated regularly.
 
 Each major version will be packaged as a [release](https://github.com/jolespin/veba/releases) which will include a log of module and script versions. 
 
@@ -93,7 +93,7 @@ cd veba/install
 
 **2. Install VEBA environments**
 
-For v1.1.0, this should take ~1.75 hours (~108 minutes).  With the update from `CheckM1` -> `CheckM2` and installation of `antiSMASH`, at ~15GB of memory must be available so grid access may be necessary.
+For `v1.1.0`, this should take ~1.75 hours (~108 minutes).  With the update from `CheckM1` -> `CheckM2` and installation of `antiSMASH`, at ~15 GB of memory must be available so grid access may be necessary.
 
 ```
 bash install_veba.sh
@@ -101,7 +101,7 @@ bash install_veba.sh
 
 **3. Activate the database conda environment, download, and configure databases**
 
-⚠️ This step takes ~4.5 hrs with 128G memory and should be run using a compute grid via SLURM or SunGridEngine.  If this command is run on the head node it will likely fail or timeout if a connection is interrupted. The most computationally intensive steps are creating a `Diamond` database of NCBI's non-redundant reference and a `MMSEQS2` database of the microeukaryotic protein database.
+⚠️ This step can ~11 hrs with 64 GB memory and should be run using a compute grid via SLURM or SunGridEngine.  If this command is run on the head node it will likely fail or timeout if a connection is interrupted. The most computationally intensive steps are creating a `Diamond` database of NCBI's non-redundant reference and a `MMSEQS2` database of the microeukaryotic protein database.  Note the duration will depend on several factors including your internet connection speed and the i/o of public repositories.
 
 If issues arise, please [submit a GitHub issue](https://github.com/jolespin/veba/issues) prefixed with `[Database]`. We are here to help :)
 
@@ -149,7 +149,7 @@ qsub -o logs/${N}.o -e logs/${N}.e -cwd -N ${N} -j y -pe threaded ${N_JOBS} "${C
 PARTITION=[partition name]
 ACCOUNT=[account name]
 
-sbatch -A ${ACCOUNT} -p ${PARTITION} -J ${N} -N 1 -c ${N_JOBS} --ntasks-per-node=1 -o logs/${N}.o -e logs/${N}.e --export=ALL -t 12:00:00 --mem=128G --wrap="${CMD}"
+sbatch -A ${ACCOUNT} -p ${PARTITION} -J ${N} -N 1 -c ${N_JOBS} --ntasks-per-node=1 -o logs/${N}.o -e logs/${N}.e --export=ALL -t 12:00:00 --mem=64G --wrap="${CMD}"
 ```
 
 Now, you should have the following environments:
@@ -253,7 +253,135 @@ A protein database is required not only for eukaryotic gene calls using MetaEuk 
 
 * *VEBA Database* version: `VDB_v4`
 
-`VDB_v3.1` with the following changes: 1) `CheckM1` database swapped for `CheckM2` database;  includes `geNomad` database; and 3) updates `CheckV` database.  Refer to [development log](https://github.com/jolespin/veba/blob/main/DEVELOPMENT.md#release-v11-currently-testing-before-official-release) for specifics.
+`VDB_v4` is `VDB_v3.1` with the following changes: 1) `CheckM1` database swapped for `CheckM2` database;  includes `geNomad` database; and 3) updates `CheckV` database.  Refer to [development log](https://github.com/jolespin/veba/blob/main/DEVELOPMENT.md#release-v11-currently-testing-before-official-release) for specifics.
+
+```
+tree -L 3 .
+.
+├── ACCESS_DATE
+├── Annotate
+│   ├── KOFAM
+│   │   ├── ko_list
+│   │   └── profiles
+│   ├── nr
+│   │   └── nr.dmnd
+│   └── Pfam
+│       └── Pfam-A.hmm.gz
+├── Classify
+│   ├── CheckM2
+│   │   └── uniref100.KO.1.dmnd
+│   ├── CheckV
+│   │   ├── genome_db
+│   │   ├── hmm_db
+│   │   └── README.txt
+│   ├── geNomad
+│   │   ├── genomad_db
+│   │   ├── genomad_db.dbtype
+│   │   ├── genomad_db_h
+│   │   ├── genomad_db_h.dbtype
+│   │   ├── genomad_db_h.index
+│   │   ├── genomad_db.index
+│   │   ├── genomad_db.lookup
+│   │   ├── genomad_db_mapping
+│   │   ├── genomad_db.source
+│   │   ├── genomad_db_taxonomy
+│   │   ├── genomad_integrase_db
+│   │   ├── genomad_integrase_db.dbtype
+│   │   ├── genomad_integrase_db_h
+│   │   ├── genomad_integrase_db_h.dbtype
+│   │   ├── genomad_integrase_db_h.index
+│   │   ├── genomad_integrase_db.index
+│   │   ├── genomad_integrase_db.lookup
+│   │   ├── genomad_integrase_db.source
+│   │   ├── genomad_marker_metadata.tsv
+│   │   ├── genomad_mini_db -> genomad_db
+│   │   ├── genomad_mini_db.dbtype
+│   │   ├── genomad_mini_db_h -> genomad_db_h
+│   │   ├── genomad_mini_db_h.dbtype -> genomad_db_h.dbtype
+│   │   ├── genomad_mini_db_h.index -> genomad_db_h.index
+│   │   ├── genomad_mini_db.index
+│   │   ├── genomad_mini_db.lookup -> genomad_db.lookup
+│   │   ├── genomad_mini_db_mapping -> genomad_db_mapping
+│   │   ├── genomad_mini_db.source -> genomad_db.source
+│   │   ├── genomad_mini_db_taxonomy -> genomad_db_taxonomy
+│   │   ├── mini_set_ids
+│   │   ├── names.dmp
+│   │   ├── nodes.dmp
+│   │   ├── plasmid_hallmark_annotation.txt
+│   │   ├── version.txt
+│   │   └── virus_hallmark_annotation.txt
+│   ├── GTDBTk
+│   │   ├── fastani
+│   │   ├── markers
+│   │   ├── masks
+│   │   ├── metadata
+│   │   ├── mrca_red
+│   │   ├── msa
+│   │   ├── pplacer
+│   │   ├── radii
+│   │   ├── split
+│   │   ├── taxonomy
+│   │   └── temp
+│   ├── Microeukaryotic
+│   │   ├── humann_uniref50_annotations.tsv.gz
+│   │   ├── md5_checksums
+│   │   ├── microeukaryotic
+│   │   ├── microeukaryotic.dbtype
+│   │   ├── microeukaryotic.eukaryota_odb10
+│   │   ├── microeukaryotic.eukaryota_odb10.dbtype
+│   │   ├── microeukaryotic.eukaryota_odb10_h
+│   │   ├── microeukaryotic.eukaryota_odb10_h.dbtype
+│   │   ├── microeukaryotic.eukaryota_odb10_h.index
+│   │   ├── microeukaryotic.eukaryota_odb10.index
+│   │   ├── microeukaryotic.eukaryota_odb10.lookup
+│   │   ├── microeukaryotic.eukaryota_odb10.source
+│   │   ├── microeukaryotic_h
+│   │   ├── microeukaryotic_h.dbtype
+│   │   ├── microeukaryotic_h.index
+│   │   ├── microeukaryotic.index
+│   │   ├── microeukaryotic.lookup
+│   │   ├── microeukaryotic.source
+│   │   ├── reference.eukaryota_odb10.list
+│   │   ├── reference.faa.gz
+│   │   ├── RELEASE_NOTES
+│   │   ├── source_taxonomy.tsv.gz
+│   │   ├── source_to_lineage.dict.pkl.gz
+│   │   └── target_to_source.dict.pkl.gz
+│   └── NCBITaxonomy
+│       ├── citations.dmp
+│       ├── delnodes.dmp
+│       ├── division.dmp
+│       ├── gc.prt
+│       ├── gencode.dmp
+│       ├── merged.dmp
+│       ├── names.dmp
+│       ├── nodes.dmp
+│       ├── prot.accession2taxid.FULL.gz
+│       ├── readme.txt
+│       ├── taxa.sqlite
+│       └── taxa.sqlite.traverse.pkl
+├── Contamination
+│   ├── chm13v2.0
+│   │   ├── chm13v2.0.1.bt2
+│   │   ├── chm13v2.0.2.bt2
+│   │   ├── chm13v2.0.3.bt2
+│   │   ├── chm13v2.0.4.bt2
+│   │   ├── chm13v2.0.rev.1.bt2
+│   │   └── chm13v2.0.rev.2.bt2
+│   └── kmers
+│       └── ribokmers.fa.gz
+└── MarkerSets
+    ├── Archaea_76.hmm
+    ├── Bacteria_71.hmm
+    ├── CPR_43.hmm
+    ├── eukaryota_odb10.hmm
+    ├── eukaryota_odb10.scores_cutoff.tsv.gz
+    ├── Fungi_593.hmm
+    ├── Protista_83.hmm
+    └── README
+
+29 directories, 92 files
+```
 
 
 **Deprecated:**
