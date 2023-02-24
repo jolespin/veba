@@ -155,22 +155,20 @@ ________________________________________________________________
 
 #### Future Releases:
 
-##### Release v1.1.0 [In Development]
-
-Completed:
-
-* √ Update *CheckM* to *CheckM2* to more efficiently handle CPR.
-* √ Change default human reference genome from [GRCh38 no-alt analysis set](https://genome-idx.s3.amazonaws.com/bt/GRCh38_noalt_as.zip) to [T2T CHM13v2.0](https://genome-idx.s3.amazonaws.com/bt/chm13v2.0.zip)
-* √ Update *GTDBTk* v1.x to v2.x and the database from [R202](https://data.gtdb.ecogenomic.org/releases/release202/202.0/auxillary_files/gtdbtk_r202_data.tar.gz) to [R207_v2](https://data.gtdb.ecogenomic.org/releases/latest/auxillary_files/gtdbtk_v2_data.tar.gz)
-* √ Add **experimental** `amplicon.py` module for ASV detection via DADA2 implemented in QIIME2. 
-* √ Add `conda install -c bioconda sra-tools` to `VEBA-preprocess_env` and update environment
-* √ ~~More detailed error message for `binning-prokaryotic.py` penultimate step.~~
- 
-Pending:
+**Definitely:**
 
 * Create a `assembly_longreads.py` module that uses `MetaFlye`
+* Expand Microeukaryotic Protein Database
+
+**Probably?:**
+
+* Add [`AMRFinderPlus`](https://github.com/ncbi/amr/wiki/Install-with-bioconda) to `annotation.py`
+* Add a `metabolic.py` module
+
+**...Maybe?**
+
+* Add `VAMB` as an option for `binning-prokaryotic.py` (requires python >= 3.7,<3.8)
 * Add an option for sample name prefix in `assembly.py`
-* Add support for *geNomad* for viral binning instead of *VirFinder*.
 
 
 
