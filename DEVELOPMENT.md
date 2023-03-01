@@ -2,11 +2,10 @@
 
 *VEBA* is currently under active development. If you are interested in requesting features or wish to report a bug, please post a GitHub issue prefixed with the tag `[Feature Request]` and `[Bug]`, respectively.  If you want to contribute or have any other inquiries, contact me at `jespinoz[A|T]jcvi[DOT]org`.
 
-
 ________________________________________________________________
 
 #### Current Releases:
-##### Release v1.1 (Currently testing before official release)
+##### Release v1.1.0 (Currently testing before official release)
 
 * **Modules**:
 	* `annotate.py`
@@ -172,15 +171,21 @@ ________________________________________________________________
 * Expand Microeukaryotic Protein Database
 * Automated consensus protein cluster annotations.  First need to create a hierarchical naming scheme that uses NR > KOFAM > Pfam.
 * Create a wrapper around `hmmsearch` that takes in score cutoffs and outputs a useable table.  This will be used in place of `KOFAMSCAN` which creates thousands of intermediate files.
-
+* Add MAG-level counts to prokaryotic and eukaryotic. Add optional bam file for viral binning, if so then add MAG-level counts
+* 
 **Probably (Yes)?:**
 * Add a `metabolic.py` module
 * Swap [`TransDecoder`](https://github.com/TransDecoder/TransDecoder) for [`TransSuite`](https://github.com/anonconda/TranSuite)
+* Add support for `Anvi'o` object export in `cluster.py`
+* Add spatial coverage to `coverage.py` script like in `mapping.py` module? Maybe just the samtools coverage output.
+
 
 **...Maybe (Not)?**
 
 * Add `VAMB` as an option for `binning-prokaryotic.py` (requires python >= 3.7,<3.8)
 * Add an option for sample name prefix in `assembly.py`
+
+
 
 
 
@@ -229,45 +234,23 @@ ________________________________________________________________
 * [2022.02.22] - `concatenate_fasta.py` and `concatenate_gff.py`
 * [2022.02.02] - `consensus_genome_classification.py``
 
-________________________________________________________________
-
-#### Next up:
-
-* Add MAG-level counts to prokaryotic and eukaryotic. Add optional bam file for viral binning, if so then add MAG-level counts
-* Add support for Anvi'o object export
-* Add the [--name] prefix to all scaffolds to avoid rare situations where the contigs have the same name.
-* Add spatial coverage to coverage.py script like in mapping.py script? Maybe just the samtools coverage output.
-
 
 ________________________________________________________________
 
 #### Upcoming Modules:
 
-* noncoding.py module: t-RNAscan-SE, BARRNAP, CORDON
-* metabolism.py module: gapseq? Metage2Metabo?
-* reassembly.py module: SPAdes
+* `noncoding.py` module: t-RNAscan-SE, BARRNAP, CORDON
+* `metabolism.py` module: gapseq? Metage2Metabo?
+* `reassembly.py` module: SPAdes
 
 ________________________________________________________________
 
 #### Additional:
-	
-* Add a wrapper around `transDecoder` for metatranscriptomic assembly.
-
 
 **GenoPype:**
 
 * Get a mapping between {step:intermediate directory} and clear out intermediate directories for `--restart_from_checkpoint`.
-
-**Classify:**
-
-* Adapt `classify-eukaryotic.py` to handle actual genomes instead of just the results from `binning-eukaryotic.py`.  This should be straightforward, it will just need to run `metaeuk_wrapper.py` and use the output.
-
-**Binning:**
-* Make a `--skip_concoct` option because `CONCOCT` is slow when there's a lot of BAM files while `MaxBin2` is slow when there's a lot of contigs. 
-* Make a wrapper that does coassembly binning but then splits out the bins into individual samples like in VAMB
-* Need to replace the grep -v with non-eukaryota.list for final scaffolds_to_bins.tsv in binning-eukaryotic with subset_table.py using --inverse because sometimes it is returned as empty when list of contigs is large
-* Add geNomad as main option: https://github.com/apcamargo/genomad/
-* In very rare cases `identifier_mapping.tsv`from prokaryotic binning have entries where there's no MAG (i.e., columns 1 and 2 are not-null but columns 3 is null).  Identify and fix this error. 
+ 
 
 **Index/Mapping:**
 
@@ -277,15 +260,10 @@ ________________________________________________________________
 https://github.com/alexdobin/STAR/issues/994
 https://github.com/alexdobin/STAR/issues/867
 
-**Cluster:**
-
-* Add Anvi'o pangeome for each cluster
-
-
 
 **Annotate:**
 
-* If --identifier_mapping is `[id_orf]<tab>[id_contig]<tab>[id_mag]<tab>[id_orthogroup] then it does consensus annotations for orthogroups using UniFunc
+* If `--identifier_mapping` is `[id_orf]<tab>[id_contig]<tab>[id_mag]<tab>[id_orthogroup] then it does consensus annotations for orthogroups using UniFunc
 
 **Scripts:**
 
