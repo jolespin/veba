@@ -12,10 +12,11 @@ ________________________________________________________________
 	* `annotate.py`
 		* Added `NCBIfam-AMRFinder` AMR domain annotations
 		* Added `AntiFam` contimination annotations
-	* `assembly.py`
-		* Added a `transcripts_to_genes.py` script which creates a `genes_to_transcripts.tsv` table that can be used with `TransDecoder`.
 		* Uses `taxopy` instead of `ete3` in backend with `merge_annotations_and_score_taxonomy.py`
 	
+	* `assembly.py`
+		* Added a `transcripts_to_genes.py` script which creates a `genes_to_transcripts.tsv` table that can be used with `TransDecoder`.
+
 	* `binning-prokaryotic.py`
 		* Updated `CheckM` → `CheckM2`.  This removes the dependency of `GTDB-Tk` and EXTREMELY REDUCES compute resource requirements (e.g., memory and time) as `CheckM2` automatically handles candidate phyla radiation.  With this, several backend scripts were deprecated.  This cleans up the binning pipeline and error messages SUBSTANTIALLY.
 		* Uses `binning_wrapper.py` for all binning.  This makes it easier to add new binning algorithms in the future (e.g., `VAMB`).  Also, check out the new multi-split binning functionality described below.
