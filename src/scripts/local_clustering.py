@@ -14,7 +14,7 @@ from soothsayer_utils import *
 
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.2.13"
+__version__ = "2023.2.25"
 
 def get_basename(x):
     _, fn = os.path.split(x)
@@ -454,7 +454,7 @@ def main(args=None):
             feature_to_cluster = df_2["id_protein_cluster"].dropna()
             fcr_data[(organism_type, id_sample)]["functional_fcr"] = 1 - (feature_to_cluster.nunique()/feature_to_cluster.size)
     df_fcr = pd.DataFrame(fcr_data).T.sort_index()
-    df_fcr.index.name = "id_sample"
+    df_fcr.index.names = ["organism_type", "id_sample"]
     
     # Writing output files
     print(format_header(" * ({}) Writing Output Tables:".format(format_duration(t0))), file=sys.stdout)

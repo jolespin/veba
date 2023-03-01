@@ -2,7 +2,7 @@
 from __future__ import print_function, division
 import sys, os, argparse, glob
 from collections import OrderedDict, defaultdict
-from Bio.SeqIO.FastaIO import SimpleFastaParser
+# from Bio.SeqIO.FastaIO import SimpleFastaParser
 
 import pandas as pd
 
@@ -10,12 +10,10 @@ import pandas as pd
 from genopype import *
 from soothsayer_utils import *
 
-# DATABASE_EUKARYOTIC="/usr/local/scratch/CORE/jespinoz/db/veba/v1.0/Classify/Eukaryotic/"
-
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.2.16"
+__version__ = "2023.2.27"
 
 # Assembly
 def get_concatenate_cmd( input_filepaths, output_filepaths, output_directory, directories, opts):
@@ -37,9 +35,13 @@ def get_concatenate_cmd( input_filepaths, output_filepaths, output_directory, di
         scaffold_to_bin = OrderedDict()
         for id_mag, fp in mag_to_filepath.items():
             with open(fp, "r") as f:
-                for header, seq in pv(SimpleFastaParser(f), f"Getting scaffold identifiers from {id_mag}", unit=" scaffolds"):
-                    id_scaffold = header.split(" ")[0]
-                    scaffold_to_bin[id_scaffold] = id_mag 
+                # for header, seq in pv(SimpleFastaParser(f), f"Getting scaffold identifiers from {id_mag}", unit=" scaffolds"):
+                for line in f.readlines():
+                    line = line.strip()
+                    if line.startswith(">"):
+                        header = line[1:]
+                        id_scaffold = header.split(" ")[0]
+                        scaffold_to_bin[id_scaffold] = id_mag 
         scaffold_to_bin = pd.Series(scaffold_to_bin)
         scaffold_to_bin.to_frame().to_csv(os.path.join(output_directory, "scaffolds_to_bins.tsv"), sep="\t", header=None)
 
@@ -98,34 +100,9 @@ def get_metaeuk_cmd( input_filepaths, output_filepaths, output_directory, direct
         os.path.join(output_directory, "genomes", "*.faa"),
         ">",
         os.path.join(directories["tmp"], "concatenated_proteins.faa"),
-
     ]
 
-#     cmd += [
-# """
-
-# for FP in $(cat %s);
-# do
-#     ID_MAG=$(basename $FP .%s)
-#     echo "ID_MAG=${ID_MAG}"
-#     echo "GENOME=${FP}"
-#     %s --fasta $FP --metaeuk_database %s -o %s/${ID_MAG} --n_jobs %d --scaffolds_to_bins %s
-# done
-# """%(
-#     opts.genomes,
-#     opts.extension,
-#     os.environ["metaeuk_wrapper.py"],
-#     os.path.join(opts.veba_database, "Classify", "Microeukaryotic", "microeukaryotic.eukaryota_odb10"),
-#     output_directory, 
-#     opts.n_jobs,
-#     os.path.join(output_directory, "scaffolds_to_bins.tsv"),
-# )
-#     ]
-
     return cmd
-
-
-
 
 def get_hmmsearch_cmd( input_filepaths, output_filepaths, output_directory, directories, opts):
     cmd = [ 
@@ -168,10 +145,6 @@ def get_hmmsearch_cmd( input_filepaths, output_filepaths, output_directory, dire
 
     return cmd
 
-
-
-
-
 def get_compile_cmd( input_filepaths, output_filepaths, output_directory, directories, opts):
     cmd = [ 
         os.environ["compile_eukaryotic_classifications.py"],
@@ -185,8 +158,6 @@ def get_compile_cmd( input_filepaths, output_filepaths, output_directory, direct
     #     cmd += ["-c {}".format(opts.clusters)]
 
     return cmd
-
-
 
 def get_consensus_genome_classification_cmd( input_filepaths, output_filepaths, output_directory, directories, opts):
 
@@ -647,7 +618,7 @@ def main(args=None):
         assert "VEBA_DATABASE" in os.environ, "Please set the following environment variable 'export VEBA_DATABASE=/path/to/veba_database' or provide path to --veba_database"
         opts.veba_database = os.environ["VEBA_DATABASE"]
     opts.eukaryotic_database = os.path.join(opts.veba_database, "Classify", "Microeukaryotic")
-    opts.hmms = os.path.join(opts.veba_database, "MarkerSets", "eukaryota_odb10.hmm")
+    opts.hmms = os.path.join(opts.veba_database, "MarkerSets", "eukaryota_odb10.hmm.gz")
     opts.scores_cutoff = os.path.join(opts.veba_database, "MarkerSets", "eukaryota_odb10.scores_cutoff.tsv.gz")
 
     # Directories

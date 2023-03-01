@@ -1,5 +1,5 @@
 #!/bin/bash
-# __VERSION__ = "2023.2.24"
+# __VERSION__ = "2023.2.27"
 # VEBA_DATABASE_VERSION = "VDB_v4"
 # MICROEUKAYROTIC_DATABASE_VERSION = "VDB-Microeukaryotic_v2.1"
 
@@ -30,7 +30,7 @@ echo ". .. ... ..... ........ ............."
 mkdir -v -p ${DATABASE_DIRECTORY}/Classify/NCBITaxonomy
 wget -v -P ${DATABASE_DIRECTORY}/Classify/NCBITaxonomy https://ftp.ncbi.nlm.nih.gov/pub/taxonomy/accession2taxid/prot.accession2taxid.FULL.gz 
 wget -v -P ${DATABASE_DIRECTORY} https://ftp.ncbi.nlm.nih.gov/pub/taxonomy/taxdump.tar.gz
-python -c 'import sys; from ete3 import NCBITaxa; NCBITaxa(taxdump_file="%s/taxdump.tar.gz"%(sys.argv[1]), dbfile="%s/Classify/NCBITaxonomy/taxa.sqlite"%(sys.argv[1]))' $DATABASE_DIRECTORY
+# python -c 'import sys; from ete3 import NCBITaxa; NCBITaxa(taxdump_file="%s/taxdump.tar.gz"%(sys.argv[1]), dbfile="%s/Classify/NCBITaxonomy/taxa.sqlite"%(sys.argv[1]))' $DATABASE_DIRECTORY
 tar xzfv ${DATABASE_DIRECTORY}/taxdump.tar.gz -C ${DATABASE_DIRECTORY}/Classify/NCBITaxonomy/
 rm -rf ${DATABASE_DIRECTORY}/taxdump.tar.gz
 
@@ -111,6 +111,7 @@ echo "vi * Processing profile HMM marker sets"
 echo ". .. ... ..... ........ ............."
 wget -v -O ${DATABASE_DIRECTORY}/MarkerSets.tar.gz https://figshare.com/ndownloader/files/36201486
 tar xvzf ${DATABASE_DIRECTORY}/MarkerSets.tar.gz -C ${DATABASE_DIRECTORY}
+gzip ${DATABASE_DIRECTORY}/MarkerSets/*.hmm
 rm -rf ${DATABASE_DIRECTORY}/MarkerSets.tar.gz
 
 # KOFAMSCAN
@@ -128,10 +129,24 @@ echo "viii * Processing Pfam profile HMM marker sets"
 echo ". .. ... ..... ........ ............."
 mkdir -v -p ${DATABASE_DIRECTORY}/Annotate/Pfam
 wget -v -P ${DATABASE_DIRECTORY}/Annotate/Pfam http://ftp.ebi.ac.uk/pub/databases/Pfam/current_release/Pfam-A.hmm.gz
+wget -v -P ${DATABASE_DIRECTORY}/Annotate/Pfam http://ftp.ebi.ac.uk/pub/databases/Pfam/current_release/relnotes.txt
+
+# NCBIfam-AMRFinder
+echo ". .. ... ..... ........ ............."
+echo "ix * Processing NCBIfam-AMRFinder profile HMM marker sets"
+echo ". .. ... ..... ........ ............."
+mkdir -v -p ${DATABASE_DIRECTORY}/Annotate/NCBIfam-AMRFinder
+wget -v -P ${DATABASE_DIRECTORY}/Annotate/NCBIfam-AMRFinder https://ftp.ncbi.nlm.nih.gov/hmm/NCBIfam-AMRFinder/latest/NCBIfam-AMRFinder.changelog.txt
+wget -v -P ${DATABASE_DIRECTORY}/Annotate/NCBIfam-AMRFinder https://ftp.ncbi.nlm.nih.gov/hmm/NCBIfam-AMRFinder/latest/NCBIfam-AMRFinder.tsv
+wget -v -O ${DATABASE_DIRECTORY}/NCBIfam-AMRFinder.HMM.tar.gz https://ftp.ncbi.nlm.nih.gov/hmm/NCBIfam-AMRFinder/latest/NCBIfam-AMRFinder.HMM.tar.gz
+tar xzfv ${DATABASE_DIRECTORY}/NCBIfam-AMRFinder.HMM.tar.gz -C ${DATABASE_DIRECTORY}/Annotate/NCBIfam-AMRFinder --strip-components=1
+cat ${DATABASE_DIRECTORY}/Annotate/NCBIfam-AMRFinder/*.HMM | gzip > ${DATABASE_DIRECTORY}/Annotate/NCBIfam-AMRFinder/NCBIfam-AMRFinder.hmm.gz
+rm -rf ${DATABASE_DIRECTORY}/Annotate/NCBIfam-AMRFinder/*.HMM
+rm -rf ${DATABASE_DIRECTORY}/NCBIfam-AMRFinder.HMM.tar.gz
 
 # NCBI non-redundant
 echo ". .. ... ..... ........ ............."
-echo "ix * Processing NCBI non-redundant diamond database"
+echo "x * Processing NCBI non-redundant diamond database"
 echo ". .. ... ..... ........ ............."
 mkdir -v -p ${DATABASE_DIRECTORY}/Annotate/nr
 wget -v -P ${DATABASE_DIRECTORY} https://ftp.ncbi.nlm.nih.gov/blast/db/FASTA/nr.gz
@@ -140,10 +155,20 @@ rm -rf ${DATABASE_DIRECTORY}/nr.gz
 
 # Contamination
 echo ". .. ... ..... ........ ............."
-echo "ix * Processing contamination databases"
+echo "xi * Processing contamination databases"
 echo ". .. ... ..... ........ ............."
 mkdir -v -p ${DATABASE_DIRECTORY}/Contamination
-# mkdir -v -p ${DATABASE_DIRECTORY}/Contamination/antifam
+
+# AntiFam
+mkdir -v -p ${DATABASE_DIRECTORY}/Contamination/AntiFam
+wget -v -O ${DATABASE_DIRECTORY}/Antifam.tar.gz https://ftp.ebi.ac.uk/pub/databases/Pfam/AntiFam/current/Antifam.tar.gz
+tar xzfv ${DATABASE_DIRECTORY}/Antifam.tar.gz -C ${DATABASE_DIRECTORY}/Contamination/AntiFam 
+rm ${DATABASE_DIRECTORY}/Contamination/AntiFam/AntiFam_*.hmm
+gzip ${DATABASE_DIRECTORY}/Contamination/AntiFam/*.hmm
+rm -rf ${DATABASE_DIRECTORY}/Antifam.tar.gz
+rm -rf ${DATABASE_DIRECTORY}/Contamination/AntiFam/*.seed
+
+# Ribokmers
 mkdir -v -p ${DATABASE_DIRECTORY}/Contamination/kmers
 wget -v -O ${DATABASE_DIRECTORY}/Contamination/kmers/ribokmers.fa.gz https://figshare.com/ndownloader/files/36220587
 
@@ -153,7 +178,7 @@ unzip -d ${DATABASE_DIRECTORY}/Contamination/ ${DATABASE_DIRECTORY}/chm13v2.0.zi
 rm -rf ${DATABASE_DIRECTORY}/chm13v2.0.zip
 
 echo ". .. ... ..... ........ ............."
-echo "xi * Adding the following environment variable to VEBA environments: export VEBA_DATABASE=${REALPATH_DATABASE_DIRECTORY}"
+echo "xii * Adding the following environment variable to VEBA environments: export VEBA_DATABASE=${REALPATH_DATABASE_DIRECTORY}"
 # CONDA_BASE=$(which conda | python -c "import sys; print('/'.join(sys.stdin.read().split('/')[:-2]))")
 CONDA_BASE=$(conda run -n base bash -c "echo \${CONDA_PREFIX}")
 
@@ -168,7 +193,7 @@ for ENV_PREFIX in ${CONDA_BASE}/envs/VEBA-*; do
 
 #CheckM2
 echo ". .. ... ..... ........ ............."
-echo "xii * Adding the following environment variable to VEBA environments: export CHECKM2DB=${REALPATH_DATABASE_DIRECTORY}/Classify/CheckM2/uniref100.KO.1.dmnd"
+echo "xiii * Adding the following environment variable to VEBA environments: export CHECKM2DB=${REALPATH_DATABASE_DIRECTORY}/Classify/CheckM2/uniref100.KO.1.dmnd"
 for ENV_NAME in VEBA-binning-prokaryotic_env; do 
     ENV_PREFIX=${CONDA_BASE}/envs/${ENV_NAME}
 
@@ -179,7 +204,7 @@ for ENV_NAME in VEBA-binning-prokaryotic_env; do
 
 #GTDB-Tk
 echo ". .. ... ..... ........ ............."
-echo "xiii * Adding the following environment variable to VEBA environments: export GTDBTK_DATA_PATH=${REALPATH_DATABASE_DIRECTORY}/Classify/GTDBTk/"
+echo "xiv * Adding the following environment variable to VEBA environments: export GTDBTK_DATA_PATH=${REALPATH_DATABASE_DIRECTORY}/Classify/GTDBTk/"
 for ENV_NAME in VEBA-classify_env; do 
     ENV_PREFIX=${CONDA_BASE}/envs/${ENV_NAME}
     # GTDB-Tk
@@ -189,7 +214,7 @@ for ENV_NAME in VEBA-classify_env; do
 
 # CheckV
 echo ". .. ... ..... ........ ............."
-echo "xiv * Adding the following environment variable to VEBA environments: export CHECKVDB=${REALPATH_DATABASE_DIRECTORY}/Classify/CheckV/"
+echo "xv * Adding the following environment variable to VEBA environments: export CHECKVDB=${REALPATH_DATABASE_DIRECTORY}/Classify/CheckV/"
 for ENV_NAME in VEBA-binning-viral_env; do 
     ENV_PREFIX=${CONDA_BASE}/envs/${ENV_NAME}
     echo "export CHECKVDB=${REALPATH_DATABASE_DIRECTORY}/Classify/CheckV" >> ${ENV_PREFIX}/etc/conda/activate.d/veba.sh

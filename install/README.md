@@ -221,17 +221,17 @@ ____________________________________________________________
 Please cite the following sources if these marker sets are used in any way:
 
 ```
-* Archaea_76.hmm - (Anvi'o) Lee, https://doi.org/10.1093/bioinformatics/btz188 (https://github.com/merenlab/anvio/tree/master/anvio/data/hmm/Archaea_76)
+* Archaea_76.hmm.gz - (Anvi'o) Lee, https://doi.org/10.1093/bioinformatics/btz188 (https://github.com/merenlab/anvio/tree/master/anvio/data/hmm/Archaea_76)
 
-* Bacteria_71.hmm - (Anvi'o) Lee modified, https://doi.org/10.1093/bioinformatics/btz188 (https://github.com/merenlab/anvio/tree/master/anvio/data/hmm/Bacteria_71)
+* Bacteria_71.hmm.gz - (Anvi'o) Lee modified, https://doi.org/10.1093/bioinformatics/btz188 (https://github.com/merenlab/anvio/tree/master/anvio/data/hmm/Bacteria_71)
 
-* Protista_83.hmm - (Anvi'o) Delmont, http://merenlab.org/delmont-euk-scgs (https://github.com/merenlab/anvio/tree/master/anvio/data/hmm/Protista_83)
+* Protista_83.hmm.gz - (Anvi'o) Delmont, http://merenlab.org/delmont-euk-scgs (https://github.com/merenlab/anvio/tree/master/anvio/data/hmm/Protista_83)
 
-* Fungi_593.hmm - (FGMP) https://bmcbioinformatics.biomedcentral.com/articles/10.1186/s12859-019-2782-9
+* Fungi_593.hmm.gz - (FGMP) https://bmcbioinformatics.biomedcentral.com/articles/10.1186/s12859-019-2782-9
 
-* CPR_43.hmm - (CheckM) https://github.com/Ecogenomics/CheckM/tree/master/custom_marker_sets
+* CPR_43.hmm.gz - (CheckM) https://github.com/Ecogenomics/CheckM/tree/master/custom_marker_sets
 
-* eukaryota_odb10 - (BUSCO) https://busco-data.ezlab.org/v5/data/lineages/eukaryota_odb10.2020-09-10.tar.gz
+* eukaryota_odb10.hmm.gz - (BUSCO) https://busco-data.ezlab.org/v5/data/lineages/eukaryota_odb10.2020-09-10.tar.gz
 ```
 
 Espinoza, Josh (2022): Profile HMM marker sets. figshare. Dataset. https://doi.org/10.6084/m9.figshare.19616016.v1 
@@ -263,10 +263,15 @@ tree -L 3 .
 │   ├── KOFAM
 │   │   ├── ko_list
 │   │   └── profiles
+│   ├── NCBIfam-AMRFinder
+│   │   ├── NCBIfam-AMRFinder.changelog.txt
+│   │   ├── NCBIfam-AMRFinder.hmm.gz
+│   │   └── NCBIfam-AMRFinder.tsv
 │   ├── nr
 │   │   └── nr.dmnd
 │   └── Pfam
-│       └── Pfam-A.hmm.gz
+│       ├── Pfam-A.hmm.gz
+│       └── relnotes.txt
 ├── Classify
 │   ├── CheckM2
 │   │   └── uniref100.KO.1.dmnd
@@ -342,7 +347,6 @@ tree -L 3 .
 │   │   ├── microeukaryotic.lookup
 │   │   ├── microeukaryotic.source
 │   │   ├── reference.eukaryota_odb10.list
-│   │   ├── reference.faa.gz
 │   │   ├── RELEASE_NOTES
 │   │   ├── source_taxonomy.tsv.gz
 │   │   ├── source_to_lineage.dict.pkl.gz
@@ -357,10 +361,12 @@ tree -L 3 .
 │       ├── names.dmp
 │       ├── nodes.dmp
 │       ├── prot.accession2taxid.FULL.gz
-│       ├── readme.txt
-│       ├── taxa.sqlite
-│       └── taxa.sqlite.traverse.pkl
+│       └── readme.txt
 ├── Contamination
+│   ├── AntiFam
+│   │   ├── AntiFam.hmm.gz
+│   │   ├── relnotes
+│   │   └── version
 │   ├── chm13v2.0
 │   │   ├── chm13v2.0.1.bt2
 │   │   ├── chm13v2.0.2.bt2
@@ -371,16 +377,16 @@ tree -L 3 .
 │   └── kmers
 │       └── ribokmers.fa.gz
 └── MarkerSets
-    ├── Archaea_76.hmm
-    ├── Bacteria_71.hmm
-    ├── CPR_43.hmm
-    ├── eukaryota_odb10.hmm
+    ├── Archaea_76.hmm.gz
+    ├── Bacteria_71.hmm.gz
+    ├── CPR_43.hmm.gz
+    ├── eukaryota_odb10.hmm.gz
     ├── eukaryota_odb10.scores_cutoff.tsv.gz
-    ├── Fungi_593.hmm
-    ├── Protista_83.hmm
+    ├── Fungi_593.hmm.gz
+    ├── Protista_83.hmm.gz
     └── README
 
-29 directories, 92 files
+31 directories, 96 files
 ```
 
 

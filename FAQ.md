@@ -1,4 +1,5 @@
 #### Frequently Asked Questions
+⚠️ Indicates that it only applies to versions < 1.1.0
 
 #### 1. *VEBA* has so many modules and capabilities, how can I get a feel for how to use it for my dataset(s)?
 
@@ -43,11 +44,11 @@ Currently, not directly but the install scripts are all built around conda so yo
 
 *VEBA* is currently under active development. If you are interested in requesting features or wish to report a bug, please post a GitHub issue prefixed with the tag `[Feature Request]` and `[Bug]`, respectively.  If you want to contribute or have any other inquiries, contact me at `jespinoz[A|T]jcvi[DOT]org`
 
-#### 11. During installation, I got *SafetyErrors* and *ClobberErrors*.  Does my *VEBA* installation work?
+#### 11. During installation, I got *SafetyErrors* and *ClobberErrors*.  Does my *VEBA* installation work? ⚠️
 
 These are known errors that have to do with `CheckM` and `Perl` dependencies, respectively. In short, these are non-fatal errors and will not affect your installation.  For more details, check this section of the [installation manual](https://github.com/jolespin/veba/tree/main/install#common-installation-errors-that-do-not-affect-veba-functionality). 
 
-#### 12. Why did I get a `KeyError: 'TMPDIR'`?
+#### 12. Why did I get a `KeyError: 'TMPDIR'`? ⚠️
 
 This is because CheckM can't handle long directory paths.  By default, the temporary directory is set to the TMPDIR environment variable.  If you don't have a TMPDIR environment variable for some reason, add a TMPDIR environment variable to your path either in the script or your ~/.bash_profile.  For example, `export TMPDIR=/path/to/temporary/directory/with/read/write/access.  
 
@@ -61,54 +62,62 @@ Here's information about the canonical `TMPDIR` environment variable:
 
 This means that you don't have any MAGs that meet the quality threshold. This is typically an empty file that throws the error.  You could always lower the completeness or completion thresholds but this may yield lower quality results.
 
-#### 14. Why am I getting errors for `Kingfisher` saying a command was not found?
+#### 14. Why am I getting errors for `Kingfisher`?
+ 
+Common `kingfisher` errors: 
 
-This is likely because `sra-tools` was not installed properly or at all.  Installing `sra-tools` should fix the problem: `conda install -c bioconda sra-tools --force-reinstall` from the `VEBA-preprocess_env` environment.  More details [in this walkthrough](https://github.com/jolespin/veba/blob/main/walkthroughs/download_and_preprocess_reads.md#3-create-a-directory-for-the-raw-fastq-reads-and-download-the-sequences-from-ncbi).
+* If it says your missing a command, this is likely because `sra-tools` was not installed properly or at all.  Installing `sra-tools` should fix the problem: `conda install -c bioconda sra-tools --force-reinstall` from the `VEBA-preprocess_env` environment. 
 
-#### 15. Why am I getting an error at the last step of `binning-prokaryotic.py`?
+* If you get an error related to `prefetch` try changing the `-m` argument (e.g., `-m aws-http`): 
 
-There's a few reasons why you could be getting an error: 
+```
+(VEBA-preprocess_env) [jespinoz@exp-15-01 Fastq]$ for ID in $(cat ../identifiers.list); do kingfisher get -r $ID -m prefetch; done
+09/18/2022 04:04:25 PM INFO: Attempting download method prefetch ..
+09/18/2022 04:04:25 PM WARNING: Method prefetch failed: Error was: Command prefetch -o SRR4114636.sra SRR4114636 returned non-zero exit status 127.
+STDERR was: b'bash: prefetch: command not found\n'STDOUT was: b''
+09/18/2022 04:04:25 PM WARNING: Method prefetch failed
+Traceback (most recent call last):
+  File "/expanse/projects/jcl110/anaconda3/envs/VEBA-preprocess_env/bin/kingfisher", line 261, in <module>
+    main()
+  File "/expanse/projects/jcl110/anaconda3/envs/VEBA-preprocess_env/bin/kingfisher", line 241, in main
+    extraction_threads = args.extraction_threads,
+  File "/expanse/projects/jcl110/anaconda3/envs/VEBA-preprocess_env/lib/python3.7/site-packages/kingfisher/__init__.py", line 234, in download_and_extract
+    raise Exception("No more specified download methods, cannot continue")
+Exception: No more specified download methods, cannot continue
+```
 
-a. You might not actually have any high quality bins.  To check this, manually inspect the `CheckM` results from the intermediate results.  For example: 
+* If SRA-Tools didn't install correctly, you may get this error when converting .sra to .fastq[.gz] files.  If so, just reinstall `sra-tools` via `conda install -c bioconda sra-tools --force-reinstall` in your `VEBA-preprocess_env` environment: 
+
+```
+STDERR was: b'bash: fasterq-dump: command not found\n'STDOUT was: b''
+```
+
+#### 15. Why am I getting an error at the last step of `binning-prokaryotic.py`? 
+
+
+You might not actually have any high quality bins.  To check this, manually inspect the `CheckM2` results from the intermediate results.  For example: 
 
 ```bash
 ID="*" # Change this to the ID you are curious about
-for FP in veba_output/binning/prokaryotic/${ID}/intermediate/*__checkm/filtered/checkm_output.filtered.tsv; do 
+for FP in veba_output/binning/prokaryotic/${ID}/intermediate/*__checkm2/filtered/checkm2_output.filtered.tsv; do 
 	echo ${FP}
 	cat ${FP}
 	done
 ```
 
-Some of these files might (and should) be empty and that's expected but what you're looking for are the actual results.  Recall that to properly handle CPR bacteria we allow `k__Bacteria` phyla through at any completion/contamination levels which will be filtered out at the last step.  `GTDB-Tk` is run on these MAGs and if they are CPR bacteria then they are reevaluated with the [proper marker set](https://github.com/Ecogenomics/CheckM/blob/master/custom_marker_sets/cpr_43_markers.hmm).  If you only have `k__Bacteria` MAGs then there is a chance that you didn't recover any high quality MAGs.
+Some of these files might (and should) be empty and that's expected but what you're looking for are the actual results.  
 
-If you don't have any `checkm_output.filtered.tsv` then likely no MAGs passed `DAS Tool` then you probably have very low quality genomes if any. Next step is to check the `CheckM` output before filtered.
+If you don't have any `checkm2_output.filtered.tsv` then likely no MAGs passed `DAS Tool` then you probably have very low quality genomes if any. Next step is to check the `CheckM2` output before filtered.
 
 ```bash
 ID="*" # Change this to the ID you are curious about
-for FP in veba_output/binning/prokaryotic/${ID}/intermediate/*__checkm/output.tsv; do 
+for FP in veba_output/binning/prokaryotic/${ID}/intermediate/*__checkm2/quality_report.tsv; do 
 	echo ${FP}
 	cat ${FP}
 	done
 ```
-Are there any MAGs here? If so, how are the completeness values? What about the contamination values? Are they meeting the thresholds? If so, then submit a GitHub issue because they should pass.  If not, then you probably just have poor quality data.  If all of your samples are like this then consider doing a bona fide coassembly (not pseudo-coassembly).  [Here is a walkthrough to do that with VEBA.](https://github.com/jolespin/veba/blob/main/walkthroughs/setting_up_coassemblies.md). If that still doesn't yield results then assembly-centric metagenomics is likely not the way forward with your dataset and you should consider using a read-based profiling tool like [Kraken2](https://genomebiology.biomedcentral.com/articles/10.1186/s13059-019-1891-0) which is not implemented in *VEBA* but very easy to use with minimal pre/post-processing.  If you use an external profiling tool, [you can still use the preprocessed reads from *VEBA*](https://github.com/jolespin/veba/blob/main/walkthroughs/download_and_preprocess_reads.md#4-perform-qualityadapter-trimming-remove-human-contamination-and-count-the-ribosomal-reads-but-dont-remove-them).
+Are there any MAGs here? If so, how are the completeness values? What about the contamination values? Are they meeting the thresholds? If so, then submit a GitHub issue because they should pass.  If not, then you probably just have poor quality data.  If all of your samples are like this then consider doing a *bona fide* coassembly (not pseudo-coassembly).  [Here is a walkthrough to do that with VEBA.](https://github.com/jolespin/veba/blob/main/walkthroughs/setting_up_coassemblies.md). If that still doesn't yield results then assembly-centric metagenomics is likely not the way forward with your dataset and you should consider using a read-based profiling tool like [Kraken2](https://genomebiology.biomedcentral.com/articles/10.1186/s13059-019-1891-0) or [MetaPhlAn 4](https://huttenhower.sph.harvard.edu/metaphlan/), both of which are not implemented in *VEBA* but very easily be  used with *VEBA* intermediate files.  If you use an external profiling tool, [you can still use the preprocessed reads from *VEBA*](https://github.com/jolespin/veba/blob/main/walkthroughs/download_and_preprocess_reads.md#4-perform-qualityadapter-trimming-remove-human-contamination-and-count-the-ribosomal-reads-but-dont-remove-them).
 	
-
-b. If you checked the above and it looks like you have decent MAGs (that is, non `k__Bacteria` hits with acceptable completion and contamination ratios (e.g., completeness ≥ 70, contamination < 10) then check the `GTDB-Tk` log file as you may have an error with `pplacer`.  Check the following log file:
-
-```bash
-ID="*" # Change this to the ID you are curious about
-
-cat veba_output/binning/prokaryotic/${ID}/intermediate/*__cpr_adjustment/gtdbtk_output/gtdbtk.log	
-```
-
-If you have this error, then it's your `pplacer` installation: 
-
-```
-gtdbtk.exceptions.PplacerException: An error was encountered while running pplacer.
-```
-
-This is a known issue [GTDBTk/issues/170](https://github.com/Ecogenomics/GTDBTk/issues/170) and is related to memory issues (e.g., try 128GB).  Don't increase the `--pplacer_threads` because this requires massive amounts of memory. 
-
 
 #### 16. Why am I getting compatibility issues when creating my environments?
 
@@ -351,3 +360,7 @@ If this is NOT what you want, then use local mapping mode instead of global mapp
 #### 34. Why can't I run multiple instances of `transdecoder_wrapper.py` at the same time?
 
 In short, the tool forces the output files to be in the current working directory (even though an output directory is specified).  I've submitted a feature request issue on GitHub (https://github.com/TransDecoder/TransDecoder/issues/169).  I considered forking and making an unofficial update but I don't know Perl and further updating *VEBA* takes priority.
+
+#### 35. Why does `annotate.py` output lineage predictions for contigs and MAG with a disclaimer that they are experimental?
+
+These predictions are very naive and are generated only from the bitscores of `Diamond` alignments against NR.  This does not subset out core markers which can introduce noise.  You may notice that a MAG classification from `classify-[domain].py` is different than what is generated in `lineage.weighted_majority_vote.genomes.tsv.gz` and that is because the classification modules use more robust algorithms/databases.

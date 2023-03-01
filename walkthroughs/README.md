@@ -32,14 +32,12 @@ sbatch -J ${N} -N 1 -c ${N_JOBS} --ntasks-per-node=1 -o logs/${N}.o -e logs/${N}
 #### Available walkthroughs:
 
 *  [Downloading and preprocessing fastq files](download_and_preprocess_reads.md) - Explains how to download reads from NCBI and run *VEBA's* `preprocess.py` module to decontaminate either metagenomic and/or metatranscriptomic reads.
+* [Complete end-to-end metagenomics analysis](end-to-end_metagenomics.md) - Goes through assembling metagenomic reads, binning, clustering, classification, and annotation.  We also show how to use the unbinned contigs in a pseudo-coassembly with guidelines on when it's a good idea to go this route.
+*  [Recovering viruses from metatranscriptomics](recovering_viruses_from_metatranscriptomics.md) - Goes through assembling metatranscriptomic reads, viral binning, clustering, and classification.
 *  [Read mapping and counts tables](read_mapping_and_counts_tables.md) - Read mapping and generating counts tables at the contig, MAG, SLC, ORF, and SSO levels. 
 * [Phylogenetic inference](phylogenetic_inference.md) - Phylogenetic inference of eukaryotic diatoms.
 * [Setting up *bona fide* coassemblies for metagenomics or metatranscriptomics](setting_up_coassemblies.md) - In the case where all samples are of low depth, it may be useful to use coassembly instead of sample-specific approaches.  This walkthrough goes through concatenating reads, creating a reads table, coassembly of concatenated reads, aligning sample-specific reads to the coassembly for multiple sorted BAM files, and mapping reads for scaffold/transcript-level counts.  Please note that a coassembly differs from the pseudo-coassembly concept introduced in the VEBA publication.  For more information regarding the differences between *bona fide* coassembly and pseud-coassembly, please refer to [*23. What's the difference between a coassembly and a pseudo-coassembly?*](https://github.com/jolespin/veba/blob/main/FAQ.md). 
 
-**Walkthroughs for *VEBA* v1.0.4 and below:**
-
-*  [Complete end-to-end metagenomics analysis](deprecated/end-to-end_metagenomics__v1.0.4.md) - Goes through assembling metagenomic reads, binning, clustering, classification, and annotation.  We also show how to use the unbinned contigs in a pseudo-coassembly with guidelines on when it's a good idea to go this route.
-*  [Recovering viruses from metatranscriptomics](deprecated/recovering_viruses_from_metatranscriptomics__v1.0.4.md) - Goes through assembling metatranscriptomic reads, viral binning, clustering, and classification.
 
 ___________________________________________
 

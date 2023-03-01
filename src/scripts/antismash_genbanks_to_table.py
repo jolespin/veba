@@ -6,7 +6,7 @@ from Bio import SeqIO
 from tqdm import tqdm
 
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.2.3"
+__version__ = "2023.2.27"
 
 def main(args=None):
     # Path info
@@ -50,7 +50,7 @@ def main(args=None):
             cds_features = list()
             product = None
             contig_edge = None
-            for feature in tqdm(seq_record.features, "Parsing genbanke file: {}".format(fp), unit=" features"):
+            for feature in tqdm(seq_record.features, "Parsing genbank file: {}".format(fp), unit=" features"):
                 if feature.type == "CDS":
                     data = {"genome_id":id_genome, "region_id":id_region, "start":int(feature.location.start), "end":int(feature.location.end), "strand":feature.location.strand}
                     for k,v in feature.qualifiers.items():
@@ -99,7 +99,7 @@ def main(args=None):
         df = df.sort_values(["start", "end"])
         d = dict(zip(df.index, range(1, df.shape[0] + 1)))
         i_to_position.update(d)
-    i_to_position = pd.Series(i_to_position)
+    i_to_position = pd.Series(i_to_position).astype(int)
     j = df_bgcs.columns.get_loc("start")
     df_bgcs.insert(loc=j, column="position_in_bgc", value=i_to_position)
 

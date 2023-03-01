@@ -9,7 +9,7 @@ import taxopy
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.2.13"
+__version__ = "2023.2.28"
 
 def main(args=None):
     # Path info
@@ -26,7 +26,7 @@ def main(args=None):
     # Pipeline
     parser.add_argument("-i","--input", default="stdin", type=str, help = "path/to/mag_to_classification.tsv  [id_mag]<tab>[id_slc]<tab>[classification]|OPTIONAL:<tab>[weight]| [Default: stdin]")
     parser.add_argument("-o","--output", type=str, default="stdout", help = "Output table with consensus classification [Default: stdout]")
-    parser.add_argument("-t","--threshold", default=0.5, type=float, help = "Fraction of classifications for consensus [Default: 0.5]")
+    parser.add_argument("-t","--threshold", default=0.5, type=float, help = "taxopy fraction of classifications for consensus for weighted majority vote [Default: 0.5]")
     parser.add_argument("-d", "--delimiter", type=str, default=";", help = "Taxonomic delimiter [Default: ; ]")
     parser.add_argument("-x", "--blacklist", type=str, default="unknown,uncharacterized,unclassified", help = "Black list labels.  Comma separated. [Default: unknown,uncharacterized,unclassified ]")
     parser.add_argument("--unclassified_label", type=str, default="Unclassified", help = "Label to use for unclassified taxa [Default: Unclassified]")
@@ -75,6 +75,7 @@ def main(args=None):
     taxdb = taxopy.TaxDb(
         nodes_dmp=os.path.join(opts.veba_database, "Classify", "NCBITaxonomy", "nodes.dmp"), 
         names_dmp=os.path.join(opts.veba_database, "Classify", "NCBITaxonomy", "names.dmp"),
+        merged_dmp=os.path.join(opts.veba_database, "Classify", "NCBITaxonomy", "merged.dmp"),
     )
 
     # Organize SLCs

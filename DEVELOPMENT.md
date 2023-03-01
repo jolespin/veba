@@ -9,9 +9,12 @@ ________________________________________________________________
 ##### Release v1.1 (Currently testing before official release)
 
 * **Modules**:
-
+	* `annotate.py`
+		* Added `NCBIfam-AMRFinder` AMR domain annotations
+		* Added `AntiFam` contimination annotations
 	* `assembly.py`
 		* Added a `transcripts_to_genes.py` script which creates a `genes_to_transcripts.tsv` table that can be used with `TransDecoder`.
+		* Uses `taxopy` instead of `ete3` in backend with `merge_annotations_and_score_taxonomy.py`
 	
 	* `binning-prokaryotic.py`
 		* Updated `CheckM` → `CheckM2`.  This removes the dependency of `GTDB-Tk` and EXTREMELY REDUCES compute resource requirements (e.g., memory and time) as `CheckM2` automatically handles candidate phyla radiation.  With this, several backend scripts were deprecated.  This cleans up the binning pipeline and error messages SUBSTANTIALLY.
@@ -50,7 +53,11 @@ ________________________________________________________________
 		* Added `geNomad DB v1.2`
 		* Added `CheckM2 DB`
 		* Removed `CheckM DB`
+		* Removed `taxa.sqlite` and `taxa.sqlite.traverse.pkl`
 		* Added `reference.eukaryota_odb10.list` and corresponding `MMSEQS2` database (i.e., `microeukaryotic.eukaryota_odb10`)
+		* Added `NCBIfam-AMRFinder` marker set for annotation
+		* Added `AntiFam` marker set for contamination
+		* Marker sets HMMs are now all gzipped (previously could not gzip because CheckM CPR workflow)
 
 * **Scripts:**
 	* Added:
@@ -81,6 +88,7 @@ ________________________________________________________________
 		* `scaffolds_to_bins.py` - Support for getting scaffolds to bins for a list of genomes via `--genomes` argument while maintaining original support with `--binning_directory` argument.
 		* `subset_table.py` - Added option to set index column and to drop duplicates.
 		* `virfinder_wrapper.r` - Used to be `VirFinder_wrapper.R`.  This now has an option to use FDR values instead of P values.
+		* `merge_annotations_and_score_taxonomy.py` - Completely rewritten.  Uses `taxopy` instead of `ete3`.
 
 	* Deprecated:
 		* `adjust_genomes_for_cpr.py`
@@ -89,6 +97,7 @@ ________________________________________________________________
 		* `partition_orthogroups.py`
 		* `partition_clusters.py`
 		* `compile_viral_classifications.py`
+		* `build_taxa_sqlite.py`
 
 * **Miscellaneous**:
 	* Updated environments and now add versions to environments.
@@ -158,14 +167,16 @@ ________________________________________________________________
 **Definitely:**
 
 * Create a `assembly_longreads.py` module that uses `MetaFlye`
+* Create a `noncoding.py` module that uses `tRNASCAN-SE` and other goodies.
 * Expand Microeukaryotic Protein Database
+* Automated consensus protein cluster annotations.  First need to create a hierarchical naming scheme that uses NR > KOFAM > Pfam.
+* Create a wrapper around `hmmsearch` that takes in score cutoffs and outputs a useable table.  This will be used in place of `KOFAMSCAN` which creates thousands of intermediate files.
 
-**Probably?:**
-
-* Add [`AMRFinderPlus`](https://github.com/ncbi/amr/wiki/Install-with-bioconda) to `annotation.py`
+**Probably (Yes)?:**
 * Add a `metabolic.py` module
+* Swap [`TransDecoder`](https://github.com/TransDecoder/TransDecoder) for [`TransSuite`](https://github.com/anonconda/TranSuite)
 
-**...Maybe?**
+**...Maybe (Not)?**
 
 * Add `VAMB` as an option for `binning-prokaryotic.py` (requires python >= 3.7,<3.8)
 * Add an option for sample name prefix in `assembly.py`
@@ -224,9 +235,6 @@ ________________________________________________________________
 * Add MAG-level counts to prokaryotic and eukaryotic. Add optional bam file for viral binning, if so then add MAG-level counts
 * Add support for Anvi'o object export
 * Add the [--name] prefix to all scaffolds to avoid rare situations where the contigs have the same name.
-* Automate feature compression ratios in cluster.py
-* Switch CheckM2 [Contingent on publication and Conda release]
-* Fix ClobberError in VEBA-binning-prokaryotic_env and VEBA-classify_env
 * Add spatial coverage to coverage.py script like in mapping.py script? Maybe just the samtools coverage output.
 
 

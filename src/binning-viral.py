@@ -13,7 +13,7 @@ from soothsayer_utils import *
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.2.23"
+__version__ = "2023.2.24"
 
 # geNomad
 def get_genomad_cmd(input_filepaths, output_filepaths, output_directory, directories, opts):
@@ -32,6 +32,13 @@ def get_genomad_cmd(input_filepaths, output_filepaths, output_directory, directo
         '-p "\s.+"',
         ">",
         os.path.join(directories["tmp"], "input.fasta"),
+
+            "&&",
+
+        "cp",
+        os.path.join(directories["tmp"], "input.fasta"),
+        os.path.join(directories["output"], "unbinned.fasta"),
+
 
             "&&",
 
@@ -118,6 +125,12 @@ def get_virfinder_cmd(input_filepaths, output_filepaths, output_directory, direc
         '-p "\s.+"',
         ">",
         os.path.join(directories["tmp"], "input.fasta"),
+
+            "&&",
+            
+        "cp",
+        os.path.join(directories["tmp"], "input.fasta"),
+        os.path.join(directories["output"], "unbinned.fasta"),
 
             "&&",
 
@@ -230,7 +243,7 @@ def get_checkv_cmd(input_filepaths, output_filepaths, output_directory, director
         os.environ["filter_checkv_results.py"],
         "-i {}".format(os.path.join(output_directory, "quality_summary.tsv")),
         "-c {}".format(os.path.join(output_directory, "completeness.tsv")),
-        "-f {}".format(os.path.join(directories["tmp"], "input.fasta")),
+        "-f {}".format(opts.fasta),
         "-o {}".format(os.path.join(output_directory, "filtered")),
         "-m {}".format(opts.minimum_contig_length),
         "--unbinned",

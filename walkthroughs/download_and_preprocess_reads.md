@@ -11,7 +11,7 @@ If you want to either remove human contamination or count ribosomal reads then m
 
 ```
 echo $VEBA_DATABASE
-/expanse/projects/jcl110/db/veba/v1.0 
+/expanse/projects/jcl110/db/veba/VDB_v4 
 # ^_^ Yours will be different obviously #
 ```
 
@@ -84,6 +84,9 @@ SRR17458646
 **Note:** `kingfisher` is not officially part of the `VEBA` suite and is only provided for convenience.
 
 ```
+# Activate environment
+conda activate VEBA-preprocess_env
+
 # Set the threads you want to use.  Here we are using 4.
 N_JOBS=4
 
@@ -92,41 +95,14 @@ cd Fastq/
 
 # Iterate through the identifier list and download each read set
 for ID in $(cat ../identifiers.list);
-	do kingfisher get -r $ID -m prefetch -t ${N_JOBS}
+	do kingfisher get -r $ID -m prefetch -t ${N_JOBS} -f fastq.gz
 	done
-	
-# Gzip the fastq	
-pigz -p ${N_JOBS} *.fastq
 
 # Get back out to main directory
 cd ..
 ```
 
-Common `kingfisher` errors: 
-
-* If you get an error related to `prefetch` try changing the `-m` argument (e.g., `-m aws-http`): 
-
-```
-(VEBA-preprocess_env) [jespinoz@exp-15-01 Fastq]$ for ID in $(cat ../identifiers.list); do kingfisher get -r $ID -m prefetch; done
-09/18/2022 04:04:25 PM INFO: Attempting download method prefetch ..
-09/18/2022 04:04:25 PM WARNING: Method prefetch failed: Error was: Command prefetch -o SRR4114636.sra SRR4114636 returned non-zero exit status 127.
-STDERR was: b'bash: prefetch: command not found\n'STDOUT was: b''
-09/18/2022 04:04:25 PM WARNING: Method prefetch failed
-Traceback (most recent call last):
-  File "/expanse/projects/jcl110/anaconda3/envs/VEBA-preprocess_env/bin/kingfisher", line 261, in <module>
-    main()
-  File "/expanse/projects/jcl110/anaconda3/envs/VEBA-preprocess_env/bin/kingfisher", line 241, in main
-    extraction_threads = args.extraction_threads,
-  File "/expanse/projects/jcl110/anaconda3/envs/VEBA-preprocess_env/lib/python3.7/site-packages/kingfisher/__init__.py", line 234, in download_and_extract
-    raise Exception("No more specified download methods, cannot continue")
-Exception: No more specified download methods, cannot continue
-```
-
-* If SRA-Tools didn't install correctly, you may get this error when converting .sra to .fastq[.gz] files.  If so, just reinstall `sra-tools` via `conda install -c bioconda sra-tools --force-reinstall` in your `VEBA-preprocess_env` environment: 
-
-```
-STDERR was: b'bash: fasterq-dump: command not found\n'STDOUT was: b''
-```
+If you get an error with `kingfisher`, check out [#14 on the FAQ](https://github.com/jolespin/veba/blob/main/FAQ.md#14-why-am-i-getting-errors-for-kingfisher-saying-a-command-was-not-found).
 
 #### 4. Perform quality/adapter trimming, remove human contamination, and count the ribosomal reads but don't remove them.
 

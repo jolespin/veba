@@ -13,7 +13,7 @@ from soothsayer_utils.soothsayer_utils import assert_acceptable_arguments
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.2.1"
+__version__ = "2023.2.28"
 
 
 # Diamond
@@ -21,13 +21,15 @@ def get_diamond_cmd( input_filepaths, output_filepaths, output_directory, direct
 
     # Command
     cmd = [
-        "(",
+
         "mkdir -p {}".format(os.path.join(directories["tmp"], "diamond")),
-        "&&",
+
+            "&&",
+
         os.environ["diamond"],
         "blastp",
-        "--db {}".format(opts.database_nr),
-        "--query {}".format(opts.proteins),
+        "--db {}".format(input_filepaths[1]),
+        "--query {}".format(input_filepaths[0]),
         "--threads {}".format(opts.n_jobs),
         "-f 6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore staxids sscinames stitle",
         "--evalue {}".format(opts.diamond_evalue),
@@ -41,10 +43,11 @@ def get_diamond_cmd( input_filepaths, output_filepaths, output_directory, direct
         ]
     cmd += [ 
         opts.diamond_options,
-        ")",
     ]
+
     cmd += [ 
-        "&&",
+            "&&",
+            
         "pigz",
         "-f",
         "-p {}".format(opts.n_jobs),
@@ -54,49 +57,6 @@ def get_diamond_cmd( input_filepaths, output_filepaths, output_directory, direct
     return cmd
 
 
-
-
-# def get_mmseqs_cmd( input_filepaths, output_filepaths, output_directory, directories, opts):
-
-#     os.environ["TMPDIR"] = directories["tmp"]
-#     # Command
-#     cmd = [
-#         "(",
-#         os.environ["mmseqs"],
-#         "easy-search",
-#         "--threads {}".format(opts.n_jobs),
-#         "--local-tmp {}".format(directories["tmp"]),
-#         "--format-output query,target,evalue,pident,alnlen,raw,bits,cigar,qheader,theader,qcov,tcov,taxid,taxname,taxlineage",
-#         "--format-mode 4",
-#         "-e {}".format(opts.mmseqs_evalue),
-
-
-
-#         "--query {}".format(opts.proteins),
-#         "--db {}".format(opts.database_nr),
-#         "-f 6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore staxids sscinames stitle",
-#         "--evalue {}".format(opts.diamond_evalue),
-#         "-o {}".format(os.path.join(output_directory, "output.tsv")),
-#         "--max-target-seqs 1",
-#     ]
-#     if bool(opts.diamond_sensitivity):
-#         cmd += [ 
-#             "--{}".format(opts.diamond_sensitivity),
-#         ]
-#     cmd += [ 
-#         opts.diamond_options,
-#         ")",
-#     ]
-#     cmd += [ 
-#         "&&",
-#         "pigz",
-#         "-f",
-#         "-p {}".format(opts.n_jobs),
-#         os.path.join(output_directory, "output.tsv"),
-#     ]           
-
-#     return cmd
-
 # HMMER
 def get_hmmsearch_cmd( input_filepaths, output_filepaths, output_directory, directories, opts):
 
@@ -105,23 +65,17 @@ def get_hmmsearch_cmd( input_filepaths, output_filepaths, output_directory, dire
         "(",
         os.environ["hmmsearch"],
         "--tblout {}".format(os.path.join(output_directory, "output.tsv")),
-        # "-E {}".format(opts.hmmsearch_evalue),
+        "--cut_ga",
         "--cpu {}".format(opts.n_jobs),
         "--seed {}".format(opts.random_state + 1),
-    ]
-    if bool(opts.hmmsearch_threshold):
-        cmd += [ "--{}".format(opts.hmmsearch_threshold)]
-
-    cmd += [
-        opts.database_pfam,
-        opts.proteins,
+        input_filepaths[1],
+        input_filepaths[0],
         ">",
         "/dev/null",
         ")",
-    ]
 
-    cmd += [ 
-        "&&",
+            "&&",
+
         "pigz",
         "-f",
         "-p {}".format(opts.n_jobs),
@@ -136,24 +90,25 @@ def get_kofamscan_cmd( input_filepaths, output_filepaths, output_directory, dire
     cmd = [
         "(",
         "mkdir -p {}".format(os.path.join(directories["tmp"], "kofamscan")),
-        "&&",
+
+            "&&",
+
         os.environ["exec_annotation"],
         "--cpu {}".format(opts.n_jobs),
         "-f detail-tsv",
-        "-p {}".format(os.path.join(opts.database_kofam, "profiles")),
-        "-k {}".format(os.path.join(opts.database_kofam, "ko_list")),
+        "-p {}".format(input_filepaths[1]),
+        "-k {}".format(input_filepaths[2]),
         "--tmp-dir {}".format(os.path.join(directories["tmp"], "kofamscan")),
         opts.kofamscan_options,
-        opts.proteins,
+        input_filepaths[0],
         "|",
         'grep "*"',
         ">",
         os.path.join(output_directory, "output.tsv"),
         ")",
-    ]
 
-    cmd += [ 
-        "&&",
+            "&&",
+
         "pigz",
         "-f",
         "-p {}".format(opts.n_jobs),
@@ -165,38 +120,22 @@ def get_merge_and_score_taxonomy_cmd( input_filepaths, output_filepaths, output_
 
     # Command
     cmd = [
-        "(",
         os.environ["merge_annotations_and_score_taxonomy.py"],
         "--diamond {}".format(input_filepaths[0]),
-        "--hmmsearch {}".format(input_filepaths[1]),
-        "--kofam {}".format(input_filepaths[2]),
-        "--database_taxa {}".format(opts.database_taxa),
+        "--hmmsearch_pfam {}".format(input_filepaths[1]),
+        "--hmmsearch_amr {}".format(input_filepaths[2]),
+        "--hmmsearch_antifam {}".format(input_filepaths[3]),
+        "--kofam {}".format(input_filepaths[4]),
+        "--veba_database {}".format(opts.veba_database),
         "--fasta {}".format(opts.proteins),
-        "--hmm_database_name Pfam",
         "-o {}".format(output_directory)
     ]
     if opts.identifier_mapping:
         cmd += [ 
             "-i {}".format(opts.identifier_mapping),
         ]
-    cmd += [ 
-        ")",
-    ]
 
     return cmd
-
-
-# # Symlink
-# def get_symlink_cmd(input_filepaths, output_filepaths, output_directory, directories, opts):
-    
-#     # Command
-#     cmd = ["("]
-#     for filepath in input_filepaths:
-#         # cmd.append("ln -f -s {} {}".format(os.path.realpath(filepath), os.path.realpath(output_directory)))
-#         cmd.append("ln -f -s {} {}".format(os.path.realpath(filepath), output_directory))
-#         cmd.append("&&")
-#     cmd[-1] = ")"
-#     return cmd
 
 # ============
 # Run Pipeline
@@ -267,10 +206,13 @@ def create_pipeline(opts, directories, f_cmds):
     output_directory = directories[("intermediate",  program_label)] = create_directory(os.path.join(directories["intermediate"], program_label))
 
     # Info
-    description = "Diamond [nr|{}]".format(opts.database_nr)
+    description = "Diamond [nr]"
 
     # i/o
-    input_filepaths = [opts.proteins]
+    input_filepaths = [
+        opts.proteins, 
+         os.path.join(opts.veba_database, "Annotate", "nr", "nr.dmnd"),
+        ]
     output_filenames = ["output.tsv.gz"]
     output_filepaths = list(map(lambda filename: os.path.join(output_directory, filename), output_filenames))
 
@@ -297,20 +239,107 @@ def create_pipeline(opts, directories, f_cmds):
 
 
     # ==========
-    # HMMSearch
+    # HMMSearch-Pfam
     # ==========
     step = 2
 
-    program = "hmmsearch"
+    program = "hmmsearch-pfam"
     program_label = "{}__{}".format(step, program)
     # Add to directories
     output_directory = directories[("intermediate",  program_label)] = create_directory(os.path.join(directories["intermediate"], program_label))
 
     # Info
-    description = "HMMSearch [PFAM|{}]".format(opts.database_pfam)
+    description = "HMMSearch [PFAM]"
 
     # i/o
-    input_filepaths = [opts.proteins]
+    input_filepaths = [
+        opts.proteins, 
+        os.path.join(opts.veba_database, "Annotate", "Pfam", "Pfam-A.hmm.gz"),
+        ]
+    output_filenames = ["output.tsv.gz"]
+    output_filepaths = list(map(lambda filename: os.path.join(output_directory, filename), output_filenames))
+
+    params = {
+        "input_filepaths":input_filepaths,
+        "output_filepaths":output_filepaths,
+        "output_directory":output_directory,
+        "opts":opts,
+        "directories":directories,
+    }
+
+    cmd = get_hmmsearch_cmd(**params)
+
+    pipeline.add_step(
+                id=program,
+                description = description,
+                step=step,
+                cmd=cmd,
+                input_filepaths = input_filepaths,
+                output_filepaths = output_filepaths,
+                validate_inputs=True,
+                validate_outputs=True,
+    )
+
+    # =============
+    # HMMSearch-AMR
+    # =============
+    step = 3
+
+    program = "hmmsearch-amr"
+    program_label = "{}__{}".format(step, program)
+    # Add to directories
+    output_directory = directories[("intermediate",  program_label)] = create_directory(os.path.join(directories["intermediate"], program_label))
+
+    # Info
+    description = "HMMSearch [NCBIfam-AMR]"
+
+    # i/o
+    input_filepaths = [
+        opts.proteins, 
+        os.path.join(opts.veba_database, "Annotate", "NCBIfam-AMRFinder", "NCBIfam-AMRFinder.hmm.gz"),
+        ]
+    output_filenames = ["output.tsv.gz"]
+    output_filepaths = list(map(lambda filename: os.path.join(output_directory, filename), output_filenames))
+
+    params = {
+        "input_filepaths":input_filepaths,
+        "output_filepaths":output_filepaths,
+        "output_directory":output_directory,
+        "opts":opts,
+        "directories":directories,
+    }
+
+    cmd = get_hmmsearch_cmd(**params)
+
+    pipeline.add_step(
+                id=program,
+                description = description,
+                step=step,
+                cmd=cmd,
+                input_filepaths = input_filepaths,
+                output_filepaths = output_filepaths,
+                validate_inputs=True,
+                validate_outputs=True,
+    )
+
+    # =================
+    # HMMSearch-AntiFam
+    # =================
+    step = 4
+
+    program = "hmmsearch-antifam"
+    program_label = "{}__{}".format(step, program)
+    # Add to directories
+    output_directory = directories[("intermediate",  program_label)] = create_directory(os.path.join(directories["intermediate"], program_label))
+
+    # Info
+    description = "HMMSearch [AntiFam]"
+
+    # i/o
+    input_filepaths = [
+        opts.proteins, 
+        os.path.join(opts.veba_database, "Contamination", "AntiFam", "AntiFam.hmm.gz"),
+        ]
     output_filenames = ["output.tsv.gz"]
     output_filepaths = list(map(lambda filename: os.path.join(output_directory, filename), output_filenames))
 
@@ -337,7 +366,7 @@ def create_pipeline(opts, directories, f_cmds):
     # ==========
     # KOFAMSCAN
     # ==========
-    step = 3
+    step = 5
 
     program = "kofamscan"
     program_label = "{}__{}".format(step, program)
@@ -345,9 +374,13 @@ def create_pipeline(opts, directories, f_cmds):
     output_directory = directories[("intermediate",  program_label)] = create_directory(os.path.join(directories["intermediate"], program_label))
 
     # Info
-    description = "KOFAMSCAN [KOFAM|{}]".format(opts.database_kofam)
+    description = "KOFAMSCAN [KOFAM]"
     # i/o
-    input_filepaths = [opts.proteins]
+    input_filepaths = [
+        opts.proteins, 
+        os.path.join(opts.veba_database, "Annotate", "KOFAM", "profiles"),
+        os.path.join(opts.veba_database, "Annotate", "KOFAM", "ko_list"),
+        ]
     output_filenames = ["output.tsv.gz"]
     output_filepaths = list(map(lambda filename: os.path.join(output_directory, filename), output_filenames))
 
@@ -375,7 +408,7 @@ def create_pipeline(opts, directories, f_cmds):
     # ==========
     # Output
     # ==========
-    step = 4
+    step = 6
 
     program = "merge_and_score_taxonomy"
     program_label = "{}__{}".format(step, program)
@@ -383,17 +416,24 @@ def create_pipeline(opts, directories, f_cmds):
     output_directory = directories["output"]
 
     # Info
-    description = "Merging annotation results and scoring taxonomy [NCBI Taxonomy|{}] ".format(opts.database_taxa)
+    description = "Merging annotation results and scoring taxonomy [NCBI Taxonomy]"
 
     # i/o
     input_filepaths = [
         os.path.join(directories[("intermediate",  "1__diamond")], "output.tsv.gz"),
-        os.path.join(directories[("intermediate",  "2__hmmsearch")], "output.tsv.gz"),
-        os.path.join(directories[("intermediate",  "3__kofamscan")], "output.tsv.gz"),
+        os.path.join(directories[("intermediate",  "2__hmmsearch-pfam")], "output.tsv.gz"),
+        os.path.join(directories[("intermediate",  "3__hmmsearch-amr")], "output.tsv.gz"),
+        os.path.join(directories[("intermediate",  "4__hmmsearch-antifam")], "output.tsv.gz"),
+        os.path.join(directories[("intermediate",  "5__kofamscan")], "output.tsv.gz"),
+        os.path.join(opts.veba_database, "Classify", "NCBITaxonomy", "nodes.dmp"),
+        os.path.join(opts.veba_database, "Classify", "NCBITaxonomy", "names.dmp"),
+        os.path.join(opts.veba_database, "Classify", "NCBITaxonomy", "merged.dmp"),
+
+
     ]
-    output_filenames = ["annotations.orfs.tsv.gz"]
+    output_filenames = ["protein_annotations.tsv.gz"]
     if opts.identifier_mapping:
-        output_filenames += ["lineage_predictions.contigs.tsv.gz", "lineage_predictions.mags.tsv.gz"]
+        output_filenames += ["lineage.weighted_majority_vote.contigs.tsv.gz", "lineage.weighted_majority_vote.genomes.tsv.gz"]
     
     output_filepaths = list(map(lambda filename: os.path.join(output_directory, filename), output_filenames))
 
@@ -419,57 +459,12 @@ def create_pipeline(opts, directories, f_cmds):
     )
 
 
-
-    # # =============
-    # # Symlink
-    # # =============
-    # program = "symlink"
-    # # Add to directories
-    # output_directory = directories["output"]
-
-    # # Info
-    # step = 4
-    # description = "Symlinking relevant output files"
-
-    # # i/o
-    # input_filepaths = [
-    #     os.path.join(directories[("intermediate", "1__fastani")], "clusters.tsv"),
-    #     os.path.join(directories[("intermediate", "2__orthofinder")], "proteins_to_orthogroups.tsv"),
-    # ]
-
-    # output_filenames =  map(lambda fp: fp.split("/")[-1], input_filepaths)
-    # output_filepaths = list(map(lambda fn:os.path.join(directories["output"], fn), output_filenames))
-
-    # params = {
-    # "input_filepaths":input_filepaths,
-    # "output_filepaths":output_filepaths,
-    # "output_directory":output_directory,
-    # "opts":opts,
-    # "directories":directories,
-    # }
-
-    # cmd = get_symlink_cmd(**params)
-    # pipeline.add_step(
-    #         id=program,
-    #         description = description,
-    #         step=step,
-    #         cmd=cmd,
-    #         input_filepaths = input_filepaths,
-    #         output_filepaths = output_filepaths,
-    #         validate_inputs=True,
-    #         validate_outputs=False,
-    # )
-
     return pipeline
 
 # Configure parameters
 def configure_parameters(opts, directories):
 
-
-
     assert_acceptable_arguments(opts.diamond_sensitivity, {"", "fast", "mid-sensitive", "sensitive", "more-sensitive", "very-sensitive", "ultra-sensitive"})
-    assert_acceptable_arguments(opts.hmmsearch_threshold, {"", "cut_ga", "cut_nc", "cut_tc"})
-
 
     # Set environment variables
     add_executables_to_environment(opts=opts)
@@ -493,7 +488,7 @@ def main(args=None):
     # Path info
     description = """
     Running: {} v{} via Python v{} | {}""".format(__program__, __version__, sys.version.split(" ")[0], sys.executable)
-    usage = "{} -i <identifier_mapping> -a <proteins> -o <output_directory>".format(__program__)
+    usage = "{} -a <proteins> -o <output_directory> |Optional: -i <identifier_mapping> ".format(__program__)
     epilog = "Copyright 2021 Josh L. Espinoza (jespinoz@jcvi.org)"
 
     # Parser
@@ -501,8 +496,8 @@ def main(args=None):
     # Pipeline
     parser_io = parser.add_argument_group('Required I/O arguments')
     parser_io.add_argument("-a","--proteins", type=str, required=True, help = "Either path/to/proteins.faa or a directory of fasta files using [-x]")
-    parser_io.add_argument("-i","--identifier_mapping", type=str, required=False, help = "Tab-seperated value table of [id_orf]<tab>[id_contig]<tab>[id_mag]")
     parser_io.add_argument("-o","--output_directory", type=str, default="veba_output/annotation", help = "path/to/project_directory [Default: veba_output/annotation]")
+    parser_io.add_argument("-i","--identifier_mapping", type=str, required=False, help = "Tab-seperated value table of [id_orf]<tab>[id_contig]<tab>[id_mag]")
     parser_io.add_argument("-x", "--extension", type=str, default="faa", help = "Fasta file extension for proteins if a directory is provided for --proteins [Default: faa]")
 
     # Utility
@@ -517,11 +512,7 @@ def main(args=None):
     # Databases
     parser_databases = parser.add_argument_group('Database arguments')
     parser_databases.add_argument("--veba_database", type=str,  help=f"VEBA database location.  [Default: $VEBA_DATABASE environment variable]")
-    # parser_databases.add_argument("--database_nr", type=str, default=DATABASE_NR, help=f"NCBI's NR database [Default: {DATABASE_NR}]")
-    # parser_databases.add_argument("--database_pfam", type=str, default=DATABASE_PFAM, help=f"PFAM HMM database [Default: {DATABASE_PFAM}]")
-    # parser_databases.add_argument("--database_kofam", type=str, default=DATABASE_KOFAM, help=f"KEGG's KOFAM database [Default: {DATABASE_KOFAM}]")
-    # parser_databases.add_argument("--database_taxa", type=str, default=DATABASE_TAXA, help=f"ETE3 build of NCBI's taxonomy database [Default: {DATABASE_TAXA}]")
-
+    
     # Diamond
     parser_diamond = parser.add_argument_group('Diamond arguments')
     parser_diamond.add_argument("--diamond_sensitivity", type=str, default="", help="Diamond | Sensitivity [Default:  '']")
@@ -530,15 +521,13 @@ def main(args=None):
 
     # HMMER
     parser_hmmer = parser.add_argument_group('HMMSearch arguments')
-    parser_hmmer.add_argument("--hmmsearch_threshold", type=str, default="cut_ga", help="HMMSearch | Threshold {cut_ga, cut_nc, gut_tc} [Default:  cut_ga]")
+    # parser_hmmer.add_argument("--hmmsearch_threshold", type=str, default="cut_ga", help="HMMSearch | Threshold {cut_ga, cut_nc, gut_tc} [Default:  cut_ga]")
     # parser_hmmer.add_argument("--hmmsearch_evalue", type=float, default=10.0, help="Diamond | E-Value [Default: 10.0]")
     parser_hmmer.add_argument("--hmmsearch_options", type=str, default="", help="Diamond | More options (e.g. --arg 1 ) [Default: '']")
 
     # KOFAMSCAN
     parser_kofamscan = parser.add_argument_group('KOFAMSCAN arguments')
     parser_kofamscan.add_argument("--kofamscan_options", type=str, default="", help="Diamond | More options (e.g. --arg 1 ) [Default: '']")
-
-
 
     # Options
     opts = parser.parse_args()
@@ -556,15 +545,9 @@ def main(args=None):
         assert "VEBA_DATABASE" in os.environ, "Please set the following environment variable 'export VEBA_DATABASE=/path/to/veba_database' or provide path to --veba_database"
         opts.veba_database = os.environ["VEBA_DATABASE"]
 
-    opts.database_nr = os.path.join(opts.veba_database, "Annotate", "nr", "nr.dmnd")
-    opts.database_pfam = os.path.join(opts.veba_database, "Annotate", "Pfam", "Pfam-A.hmm.gz")
-    opts.database_kofam = os.path.join(opts.veba_database, "Annotate", "KOFAM")
-    opts.database_taxa = os.path.join(opts.veba_database, "Classify", "NCBITaxonomy", "taxa.sqlite")
-
     # Directories
     directories = dict()
     directories["project"] = create_directory(opts.output_directory)
-    # directories["preprocessing"] = create_directory(os.path.join(directories["project"], "preprocessing"))
     directories["output"] = create_directory(os.path.join(directories["project"], "output"))
     directories["log"] = create_directory(os.path.join(directories["project"], "log"))
     directories["tmp"] = create_directory(os.path.join(directories["project"], "tmp"))
