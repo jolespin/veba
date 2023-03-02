@@ -96,6 +96,7 @@ The following output files will produced for each sample:
 * mapped.sorted.bam - Sorted BAM file
 * unmapped_1.fastq.gz - Unmapped reads (forward)
 * unmapped_2.fastq.gz - Unmapped reads (reverse)
+* genome_spatial_coverage.tsv.gz - Spatial coverage of MAG within sample (based on `samtools coverage`)
 
 #### 3. Merge the counts tables for all the samples:
 We have individual counts vectors for ORFs and contigs per sample.  Now we need to merge the contig counts and ORF counts separately.  While we are at it, let's aggregate the contig counts into MAGs and SLCs then aggregate the ORF counts into SSOs.  We are going to use the `merge_contig_mapping.py` and `merge_orf_mapping.py` scripts installed with *VEBA*.  If for some reason they aren't installed, then download them here:
@@ -141,6 +142,7 @@ The following output files will produced:
 * X_orfs.tsv.gz - Counts tables gzipped and tab-delimited (samples, ORFs)
 * X_orthogroups.tsv.gz - Counts tables gzipped and tab-delimited (samples, SSOs)
 * X_slcs.tsv.gz - Counts tables gzipped and tab-delimited (samples, SLCs)
+
 
 #### Next steps:
 

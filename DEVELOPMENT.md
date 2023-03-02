@@ -5,7 +5,7 @@
 ________________________________________________________________
 
 #### Current Releases:
-##### Release v1.1.0 (Currently testing before official release)
+##### Release v1.1.0
 
 * **Modules**:
 	* `annotate.py`
@@ -21,11 +21,13 @@ ________________________________________________________________
 		* Uses `binning_wrapper.py` for all binning.  This makes it easier to add new binning algorithms in the future (e.g., `VAMB`).  Also, check out the new multi-split binning functionality described below.
 		* Added `--skip_concoct` in addition to the already existing `--skip_maxbin2` option as `MaxBin2` takes very long when there's a lot of contigs and `CONCOCT` takes a long time when there are a lot of samples (i.e., BAM files).  `MetaBAT2` is not optional.  
 		
-		
 	* `binning-viral.py`
 		* Complete rewrite of this module which now uses `geNomad` as the default binning algorithm but still supports `VirFinder`.
 		* If `VirFinder` is used, the `genomad annotate` is run via the `genomad_taxonomy_wrapper.py` script included in the update. 
 		* Updated `Prodigal` → `Prodigal-GV` to handle additional viral genetic codes.
+		
+	* `biosynthetic.py`
+		* Introduces `component_id` and `bgc_id` which are unique, pareseable, and informative.  For example, `component_id = SRR17458614__CONCOCT__P.2__9|NODE_3319_length_2682_cov_2.840502|region001_1|2-2681(+)` contains the unique `bgc_id` (i.e., `SRR17458614__CONCOCT__P.2__9|NODE_3319_length_2682_cov_2.840502|region001`), shows that it is the 1st gene in the cluster (the `_1` in `region001_1`), and the gene start/end/strand.  The `bgc_id` is composed of the `genome_id|contig_id|region_id`.
 		
 	* `classify-prokaryotic.py`
 		* Updated `GTDB-Tk v2.1.1` →  `GTDB-Tk v2.2.3`.  For now, `--skip_ani_screen` is the only option because of [this thread](https://forum.gtdb.ecogenomic.org/t/how-can-i-use-the-mash-db-option-of-classify-wf/429/4).  However, `--mash_db` may be an option in the near future.
@@ -39,13 +41,17 @@ ________________________________________________________________
 		* Added functionality to classify viral genomes that were not binned via `VEBA` which is available with the `--genomes` option (`--viral_binning_directory` is still available which can leverage existing intermediate files).
 
 	* `cluster.py`
-		* Complete rewrite of this module which now uses `MMSEQS2` as the orthogroup detection algorithm instead of `OrthoFinder`.  `OrthoFinder` is overkill for creating protein clusters and it generates thousands of intermediate files (e.g., fasta, alignments, trees, etc.) which substantially increases the compute time.  `MMSEQS2` has very similar performance with a fraction of the resources and compute time.  Clustered the entire [Plastisphere dataset](https://figshare.com/articles/dataset/Genome_assemblies_gene_models_gene_annotations_taxonomy_classifications_clusters_and_counts_tables/20263974) on a local machine in ~30 minutes compared to several days on a HPC.
+		* Complete rewrite of this module which now uses `MMSEQS2` as the orthogroup detection algorithm instead of `OrthoFinder`.  `OrthoFinder` is overkill for creating protein clusters and it generates thousands of intermediate files (e.g., fasta, alignments, trees, etc.) which substantially increases the compute time.  `MMSEQS2` has very similar performance with a fraction of the resources and compute time.  Clustered the entire [*Plastisphere* dataset](https://figshare.com/articles/dataset/Genome_assemblies_gene_models_gene_annotations_taxonomy_classifications_clusters_and_counts_tables/20263974) on a local machine in ~30 minutes compared to several days on a HPC.
 		* Now that the resources are minimal, clustering is performed at global level as before (i.e., all samples in the dataset) and now at the local level, optionally but ON by default, which clusters all genomes within a sample.  Accompanying wrapper scripts are `global_clustering.py` and `local_clustering.py`.
 		* The genomic and functional feature compression ratios (FCR) (described [here](https://bmcbioinformatics.biomedcentral.com/articles/10.1186/s12859-022-04973-8)]) are now calculated automatically.  The calculation is `1 - number_of_clusters/number_of_features` which can easily be converted into an unsupervised biodiversity metric.  This is calculated at the global (original implementation) and local levels.
 		* Input is now a table with the following columns: `[organism_type]<tab>[id_sample]<tab>[id_mag]<tab>[genome]<tab>[proteins]` and is generated easily with the `compile_genomes_table.py` script.  This allows clustering to be performed for prokaryotes, eukaryotes, and viruses all at the same time.
 		* SLC-specific orthogroups (SSO) are now refered to as SLC-specific protein clusters (SSPC).
 		* Support zfilling (e.g., `zfill=3, SLC7 → SLC007`) for genomic and protein clusters.
 		* Deprecated `fastani_to_clusters.py` to now use the more generalizable `edgelist_to_clusters.py` which is used for both genomic and protein clusters.  This also outputs a `NetworkX` graph and a pickled dictionary `{"cluster_a":{"component_1", "component_2", ..., "component_n"}}`
+		
+	* `phylogeny.py`
+		* Updated `MUSCLE` to `v5` which has `-align` and `-super5` algorithms which are now accessible with `--alignment_algorithm`.  Cannot use `stdin` so now the fasta files are not gzipped.  The `merge_msa.py` now output uncompressed fasta as default and can output gzipped with the `--gzip` flag.
+
 		
 * **`VEBA Database`**:
 	* `VDB_v3.1` → `VDB_v4`
@@ -57,7 +63,7 @@ ________________________________________________________________
 		* Added `reference.eukaryota_odb10.list` and corresponding `MMSEQS2` database (i.e., `microeukaryotic.eukaryota_odb10`)
 		* Added `NCBIfam-AMRFinder` marker set for annotation
 		* Added `AntiFam` marker set for contamination
-		* Marker sets HMMs are now all gzipped (previously could not gzip because CheckM CPR workflow)
+		* Marker sets HMMs are now all gzipped (previously could not gzip because `CheckM` CPR workflow)
 
 * **Scripts:**
 	* Added:
@@ -89,6 +95,7 @@ ________________________________________________________________
 		* `subset_table.py` - Added option to set index column and to drop duplicates.
 		* `virfinder_wrapper.r` - Used to be `VirFinder_wrapper.R`.  This now has an option to use FDR values instead of P values.
 		* `merge_annotations_and_score_taxonomy.py` - Completely rewritten.  Uses `taxopy` instead of `ete3`.
+		* `merge_msa.py` - Output uncompressed protein fasta files by default and can compress with `--gzip` flag.
 
 	* Deprecated:
 		* `adjust_genomes_for_cpr.py`
@@ -162,7 +169,7 @@ ___
 ________________________________________________________________
 
 
-#### Future Releases:
+#### Path to `v2.0.0`:
 
 **Definitely:**
 
@@ -172,13 +179,14 @@ ________________________________________________________________
 * Automated consensus protein cluster annotations.  First need to create a hierarchical naming scheme that uses NR > KOFAM > Pfam.
 * Create a wrapper around `hmmsearch` that takes in score cutoffs and outputs a useable table.  This will be used in place of `KOFAMSCAN` which creates thousands of intermediate files.
 * Add MAG-level counts to prokaryotic and eukaryotic. Add optional bam file for viral binning, if so then add MAG-level counts
-* 
+* Support genome table input for `biosynthetic.py`, `phylogeny.py`, `index.py`, etc.
+* Install each module via `bioconda`
+
 **Probably (Yes)?:**
 * Add a `metabolic.py` module
 * Swap [`TransDecoder`](https://github.com/TransDecoder/TransDecoder) for [`TransSuite`](https://github.com/anonconda/TranSuite)
 * Add support for `Anvi'o` object export in `cluster.py`
 * Add spatial coverage to `coverage.py` script like in `mapping.py` module? Maybe just the samtools coverage output.
-
 
 **...Maybe (Not)?**
 
@@ -186,12 +194,7 @@ ________________________________________________________________
 * Add an option for sample name prefix in `assembly.py`
 
 
-
-
-
-
 ________________________________________________________________
-
 
 
 #### Change Log:

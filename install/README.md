@@ -93,7 +93,9 @@ cd veba/install
 
 **2. Install VEBA environments**
 
-For `v1.1.0`, this should take ~1.75 hours (~108 minutes).  With the update from `CheckM1` -> `CheckM2` and installation of `antiSMASH`, at ~15 GB of memory must be available so grid access may be necessary.
+**Recommended resource allocatation:** 4 hours with 15 GB memory (include extra time for variable I/O speed for various hosts)
+
+For `v1.1.0`, **this should take ~1.75 hours (~108 minutes) with ~15 GB memory allocated**.  The update from `CheckM1` -> `CheckM2` and installation of `antiSMASH` require more memory and may require grid access if head node is limited.
 
 ```
 bash install_veba.sh
@@ -101,7 +103,10 @@ bash install_veba.sh
 
 **3. Activate the database conda environment, download, and configure databases**
 
-⚠️ This step can ~11 hrs with 64 GB memory and should be run using a compute grid via SLURM or SunGridEngine.  If this command is run on the head node it will likely fail or timeout if a connection is interrupted. The most computationally intensive steps are creating a `Diamond` database of NCBI's non-redundant reference and a `MMSEQS2` database of the microeukaryotic protein database.  Note the duration will depend on several factors including your internet connection speed and the i/o of public repositories.
+**Recommended resource allocatation:** 16 hours with 64 GB memory (include extra time for variable I/O speed for various hosts)
+
+
+⚠️ **This step should take ~11 hrs with 64 GB memory** and should be run using a compute grid via SLURM or SunGridEngine.  If this command is run on the head node it will likely fail or timeout if a connection is interrupted. The most computationally intensive steps are creating a `Diamond` database of NCBI's non-redundant reference and a `MMSEQS2` database of the microeukaryotic protein database.  Note the duration will depend on several factors including your internet connection speed and the i/o of public repositories.
 
 If issues arise, please [submit a GitHub issue](https://github.com/jolespin/veba/issues) prefixed with `[Database]`. We are here to help :)
 

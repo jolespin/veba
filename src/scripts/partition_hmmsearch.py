@@ -5,7 +5,7 @@ import pandas as pd
 from Bio.SeqIO.FastaIO import SimpleFastaParser
 
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2022.06.20"
+__version__ = "2023.3.1"
 
 def main(args=None):
     # Path info
@@ -26,6 +26,7 @@ def main(args=None):
     parser.add_argument("-o","--output_directory", type=str,  default="input", help = "Output directory [Default: Directory of --hmmsearch_tblout")
     parser.add_argument("-d", "--sep", default="|--|", type=str, help="[id_organism]<sep>[id_protein] [Default: |--|]")
     parser.add_argument("-f", "--hmm_marker_field", default="accession", type=str, help="HMM reference type (accession, name) [Default: accession")
+    parser.add_argument("-g", "--gzip", action="store_true", help="Gzip the protein fasta files")
 
     # Options
     opts = parser.parse_args()
@@ -114,10 +115,13 @@ def main(args=None):
     # Create file objects
     print(" * Creating fasta file objects for N = {} markers".format(len(markers)), file=sys.stderr)
     files = dict()
-    for id_marker in markers:
-        files[id_marker] = gzip.open(os.path.join(opts.output_directory, "{}.faa.gz".format(id_marker)), "wt")
+    if opts.gzip:
+        for id_marker in markers:
+            files[id_marker] = gzip.open(os.path.join(opts.output_directory, "{}.faa.gz".format(id_marker)), "wt")
+    else:
+        for id_marker in markers:
+            files[id_marker] = open(os.path.join(opts.output_directory, "{}.faa".format(id_marker)), "w")
 
-    
     # Protein sequences 
     print(" * Getting query protein sequences: {}".format(opts.proteins), file=sys.stderr)
     # organism_to_query_to_seq = defaultdict(dict) 

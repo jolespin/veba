@@ -12,7 +12,7 @@ from soothsayer_utils import *
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.2.1"
+__version__ = "2023.3.1"
 
 
 # Assembly
@@ -397,7 +397,7 @@ def main(args=None):
     parser = argparse.ArgumentParser(description=description, usage=usage, epilog=epilog, formatter_class=argparse.RawTextHelpFormatter)
     # Pipeline
     parser_io = parser.add_argument_group('Required I/O arguments')
-    parser_io.add_argument("-m","--mags", type=str, help = "Tab-seperated value table of [id_mag]<tab>[path/to/genome.fasta]")
+    parser_io.add_argument("-m","--mags", type=str, help = "Either 1) Tab-seperated value table of [id_mag]<tab>[path/to/genome.fasta]; or 2) a file with a list filepaths for genomes (Must have same extension)")
     parser_io.add_argument("-g","--gene_models", type=str, help = "Tab-seperated value table of [id_mag]<tab>[path/to/gene_models.gff]. Must be gff3.")
     parser_io.add_argument("-o","--output_directory", type=str, default="veba_output/cluster", help = "path/to/project_directory [Default: veba_output/cluster]")
     parser_io.add_argument("--mags_extension", type=str, default="fa", help = "Fasta file extension for --mags if a list is provided [Default: fa]")

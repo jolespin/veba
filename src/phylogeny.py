@@ -13,7 +13,7 @@ from soothsayer_utils import *
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.2.1"
+__version__ = "2023.3.1"
 
 # Assembly
 def preprocess( input_filepaths, output_filepaths, output_directory, directories, opts):
@@ -105,7 +105,7 @@ def get_msa_cmd( input_filepaths, output_filepaths, output_directory, directorie
     cmd = [
 """
 # MUSCLE
-cut -f1 %s | %s -j %d 'echo "[MUSCLE] {}" && zcat "%s/{}.faa.gz" | %s -out %s/{}.msa %s'
+cut -f1 %s | %s -j %d 'echo "[MUSCLE] {}" && %s -%s %s/{}.faa -output %s/{}.msa %s -threads 1'
 
 # ClipKIT
 cut -f1 %s | %s -j %d 'echo "[ClipKIT] {}"  &&  %s %s/{}.msa -m %s -o %s/{}.msa.clipkit %s'
@@ -117,8 +117,9 @@ cut -f1 %s | %s -j %d 'echo "[ClipKIT] {}"  &&  %s %s/{}.msa -m %s -o %s/{}.msa.
     os.path.join(directories[("intermediate",  "1__hmmsearch")], "markers.tsv"),
     os.environ["parallel"],
     opts.n_jobs,
-    directories[("intermediate",  "1__hmmsearch")],
     os.environ["muscle"],
+    opts.alignment_algorithm,
+    directories[("intermediate",  "1__hmmsearch")],
     output_directory,
     opts.muscle_options,
 
@@ -142,33 +143,7 @@ cut -f1 %s | %s -j %d 'echo "[ClipKIT] {}"  &&  %s %s/{}.msa -m %s -o %s/{}.msa.
     os.path.join(output_directory, "alignment_table.boolean.tsv.gz"),
     )
     ]
-# """
 
-# for ID_MARKER in $(cut -f1 %s);
-#     do echo $ID_MARKER; 
-#     FAA=%s/${ID_MARKER}.faa.gz 
-
-#     # Run MUSCLE
-#     zcat ${FAA} | %s -out %s/${ID_MARKER}.msa %s
-
-
-#     # Run ClipKIT
-#     %s %s/${ID_MARKER}.msa -m %s -o %s/${ID_MARKER}.msa.clipkit %s
-
-#     done
-# """%(
-#     os.path.join(directories[("intermediate",  "1__hmmsearch")], "markers.tsv"),
-#     directories[("intermediate",  "1__hmmsearch")],
-#     os.environ["muscle"],
-#     output_directory,
-#     opts.muscle_options,
-#     os.environ["clipkit"],
-#     output_directory,
-#     opts.clipkit_mode,
-#     output_directory,
-#     opts.clipkit_options,
-#     ),
-#     ]
     return cmd
 
 # FastTree
@@ -542,6 +517,8 @@ def configure_parameters(opts, directories):
     if opts.hmmsearch_threshold.lower() == "e":
         opts.hmmsearch_threshold = None
     assert_acceptable_arguments(opts.hmm_marker_field, {"accession", "name"})
+    assert_acceptable_arguments(opts.alignment_algorithm, {"align", "super5"})
+    
     # Set environment variables
     add_executables_to_environment(opts=opts)
 
@@ -560,7 +537,7 @@ def main(args=None):
     # Pipeline
     parser_io = parser.add_argument_group('Required I/O arguments')
     parser_io.add_argument("-d", "--database_hmm", type=str,  help=f"path/to/HMM database of markers")
-    parser_io.add_argument("-a","--proteins", type=str, help = "Can be the following format: 1) Tab-seperated value table of [id_mag]<tab>[path/to/protein.fasta]; 2) List of filepaths [path/to/protein.fasta]; or 3) Directory of protein fasta using --protein_extension")
+    parser_io.add_argument("-a","--proteins", type=str, help = "Can be the following format: 1) Tab-seperated value table of [id_mag]<tab>[path/to/protein.fasta]; 2) Files with list of filepaths [path/to/protein.fasta]; or 3) Directory of protein fasta using --extension")
     parser_io.add_argument("-o","--output_directory", type=str, default="veba_output/phylogeny", help = "path/to/project_directory [Default: veba_output/phylogeny]")
     parser_io.add_argument("-x", "--extension", type=str, default="faa", help = "Fasta file extension for proteins if a list is provided [Default: faa]")
 
@@ -582,6 +559,7 @@ def main(args=None):
 
     # Muscle
     parser_alignment = parser.add_argument_group('Alignment arguments')
+    parser_alignment.add_argument("-A", "--alignment_algorithm", type=str,  default="align", help = "Muscle alignment algorithm.  Align large input using Super5 algorithm if -align is too expensive. {align,super5} [Default: align]")
     parser_alignment.add_argument("-g", "--minimum_genomes_aligned_ratio", type=float,  default=0.95, help = "Minimum ratio of genomes include in alignment. This removes markers that are under represented. [Default: 0.95]")
     parser_alignment.add_argument("-m", "--minimum_markers_aligned_ratio", type=float,  default=0.2, help = "Minimum ratio of markers aligned. This removes genomes with few markers. Note, this is based on detected markers and NOT total markers in original HMM. [Default: 0.2]")
     parser_alignment.add_argument("--muscle_options", type=str, default="", help="MUSCLE | More options (e.g. --arg 1 ) [Default: '']")
