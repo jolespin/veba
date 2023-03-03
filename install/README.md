@@ -86,6 +86,7 @@ tar -xvf v${VERSION}.tar.gz && mv veba-${VERSION} veba
 # Update the permissions
 chmod 755 veba/src/*.py
 chmod 755 veba/src/scripts/*
+chmod 755 veba/install/*.sh
 
 # Go into the install directory
 cd veba/install

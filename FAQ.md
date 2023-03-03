@@ -364,3 +364,7 @@ In short, the tool forces the output files to be in the current working director
 #### 35. Why does `annotate.py` output lineage predictions for contigs and MAG with a disclaimer that they are experimental?
 
 These predictions are very naive and are generated only from the bitscores of `Diamond` alignments against NR.  This does not subset out core markers which can introduce noise.  You may notice that a MAG classification from `classify-[domain].py` is different than what is generated in `lineage.weighted_majority_vote.genomes.tsv.gz` and that is because the classification modules use more robust algorithms/databases.
+
+#### 36. If I update from `v1.0.x` → `v1.1.0`, can I use any of my existing files?
+
+Yes!  All of the MAGs, gene models, alignments, etc. can be used seamlessly in the updated version.  However, if you've performed clustering it is advised that you rerun with the updated clustering algorithm as it handles singletons better and creates more useful identifier mapping tables. Now that clustering uses `MMSEQS2`, it is MUCH faster than `OrthoFinder`. 
