@@ -13,7 +13,7 @@ from soothsayer_utils import *
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.2.24"
+__version__ = "2023.3.3"
 
 # geNomad
 def get_genomad_cmd(input_filepaths, output_filepaths, output_directory, directories, opts):
@@ -844,7 +844,7 @@ def main(args=None):
 
     # Binning
     parser_binning = parser.add_argument_group('Binning arguments')
-    parser_binning.add_argument("-a", "--algorithm", type=str, default="genomad", help="Binning algorithm to use: {genomad, virfinder}  [Default: genomad] ")
+    parser_binning.add_argument("-a", "--algorithm", type=str, default="genomad", help="Binning algorithm to use: {genomad, virfinder}  [Default: genomad]")
     parser_binning.add_argument("-m", "--minimum_contig_length", type=int, default=1500, help="Minimum contig length.  [Default: 1500] ")
     parser_binning.add_argument("--include_provirus_detection", action="store_true", help="Include provirus viral detection")
 
@@ -853,17 +853,17 @@ def main(args=None):
     parser_genemodels.add_argument("--prodigal_genetic_code", type=str, default=11, help="Prodigal-GV -g translation table (https://github.com/apcamargo/prodigal-gv) [Default: 11]")
 
     # geNomad
-    parser_genomad = parser.add_argument_group('geNomad arguments')
-    parser_genomad.add_argument("--genomad_qvalue", type=float, default=0.1, help = "Maximum accepted false discovery rate. [Default: 0.1; 0.0 < x ≤ 1.0]")
+    parser_genomad = parser.add_argument_group('geNomad arguments\nUsing --relaxed mode by default.  Adjust settings according to the following table: https://portal.nersc.gov/genomad/post_classification_filtering.html#default-parameters-and-presets')
+    parser_genomad.add_argument("--genomad_qvalue", type=float, default=1.0, help = "Maximum accepted false discovery rate. [Default: 1.0; 0.0 < x ≤ 1.0]")
     parser_genomad.add_argument("--sensitivity", type=float, default=4.0, help = "MMseqs2 marker search sensitivity. Higher values will annotate more proteins, but the search will be slower and consume more memory. [Default: 4.0; x ≥ 0.0]")
     parser_genomad.add_argument("--splits", type=int, default=0, help = "Split the data for the MMseqs2 search. Higher values will reduce memory usage, but will make the search slower. If the MMseqs2 search is failing, try to increase the number of splits. Also used for VirFinder. [Default: 0; x ≥ 0]")
     parser_genomad.add_argument("--composition", type=str, default="auto", help = "Method for estimating sample composition. (auto|metagenome|virome) [Default: auto]")
     parser_genomad.add_argument("--minimum_score", type=float, default=0.0, help = "Minimum score to flag a sequence as virus or plasmid. By default, the sequence is classified as virus/plasmid if its virus/plasmid score is higher than its chromosome score, regardless of the value. [Default: 0; 0.0 ≤ x ≤ 1.0]")
-    parser_genomad.add_argument("--minimum_plasmid_marker_enrichment", type=float, default=0.0, help = "Minimum allowed value for the plasmid marker enrichment score, which represents the total enrichment of plasmid markers in the sequence. Sequences with multiple plasmid markers will have higher values than the ones that encode few or no markers.[Default: 0.0]")
-    parser_genomad.add_argument("--minimum_virus_marker_enrichment", type=float, default=0.0, help = "Minimum allowed value for the virus marker enrichment score, which represents the total enrichment of plasmid markers in the sequence. Sequences with multiple plasmid markers will have higher values than the ones that encode few or no markers. [Default: 0.0]")
+    parser_genomad.add_argument("--minimum_plasmid_marker_enrichment", type=float, default=-100, help = "Minimum allowed value for the plasmid marker enrichment score, which represents the total enrichment of plasmid markers in the sequence. Sequences with multiple plasmid markers will have higher values than the ones that encode few or no markers.[Default: -100]")
+    parser_genomad.add_argument("--minimum_virus_marker_enrichment", type=float, default=-100, help = "Minimum allowed value for the virus marker enrichment score, which represents the total enrichment of plasmid markers in the sequence. Sequences with multiple plasmid markers will have higher values than the ones that encode few or no markers. [Default: -100]")
     parser_genomad.add_argument("--minimum_plasmid_hallmarks", type=int, default=0, help = "Minimum number of plasmid hallmarks in the identified plasmids.  [Default: 0; x ≥ 0]")
     parser_genomad.add_argument("--minimum_virus_hallmarks", type=int, default=0, help = "Minimum number of virus hallmarks in the identified viruses.  [Default: 0; x ≥ 0]")
-    parser_genomad.add_argument("--maximum_universal_single_copy_genes", type=int, default=4, help = "Maximum allowed number of universal single copy genes (USCGs) in a virus or a plasmid. Sequences with more than this number of USCGs will not be classified as viruses or plasmids, regardless of their score.  [Default: 4]")
+    parser_genomad.add_argument("--maximum_universal_single_copy_genes", type=int, default=100, help = "Maximum allowed number of universal single copy genes (USCGs) in a virus or a plasmid. Sequences with more than this number of USCGs will not be classified as viruses or plasmids, regardless of their score.  [Default: 100]")
     parser_genomad.add_argument("--genomad_options", type=str, default="", help="geNomad | More options (e.g. --arg 1 ) [Default: '']")
 
     # VirFinder

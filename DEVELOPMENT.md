@@ -198,6 +198,7 @@ ________________________________________________________________
 
 
 #### Change Log:
+* [2023.3.3] - Updated `binning-viral.py` module's `geNomad` run to use `--relaxed` settings by default since `CheckV` is used after with conservative settings (https://portal.nersc.gov/genomad/post_classification_filtering.html#default-parameters-and-presets)
 * [2023.2.23] - The largest update to date.  Please refer to v1.1 for details on what has been changed.
 * [2023.01.20] - Changed `-a --ani` to `-t --threshold` in `fastani_to_clusters.py` to match the usage in `edgelist_to_clusters.py` which is a generalization of `fastani_to_clusters.py` developed for `MMSEQS2` and `Diamond` implementations.
 * [2023.01.12] - Updated `VDB-Microeukaryotic_v2` to `VDB-Microeukaryotic_v2.1` to include a `reference.eukaryota_odb10.list` containing all the eukaryotic core markers. To accomodate this, I've also updated `VDB_v3` to `VDB_v3.1`, the `download_databases.sh` script, and the `VEBA-database_env.yml` environment file.  Now a `microeukaryotic.eukaryota_odb10` will be available for streamlined eukaryotic classification.
