@@ -368,3 +368,16 @@ These predictions are very naive and are generated only from the bitscores of `D
 #### 36. If I update from `v1.0.x` → `v1.1.0`, can I use any of my existing files?
 
 Yes!  All of the MAGs, gene models, alignments, etc. can be used seamlessly in the updated version.  However, if you've performed clustering it is advised that you rerun with the updated clustering algorithm as it handles singletons better and creates more useful identifier mapping tables. Now that clustering uses `MMSEQS2`, it is MUCH faster than `OrthoFinder`. 
+
+#### 37. Why am I getting a (core dumped) error for `annotate.py` when running `hmmsearch`?
+
+```
+cat annotation_output/log/2__hmmsearch-pfam.e
+
+Fatal exception (source file p7_pipeline.c, line 697):
+Target sequence length > 100K, over comparison pipeline limit.
+(Did you mean to use nhmmer/nhmmscan?)
+/bin/sh: line 1: 3527164 Aborted                 (core dumped) ( /expanse/projects/jcl110/anaconda3/envs/VEBA-annotate_env/bin/hmmsearch --tblout annotation_output/intermediate/2__hmmsearch-pfam/output.tsv --cut_ga --cpu 8 --seed 1 ${VEBA_DATABASE}/Annotate/Pfam/Pfam-A.hmm.gz proteins.faa > /dev/null )
+```
+
+This is likely because you have [sequences longer than 100k](https://www.biostars.org/p/487110/).  In versions after `v1.1.0` this will be addressed in the backend but in the meantime you can do the following to not trigger this error: `seqkit seq -M 100000 proteins.faa > proteins.lt100k.faa` (assuming your fasta file is called `proteins.faa`).
