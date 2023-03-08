@@ -12,16 +12,7 @@ from soothsayer_utils import *
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.2.22"
-
-# .............................................................................
-# Notes
-# .............................................................................
-# * Make batch version that takes in a manifest file
-# .............................................................................
-# Primordial
-# .............................................................................
-
+__version__ = "2023.3.7"
 
 # Assembly
 def get_assembly_cmd( input_filepaths, output_filepaths, output_directory, directories, opts):
@@ -55,26 +46,70 @@ def get_assembly_cmd( input_filepaths, output_filepaths, output_directory, direc
     # SPAdes-based assemblers
     else:
         cmd = [
-            "(",
-        os.environ[opts.program],
+            os.environ[opts.program],
+            "-o {}".format(output_directory),
+            opts.assembler_options,
+
         ]
-        if "restart-from" not in str(opts.assembler_options):
+        if ("restart-from" not in str(opts.assembler_options)) and ("--continue" not in str(opts.assembler_options)):
             cmd += [
             "-1 {}".format(input_filepaths[0]),
             "-2 {}".format(input_filepaths[1]),
             ]
-        cmd += [
-        "-o {}".format(output_directory),
-        "--tmp-dir {}".format(os.path.join(directories["tmp"], "assembly")),
-        "--threads {}".format(opts.n_jobs),
-        "--memory {}".format(opts.spades_memory),
-        opts.assembler_options,
-        ")",
+
+        if ("--continue" not in str(opts.assembler_options)):
+            cmd += [
+            "--tmp-dir {}".format(os.path.join(directories["tmp"], "assembly")),
+            "--threads {}".format(opts.n_jobs),
+            "--memory {}".format(opts.spades_memory),
         ]
 
-    # Create SAF file
+    # Filter out small scaffolds/transcripts, add prefix (if applicable), and create SAF file
     if opts.program == "rnaspades.py":
         cmd += [ 
+
+            # Get failed length cutoff fasta
+                "&&",
+
+            "mv",
+            os.path.join(output_directory, "transcripts.fasta"),
+            os.path.join(output_directory, "transcripts_original.fasta"),
+
+                "&&",
+
+            "cat",
+            os.path.join(output_directory, "transcripts_original.fasta"),
+            "|",
+            os.environ["seqkit"],
+            "seq",
+            "-M {}".format(max(opts.minimum_contig_length - 1, 1)),
+            "|",
+            "gzip",
+            ">",
+            os.path.join(output_directory, "transcripts_failed_length_cutoff.fasta.gz"),
+
+            # Filter out small scaffolds and add prefix if applicable
+                "&&",
+
+            "cat",
+            os.path.join(output_directory, "transcripts_original.fasta"),
+            "|",
+            os.environ["seqkit"],
+            "seq",
+            "-m {}".format(opts.minimum_contig_length),
+            "|",
+            os.environ["seqkit"],
+            "replace",
+            "-r {}".format(opts.scaffold_prefix),
+            "-p '^'",
+            ">",
+            os.path.join(output_directory, "transcripts.fasta"),
+
+                "&&",
+
+            "rm -rf",
+            os.path.join(output_directory, "transcripts_original.fasta"),
+
                 "&&",
 
             os.environ["fasta_to_saf.py"],
@@ -96,7 +131,51 @@ def get_assembly_cmd( input_filepaths, output_filepaths, output_directory, direc
 
     else:
         cmd += [ 
-            "&&",
+
+            # Get failed length cutoff fasta
+                "&&",
+
+            "mv",
+            os.path.join(output_directory, "scaffolds.fasta"),
+            os.path.join(output_directory, "scaffolds_original.fasta"),
+
+                "&&",
+
+            "cat",
+            os.path.join(output_directory, "scaffolds_original.fasta"),
+            "|",
+            os.environ["seqkit"],
+            "seq",
+            "-M {}".format(max(opts.minimum_contig_length - 1, 1)),
+            "|",
+            "gzip",
+            ">",
+            os.path.join(output_directory, "scaffolds_failed_length_cutoff.fasta.gz"),
+
+            # Filter out small scaffolds and add prefix if applicable
+                "&&",
+
+            "cat",
+            os.path.join(output_directory, "scaffolds_original.fasta"),
+            "|",
+            os.environ["seqkit"],
+            "seq",
+            "-m {}".format(opts.minimum_contig_length),
+            "|",
+            os.environ["seqkit"],
+            "replace",
+            "-r {}".format(opts.scaffold_prefix),
+            "-p '^'",
+            ">",
+            os.path.join(output_directory, "scaffolds.fasta"),
+
+                "&&",
+
+            "rm -rf",
+            os.path.join(output_directory, "scaffolds_original.fasta"),
+
+                "&&",
+                
             os.environ["fasta_to_saf.py"],
             "-i",
             os.path.join(output_directory, "scaffolds.fasta"),
@@ -571,6 +650,14 @@ def configure_parameters(opts, directories):
     assert_acceptable_arguments(opts.program, {"spades.py", "metaspades.py", "rnaspades.py", "megahit", "metaplasmidspades.py", "plasmidspades.py", "coronaspades.py"}) 
     if opts.program in {"metaplasmidspades.py", "plasmidspades.py", "coronaspades.py"}:
         print("UserWarning: {} has not been thoroughly tested with VEBA.  If any issues arise, please use one of the following instead: {spades.py, metaspades.py, rnaspades.py, megahit}".format(opts.program), file=sys.stdout)
+
+    # Scaffold prefix
+    if opts.scaffold_prefix == "NONE":
+        opts.scaffold_prefix = ""
+    else:
+        if "NAME" in opts.scaffold_prefix:
+            opts.scaffold_prefix = opts.scaffold_prefix.replace("NAME", opts.name)
+        print("Using the following prefix for all {} scaffolds: {}".format(opts.program, opts.scaffold_prefix), file=sys.stdout)
     # Set environment variables
     add_executables_to_environment(opts=opts)
 
@@ -605,6 +692,8 @@ def main(args=None):
     # Assembler
     parser_assembler = parser.add_argument_group('Assembler arguments')
     parser_assembler.add_argument("-P", "--program", type=str, default="metaspades.py", help="Assembler |  {spades.py, metaspades.py, rnaspades.py, megahit, metaplasmidspades.py, plasmidspades.py, coronaspades.py}} [Default: 'metaspades.py']")
+    parser_assembler.add_argument("-s", "--scaffold_prefix", type=str, default="NAME__", help="Assembler |  Special options:  Use NAME to use --name.  Use NONE to not include a prefix. [Default: 'NAME__']")
+    parser_assembler.add_argument("-m", "--minimum_contig_length", type=int, default=1, help="Minimum contig length.  Should be lenient here because longer thresholds can be used for binning downstream. Recommended for metagenomes to use 1000 here. [Default: 1] ")
     parser_assembler.add_argument("--assembler_options", type=str, default="", help="Assembler options for SPAdes-based programs and MEGAHIT (e.g. --arg 1 ) [Default: '']")
 
     # SPAdes

@@ -181,8 +181,11 @@ ________________________________________________________________
 * Add MAG-level counts to prokaryotic and eukaryotic. Add optional bam file for viral binning, if so then add MAG-level counts
 * Support genome table input for `biosynthetic.py`, `phylogeny.py`, `index.py`, etc.
 * Install each module via `bioconda`
+* Add checks for `annotate.py` to ensure there are no proteins > 100K in length.
+* Add support for `STAR` in `mapping.py` and `index.py`.  This will require adding the `exon` field to `Prodigal` GFF file (`MetaEuk` modified GFF files already have exon ids). 
 
 **Probably (Yes)?:**
+
 * Add a `metabolic.py` module
 * Swap [`TransDecoder`](https://github.com/TransDecoder/TransDecoder) for [`TransSuite`](https://github.com/anonconda/TranSuite)
 * Add support for `Anvi'o` object export in `cluster.py`
@@ -198,6 +201,8 @@ ________________________________________________________________
 
 
 #### Change Log:
+* [2023.3.7] - Added prefix and minimum contig length threshold to `assembly.py` by default.  Added `merge_generalized_mapping.py` which can be used for `bowtie2_wrapper.py` and (the future) `star_wrapper.py` helper scripts.
+* [2023.3.6] - Added dereplicated `MIBiG` `Diamond` database to (`mibig_v3.1.dmnd`) `VDB_v4.1`.  Adds protein fasta files for genes in BGCs for `biosynthetic.py` which are used to run against the `mibig_v3.1.dmnd` database.  
 * [2023.3.3] - Updated `binning-viral.py` module's `geNomad` run to use `--relaxed` settings by default since `CheckV` is used after with conservative settings (https://portal.nersc.gov/genomad/post_classification_filtering.html#default-parameters-and-presets)
 * [2023.2.23] - The largest update to date.  Please refer to v1.1 for details on what has been changed.
 * [2023.01.20] - Changed `-a --ani` to `-t --threshold` in `fastani_to_clusters.py` to match the usage in `edgelist_to_clusters.py` which is a generalization of `fastani_to_clusters.py` developed for `MMSEQS2` and `Diamond` implementations.
