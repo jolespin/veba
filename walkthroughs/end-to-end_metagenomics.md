@@ -577,7 +577,7 @@ IDENTIFIER_MAPPING=veba_output/misc/all_genomes.identifier_mapping.tsv
 for i in $(seq -f "%03g" 1 ${N_PARTITIONS}); do # This iterates through 1-100 and zero pads
 	PROTEINS=${PARTITION_DIRECTORY}/stdin.part_${i}.fasta
 	IDENTIFIERS=${PARTITION_DIRECTORY}/stdin.part_${i}.list
-	cat ${PROTEINS } | grep "^>" | cut -c2- > ${IDENTIFIERS}
+	cat ${PROTEINS} | grep "^>" | cut -c2- > ${IDENTIFIERS}
 	subset_table.py -i ${IDENTIFIERS} -t ${IDENTIFIER_MAPPING} -o ${PARTITION_DIRECTORY}/stdin.part_${i}.identifier_mapping.tsv
 	done
 
