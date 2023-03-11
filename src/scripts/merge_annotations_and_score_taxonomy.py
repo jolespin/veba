@@ -6,7 +6,9 @@ import numpy as np
 from soothsayer_utils import read_hmmer, pv, get_file_object, assert_acceptable_arguments, format_header
 
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.2.28"
+__version__ = "2023.3.9"
+
+disclaimer = format_header("DISCLAIMER: Lineage predictions are NOT robust and DO NOT USE CORE MARKERS.  Please only use for exploratory suggestions.")
 
 def main(args=None):
     # Path info
@@ -23,7 +25,7 @@ def main(args=None):
     # Pipeline
     parser_required = parser.add_argument_group('Required I/O arguments')
     parser_required.add_argument("-o","--output_directory", type=str, default="annotation_output",  help = "Output directory for annotations [Default: annotation_output]")
-    parser_required.add_argument("-d","--diamond", type=str, required=True,  help = "path/to/diamond_nr.blast6 in blast6 format (No header) with the following fields: \nqseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore staxids sscinames stitle")
+    parser_required.add_argument("-d","--diamond", type=str, required=True,  help = "path/to/diamond_nr.blast6 in blast6 format (No header, cannot be empty) with the following fields: \nqseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore staxids sscinames stitle")
     parser_required.add_argument("-k","--kofam", type=str, required=True,  help = "path/to/kofamscan.tblout hmmsearch results in tblout format")
     parser_required.add_argument("-p", "--hmmsearch_pfam", type=str, required=True,  help = "path/to/hmmsearch.tblout hmmsearch results in tblout format")
     parser_required.add_argument("-n", "--hmmsearch_amr", type=str, required=True,  help = "path/to/hmmsearch.tblout hmmsearch results in tblout format")
@@ -86,21 +88,36 @@ def main(args=None):
     proteins = proteins | set(df_dmnd.index)
 
     print(" * Reading HMMSearch table [Pfam]: {}".format(opts.hmmsearch_pfam), file=sys.stderr)
-    df_hmmsearch_pfam = read_hmmer(opts.hmmsearch_pfam, program="hmmsearch", format="tblout", verbose=False)[["identifier", opts.hmmsearch_region]].droplevel(0, axis=1)
-    proteins = proteins | set(df_hmmsearch_pfam["target_name"])
+    df_hmmsearch_pfam = read_hmmer(opts.hmmsearch_pfam, program="hmmsearch", format="tblout", verbose=False)
+    if not df_hmmsearch_pfam.empty:
+        df_hmmsearch_pfam = df_hmmsearch_pfam[["identifier", opts.hmmsearch_region]].droplevel(0, axis=1)
+        proteins = proteins | set(df_hmmsearch_pfam["target_name"])
+    else:
+        print(" *!* HMMSearch table [Pfam] is empty", file=sys.stderr)
 
     print(" * Reading HMMSearch table [AMR]: {}".format(opts.hmmsearch_amr), file=sys.stderr)
-    df_hmmsearch_amr = read_hmmer(opts.hmmsearch_amr, program="hmmsearch", format="tblout", verbose=False)[["identifier", opts.hmmsearch_region]].droplevel(0, axis=1)
-    proteins = proteins | set(df_hmmsearch_amr["target_name"])
+    df_hmmsearch_amr = read_hmmer(opts.hmmsearch_amr, program="hmmsearch", format="tblout", verbose=False)
+    if not df_hmmsearch_amr.empty:
+        df_hmmsearch_amr = df_hmmsearch_amr[["identifier", opts.hmmsearch_region]].droplevel(0, axis=1)
+        proteins = proteins | set(df_hmmsearch_amr["target_name"])
+    else:
+        print(" *!* HMMSearch table [AMR] is empty", file=sys.stderr)
 
     print(" * Reading HMMSearch table [AntiFam]: {}".format(opts.hmmsearch_antifam), file=sys.stderr)
-    df_hmmsearch_antifam = read_hmmer(opts.hmmsearch_antifam, program="hmmsearch", format="tblout", verbose=False)[["identifier", opts.hmmsearch_region]].droplevel(0, axis=1)
-    proteins = proteins | set(df_hmmsearch_antifam[ "target_name"])
-
+    df_hmmsearch_antifam = read_hmmer(opts.hmmsearch_antifam, program="hmmsearch", format="tblout", verbose=False)
+    if not df_hmmsearch_antifam.empty:
+        df_hmmsearch_antifam = df_hmmsearch_antifam[["identifier", opts.hmmsearch_region]].droplevel(0, axis=1)
+        proteins = proteins | set(df_hmmsearch_antifam[ "target_name"])
+    else:
+        print(" *!* HMMSearch table [AntiFam] is empty", file=sys.stderr)
 
     print(" * Reading KOFAMSCAN table [KEGG]: {}".format(opts.kofam), file=sys.stderr)
     df_kofamscan = pd.read_csv(opts.kofam, sep="\t", index_col=None, header=None)
-    proteins = proteins | set(df_kofamscan.iloc[:,1])
+    if not df_kofamscan.empty:
+        proteins = proteins | set(df_kofamscan.iloc[:,1])
+    else:
+        print(" *!* KOFAMSCAN table [KEGG] is empty", file=sys.stderr)
+
 
     # All proteins
     proteins = sorted(proteins)
@@ -110,111 +127,126 @@ def main(args=None):
     df_dmnd = df_dmnd.reindex(proteins)
 
     # Pfam
-    protein_to_hmmid = defaultdict(list)
-    protein_to_hmmname = defaultdict(list)
-    protein_to_evalues = defaultdict(list)
-    protein_to_scores = defaultdict(list)
+    if not df_hmmsearch_pfam.empty:
+        protein_to_hmmid = defaultdict(list)
+        protein_to_hmmname = defaultdict(list)
+        protein_to_evalues = defaultdict(list)
+        protein_to_scores = defaultdict(list)
 
-    for i, row in pv(df_hmmsearch_pfam.iterrows(), "Formatting HMMSearch [Pfam]", total=df_hmmsearch_pfam.shape[0], unit=" search hits"):
-        id_protein, name_hmm, id_hmm, evalue, score = row[["target_name", "query_name", "query_accession", "e-value", "score"]]
-        protein_to_hmmid[id_protein].append(id_hmm)
-        protein_to_hmmname[id_protein].append(name_hmm)
-        protein_to_evalues[id_protein].append(evalue)
-        protein_to_scores[id_protein].append(score)
-
-    df_hmms_pfam = pd.DataFrame(
-        OrderedDict([
-            ("ids", protein_to_hmmid),
-            ("names", protein_to_hmmname),
-            ("evalues", protein_to_evalues),
-            ("scores", protein_to_scores),
-        ]
-    ))
-    df_hmms_pfam = df_hmms_pfam.reindex(proteins)
-    df_hmms_pfam = df_hmms_pfam.applymap(lambda x: x if isinstance(x,list) else [])
-    df_hmms_pfam.index.name = "id_protein"
-    df_hmms_pfam.insert(loc=0, column="number_of_hits", value=df_hmms_pfam["ids"].map(len))
-
-    # AMR
-    protein_to_hmmid = defaultdict(list)
-    protein_to_hmmname = defaultdict(list)
-    protein_to_evalues = defaultdict(list)
-    protein_to_scores = defaultdict(list)
-
-    for i, row in pv(df_hmmsearch_amr.iterrows(), "Formatting HMMSearch [AMR]", total=df_hmmsearch_amr.shape[0], unit=" search hits"):
-        id_protein, name_hmm, id_hmm, evalue, score = row[["target_name", "query_name", "query_accession", "e-value", "score"]]
-        protein_to_hmmid[id_protein].append(id_hmm)
-        protein_to_hmmname[id_protein].append(name_hmm)
-        protein_to_evalues[id_protein].append(evalue)
-        protein_to_scores[id_protein].append(score)
-
-    df_hmms_amr = pd.DataFrame(
-        OrderedDict([
-            ("ids", protein_to_hmmid),
-            ("names", protein_to_hmmname),
-            ("evalues", protein_to_evalues),
-            ("scores", protein_to_scores),
-        ]
-    ))
-    df_hmms_amr = df_hmms_amr.reindex(proteins)
-    df_hmms_amr = df_hmms_amr.applymap(lambda x: x if isinstance(x,list) else [])
-    df_hmms_amr.insert(loc=0, column="number_of_hits", value=df_hmms_amr["ids"].map(len))
-    df_hmms_amr.index.name = "id_protein"
-
-    # AntiFam
-    protein_to_hmmid = defaultdict(list)
-    protein_to_hmmname = defaultdict(list)
-    protein_to_evalues = defaultdict(list)
-    protein_to_scores = defaultdict(list)
-
-    for i, row in pv(df_hmmsearch_antifam.iterrows(), "Formatting HMMSearch [AntiFam]", total=df_hmmsearch_antifam.shape[0], unit=" search hits"):
-        id_protein, name_hmm, id_hmm, evalue, score = row[["target_name", "query_name", "query_accession", "e-value", "score"]]
-        protein_to_hmmid[id_protein].append(id_hmm)
-        protein_to_hmmname[id_protein].append(name_hmm)
-        protein_to_evalues[id_protein].append(evalue)
-        protein_to_scores[id_protein].append(score)
-
-    df_hmms_antifam = pd.DataFrame(
-        OrderedDict([
-            ("ids", protein_to_hmmid),
-            ("names", protein_to_hmmname),
-            ("evalues", protein_to_evalues),
-            ("scores", protein_to_scores),
-        ]
-    ))
-    df_hmms_antifam.insert(loc=0, column="hit", value=True)
-    df_hmms_antifam = df_hmms_antifam.reindex(proteins)
-    df_hmms_antifam["hit"] = df_hmms_antifam["hit"].fillna(False)
-    df_hmms_antifam = df_hmms_antifam.applymap(lambda x: x if isinstance(x,list) else [])
-    df_hmms_antifam.insert(loc=0, column="number_of_hits", value=df_hmms_antifam["ids"].map(len))
-    df_hmms_antifam.index.name = "id_protein"
-
-    # KOFAMSCAN
-    protein_to_hmmid = defaultdict(list)
-    protein_to_hmmname = defaultdict(list)
-    protein_to_evalues = defaultdict(list)
-    protein_to_scores = defaultdict(list)
-
-    for i, row in pv(df_kofamscan.iterrows(), "Formatting KOFAMSCAN", total=df_kofamscan.shape[0], unit=" search hits"):
-        significance, id_protein, id_hmm, score, evalue, name_hmm  = row.iloc[[0, 1,2, 4, 5, 6]]
-        if significance == "*":
+        for i, row in pv(df_hmmsearch_pfam.iterrows(), "Formatting HMMSearch [Pfam]", total=df_hmmsearch_pfam.shape[0], unit=" search hits"):
+            id_protein, name_hmm, id_hmm, evalue, score = row[["target_name", "query_name", "query_accession", "e-value", "score"]]
             protein_to_hmmid[id_protein].append(id_hmm)
             protein_to_hmmname[id_protein].append(name_hmm)
             protein_to_evalues[id_protein].append(evalue)
             protein_to_scores[id_protein].append(score)
-            
-    df_hmms_kofam = pd.DataFrame(
-        OrderedDict([
-            ("ids", protein_to_hmmid),
-            ("names", protein_to_hmmname),
-            ("evalues", protein_to_evalues),
-            ("scores", protein_to_scores),
-        ]
-    ))
-    df_hmms_kofam = df_hmms_kofam.reindex(proteins)
+
+        df_hmms_pfam = pd.DataFrame(
+            OrderedDict([
+                ("ids", protein_to_hmmid),
+                ("names", protein_to_hmmname),
+                ("evalues", protein_to_evalues),
+                ("scores", protein_to_scores),
+            ]
+        ))
+        df_hmms_pfam = df_hmms_pfam.reindex(proteins)
+
+    else:
+        df_hmms_pfam = pd.DataFrame(index=proteins, columns=["hit", "ids", "names", "evalues", "scores"])
+
+    df_hmms_pfam = df_hmms_pfam.applymap(lambda x: x if isinstance(x,list) else [])
+    df_hmms_pfam.insert(loc=0, column="number_of_hits", value=df_hmms_pfam["ids"].map(len))
+    df_hmms_pfam.index.name = "id_protein"
+
+    # AMR
+    if not df_hmmsearch_amr.empty:
+        protein_to_hmmid = defaultdict(list)
+        protein_to_hmmname = defaultdict(list)
+        protein_to_evalues = defaultdict(list)
+        protein_to_scores = defaultdict(list)
+
+        for i, row in pv(df_hmmsearch_amr.iterrows(), "Formatting HMMSearch [AMR]", total=df_hmmsearch_amr.shape[0], unit=" search hits"):
+            id_protein, name_hmm, id_hmm, evalue, score = row[["target_name", "query_name", "query_accession", "e-value", "score"]]
+            protein_to_hmmid[id_protein].append(id_hmm)
+            protein_to_hmmname[id_protein].append(name_hmm)
+            protein_to_evalues[id_protein].append(evalue)
+            protein_to_scores[id_protein].append(score)
+
+        df_hmms_amr = pd.DataFrame(
+            OrderedDict([
+                ("ids", protein_to_hmmid),
+                ("names", protein_to_hmmname),
+                ("evalues", protein_to_evalues),
+                ("scores", protein_to_scores),
+            ]
+        ))
+        df_hmms_amr = df_hmms_amr.reindex(proteins)
+    else:
+        df_hmms_amr = pd.DataFrame(index=proteins, columns=["hit", "ids", "names", "evalues", "scores"])
+    df_hmms_amr = df_hmms_amr.applymap(lambda x: x if isinstance(x,list) else [])
+    df_hmms_amr.index.name = "id_protein"
+    df_hmms_amr.insert(loc=0, column="number_of_hits", value=df_hmms_amr["ids"].map(len))
+
+
+    # AntiFam
+    if not df_hmmsearch_antifam.empty:
+        protein_to_hmmid = defaultdict(list)
+        protein_to_hmmname = defaultdict(list)
+        protein_to_evalues = defaultdict(list)
+        protein_to_scores = defaultdict(list)
+
+        for i, row in pv(df_hmmsearch_antifam.iterrows(), "Formatting HMMSearch [AntiFam]", total=df_hmmsearch_antifam.shape[0], unit=" search hits"):
+            id_protein, name_hmm, id_hmm, evalue, score = row[["target_name", "query_name", "query_accession", "e-value", "score"]]
+            protein_to_hmmid[id_protein].append(id_hmm)
+            protein_to_hmmname[id_protein].append(name_hmm)
+            protein_to_evalues[id_protein].append(evalue)
+            protein_to_scores[id_protein].append(score)
+
+        df_hmms_antifam = pd.DataFrame(
+            OrderedDict([
+                ("ids", protein_to_hmmid),
+                ("names", protein_to_hmmname),
+                ("evalues", protein_to_evalues),
+                ("scores", protein_to_scores),
+            ]
+        ))
+        df_hmms_antifam.insert(loc=0, column="hit", value=True)
+        df_hmms_antifam = df_hmms_antifam.reindex(proteins)
+    else:
+        df_hmms_antifam = pd.DataFrame(index=proteins, columns=["hit", "ids", "names", "evalues", "scores"])
+    df_hmms_antifam["hit"] = df_hmms_antifam["hit"].fillna(False)
+    df_hmms_antifam = df_hmms_antifam.applymap(lambda x: x if isinstance(x,list) else [])
+    df_hmms_antifam.index.name = "id_protein"
+    df_hmms_antifam.insert(loc=0, column="number_of_hits", value=df_hmms_antifam["ids"].map(len))
+
+    # KOFAMSCAN
+    if not df_kofamscan.empty:
+        protein_to_hmmid = defaultdict(list)
+        protein_to_hmmname = defaultdict(list)
+        protein_to_evalues = defaultdict(list)
+        protein_to_scores = defaultdict(list)
+
+        for i, row in pv(df_kofamscan.iterrows(), "Formatting KOFAMSCAN", total=df_kofamscan.shape[0], unit=" search hits"):
+            significance, id_protein, id_hmm, score, evalue, name_hmm  = row.iloc[[0, 1,2, 4, 5, 6]]
+            if significance == "*":
+                protein_to_hmmid[id_protein].append(id_hmm)
+                protein_to_hmmname[id_protein].append(name_hmm)
+                protein_to_evalues[id_protein].append(evalue)
+                protein_to_scores[id_protein].append(score)
+                
+        df_hmms_kofam = pd.DataFrame(
+            OrderedDict([
+                ("ids", protein_to_hmmid),
+                ("names", protein_to_hmmname),
+                ("evalues", protein_to_evalues),
+                ("scores", protein_to_scores),
+            ]
+        ))
+        df_hmms_kofam = df_hmms_kofam.reindex(proteins)
+    else:
+        df_hmms_kofam = pd.DataFrame(index=proteins, columns=["hit", "ids", "names", "evalues", "scores"])
     df_hmms_kofam = df_hmms_kofam.applymap(lambda x: x if isinstance(x,list) else [])
-    df_hmms_kofam.insert(loc=0, column="number_of_hits", value=df_hmms_kofam["ids"].map(len))
     df_hmms_kofam.index.name = "id_protein"
+    df_hmms_kofam.insert(loc=0, column="number_of_hits", value=df_hmms_kofam["ids"].map(len))
 
     # Output table
     dataframes = list()
@@ -234,13 +266,8 @@ def main(args=None):
         df_protein_annotations.to_csv(os.path.join(opts.output_directory, "protein_annotations.tsv.gz"), sep="\t")
 
     else:
-        with open(os.path.join(opts.output_directory, "LINEAGE_DISCLAIMER.txt"), "w") as f:
-            disclaimer = format_header("DISCLAIMER: Lineage predictions are NOT robust and DO NOT USE CORE MARKERS.  Please only use for exploratory suggestions.")
-            print(disclaimer, file=f)
-            print("For genome classification, please use VEBA's classify-prokaryotic.py, classify-eukaryotic.py, or classify-viral.py modules", file=f)
-            print("For contig classification, try third party software such as CAT/BAT (https://github.com/dutilh/CAT)", file=f)
-
         print(" ", file=sys.stderr)
+
         print(disclaimer, file=sys.stderr)
         print("For genome classification, please use VEBA's classify-prokaryotic.py, classify-eukaryotic.py, or classify-viral.py modules", file=sys.stderr)
         print("For contig classification, try third party software such as CAT/BAT (https://github.com/dutilh/CAT)", file=sys.stderr)
@@ -322,6 +349,10 @@ def main(args=None):
         df_protein_annotations.to_csv(os.path.join(opts.output_directory, "protein_annotations.tsv.gz"), sep="\t")
 
         if opts.identifier_mapping:
+            with open(os.path.join(opts.output_directory, "LINEAGE_DISCLAIMER.txt"), "w") as f:
+                print(disclaimer, file=f)
+                print("For genome classification, please use VEBA's classify-prokaryotic.py, classify-eukaryotic.py, or classify-viral.py modules", file=f)
+                print("For contig classification, try third party software such as CAT/BAT (https://github.com/dutilh/CAT)", file=f)
             # Identifier mappings
             proteins_with_taxids = set(protein_to_taxid[lambda x: x > -1].index)
 

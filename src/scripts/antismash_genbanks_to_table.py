@@ -6,7 +6,7 @@ from Bio import SeqIO
 from tqdm import tqdm
 
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.2.27"
+__version__ = "2023.3.9"
 
 def main(args=None):
     # Path info
@@ -22,10 +22,12 @@ def main(args=None):
     parser = argparse.ArgumentParser(description=description, usage=usage, epilog=epilog, formatter_class=argparse.RawTextHelpFormatter)
     # Pipeline
     parser.add_argument("-i","--antismash_directory", type=str, help = "path/to/antismash_directory")
+    parser.add_argument("-n","--name", type=str, help = "Genome name")
     parser.add_argument("-o","--output", type=str, default="stdout", help = "path/to/output.tsv [Default: stdout]")
     parser.add_argument("-e","--exclude_contig_edges", action="store_true", help = "Exclude clusters that are on contig edges")
     parser.add_argument("-s","--synopsis", type=str, help = "Summary file output")
-    parser.add_argument("-f","--fasta", type=str, help = "Fasta file output")
+    parser.add_argument("-t","--type_counts", type=str, help = "Type counts summary file output")
+    parser.add_argument("-f","--fasta_output", type=str, help = "Fasta file output")
     parser.add_argument("--sep", type=str, default=" ", help = "Seperator between [id_gene]<sep>[bgc_description].  The space makes it a id and description.  If duplicate identifiers, you can separate with underscores (e.g., '__') [Default: <space>]")
 
     # Options
@@ -41,7 +43,11 @@ def main(args=None):
     output = list()
     for fp in glob.glob(os.path.join(opts.antismash_directory, "*region*.gbk")):
         # Get genome and region identifiers
-        id_genome = fp.split("/")[-2]
+        if opts.name:
+            id_genome = opts.name
+        else:
+            id_genome = fp.split("/")[-2]
+        
         id_region = fp.split(".")[-2]
         # Iterate through sequence records
         for seq_record in SeqIO.parse(fp, "genbank"):
@@ -122,17 +128,33 @@ def main(args=None):
 
 
     # df_bgcs = df_bgcs.set_index(drop=False)
-    if opts.synopsis:
+
+
+
+    if opts.type_counts:
         tmp = df_bgcs.reset_index().set_index(["genome_id", "contig_id", "region_id", "bgc_type"]).index.unique().value_counts()
         value_counts = tmp.groupby(lambda x: (x[0], x[3])).sum()
-        df_synopsis_with_edges = pd.DataFrame([[*x[0], x[1]] for x in value_counts.items()], columns=["id_genome", "bgc_type", "number_of_bgcs"]).set_index(["id_genome", "bgc_type"]).sort_values("number_of_bgcs", ascending=False)
+        df_typecounts_with_edges = pd.DataFrame([[*x[0], x[1]] for x in value_counts.items()], columns=["id_genome", "bgc_type", "number_of_bgcs"]).set_index(["id_genome", "bgc_type"]).sort_values("number_of_bgcs", ascending=False)
 
         tmp = df_bgcs.loc[~df_bgcs["cluster_on_contig_edge"].map(eval).values].reset_index().set_index(["genome_id", "contig_id", "region_id", "bgc_type"]).index.unique().value_counts()
         value_counts = tmp.groupby(lambda x: (x[0], x[3])).sum()
-        df_synopsis_noedges = pd.DataFrame([[*x[0], x[1]] for x in value_counts.items()], columns=["id_genome", "bgc_type", "number_of_bgcs(not_on_edge)"]).set_index(["id_genome", "bgc_type"]).sort_values("number_of_bgcs(not_on_edge)", ascending=False)
+        df_typecounts_noedges = pd.DataFrame([[*x[0], x[1]] for x in value_counts.items()], columns=["id_genome", "bgc_type", "number_of_bgcs(not_on_edge)"]).set_index(["id_genome", "bgc_type"]).sort_values("number_of_bgcs(not_on_edge)", ascending=False)
 
-        df_synopsis = pd.concat([df_synopsis_with_edges, df_synopsis_noedges], axis=1).fillna(0).astype(int)
+        df_type_counts = pd.concat([df_typecounts_with_edges, df_typecounts_noedges], axis=1).fillna(0).astype(int)
+        df_type_counts.to_csv(opts.type_counts, sep="\t")
+
+    if opts.synopsis:
+        df = df_bgcs.reset_index(drop=False).set_index("bgc_id")
+
+        df_synopsis = df_bgcs.reset_index(drop=False).set_index("component_id")["bgc_id"].value_counts().to_frame("number_of_genes")
+        for field in ["genome_id", "contig_id", "region_id", "bgc_type", "cluster_on_contig_edge"]:
+            df_synopsis[field] = pd.Series(df[field].to_dict())
+        df_synopsis.index.name = "bgc_id"
+
+        fields = ['genome_id', 'contig_id', 'region_id', 'bgc_type','cluster_on_contig_edge', 'number_of_genes']
+        df_synopsis = df_synopsis.loc[:,fields]
         df_synopsis.to_csv(opts.synopsis, sep="\t")
+
 
     # Exclude contig edges
     if opts.exclude_contig_edges:
@@ -142,22 +164,22 @@ def main(args=None):
     df_bgcs.reset_index(drop=False).set_index(["bgc_id", "component_id"]).to_csv(opts.output, sep="\t")
 
     # Fasta
-    if opts.fasta:
-        with open(opts.fasta, "w") as f:
-            for (id_genome, id_contig, id_region, id_gene), row in tqdm(df_bgcs.iterrows(), "Writing genes to fasta file: {}".format(opts.fasta)):
-                header = "{}{}{}|{}|{}_{}|{}-{}({})".format(
-                    id_gene,
-                    opts.sep, 
-                    id_genome, 
-                    id_contig, 
-                    id_region, 
-                    row["position_in_bgc"], 
-                    row["start"], 
-                    row["end"], 
-                    {1:"+",-1:"-"}[row["strand"]],
-                )
-                seq = row["translation"]
-                print(">{}\n{}".format(header, seq), file=f)
+    if opts.fasta_output:
+        if opts.fasta_output.endswith(".gz"):
+            f = gzip.open(opts.fasta_output, "wt")
+        else:
+            f = open(opts.fasta_output, "w")
+        for (id_genome, id_contig, id_region, id_gene), row in tqdm(df_bgcs.iterrows(), "Writing genes to fasta file: {}".format(opts.fasta_output)):
+            id_component = row["component_id"]
+            seq = row["translation"]
+
+            header = "{}{}{}".format(
+                id_gene,
+                opts.sep, 
+                id_component,
+            )
+            print(">{}\n{}".format(header, seq), file=f)
+        f.close()
 
 if __name__ == "__main__":
     main()
