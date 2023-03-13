@@ -14,14 +14,12 @@ Each major version will be packaged as a [release](https://github.com/jolespin/v
 **Download Anaconda:** 
 [https://www.anaconda.com/products/distribution](https://www.anaconda.com/products/distribution)
 
-______________
-______________________________________________
+____________________________________________________________
 
 ⚠️ **Read before updating from `v1.0.x `→ `v1.1.x`:**
 
 If you are updating from `v1.0.x` → `v1.1.x` it is strongly recommended to uninstall your current installation and install from the beginning as this removes all the existing `VEBA` `conda` environments.  In `v1.1.x` many modules are trimmed down and more efficient in their dependencies.  To be clear, `v1.1.x` also uses an updated database which is `vDB_v4`.
-______________
-______________________________________________
+____________________________________________________________
 
 ### Install:
 
@@ -220,7 +218,7 @@ ____________________________________________________________
 
 There are currently 2 ways to update veba:
 
-1. Basic uninstall reinstall - You can uninstall and reinstall using the scripts in `veba/install/` directory. 
+1. Basic uninstall reinstall - You can uninstall and reinstall using the scripts in `veba/install/` directory.  It's recomended to do a fresh reinstall when updating from `v1.0.x` → `v1.1.x`.
 2. Patching existing installation - Complete reinstalls of *VEBA* environments and databases is time consuming so [we've detailed how to do specific patches **for advanced users**](PATCHES.md). If you don't feel comfortable running these commands, then just do a fresh install if you would like to update. 
 
 
