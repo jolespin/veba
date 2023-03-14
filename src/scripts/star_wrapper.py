@@ -11,7 +11,7 @@ from genopype import *
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.3.9b"
+__version__ = "2023.3.13"
 
 # STAR
 def get_star_cmd(input_filepaths, output_filepaths, output_directory, directories, opts):
@@ -110,6 +110,15 @@ def get_star_cmd(input_filepaths, output_filepaths, output_directory, directorie
 
 
     cmd += [
+
+    # Compile stats
+        "&&",
+    os.environ["compile_star_statistics.py"],
+    "-i {}".format(os.path.join(output_directory, "Log.final.out")),
+    "-o {}".format(os.path.join(output_directory, "alignment_statistics.tsv.gz")),
+    "-n {}".format(opts.name),
+
+    # Gzip logs
         "&&",
 
     "gzip",
@@ -235,7 +244,7 @@ def add_executables_to_environment(opts):
             executables[name] = os.path.join(os.environ["CONDA_PREFIX"], "bin", name)
     else:
         if opts.path_config is None:
-            opts.path_config = os.path.join(opts.script_directory, "star_pipeline_config.tsv")
+            opts.path_config = os.path.join(opts.script_directory, "veba_config.tsv")
         opts.path_config = format_path(opts.path_config)
         assert os.path.exists(opts.path_config), "config file does not exist.  Have you created one in the following directory?\n{}\nIf not, either create one, check this filepath:{}, or give the path to a proper config file using --path_config".format(opts.script_directory, opts.path_config)
         assert os.stat(opts.path_config).st_size > 1, "config file seems to be empty.  Please add 'name' and 'executable' columns for the following program names: {}".format(required_executables)
@@ -247,7 +256,7 @@ def add_executables_to_environment(opts):
         assert required_executables <= set(list(executables.keys())), "config must have the required executables for this run.  Please adjust file: {}\nIn particular, add info for the following: {}".format(opts.path_config, required_executables - set(list(executables.keys())))
 
     # Display
-    accessory_scripts = []
+    accessory_scripts = ["compile_star_statistics.py"]
     for name in accessory_scripts:
         executables[name] = "python " + os.path.join(opts.script_directory, name)
     print(format_header( "Adding executables to path from the following source: {}".format(opts.path_config), "-"), file=sys.stdout)
@@ -298,7 +307,7 @@ def create_pipeline(opts, directories, f_cmds):
     # i/o
     input_filepaths = [opts.forward_reads, opts.reverse_reads]
 
-    output_filenames = ["mapped.sorted.bam", "mapped.sorted.bam.bai", "mapped.sorted.bam.coverage.tsv.gz"]
+    output_filenames = ["mapped.sorted.bam", "mapped.sorted.bam.bai", "mapped.sorted.bam.coverage.tsv.gz", "alignment_statistics.tsv.gz"]
     output_filepaths = list(map(lambda filename: os.path.join(output_directory, filename), output_filenames))
 
     params = {
@@ -381,6 +390,7 @@ def create_pipeline(opts, directories, f_cmds):
         os.path.join(directories[("intermediate", "1__star")], "mapped.sorted.bam.bai"),
         os.path.join(directories[("intermediate", "1__star")], "mapped.sorted.bam.coverage.tsv.gz"),
         os.path.join(directories[("intermediate", "1__star")], "mapped.reads.list.gz"),
+        os.path.join(directories[("intermediate", "1__star")], "alignment_statistics.tsv.gz"),
         os.path.join(directories[("intermediate", "2__featurecounts")], "counts.transcripts.tsv.gz"),
         os.path.join(directories[("intermediate", "2__featurecounts")], "counts.genes.tsv.gz"),
     ]
