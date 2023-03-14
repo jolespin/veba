@@ -201,6 +201,8 @@ ________________________________________________________________
 
 
 #### Change Log:
+* [2023.3.13] - Fixed `--skip_maxbin2` and `--skip_concoct` arguments by adding missing `seed` parameters ([Issue #21](https://github.com/jolespin/veba/issues/21)).
+* [2023.3.9] - Added `bgc_novelty_scorer.py` script to get novelty scores of biosynthetic gene clusters.
 * [2023.3.7] - Added prefix and minimum contig length threshold to `assembly.py` by default.  Added `merge_generalized_mapping.py` which can be used for `bowtie2_wrapper.py` and (the future) `star_wrapper.py` helper scripts.
 * [2023.3.6] - Added dereplicated `MIBiG` `Diamond` database to (`mibig_v3.1.dmnd`) `VDB_v4.1`.  Adds protein fasta files for genes in BGCs for `biosynthetic.py` which are used to run against the `mibig_v3.1.dmnd` database.  
 * [2023.3.3] - Updated `binning-viral.py` module's `geNomad` run to use `--relaxed` settings by default since `CheckV` is used after with conservative settings (https://portal.nersc.gov/genomad/post_classification_filtering.html#default-parameters-and-presets)

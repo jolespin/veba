@@ -12,7 +12,7 @@ from soothsayer_utils import *
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.2.6"
+__version__ = "2023.3.13"
 
 # Assembly
 def get_coverage_cmd( input_filepaths, output_filepaths, output_directory, directories, opts):
@@ -153,7 +153,7 @@ def get_maxbin2_40_cmd( input_filepaths, output_filepaths, output_directory, dir
     ]
     return cmd
 
-def get_maxbin2_null_cmd( input_filepaths, output_filepaths, output_directory, directories, opts, prefix):
+def get_maxbin2_null_cmd( input_filepaths, output_filepaths, output_directory, directories, opts, prefix, seed):
     cmd = [
         # Create dummy scaffolds_to_bins.tsv to overwrite later. This makes DAS_Tool easier to run
         "echo '' > {}".format(os.path.join(output_directory, "scaffolds_to_bins.tsv")),
@@ -185,7 +185,7 @@ def get_concoct_cmd( input_filepaths, output_filepaths, output_directory, direct
     ]
     return cmd
 
-def get_concoct_null_cmd( input_filepaths, output_filepaths, output_directory, directories, opts, prefix):
+def get_concoct_null_cmd( input_filepaths, output_filepaths, output_directory, directories, opts, prefix, seed):
     cmd = [
         # Create dummy scaffolds_to_bins.tsv to overwrite later. This makes DAS_Tool easier to run
         "echo '' > {}".format(os.path.join(output_directory, "scaffolds_to_bins.tsv")),
