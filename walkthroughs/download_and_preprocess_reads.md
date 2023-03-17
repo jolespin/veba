@@ -95,7 +95,7 @@ cd Fastq/
 
 # Iterate through the identifier list and download each read set
 for ID in $(cat ../identifiers.list);
-	do kingfisher get -r $ID -m prefetch -t ${N_JOBS} -f fastq.gz
+	do kingfisher get -r $ID -m aws-http -t ${N_JOBS} -f fastq.gz
 	done
 
 # Get back out to main directory

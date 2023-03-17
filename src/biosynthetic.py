@@ -14,53 +14,6 @@ pd.options.display.max_colwidth = 100
 __program__ = os.path.split(sys.argv[0])[-1]
 __version__ = "2023.3.9"
 
-
-# # Assembly
-# def preprocess( input_filepaths, output_filepaths, output_directory, directories, opts):
-#     if not os.path.exists(os.path.join(directories["checkpoints"], "0__preprocessing")):
-
-#             # MAGs
-#         df = pd.read_csv(opts.mags, sep="\t", index_col=0, header=None)
-#         assert df.shape[1] in {0,1}, "Must either be 1 (for list) or 2 (for table) columns"
-
-#         mags = dict()
-#         if df.shape[1] == 1:
-#             mags = df.iloc[:,0].dropna().to_dict()
-#         else:
-#             for path in df.index:
-#                 id_mag = path.split("/")[-1][:-1*(len(opts.mags_extension) + 1)]
-#                 assert id_mag not in mags, "--mags has non-unique MAG identifiers"
-#                 mags[id_mag] = path 
-#         mags = pd.Series(mags)
-        
-#         # Gene models
-#         df = pd.read_csv(opts.gene_models, sep="\t", index_col=0, header=None)
-#         assert df.shape[1] in {0,1}, "Must either be 1 (for list) or 2 (for table) columns"
-
-#         gene_models = dict()
-#         if df.shape[1] == 1:
-#             gene_models = df.iloc[:,0].dropna().to_dict()
-#         else:
-#             for path in df.index:
-#                 id_mag = path.split("/")[-1][:-1*(len(opts.gene_models_extension) + 1)]
-#                 if id_mag in mags:
-#                     assert id_mag not in gene_models, "--gene_models has non-unique MAG identifiers"
-
-#                     gene_models[id_mag] = path 
-#         gene_models = pd.Series(gene_models)
-
-
-#         assert  set(mags.index) <= set(gene_models.index), "--mags must be a subset of --gene_models:\nThe following --mags do not have gene_models:\n{}".format("\n * ".join(set(mags.index) - set(gene_models.index)))
-#         gene_models = gene_models.loc[mags.index]
-
-#         # Write files
-#         pd.concat([mags.to_frame(), gene_models.to_frame()], axis=1).to_csv(os.path.join(directories["preprocessing"], "genomes_gene-models.tsv"), sep="\t", header=None)
-
-#     return []
-    
-   
-
-
 # antiSMASH
 def get_antismash_cmd( input_filepaths, output_filepaths, output_directory, directories, opts):
     # Command
@@ -75,9 +28,9 @@ do read -r -a ARRAY <<< $LINE
     GENOME=${ARRAY[1]}
     GENE_MODELS=${ARRAY[2]}
 
-    ANTISMASH_OUTPUT_TABLE="%s/${ID}/antismash_features.tsv.gz"
+    CHECKPOINT="%s/${ID}/ANTISMASH_CHECKPOINT"
 
-    if [ ! -f ${ANTISMASH_OUTPUT_TABLE} ]; then
+    if [ ! -f ${CHECKPOINT} ]; then
 
         echo "[Running ${ID}]"
 
@@ -93,7 +46,10 @@ do read -r -a ARRAY <<< $LINE
         %s -i %s/${ID} -o %s/${ID}/antismash_features.tsv.gz -s %s/${ID}/synopsis.tsv.gz -t %s/${ID}/type_counts.tsv.gz --fasta_output %s/${ID}/bgc.features.faa.gz
 
         # Symlink
-        ln -sfr %s/${ID}/bgc.features.faa.gz %s/${ID}.bgc_feautures.faa.gz
+        ln -sfr %s/${ID}/bgc.features.faa.gz %s/${ID}.bgc_features.faa.gz
+
+        # Completed
+        echo "Completed: $(date)" > %s/${ID}/ANTISMASH_CHECKPOINT
 
         # Remove large assembly files
         rm -rf %s/${ID}/assembly.*
@@ -102,12 +58,10 @@ do read -r -a ARRAY <<< $LINE
         RUN_TIME=$((END_TIME-START_TIME))
         echo "*** n=${n} // ${ID} // Duration: ${RUN_TIME} seconds ***"
 
-
-
         n=$(($n+1))
 
     else
-        echo "[Skipping ${ID}] Found the following file: ${ANTISMASH_OUTPUT_TABLE}"
+        echo "[Skipping ${ID}] Found the following file: ${CHECKPOINT}"
     fi  
 
 done < %s
@@ -144,6 +98,7 @@ done < %s
     # Symlink
     output_directory,
     directories[("output", "features")],
+    output_directory,
 
     # Remove large assembly
     output_directory,
@@ -329,49 +284,6 @@ def create_pipeline(opts, directories, f_cmds):
     # .................................................................
     # Commands file
     pipeline = ExecutablePipeline(name=__program__,  f_cmds=f_cmds, checkpoint_directory=directories["checkpoints"], log_directory=directories["log"])
-
-    
-    # # ==========
-    # # Preprocessing
-    # # ==========
-    
-    # program = "preprocessing"
-    # # Add to directories
-    # output_directory = directories["preprocessing"] 
-
-    # # Info
-    # step = 0
-    # description = "Organizing genomes and gene models"
-
-    # # i/o
-    # input_filepaths = [opts.mags, opts.gene_models]
-    # output_filepaths = [
-    #     # os.path.join(directories["project"], "genomes.list"),
-    #     # os.path.join(directories["project"], "gene_models.list"),
-    #     os.path.join(directories["preprocessing"], "genomes_gene-models.tsv"),
-    # ]
-
-    # params = {
-    #     "input_filepaths":input_filepaths,
-    #     "output_filepaths":output_filepaths,
-    #     "output_directory":output_directory,
-    #     "opts":opts,
-    #     "directories":directories,
-    # }
-
-    # cmd = preprocess(**params)
-    # pipeline.add_step(
-    #             id=program,
-    #             description = description,
-    #             step=step,
-    #             cmd=cmd,
-    #             input_filepaths = input_filepaths,
-    #             output_filepaths = output_filepaths,
-    #             validate_inputs=True,
-    #             validate_outputs=True,
-    #             errors_ok=True,
-    # )
-
   
     # ==========
     # antiSMASH
@@ -389,7 +301,6 @@ def create_pipeline(opts, directories, f_cmds):
 
     # i/o
     input_filepaths = [
-        # os.path.join(directories["preprocessing"], "genomes_gene-models.tsv"),
         opts.input,
         ]
     output_filenames = [
