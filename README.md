@@ -21,6 +21,7 @@ Please refer to the [*Installation and Database Configuration Guide*](install/RE
 
 **Current Stable Version:** [`v1.1.0`](https://github.com/jolespin/veba/releases/tag/v1.1.0)
 
+**Current Developmental Version:**[`v1.1.1`](https://github.com/jolespin/veba/commit/30e8b0a6aa6612c4db201423b304fc57362f996b)
 ___________________________________________________________________
 ### Getting started with *VEBA*
 
