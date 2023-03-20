@@ -6,7 +6,7 @@ import pandas as pd
 
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.2.1"
+__version__ = "2023.3.14"
 
 #
 def main(args=None):
@@ -32,6 +32,8 @@ def main(args=None):
 
     parser.add_argument("--sep", type=str, default="\t", help = "Separator [Default: <tab>]")
     parser.add_argument("--skiprows", type=int, help = "Skiprows")
+    parser.add_argument("-n", "--no_header", action="store_true", help = "No header")
+
     parser.add_argument("-v", "--inverse", action="store_true", help = "Inverse")
 
     # Options
@@ -58,7 +60,11 @@ def main(args=None):
         opts.output_table = sys.stdout 
 
     # Read Table
-    df = pd.read_csv(opts.table, sep=opts.sep, index_col=opts.index_column, skiprows=opts.skiprows)
+    if opts.no_header:
+        df = pd.read_csv(opts.table, sep=opts.sep, index_col=opts.index_column, skiprows=opts.skiprows, header=None)
+    else:
+        df = pd.read_csv(opts.table, sep=opts.sep, index_col=opts.index_column, skiprows=opts.skiprows)#, header=bool(opts.no_header))
+
     if opts.drop_duplicates:
         df = pd.DataFrame(df.to_dict(into=OrderedDict))
     if not opts.inverse:
@@ -77,7 +83,7 @@ def main(args=None):
             df = df.drop(index, axis=1)
 
     # Write table
-    df.to_csv(opts.output_table, sep=opts.sep)
+    df.to_csv(opts.output_table, sep=opts.sep, header=not opts.no_header)
 
 if __name__ == "__main__":
     main()

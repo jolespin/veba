@@ -381,3 +381,15 @@ Target sequence length > 100K, over comparison pipeline limit.
 ```
 
 This is likely because you have [sequences longer than 100k](https://www.biostars.org/p/487110/).  In versions after `v1.1.0` this will be addressed in the backend but in the meantime you can do the following to not trigger this error: `seqkit seq -M 100000 proteins.faa > proteins.lt100k.faa` (assuming your fasta file is called `proteins.faa`).
+
+#### 38. I get an error when trying to use custom options (e.g., `--assembler_options`) saying it expected one argument even though one was given.
+
+Suppose your `assembly.py` job was prematurely canceled for some reason and you tried to use `--assembler_options '--continue'` to continue where the assembler left off.  
+
+You would get the following error:
+
+```
+assembly.py: error: argument --assembler_options: expected one argument
+```
+
+To get around this, use an equal sign when providing the argument values.  (i.e., `--assembler_options='--continue'`)

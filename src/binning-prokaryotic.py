@@ -12,7 +12,7 @@ from soothsayer_utils import *
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.3.13"
+__version__ = "2023.3.15"
 
 # Assembly
 def get_coverage_cmd( input_filepaths, output_filepaths, output_directory, directories, opts):
@@ -219,6 +219,7 @@ def get_dastool_cmd(input_filepaths, output_filepaths, output_directory, directo
         "--outputbasename {}".format(os.path.join(output_directory, "_")),
         "--labels ${S2B_ARRAY[1]}",
         "--search_engine {}".format(opts.dastool_searchengine),
+        "--score_threshold {}".format(opts.dastool_minimum_score),
         "--write_bins 1",
         "--create_plots 0",
         "--threads {}".format(opts.n_jobs),
@@ -339,6 +340,7 @@ def get_checkm2_cmd(input_filepaths, output_filepaths, output_directory, directo
             "&&",
 
         "gzip {}".format(os.path.join(output_directory, "diamond_output", "*.tsv")),
+
             "&&",
 
         os.environ["filter_checkm2_results.py"],
@@ -1269,6 +1271,7 @@ def main(args=None):
 
     parser_evaluation = parser.add_argument_group('Evaluation arguments')
     parser_evaluation.add_argument("--dastool_searchengine", type=str, default="diamond", help="DAS_Tool searchengine. [Default: diamond] | https://github.com/cmks/DAS_Tool")
+    parser_evaluation.add_argument("--dastool_minimum_score", type=float, default=0.1, help="DAS_Tool score_threshold. Score threshold until selection algorithm will keep selecting bins. This is set to a relaxed setting because CheckM2 is run post hoc. [Default: 0.1] | https://github.com/cmks/DAS_Tool")
     parser_evaluation.add_argument("--dastool_options", type=str, default="", help="DAS_Tool | More options (e.g. --arg 1 ) [Default: ''] | https://github.com/cmks/DAS_Tool")
     parser_evaluation.add_argument("--checkm2_completeness", type=float, default=50.0, help="CheckM2 completeness threshold [Default: 50.0]")
     parser_evaluation.add_argument("--checkm2_contamination", type=float, default=10.0, help="CheckM2 contamination threshold [Default: 10.0]")

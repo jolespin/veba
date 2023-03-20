@@ -115,9 +115,9 @@ cat veba_output/binning/*/*/output/scaffolds_to_bins.tsv > veba_output/misc/all_
 SCAFFOLDS_TO_BINS=veba_output/misc/all_genomes.scaffolds_to_bins.tsv
 
 # Concatenate all of the clusters from all of the domains
-cat veba_output/clusters/*/clusters.tsv > veba_output/misc/all_genomes.clusters.tsv
+cat veba_output/cluster/*/clusters.tsv > veba_output/misc/all_genomes.clusters.tsv
 
-ClUSTERS=veba_output/misc/all_genomes.clusters.tsv
+CLUSTERS=veba_output/misc/all_genomes.clusters.tsv
 
 # Concatenate all of the orthogroups from all of the domains
 cat veba_output/cluster/*/output/proteins_to_orthogroups.tsv > veba_output/misc/all_genomes.orthogroups.tsv

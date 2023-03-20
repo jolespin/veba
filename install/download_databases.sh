@@ -1,6 +1,6 @@
 #!/bin/bash
-# __VERSION__ = "2023.2.27"
-# VEBA_DATABASE_VERSION = "VDB_v4"
+# __VERSION__ = "2023.3.6"
+# VEBA_DATABASE_VERSION = "VDB_v4.1"
 # MICROEUKAYROTIC_DATABASE_VERSION = "VDB-Microeukaryotic_v2.1"
 
 # Create database
@@ -62,15 +62,6 @@ wget -v -O ${DATABASE_DIRECTORY}/genomad_db_v1.2.tar.gz https://zenodo.org/recor
 tar xvzf ${DATABASE_DIRECTORY}/genomad_db_v1.2.tar.gz -C ${DATABASE_DIRECTORY}/Classify/geNomad --strip-components=1
 rm -rf ${DATABASE_DIRECTORY}/genomad_db_v1.2.tar.gz
 
-# # CheckM
-# echo ". .. ... ..... ........ ............."
-# echo "iv * Processing CheckM"
-# echo ". .. ... ..... ........ ............."
-# mkdir -v -p ${DATABASE_DIRECTORY}/Classify/CheckM
-# wget -v -P ${DATABASE_DIRECTORY} https://data.ace.uq.edu.au/public/CheckM_databases/checkm_data_2015_01_16.tar.gz
-# tar xvzf ${DATABASE_DIRECTORY}/checkm_data_2015_01_16.tar.gz -C ${DATABASE_DIRECTORY}/Classify/CheckM
-# rm -rf ${DATABASE_DIRECTORY}/checkm_data_2015_01_16.tar.gz
-
 # CheckM2
 echo ". .. ... ..... ........ ............."
 echo "iv * Processing CheckM2"
@@ -84,13 +75,6 @@ rm -rf ${DATABASE_DIRECTORY}/checkm2_database.tar.gz
 echo ". .. ... ..... ........ ............."
 echo "v * Processing Microeukaryotic MMSEQS2 database"
 echo ". .. ... ..... ........ ............."
-
-# # Download v1 from FigShare
-# wget -v -O ${DATABASE_DIRECTORY}/Microeukaryotic.tar.gz https://figshare.com/ndownloader/files/34929255
-# tar xvzf ${DATABASE_DIRECTORY}/Microeukaryotic.tar.gz -C ${DATABASE_DIRECTORY}/Classify
-# mmseqs createdb ${DATABASE_DIRECTORY}/Classify/Microeukaryotic/reference.rmdup.iupac.relabeled.no_deprecated.complete_lineage.faa.gz ${DATABASE_DIRECTORY}/Classify/Microeukaryotic/microeukaryotic
-# rm -rf ${DATABASE_DIRECTORY}/Microeukaryotic.tar.gz
-# # rm -rf ${DATABASE_DIRECTORY}/Classify/Microeukaryotic/reference.rmdup.iupac.relabeled.no_deprecated.complete_lineage.faa.gz
 
 # Download v2.1 from Zenodo
 wget -v -O ${DATABASE_DIRECTORY}/Microeukaryotic.tar.gz https://zenodo.org/record/7485114/files/VDB-Microeukaryotic_v2.tar.gz?download=1
@@ -152,6 +136,14 @@ mkdir -v -p ${DATABASE_DIRECTORY}/Annotate/nr
 wget -v -P ${DATABASE_DIRECTORY} https://ftp.ncbi.nlm.nih.gov/blast/db/FASTA/nr.gz
 diamond makedb --in ${DATABASE_DIRECTORY}/nr.gz --db ${DATABASE_DIRECTORY}/Annotate/nr/nr.dmnd --taxonmap ${DATABASE_DIRECTORY}/Classify/NCBITaxonomy/prot.accession2taxid.FULL.gz --taxonnodes ${DATABASE_DIRECTORY}/Classify/NCBITaxonomy/nodes.dmp --taxonnames ${DATABASE_DIRECTORY}/Classify/NCBITaxonomy/names.dmp
 rm -rf ${DATABASE_DIRECTORY}/nr.gz
+
+#MiBIG
+mkdir -v -p ${DATABASE_DIRECTORY}/Annotate/MIBiG
+wget -v -P ${DATABASE_DIRECTORY} https://dl.secondarymetabolites.org/mibig/mibig_prot_seqs_3.1.fasta
+seqkit rmdup -s ${DATABASE_DIRECTORY}/mibig_prot_seqs_3.1.fasta > ${DATABASE_DIRECTORY}/mibig_prot_seqs_3.1.rmdup.fasta
+diamond makedb --in ${DATABASE_DIRECTORY}/mibig_prot_seqs_3.1.rmdup.fasta --db ${DATABASE_DIRECTORY}/Annotate/MIBiG/mibig_v3.1.dmnd
+rm -rf ${DATABASE_DIRECTORY}/mibig_prot_seqs_3.1.fasta
+rm -rf ${DATABASE_DIRECTORY}/mibig_prot_seqs_3.1.rmdup.fasta
 
 # Contamination
 echo ". .. ... ..... ........ ............."

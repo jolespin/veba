@@ -1,14 +1,45 @@
+
 #!/usr/bin/env python
-import sys, os, argparse 
+import sys, os, argparse, re
 from collections import defaultdict, OrderedDict
 import pandas as pd
 import numpy as np
 from soothsayer_utils import read_hmmer, pv, get_file_object, assert_acceptable_arguments, format_header
 
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.3.9"
+__version__ = "2023.3.14"
 
 disclaimer = format_header("DISCLAIMER: Lineage predictions are NOT robust and DO NOT USE CORE MARKERS.  Please only use for exploratory suggestions.")
+
+blacklist_words = {"multispecies:", "multispecies"}
+unknown_labels = {"predicted protein", "uncharacterized", "unknown", "hypothetical protein", "hypothetical protein, partial"}
+predicted_label="Predicted protein"
+
+def process_nr_name(name, predicted_label):
+    species = None
+    words = name.split(" ")
+    if "." == words[0][-2]:
+        words = words[1:]
+    for i, word in enumerate(words):
+        if word.lower() in blacklist_words:
+            words.pop(i)
+
+    name = " ".join(words)
+
+    matches = re.findall("\[.*?\]", name)
+    if matches:
+        for match in matches:
+            if match[1:-1].count(" ") == 1:
+                species = match[1:-1]
+            name = name.replace(match,"")
+    if species:
+        name = name.replace(" - {}".format(species), "")
+        name = name.replace(species, "")
+
+    name = name.strip().strip("-")
+    if name in unknown_labels:
+        name = predicted_label
+    return name
 
 def main(args=None):
     # Path info
@@ -25,7 +56,8 @@ def main(args=None):
     # Pipeline
     parser_required = parser.add_argument_group('Required I/O arguments')
     parser_required.add_argument("-o","--output_directory", type=str, default="annotation_output",  help = "Output directory for annotations [Default: annotation_output]")
-    parser_required.add_argument("-d","--diamond", type=str, required=True,  help = "path/to/diamond_nr.blast6 in blast6 format (No header, cannot be empty) with the following fields: \nqseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore staxids sscinames stitle")
+    parser_required.add_argument("-d","--diamond_nr", type=str, required=True,  help = "path/to/diamond_nr.blast6 in blast6 format (No header, cannot be empty) with the following fields: \nqseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore staxids sscinames stitle")
+    parser_required.add_argument("-m","--diamond_mibig", type=str, required=True,  help = "path/to/diamond_mibig.blast6 in blast6 format (No header, cannot be empty) with the following fields: \nqseqid sseqid pident length mismatch qlen qstart qend slen sstart send evalue bitscore qcovhsp scovhsp")
     parser_required.add_argument("-k","--kofam", type=str, required=True,  help = "path/to/kofamscan.tblout hmmsearch results in tblout format")
     parser_required.add_argument("-p", "--hmmsearch_pfam", type=str, required=True,  help = "path/to/hmmsearch.tblout hmmsearch results in tblout format")
     parser_required.add_argument("-n", "--hmmsearch_amr", type=str, required=True,  help = "path/to/hmmsearch.tblout hmmsearch results in tblout format")
@@ -80,12 +112,22 @@ def main(args=None):
         proteins = proteins | set(df_identifier_mapping.index)
         
     # Read annotations
-    print(" * Reading Diamond table [nr]: {}".format(opts.diamond), file=sys.stderr)
-    df_dmnd = pd.read_csv(opts.diamond, sep="\t", index_col=None, header=None)
-    df_dmnd.columns = "qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore staxids sscinames stitle".split(" ")
-    df_dmnd = df_dmnd.set_index("qseqid")
-    df_dmnd = df_dmnd.loc[:,["sseqid", "pident", "length", "evalue", "bitscore", "staxids", "sscinames", "stitle"]]
-    proteins = proteins | set(df_dmnd.index)
+    print(" * Reading Diamond table [nr]: {}".format(opts.diamond_nr), file=sys.stderr)
+    df_diamond_nr = pd.read_csv(opts.diamond_nr, sep="\t", index_col=None, header=None)
+    df_diamond_nr.columns = "qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore staxids sscinames stitle".split(" ")
+    df_diamond_nr = df_diamond_nr.set_index("qseqid")
+    df_diamond_nr = df_diamond_nr.loc[:,["sseqid", "pident", "length", "evalue", "bitscore", "staxids", "sscinames", "stitle"]]
+    proteins = proteins | set(df_diamond_nr.index)
+
+    print(" * Reading Diamond table [MIBiG]: {}".format(opts.diamond_mibig), file=sys.stderr)
+    columns = ["qseqid","sseqid","pident","length","mismatch","qlen","qstart","qend", "slen", "sstart","send", "evalue","bitscore","qcovhsp","scovhsp"]
+    try:
+        df_diamond_mibig = pd.read_csv(opts.diamond_mibig, sep="\t", index_col=None, header=None)
+    except pd.errors.EmptyDataError:
+        df_diamond_mibig = pd.DataFrame(columns=columns)
+    df_diamond_mibig.columns = columns
+    df_diamond_mibig = df_diamond_mibig.set_index("qseqid")
+    proteins = proteins | set(df_diamond_mibig.index)
 
     print(" * Reading HMMSearch table [Pfam]: {}".format(opts.hmmsearch_pfam), file=sys.stderr)
     df_hmmsearch_pfam = read_hmmer(opts.hmmsearch_pfam, program="hmmsearch", format="tblout", verbose=False)
@@ -124,7 +166,7 @@ def main(args=None):
     print(" * Total proteins: {}".format(len(proteins)), file=sys.stderr)
 
     # Reindex Diamond
-    df_dmnd = df_dmnd.reindex(proteins)
+    df_diamond_nr = df_diamond_nr.reindex(proteins)
 
     # Pfam
     if not df_hmmsearch_pfam.empty:
@@ -250,12 +292,37 @@ def main(args=None):
 
     # Output table
     dataframes = list()
-    for (name, df) in zip([ "nr", "Pfam", "NCBIfam-AMR", "AntiFam", "KOFAM"],[df_dmnd, df_hmms_pfam, df_hmms_amr, df_hmms_antifam, df_hmms_kofam]):
+    for (name, df) in zip([ "nr", "MIBiG", "Pfam", "NCBIfam-AMR", "AntiFam", "KOFAM"],[df_diamond_nr, df_diamond_mibig, df_hmms_pfam, df_hmms_amr, df_hmms_antifam, df_hmms_kofam]):
         df = df.copy()
         df.columns = df.columns.map(lambda x: (name,x))
         dataframes.append(df)
     df_protein_annotations = pd.concat(dataframes, axis=1)
     df_protein_annotations.index.name = "id_protein"
+
+    # Composite label
+    protein_to_labels = dict()
+    for id_protein, row in pv(df_protein_annotations.iterrows(), total=df_protein_annotations.shape[0]):
+        labels = list()
+
+        kofam_names = row["KOFAM"]["names"]
+        for name in kofam_names:
+            labels.append(name)
+
+        pfam_names = row["Pfam"]["names"]
+        for name in pfam_names:
+            labels.append(name)
+
+        name = row["nr"]["stitle"]
+        if pd.notnull(name):
+            name = process_nr_name(name, predicted_label)
+            if name != predicted_label:
+                labels.append(name)
+            else:
+                if not labels:
+                    labels.append(name)
+        protein_to_labels[id_protein] = "|".join(labels)
+    protein_to_labels = pd.Series(protein_to_labels)
+    df_protein_annotations.insert(loc=0, column=("Consensus", "composite_name"), value=protein_to_labels)
 
     if opts.identifier_mapping:
         df = df_identifier_mapping.copy()
@@ -284,7 +351,7 @@ def main(args=None):
         invalid_taxids = set()
 
         protein_to_taxid = dict()
-        for id_protein, id_taxon in pv(df_dmnd["staxids"].items(), description="Getting representative NCBI taxon id for each protein"):
+        for id_protein, id_taxon in pv(df_diamond_nr["staxids"].items(), description="Getting representative NCBI taxon id for each protein"):
             id_taxon = str(id_taxon).strip()
             if ";" in id_taxon:
                 taxa = list()
@@ -353,6 +420,7 @@ def main(args=None):
                 print(disclaimer, file=f)
                 print("For genome classification, please use VEBA's classify-prokaryotic.py, classify-eukaryotic.py, or classify-viral.py modules", file=f)
                 print("For contig classification, try third party software such as CAT/BAT (https://github.com/dutilh/CAT)", file=f)
+
             # Identifier mappings
             proteins_with_taxids = set(protein_to_taxid[lambda x: x > -1].index)
 
@@ -370,7 +438,7 @@ def main(args=None):
 
                 taxa = list()
                 weights = list()
-                for id_taxon, score in df_dmnd.loc[list(components & proteins_with_taxids)].groupby(protein_to_taxid)["bitscore"].sum().items():
+                for id_taxon, score in df_diamond_nr.loc[list(components & proteins_with_taxids)].groupby(protein_to_taxid)["bitscore"].sum().items():
                     taxon = taxopy.Taxon(id_taxon, taxdb)
                     taxa.append(taxon)
                     weights.append(score)
@@ -418,7 +486,6 @@ def main(args=None):
             for id_protein, id_genome in df_identifier_mapping["id_genome"].items():
                 genome_to_proteins[id_genome].add(id_protein)
                 
-                
             # Get taxonomy for genomes
             genome_to_taxid = dict()
             genome_to_score = dict()
@@ -428,7 +495,7 @@ def main(args=None):
 
                 taxa = list()
                 weights = list()
-                for id_taxon, score in df_dmnd.loc[list(components & proteins_with_taxids)].groupby(protein_to_taxid)["bitscore"].sum().items():
+                for id_taxon, score in df_diamond_nr.loc[list(components & proteins_with_taxids)].groupby(protein_to_taxid)["bitscore"].sum().items():
                     taxon = taxopy.Taxon(id_taxon, taxdb)
                     taxa.append(taxon)
                     weights.append(score)

@@ -13,16 +13,16 @@ from soothsayer_utils.soothsayer_utils import assert_acceptable_arguments
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.2.28"
+__version__ = "2023.3.14"
 
 
 # Diamond
-def get_diamond_cmd( input_filepaths, output_filepaths, output_directory, directories, opts):
-
+def get_diamond_nr_cmd( input_filepaths, output_filepaths, output_directory, directories, opts):
+    tmp = os.path.join(directories["tmp"], "diamond-nr")
     # Command
     cmd = [
 
-        "mkdir -p {}".format(os.path.join(directories["tmp"], "diamond")),
+        "mkdir -p {}".format(tmp),
 
             "&&",
 
@@ -35,7 +35,46 @@ def get_diamond_cmd( input_filepaths, output_filepaths, output_directory, direct
         "--evalue {}".format(opts.diamond_evalue),
         "-o {}".format(os.path.join(output_directory, "output.tsv")),
         "--max-target-seqs 1",
-        "--tmpdir {}".format(os.path.join(directories["tmp"], "diamond")),
+        "--tmpdir {}".format(tmp),
+    ]
+    if bool(opts.diamond_sensitivity):
+        cmd += [ 
+            "--{}".format(opts.diamond_sensitivity),
+        ]
+    cmd += [ 
+        opts.diamond_options,
+    ]
+
+    cmd += [ 
+            "&&",
+            
+        "pigz",
+        "-f",
+        "-p {}".format(opts.n_jobs),
+        os.path.join(output_directory, "output.tsv"),
+    ]           
+
+    return cmd
+
+def get_diamond_mibig_cmd( input_filepaths, output_filepaths, output_directory, directories, opts):
+    tmp = os.path.join(directories["tmp"], "diamond-mibig")
+    # Command
+    cmd = [
+
+        "mkdir -p {}".format(tmp),
+
+            "&&",
+
+        os.environ["diamond"],
+        "blastp",
+        "--db {}".format(input_filepaths[1]),
+        "--query {}".format(input_filepaths[0]),
+        "--threads {}".format(opts.n_jobs),
+        "-f 6 qseqid sseqid pident length mismatch qlen qstart qend slen sstart send evalue bitscore qcovhsp scovhsp",
+        "--evalue {}".format(opts.diamond_evalue),
+        "-o {}".format(os.path.join(output_directory, "output.tsv")),
+        "--max-target-seqs 1",
+        "--tmpdir {}".format(tmp),
     ]
     if bool(opts.diamond_sensitivity):
         cmd += [ 
@@ -121,11 +160,12 @@ def get_merge_and_score_taxonomy_cmd( input_filepaths, output_filepaths, output_
     # Command
     cmd = [
         os.environ["merge_annotations_and_score_taxonomy.py"],
-        "--diamond {}".format(input_filepaths[0]),
-        "--hmmsearch_pfam {}".format(input_filepaths[1]),
-        "--hmmsearch_amr {}".format(input_filepaths[2]),
-        "--hmmsearch_antifam {}".format(input_filepaths[3]),
-        "--kofam {}".format(input_filepaths[4]),
+        "--diamond_nr {}".format(input_filepaths[0]),
+        "--diamond_mibig {}".format(input_filepaths[1]),
+        "--hmmsearch_pfam {}".format(input_filepaths[2]),
+        "--hmmsearch_amr {}".format(input_filepaths[3]),
+        "--hmmsearch_antifam {}".format(input_filepaths[4]),
+        "--kofam {}".format(input_filepaths[5]),
         "--veba_database {}".format(opts.veba_database),
         "--fasta {}".format(opts.proteins),
         "-o {}".format(output_directory)
@@ -196,11 +236,11 @@ def create_pipeline(opts, directories, f_cmds):
     pipeline = ExecutablePipeline(name=__program__,  f_cmds=f_cmds, checkpoint_directory=directories["checkpoints"], log_directory=directories["log"])
 
     # ==========
-    # Diamond
+    # Diamond [nr]
     # ==========
     step = 1
 
-    program = "diamond"
+    program = "diamond-nr"
     program_label = "{}__{}".format(step, program)
     # Add to directories
     output_directory = directories[("intermediate",  program_label)] = create_directory(os.path.join(directories["intermediate"], program_label))
@@ -224,7 +264,7 @@ def create_pipeline(opts, directories, f_cmds):
         "directories":directories,
     }
 
-    cmd = get_diamond_cmd(**params)
+    cmd = get_diamond_nr_cmd(**params)
 
     pipeline.add_step(
                 id=program,
@@ -237,11 +277,51 @@ def create_pipeline(opts, directories, f_cmds):
                 validate_outputs=True,
     )
 
+    # ==========
+    # Diamond
+    # ==========
+    step = 2
 
+    program = "diamond-mibig"
+    program_label = "{}__{}".format(step, program)
+    # Add to directories
+    output_directory = directories[("intermediate",  program_label)] = create_directory(os.path.join(directories["intermediate"], program_label))
+
+    # Info
+    description = "Diamond [MIBiG]"
+
+    # i/o
+    input_filepaths = [
+        opts.proteins, 
+         os.path.join(opts.veba_database, "Annotate", "MIBiG", "mibig_v3.1.dmnd"),
+        ]
+    output_filenames = ["output.tsv.gz"]
+    output_filepaths = list(map(lambda filename: os.path.join(output_directory, filename), output_filenames))
+
+    params = {
+        "input_filepaths":input_filepaths,
+        "output_filepaths":output_filepaths,
+        "output_directory":output_directory,
+        "opts":opts,
+        "directories":directories,
+    }
+
+    cmd = get_diamond_mibig_cmd(**params)
+
+    pipeline.add_step(
+                id=program,
+                description = description,
+                step=step,
+                cmd=cmd,
+                input_filepaths = input_filepaths,
+                output_filepaths = output_filepaths,
+                validate_inputs=True,
+                validate_outputs=True,
+    )
     # ==========
     # HMMSearch-Pfam
     # ==========
-    step = 2
+    step = 3
 
     program = "hmmsearch-pfam"
     program_label = "{}__{}".format(step, program)
@@ -283,7 +363,7 @@ def create_pipeline(opts, directories, f_cmds):
     # =============
     # HMMSearch-AMR
     # =============
-    step = 3
+    step = 4
 
     program = "hmmsearch-amr"
     program_label = "{}__{}".format(step, program)
@@ -325,7 +405,7 @@ def create_pipeline(opts, directories, f_cmds):
     # =================
     # HMMSearch-AntiFam
     # =================
-    step = 4
+    step = 5
 
     program = "hmmsearch-antifam"
     program_label = "{}__{}".format(step, program)
@@ -366,7 +446,7 @@ def create_pipeline(opts, directories, f_cmds):
     # ==========
     # KOFAMSCAN
     # ==========
-    step = 5
+    step = 6
 
     program = "kofamscan"
     program_label = "{}__{}".format(step, program)
@@ -408,7 +488,7 @@ def create_pipeline(opts, directories, f_cmds):
     # ==========
     # Output
     # ==========
-    step = 6
+    step = 7
 
     program = "merge_and_score_taxonomy"
     program_label = "{}__{}".format(step, program)
@@ -420,11 +500,12 @@ def create_pipeline(opts, directories, f_cmds):
 
     # i/o
     input_filepaths = [
-        os.path.join(directories[("intermediate",  "1__diamond")], "output.tsv.gz"),
-        os.path.join(directories[("intermediate",  "2__hmmsearch-pfam")], "output.tsv.gz"),
-        os.path.join(directories[("intermediate",  "3__hmmsearch-amr")], "output.tsv.gz"),
-        os.path.join(directories[("intermediate",  "4__hmmsearch-antifam")], "output.tsv.gz"),
-        os.path.join(directories[("intermediate",  "5__kofamscan")], "output.tsv.gz"),
+        os.path.join(directories[("intermediate",  "1__diamond-nr")], "output.tsv.gz"),
+        os.path.join(directories[("intermediate",  "2__diamond-mibig")], "output.tsv.gz"),
+        os.path.join(directories[("intermediate",  "3__hmmsearch-pfam")], "output.tsv.gz"),
+        os.path.join(directories[("intermediate",  "4__hmmsearch-amr")], "output.tsv.gz"),
+        os.path.join(directories[("intermediate",  "5__hmmsearch-antifam")], "output.tsv.gz"),
+        os.path.join(directories[("intermediate",  "6__kofamscan")], "output.tsv.gz"),
         os.path.join(opts.veba_database, "Classify", "NCBITaxonomy", "nodes.dmp"),
         os.path.join(opts.veba_database, "Classify", "NCBITaxonomy", "names.dmp"),
         os.path.join(opts.veba_database, "Classify", "NCBITaxonomy", "merged.dmp"),

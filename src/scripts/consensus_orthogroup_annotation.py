@@ -26,7 +26,7 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description=description, usage=usage, epilog=epilog, formatter_class=argparse.RawTextHelpFormatter)
 
     # Pipeline
-    parser.add_argument("-i","--input", required=True, type=str, help = "Tab-seperated table with the following format: [orf_id]<tab>[id_orthogroup]<tab>[annotation]")
+    parser.add_argument("-i","--input", required=True, type=str, help = "Tab-seperated table with the following format: [id_protein]<tab>[id_protein_cluster]<tab>[annotation]")
     parser.add_argument("-o","--output_directory", type=str, default="consensus_orthogroup_annotations", help = "Output directory [Default: consensus_orthogroup_annotations]")
     parser.add_argument("--similarity_threshold", type=float, default=0.8, help = "Threshold for similarity analysis [Default: 0.8]")
     parser.add_argument("--retain_hypothetical", type=int, default=1, help = "Consider hypothetical annotations as being annotations [Default: 1]")
@@ -34,7 +34,7 @@ def main(argv=None):
     parser.add_argument("--unannotated_weight", type=float, default=0.382, help = "Weight for unannotations (i.e., blank functions) in the scording system? [Default: 0.382]")
     parser.add_argument("--representative_threshold", type=float, default=0.618, help = "Score to consider a function representative [Default: 0.618]")
     parser.add_argument("--unifunc", type=str, default="CONDA_PREFIX", help = "path/to/unifunc [Default: CONDA_PREFIX]")
-    parser.add_argument("--orthogroup_label", type=str, default="orthogroup_label", help = "orthogroup label [Default: id_orthogroup]")
+    parser.add_argument("--orthogroup_label", type=str, default="id_protein_cluster", help = "orthogroup label [Default: id_protein_cluster]")
 
     # Options
     opts = parser.parse_args(argv)

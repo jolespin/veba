@@ -11,7 +11,7 @@ from genopype import *
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.3.13"
+__version__ = "2023.3.14"
 
 # STAR
 def get_star_cmd(input_filepaths, output_filepaths, output_directory, directories, opts):
@@ -116,7 +116,7 @@ def get_star_cmd(input_filepaths, output_filepaths, output_directory, directorie
     os.environ["compile_star_statistics.py"],
     "-i {}".format(os.path.join(output_directory, "Log.final.out")),
     "-o {}".format(os.path.join(output_directory, "alignment_statistics.tsv.gz")),
-    "-n {}".format(opts.name),
+    # "-n {}".format(opts.name),
 
     # Gzip logs
         "&&",
@@ -228,6 +228,9 @@ def add_executables_to_environment(opts):
     """
     Adapted from Soothsayer: https://github.com/jolespin/soothsayer
     """
+    accessory_scripts = {
+        "compile_star_statistics.py",
+    }
 
     required_executables={
                 # "pigz",
@@ -238,10 +241,13 @@ def add_executables_to_environment(opts):
                 "featureCounts",
      }
 
+    required_executables |= accessory_scripts
+
     if opts.path_config == "CONDA_PREFIX":
         executables = dict()
-        for name in required_executables:
-            executables[name] = os.path.join(os.environ["CONDA_PREFIX"], "bin", name)
+        for name in sorted(required_executables):
+            if name not in accessory_scripts:
+                executables[name] = os.path.join(os.environ["CONDA_PREFIX"], "bin", name)
     else:
         if opts.path_config is None:
             opts.path_config = os.path.join(opts.script_directory, "veba_config.tsv")
@@ -256,9 +262,14 @@ def add_executables_to_environment(opts):
         assert required_executables <= set(list(executables.keys())), "config must have the required executables for this run.  Please adjust file: {}\nIn particular, add info for the following: {}".format(opts.path_config, required_executables - set(list(executables.keys())))
 
     # Display
-    accessory_scripts = ["compile_star_statistics.py"]
-    for name in accessory_scripts:
-        executables[name] = "python " + os.path.join(opts.script_directory, name)
+
+    for name in sorted(accessory_scripts):
+        if name.endswith(".py"):
+            executables[name] = "python " + os.path.join(opts.script_directory, name)
+        else: 
+            executables[name] = os.path.join(opts.script_directory, name)
+
+
     print(format_header( "Adding executables to path from the following source: {}".format(opts.path_config), "-"), file=sys.stdout)
     for name, executable in executables.items():
         if name in required_executables:

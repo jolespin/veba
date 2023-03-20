@@ -13,7 +13,7 @@ from soothsayer_utils import *
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.2.6"
+__version__ = "2023.3.16"
 
 # DATABASE_METAEUK="/usr/local/scratch/CORE/jespinoz/db/veba/v1.0/Classify/Eukaryotic/eukaryotic"
 
@@ -974,6 +974,7 @@ def main(args=None):
     parser_metaeuk.add_argument("--metaeuk_evalue", type=float, default=0.01, help="MetaEuk | List matches below this E-value (range 0.0-inf) [Default: 0.01]")
     # parser_metaeuk.add_argument("--metaeuk_database", type=str, default=DATABASE_METAEUK, help="MetaEuk | More options (e.g. --arg 1 ) [Default: {}]".format(DATABASE_METAEUK))
     parser_metaeuk.add_argument("--metaeuk_options", type=str, default="", help="MetaEuk | More options (e.g. --arg 1 ) [Default: ''] https://github.com/soedinglab/metaeuk")
+    # --split-memory-limit 70G: https://github.com/soedinglab/metaeuk/issues/59
 
     # BUSCO
     parser_busco = parser.add_argument_group('BUSCO arguments')
