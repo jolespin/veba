@@ -5,11 +5,8 @@ import numpy as np
 from collections import OrderedDict
 from tqdm import tqdm 
 
-
-# DATABASE_EUKARYOTIC="/usr/local/scratch/CORE/jespinoz/db/veba/v1.0/Classify/Eukaryotic/"
-
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2022.12.07"
+__version__ = "2023.3.20"
 
 
 def main(args=None):
@@ -106,7 +103,7 @@ def main(args=None):
     missing_lineage = list()
     for id_orf, id_source in tqdm(orf_to_source.items(), desc="Retrieving lineage", unit = " ORFs"):
         if id_source in df_source_taxonomy.index:
-            lineage = df_source_taxonomy.loc[id_source] #  class   order   family  genus   species
+            lineage = df_source_taxonomy.loc[id_source, ["class", "order", "family", "genus", "species"]] #  class   order   family  genus   species
             lineage = ";".join(map(lambda items: "".join(items), zip(["c__", "o__", "f__", "g__", "s__"], lineage)))
             orf_to_lineage[id_orf] = lineage
         else:

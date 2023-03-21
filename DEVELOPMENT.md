@@ -201,6 +201,7 @@ ________________________________________________________________
 
 
 #### Change Log:
+* [2023.3.20] - Added `database` field to `source_taxonomy.tsv.gz` in `VDB-Microeukaryotic_v2.1` as [an additional file](https://zenodo.org/record/7485114/files/source_taxonomy_with_database.tsv.gz?download=1) which wille eventually replace the default file.  Also changed `SourceID` to `id_source` in updated version.
 * [2023.3.17] - Fixed rare bug when `antiSMASH` genbank files have a space appended to the contig.  Also fixed a typo in the BGC features fasta file name.
 * [2023.3.13] - Fixed `--skip_maxbin2` and `--skip_concoct` arguments by adding missing `seed` parameters ([Issue #21](https://github.com/jolespin/veba/issues/21)).  Added a wrapper around `STAR` RNAseq-aligner (`star_wrapper.py`) in preperation to add as an option for `mapping.py`.  This also includes a helper script in compiling the summary log (`compile_star_statistics.py`).
 * [2023.3.9] - Added `bgc_novelty_scorer.py` script to get novelty scores of biosynthetic gene clusters.
