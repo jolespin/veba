@@ -3,7 +3,7 @@ This walkthrough goes through phylogenetic inference of eukaryotic diatoms.
 
 What you'll end up with at the end of this are phylogenetic trees for recovered eukaryotic diatoms.
 
-It is assumed you've completed either the [end-to-end metagenomics](end-to-end_metagenomics.md) walkthrough.
+It is assumed you've completed either the [end-to-end metagenomics](end-to-end_metagenomics.md) or [recovering viruses from metatranscriptomics](recovering_viruses_from_metatranscriptomics.md) walkthroughs.
 
 _____________________________________________________
 

@@ -37,7 +37,7 @@ sbatch -J ${N} -N 1 -c ${N_JOBS} --ntasks-per-node=1 -o logs/${N}.o -e logs/${N}
 *  [Read mapping and counts tables](read_mapping_and_counts_tables.md) - Read mapping and generating counts tables at the contig, MAG, SLC, ORF, and SSO levels. 
 * [Phylogenetic inference](phylogenetic_inference.md) - Phylogenetic inference of eukaryotic diatoms.
 * [Setting up *bona fide* coassemblies for metagenomics or metatranscriptomics](setting_up_coassemblies.md) - In the case where all samples are of low depth, it may be useful to use coassembly instead of sample-specific approaches.  This walkthrough goes through concatenating reads, creating a reads table, coassembly of concatenated reads, aligning sample-specific reads to the coassembly for multiple sorted BAM files, and mapping reads for scaffold/transcript-level counts.  Please note that a coassembly differs from the pseudo-coassembly concept introduced in the VEBA publication.  For more information regarding the differences between *bona fide* coassembly and pseud-coassembly, please refer to [*23. What's the difference between a coassembly and a pseudo-coassembly?*](https://github.com/jolespin/veba/blob/main/FAQ.md). 
-
+* [Bioprospecting for biosynthetic gene clusters](bioprospecting_for_biosynthetic_gene_clusters.md) - Detecting biosynthetic gene clusters (BGC) with and scoring novelty of BGCs.
 
 ___________________________________________
 
@@ -45,9 +45,7 @@ ___________________________________________
 
 * Workflow for low-depth samples with no bins
 * Workflow for ASV detection from short-read amplicons
-
 * Workflows for integrating 3rd party software with *VEBA*:
-
 	* Using [EukHeist](https://github.com/AlexanderLabWHOI/EukHeist) for eukaryotic binning followed by *VEBA* for mapping and annotation.
 	* Using [EukMetaSanity](https://github.com/cjneely10/EukMetaSanity) for modeling genes for eukaryotic genomes recovered with *VEBA*.
 
