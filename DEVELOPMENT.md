@@ -5,6 +5,18 @@
 ________________________________________________________________
 
 #### Current Releases:
+
+##### Release v1.1.1
+
+* Most important update includes fixing a broken VEBA-`binning-viral.yml` install recipe which had package conflicts for `aria2` 30e8b0a.
+* Fixes on conda-related environment variables in the install scripts.
+* Added `MIBiG` to database and `annotate.py`
+* Added a composite label for annotations in `annotate.py`
+* Added `--dastool_minimum_score` to `binning-prokaryotic.py` module
+* Added a wrapper around `STAR` aligner
+* Updated `merge_generalized_mapping.py` script to take in BAM files instead of being dependent on a specific directory.
+* Added option to have no header in `subst_table.py`
+
 ##### Release v1.1.0
 
 * **Modules**:
@@ -201,6 +213,7 @@ ________________________________________________________________
 
 
 #### Change Log:
+* [2023.3.23] - Added `genbanks/[id_genome]/` to output directory of `biosynthetic.py` which has symlinks to all the BGC genbanks from `antiSMASH`.
 * [2023.3.20] - Added `database` field to `source_taxonomy.tsv.gz` in `VDB-Microeukaryotic_v2.1` as [an additional file](https://zenodo.org/record/7485114/files/source_taxonomy_with_database.tsv.gz?download=1) which wille eventually replace the default file.  Also changed `SourceID` to `id_source` in updated version.
 * [2023.3.17] - Fixed rare bug when `antiSMASH` genbank files have a space appended to the contig.  Also fixed a typo in the BGC features fasta file name.
 * [2023.3.13] - Fixed `--skip_maxbin2` and `--skip_concoct` arguments by adding missing `seed` parameters ([Issue #21](https://github.com/jolespin/veba/issues/21)).  Added a wrapper around `STAR` RNAseq-aligner (`star_wrapper.py`) in preperation to add as an option for `mapping.py`.  This also includes a helper script in compiling the summary log (`compile_star_statistics.py`).
