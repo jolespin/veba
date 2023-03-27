@@ -247,9 +247,15 @@ Please refer to our [patches](https://github.com/jolespin/veba/blob/main/install
 
 #### 28.  While running `assembly.py` my job errored (e.g., timed out or ran out of memory), how can I resume the assembly without starting over?
 
-If you're using a `SPAdes`-based program (e.g., `metaSPAdes`) you can use the following option: `--assembler_options='--restart-from last'`.  
+If you're using a `SPAdes`-based program (e.g., `metaSPAdes`) you can use one of two options: 
 
-For example, the following `assembly.py` command: `source activate VEBA-assembly_env && assembly.py -1 ${R1} -2 ${R2} -n ${ID} -o ${OUT_DIR} -p ${N_JOBS} --assembler_options='--restart-from last'`
+* `--assembler_options='--continue'` - Continue run from the last available check-point
+
+* `--assembler_options='--restart-from last'` - Restart run with updated options and from the specified check-point
+
+For example, the following `assembly.py` command: `source activate VEBA-assembly_env && assembly.py -1 ${R1} -2 ${R2} -n ${ID} -o ${OUT_DIR} -p ${N_JOBS} --assembler_options='--continue'`
+
+*VEBA* handles these edge case options and removes the other arguments.
 
 #### 29. My job errored in the middle of a step because of a minor issue, how can I continue from the middle of a step and created a checkpoint?
 
