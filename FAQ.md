@@ -290,7 +290,7 @@ rm -rf veba_output/assembly/SRR5720219/intermediate/1__assembly/before_rr.fasta 
 echo "Manual run: $(date)" > veba_output/assembly/SRR5720219/checkpoints/1__assembly
 ```
 
-4. Now rerun the original command: `assembly.py -1 ${R1} -2 ${R2} -n ${ID} -o ${OUT_DIR} -p ${N_JOBS}
+4. Now rerun the original command: `assembly.py -1 ${R1} -2 ${R2} -n ${ID} -o ${OUT_DIR} -p ${N_JOBS}`
 
 *VEBA* should register that step 1 is complete and will continue with step 2. 
 
@@ -371,7 +371,7 @@ In short, the tool forces the output files to be in the current working director
 
 These predictions are very naive and are generated only from the bitscores of `Diamond` alignments against NR.  This does not subset out core markers which can introduce noise.  You may notice that a MAG classification from `classify-[domain].py` is different than what is generated in `lineage.weighted_majority_vote.genomes.tsv.gz` and that is because the classification modules use more robust algorithms/databases.
 
-#### 36. If I update from `v1.0.x` → `v1.1.0`, can I use any of my existing files?
+#### 36. If I update from `v1.0.x` → `v1.1.x`, can I use any of my existing files?
 
 Yes!  All of the MAGs, gene models, alignments, etc. can be used seamlessly in the updated version.  However, if you've performed clustering it is advised that you rerun with the updated clustering algorithm as it handles singletons better and creates more useful identifier mapping tables. Now that clustering uses `MMSEQS2`, it is MUCH faster than `OrthoFinder`. 
 
