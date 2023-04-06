@@ -180,3 +180,21 @@ Complete reinstalls of *VEBA* environments and databases is time consuming so we
 	rm -rf ${DATABASE_DIRECTORY}/Microeukaryotic.tar.gz
 	```
 	
+	
+##### 6. How can I reinstall just a single module? 
+
+Perhaps you customized your environment and broke it or it just never installed correctly and you're just noticing it now.  Regardless, it's pretty easy to patch your installation. 
+
+In this example, we are going to reinstall the `VEBA-binning-prokarytic_env` environment.  It's assumed that you're current working directory is the veba repository: (e.g., `wget https://github.com/jolespin/veba/archive/refs/tags/v${VERSION}.tar.gz; tar -xvf v${VERSION}.tar.gz && mv veba-${VERSION} veba; cd veba`).  Also, it's safe to allocate ~16GB memory if you're doing this and I recommend using an interactive queue. For some of the module environments this isn't necessary but definitely for `VEBA-binning-prokaryotic_env`, `VEBA-biosynthetic_env`, and `VEBA-amplicon_env`.
+
+1. [Run Step 0 from install guide](https://github.com/jolespin/veba/tree/main/install#install)
+
+2. Remove the binning environment: `mamba env remove -n VEBA-binning-prokaryotic_env`
+
+3. Reinstall the environment.  For this example, you need to  allocate ~16GB of memory to be safe because `CheckM2` runs some code in the backend and will likely crash the head node: `mamba env create -n VEBA-binning-prokaryotic_env -f install/environments/VEBA-binning-prokaryotic_env.yml`
+
+4. Now let's patch up your install by first copying the script files into `${CONDA_PREFIX}/bin`.  You can do this easily via the following script: `bash install/update_environment_scripts.sh .`
+
+Don't forget to include the `.` because this specifies you're IN the repository you want to use for the files.  
+
+5. Finish up your patch by creating activate/deactivate scripts along with setting/unsetting necessary environment variables: `bash install/update_environment_variables.sh /path/to/veba_database`
