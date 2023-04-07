@@ -135,9 +135,10 @@ report_errors: true
 
 #### 17. How can I use options for backend programs that are not arguments in *VEBA*?
 
-While *VEBA* accounts for the most important parameters in the backend, it doesn't hard-code direct access to every parameter (that would be crazy!).  However, many of these options are still accessible for key programs in the backend.  For instance, if you wanted to adjust the *DAS Tool* score threshold, which is not an argument that is hard-coded in *VEBA* like `--dastool_searchengine`, you can simple add the following argument in your *VEBA* command: `--dastool_options '--score_threshold 0.6 --megabin_penalty 0.7'`.  This can be any number of additional arguments, just note that certain ones can break *VEBA* (e.g., changing basenames) so be mindful. 
+While *VEBA* accounts for the most important parameters in the backend, it doesn't hard-code direct access to every parameter (that would be crazy!).  However, many of these options are still accessible for key programs in the backend.  For instance, if you wanted to adjust the *DAS Tool* score threshold, which is not an argument that is hard-coded in *VEBA* like `--dastool_searchengine`, you can simple add the following argument in your *VEBA* command: `--dastool_options='--score_threshold 0.6 --megabin_penalty 0.7'`.  This can be any number of additional arguments, just note that certain ones can break *VEBA* (e.g., changing basenames) so be mindful. 
 
-**^ Please note the usage of quotes here ^** 
+
+**^ Please note the usage of quotes here and the equal sign^** 
 
 When using this functionality, just make sure that the argument doesn't overlap with the specified arguments for *VEBA*.  For instance, in the case of *DAS Tool* we already hard-coded access to the `--search_engine` argument via the `--dastool_searchengine` so don't use `--dastool_options '--search_engine <value>'`. Again, be mindful when using this advanced usage.
 
@@ -399,3 +400,13 @@ assembly.py: error: argument --assembler_options: expected one argument
 ```
 
 To get around this, use an equal sign when providing the argument values.  (i.e., `--assembler_options='--continue'`)
+
+#### 39. I get the following error when running `featureCounts`:  `ERROR: Paired-end reads were detected in single-end read library`
+
+I've only seen this for a single sample in the hundreds of samples processed in [issue/22](https://github.com/jolespin/veba/issues/22). The workaround was to use `--featurecounts_options='-p'`
+
+#### 40. How can I reinstall just a single module or environment? 
+
+Perhaps you customized your environment and broke it or it just never installed correctly and you're just noticing it now.  Regardless, it's pretty easy to patch your installation. 
+
+[Just follow these steps from the PATCH guide.](https://github.com/jolespin/veba/blob/main/install/PATCHES.md#6-how-can-i-reinstall-just-a-single-module)
