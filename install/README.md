@@ -23,6 +23,8 @@ ____________________________________________________________
 
 ### Install:
 
+Currently, **Conda environments for VEBA are ONLY configured for Linux**.  MacOS configs for certain environments will be available for v2.x.x. Due to the large databases, this software was designed to be used via HPC. 
+
 **There are 3 steps to install *VEBA*:**
 
 * Download repository from GitHub
