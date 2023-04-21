@@ -2,46 +2,27 @@
 # Modules
 [![Schematic](../images/Schematic.png)](../images/Schematic.pdf)
 
-**Stable:**
+| Status        | Environment                  | Module                  | Resources   | Recommended Threads | Description                                                                                                     |
+|---------------|------------------------------|-------------------------|-------------|---------------------|-----------------------------------------------------------------------------------------------------------------|
+| Stable        | VEBA-preprocess_env          | preprocess.py           | 4GB-16GB    | 4                   | Fastq quality trimming, adapter removal, decontamination, and read statistics calculations                      |
+| Stable        | VEBA-assembly_env            | assembly.py             | 32GB-128GB+ | 16                  | Assemble reads, align reads to assembly, and count mapped reads                                                 |
+| Stable        | VEBA-assembly_env            | coverage.py             | 24GB        | 16                  | Align reads to (concatenated) reference and counts mapped reads                                                 |
+| Stable        | VEBA-binning-prokaryotic_env | binning-prokaryotic.py  | 16GB        | 4                   | Iterative consensus binning for recovering prokaryotic genomes with lineage-specific quality assessment         |
+| Stable        | VEBA-binning-eukaryotic_env  | binning-eukaryotic.py   | 128GB       | 4                   | Binning for recovering eukaryotic genomes with exon-aware gene modeling and lineage-specific quality assessment |
+| Stable        | VEBA-binning-viral_env       | binning-viral.py        | 16GB        | 4                   | Detection of viral genomes and quality assessment                                                               |
+| Stable        | VEBA-classify_env            | classify-prokaryotic.py | 64GB        | 32                  | Taxonomic classification and candidate phyla radiation adjusted quality                                         |
+| Stable        | VEBA-classify_env            | classify-eukaryotic.py  | 32GB        | 1                   | Taxonomic classification of eukaryotic genomes                                                                  |
+| Stable        | VEBA-classify_env            | classify-viral.py       | 16GB        | 4                   | Taxonomic classification and isolation source of viral genomes                                                  |
+| Stable        | VEBA-cluster_env             | cluster.py              | 32GB+       | 32                  | Species-level clustering of genomes and lineage-specific orthogroup detection                                   |
+| Stable        | VEBA-annotate_env            | annotate.py             | 64GB        | 32                  | Annotates translated gene calls against NR, Pfam, and KOFAM                                                     |
+| Stable        | VEBA-phylogeny_env           | phylogeny.py            | 16GB+       | 32                  | Constructs phylogenetic trees given a marker set                                                                |
+| Stable        | VEBA-mapping_env             | index.py                | 16GB        | 4                   | Builds local or global index for alignment to genomes                                                           |
+| Stable        | VEBA-mapping_env             | mapping.py              | 16GB        | 4                   | Aligns reads to local or global index of genomes                                                                |
+| Developmental | VEBA-biosynthetic_env        | biosynthetic.py         | 16GB        | 16                  | Identify biosynthetic gene clusters in prokaryotes and fungi                                                    |
+| Developmental | VEBA-assembly_env            | assembly-sequential.py  | 32GB-128GB+ | 16                  | Assemble metagenomes sequentially                                                                               |
+| Developmental | VEBA-amplicon_env            | amplicon.py             | 96GB        | 16                  | Automated read trim position detection, DADA2 ASV detection, taxonomic classification, and file conversion      |
 
-* **preprocess** – Fastq quality trimming, adapter removal, decontamination, and read statistics calculations
-
-* **assembly** – Assemble reads, align reads to assembly, and count mapped reads
-
-* **coverage** – Align reads to (concatenated) reference and counts mapped reads
-
-* **binning-prokaryotic** – Iterative consensus binning for recovering prokaryotic genomes with lineage-specific quality assessment
-
-* **binning-eukaryotic** – Binning for recovering eukaryotic genomes with exon-aware gene modeling and lineage-specific quality assessment
-
-* **binning-viral** – Detection of viral genomes and quality assessment
-
-* **classify-prokaryotic** – Taxonomic classification and candidate phyla radiation adjusted quality 
-
-* **classify-eukaryotic** – Taxonomic classification of eukaryotic genomes
-
-* **classify-viral** – Taxonomic classification and isolation source of viral genomes
-
-* **cluster** – Species-level clustering of genomes and lineage-specific orthogroup detection
-
-* **annotate** – Annotates translated gene calls against NR, Pfam, and KOFAM
-
-* **phylogeny** – Constructs phylogenetic trees given a marker set
-
-* **index** – Builds local or global index for alignment to genomes
- 
-* **mapping** – Aligns reads to local or global index of genomes
-
-
-**Developmental and Experimental:**
-
-* **biosynthetic** – Identify biosynthetic gene clusters in prokaryotes and fungi
-
-* **assembly-sequential** – Assemble metagenomes sequentially
-
-* **amplicon** - Automated read trim position detection, DADA2 ASV detection, taxonomic classification, and file conversion
-
-________________________________________________________
+______________________
 
 ### Stable
 

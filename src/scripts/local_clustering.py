@@ -14,7 +14,7 @@ from soothsayer_utils import *
 
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.2.25"
+__version__ = "2023.4.19"
 
 def get_basename(x):
     _, fn = os.path.split(x)
@@ -29,6 +29,7 @@ def add_executables_to_environment(opts):
     """
     accessory_scripts = {
         "edgelist_to_clusters.py",
+        "mmseqs2_wrapper.py",
     }
 
     required_executables={
@@ -75,6 +76,8 @@ def add_executables_to_environment(opts):
 
 # Configure parameters
 def configure_parameters(opts, directories):
+    assert_acceptable_arguments(opts.algorithm, {"easy-cluster", "easy-linclust"})
+
     # Set environment variables
     add_executables_to_environment(opts=opts)
 
@@ -107,7 +110,7 @@ def main(args=None):
 
     # FastANI
     parser_fastani = parser.add_argument_group('FastANI arguments')
-    parser_fastani.add_argument("-a", "--ani_threshold", type=float, default=95.0, help="FastANI | Species-level cluster (SLC) ANI threshold (Range (0.0, 100.0]) [Default: 95.0]")
+    parser_fastani.add_argument("-A", "--ani_threshold", type=float, default=95.0, help="FastANI | Species-level cluster (SLC) ANI threshold (Range (0.0, 100.0]) [Default: 95.0]")
     parser_fastani.add_argument("--genome_cluster_prefix", type=str, default="SLC-", help="Cluster prefix [Default: 'SLC-")
     parser_fastani.add_argument("--genome_cluster_suffix", type=str, default="", help="Cluster suffix [Default: '")
     parser_fastani.add_argument("--genome_cluster_prefix_zfill", type=int, default=0, help="Cluster prefix zfill. Use 7 to match identifiers from OrthoFinder.  Use 0 to add no zfill. [Default: 0]") #7
@@ -115,12 +118,12 @@ def main(args=None):
 
     # MMSEQS2
     parser_mmseqs2 = parser.add_argument_group('MMSEQS2 arguments')
+    parser_mmseqs2.add_argument("-a", "--algorithm", type=str, default="easy-cluster", help="MMSEQS2 | {easy-cluster, easy-linclust} [Default: easy-cluster]")
     parser_mmseqs2.add_argument("-t", "--minimum_identity_threshold", type=float, default=50.0, help="MMSEQS2 | SLC-Specific Protein Cluster (SSPC, previously referred to as SSO) percent identity threshold (Range (0.0, 100.0]) [Default: 50.0]")
     parser_mmseqs2.add_argument("-c", "--minimum_coverage_threshold", type=float, default=0.8, help="MMSEQS2 | SSPC coverage threshold (Range (0.0, 1.0]) [Default: 0.8]")
     parser_mmseqs2.add_argument("--protein_cluster_prefix", type=str, default="SSPC-", help="Cluster prefix [Default: 'SSPC-")
     parser_mmseqs2.add_argument("--protein_cluster_suffix", type=str, default="", help="Cluster suffix [Default: '")
     parser_mmseqs2.add_argument("--protein_cluster_prefix_zfill", type=int, default=0, help="Cluster prefix zfill. Use 7 to match identifiers from OrthoFinder.  Use 0 to add no zfill. [Default: 0]") #7
-
     parser_mmseqs2.add_argument("--mmseqs2_options", type=str, default="", help="MMSEQS2 | More options (e.g. --arg 1 ) [Default: '']")
 
     # Options
@@ -316,42 +319,62 @@ def main(args=None):
             # Run MMSEQS2
             name = "mmseqs2__{}__{}".format(organism_type, id_genomecluster)
             description = "[Program = MMSEQS2] [Organism_Type = {}] [Sample_ID = {}] [Genome_Cluster = {}]".format(organism_type, id_sample, id_genomecluster)
+            # cmd = Command([
+            #     os.environ["mmseqs"],
+            #     "easy-cluster",
+            #     os.path.join(genomecluster_directory, "proteins.faa" ),
+            #     os.path.join(genomecluster_directory, "mmseqs2"),
+            #     directories["tmp"],
+            #     "--threads {}".format(opts.n_jobs),
+            #     "--min-seq-id {}".format(opts.minimum_identity_threshold/100),
+            #     "-c {}".format(opts.minimum_coverage_threshold),
+            #     "--cov-mode 1",
+            #     "--dbtype 1",
+            #     opts.mmseqs2_options,
+
+            #         "&&",
+
+            #     os.environ["edgelist_to_clusters.py"],
+            #     "-i {}".format(os.path.join(genomecluster_directory, "mmseqs2_cluster.tsv")),
+            #     "--no_singletons" if bool(opts.no_singletons) else "",
+            #     "--cluster_prefix {}_{}".format(id_genomecluster, opts.protein_cluster_prefix),
+            #     "--cluster_suffix {}".format(opts.protein_cluster_suffix) if bool(opts.protein_cluster_suffix) else "",
+            #     "--cluster_prefix_zfill {}".format(opts.protein_cluster_prefix_zfill),
+            #     "-o {}".format(os.path.join(genomecluster_directory, "protein_clusters.tsv")),
+            #     "--identifiers {}".format(os.path.join(genomecluster_directory, "protein_identifiers.list")),
+
+            #         "&&",
+
+            #     "rm -rf",
+            #     os.path.join(genomecluster_directory, "mmseqs2_all_seqs.fasta"),
+            #     os.path.join(genomecluster_directory, "proteins.faa"),
+            #     os.path.join(directories["tmp"], "*"),
+
+            #         "&&",
+
+            #     "gzip",
+            #     os.path.join(genomecluster_directory, "mmseqs2_rep_seq.fasta"),
+
+            #     ], 
+            #     name=name, 
+            #     f_cmds=f_cmds,
+            #     )
+
             cmd = Command([
-                os.environ["mmseqs"],
-                "easy-cluster",
-                os.path.join(genomecluster_directory, "proteins.faa" ),
-                os.path.join(genomecluster_directory, "mmseqs2"),
-                directories["tmp"],
-                "--threads {}".format(opts.n_jobs),
-                "--min-seq-id {}".format(opts.minimum_identity_threshold/100),
-                "-c {}".format(opts.minimum_coverage_threshold),
-                "--cov-mode 1",
-                "--dbtype 1",
-                opts.mmseqs2_options,
-
-                    "&&",
-
-                os.environ["edgelist_to_clusters.py"],
-                "-i {}".format(os.path.join(genomecluster_directory, "mmseqs2_cluster.tsv")),
+                os.environ["mmseqs2_wrapper.py"],
+                "--fasta {}".format(os.path.join(genomecluster_directory, "proteins.faa" )),
+                "--output_directory {}".format(genomecluster_directory),
                 "--no_singletons" if bool(opts.no_singletons) else "",
+                "--algorithm {}".format(opts.algorithm),
+                "--n_jobs {}".format(opts.n_jobs),
+                "--minimum_identity_threshold {}".format(opts.minimum_identity_threshold),
+                "--minimum_coverage_threshold {}".format(opts.minimum_coverage_threshold),
+                "--mmseqs2_options='{}'" if bool(opts.mmseqs2_options) else "",
                 "--cluster_prefix {}_{}".format(id_genomecluster, opts.protein_cluster_prefix),
                 "--cluster_suffix {}".format(opts.protein_cluster_suffix) if bool(opts.protein_cluster_suffix) else "",
                 "--cluster_prefix_zfill {}".format(opts.protein_cluster_prefix_zfill),
-                "-o {}".format(os.path.join(genomecluster_directory, "protein_clusters.tsv")),
+                "--basename protein_clusters",
                 "--identifiers {}".format(os.path.join(genomecluster_directory, "protein_identifiers.list")),
-
-                    "&&",
-
-                "rm -rf",
-                os.path.join(genomecluster_directory, "mmseqs2_all_seqs.fasta"),
-                os.path.join(genomecluster_directory, "proteins.faa"),
-                os.path.join(directories["tmp"], "*"),
-
-                    "&&",
-
-                "gzip",
-                os.path.join(genomecluster_directory, "mmseqs2_rep_seq.fasta"),
-
                 ], 
                 name=name, 
                 f_cmds=f_cmds,
@@ -373,7 +396,7 @@ def main(args=None):
                     sys.exit(cmd.returncode_)
 
             # Get the protein clusters
-            protein_to_proteinluster_within_sample = pd.read_csv(os.path.join(genomecluster_directory, "protein_clusters.tsv"), sep="\t", index_col=0, header=None).iloc[:,0]
+            protein_to_proteinluster_within_sample = pd.read_csv(os.path.join(genomecluster_directory, "output", "protein_clusters.tsv"), sep="\t", index_col=0, header=None).iloc[:,0]
             protein_to_proteincluster.update(protein_to_proteinluster_within_sample.to_dict())
     mag_to_genomecluster = pd.Series(mag_to_genomecluster)
     protein_to_proteincluster = pd.Series(protein_to_proteincluster)

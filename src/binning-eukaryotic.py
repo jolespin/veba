@@ -986,6 +986,7 @@ def main(args=None):
 
     # featureCounts
     parser_featurecounts = parser.add_argument_group('featureCounts arguments')
+    # parser_featurecounts.add_argument("--single_ended",  action="store_true", help="featureCounts | Single ended reads.  If long-reads are used, please use this flag. | http://bioinf.wehi.edu.au/featureCounts/")
     parser_featurecounts.add_argument("--featurecounts_options", type=str, default="", help="featureCounts | More options (e.g. --arg 1 ) [Default: ''] | http://bioinf.wehi.edu.au/featureCounts/")
 
 

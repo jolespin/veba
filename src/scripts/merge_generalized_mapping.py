@@ -5,7 +5,7 @@ import pandas as pd
 from tqdm import tqdm
 
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2022.3.13"
+__version__ = "2022.4.12"
 
 def main(args=None):
     # Path info
@@ -24,9 +24,11 @@ def main(args=None):
     parser.add_argument("files", nargs="+", help = "Counts tables of 2 columns where 1st column is the feature and second column is the value")
     parser.add_argument("-o","--output", type=str,  help = "path/to/output.tsv [Default: stdout]", default="stdout")
     parser.add_argument("-d","--sep", type=str, default="\t", help = "Delimiter for table [Default: <tab>]")
-    parser.add_argument("--sample_column_label", type=str, default="id_sample", help = "Sample column label [Default: id_sample]")
-    parser.add_argument("--feature_row_label", type=str, default="id_feature", help = "Feature row label [Default: id_feature]")
-    parser.add_argument("--allow_missing_values", action="store_true", help = "Allow missing values instead of filling with zeros")
+    parser.add_argument("-c", "--sample_column_label", type=str, default="id_sample", help = "Sample column label [Default: id_sample]")
+    parser.add_argument("-r", "--feature_row_label", type=str, default="id_feature", help = "Feature row label [Default: id_feature]")
+    parser.add_argument("-i", "--sample_index", type=int,default=-3, help = "Sample index in filepath (e.g., veba_output/mapping/global/[ID]/output/counts.tsv it would be -3) [Default: -3]")
+    parser.add_argument("-a", "--allow_missing_values", action="store_true", help = "Allow missing values instead of filling with zeros")
+    parser.add_argument("-e", "--remove_empty_features", action="store_true", help = "Remove empty features")
 
     # Options
     opts = parser.parse_args()
@@ -37,11 +39,14 @@ def main(args=None):
         opts.output = sys.stdout
 
     # Merge feature counts
-    counts = dict()
+    output = dict()
     for fp in tqdm(opts.files, "Reading processed featureCounts outputs"):
-        id_sample = fp.split("/")[-3]
-        counts[id_sample] = pd.read_csv(fp, sep="\t", index_col=0).iloc[:,-1]
-    X = pd.DataFrame(counts).T
+        id_sample = fp.split("/")[opts.sample_index]
+        counts = pd.read_csv(fp, sep="\t", index_col=0, header=None).iloc[:,-1]
+        if opts.remove_empty_features:
+            counts = counts[counts > 0]
+        output[id_sample] = counts
+    X = pd.DataFrame(output).T
     if not opts.allow_missing_values:
         X = X.fillna(0).astype(int)
         

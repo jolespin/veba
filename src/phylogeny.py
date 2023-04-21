@@ -551,9 +551,9 @@ def main(args=None):
 
     # HMMER
     parser_hmmer = parser.add_argument_group('HMMSearch arguments')
-    parser_hmmer.add_argument("--hmmsearch_threshold", type=str, default="e", help="HMMSearch | Threshold {cut_ga, cut_nc, gut_tc, e} [Default:  e]")
-    parser_hmmer.add_argument("--hmmsearch_evalue", type=float, default=10.0, help="Diamond | E-Value [Default: 10.0]")
-    parser_hmmer.add_argument("--hmmsearch_options", type=str, default="", help="Diamond | More options (e.g. --arg 1 ) [Default: '']")
+    parser_hmmer.add_argument("--hmmsearch_threshold", type=str, default="e", help="HMMER | Threshold {cut_ga, cut_nc, gut_tc, e} [Default:  e]")
+    parser_hmmer.add_argument("--hmmsearch_evalue", type=float, default=10.0, help="HMMER | E-Value [Default: 10.0]")
+    parser_hmmer.add_argument("--hmmsearch_options", type=str, default="", help="HMMER | More options (e.g. --arg 1 ) [Default: '']")
     parser_hmmer.add_argument("-f", "--hmm_marker_field", default="accession", type=str, help="HMM reference type (accession, name) [Default: accession")
     parser_hmmer.add_argument("-s","--scores_cutoff", type=str, help = "path/to/scores_cutoff.tsv. No header. [id_hmm]<tab>[score]")
 
@@ -565,7 +565,7 @@ def main(args=None):
     parser_alignment.add_argument("--muscle_options", type=str, default="", help="MUSCLE | More options (e.g. --arg 1 ) [Default: '']")
     parser_alignment.add_argument("--clipkit_mode", type=str, default="smart-gap", help="ClipKIT | Trimming mode [Default: smart-gap]")
     parser_alignment.add_argument("--clipkit_options", type=str, default="", help="ClipKIT | More options (e.g. --arg 1 ) [Default: '']")
-
+    # Add famsa as an alternative to muscle?
 
 
     # Tree

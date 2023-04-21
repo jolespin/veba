@@ -1,0 +1,13 @@
+Environment	Environment File	Resources	Description
+VEBA-annotate_env	VEBA-annotate_env.yml	16GB-128GB	Annotating proteins with Diamond, HMMER, and KOFAM
+VEBA-assembly_env	VEBA-assembly_env.yml	32GB-128GB	Assembling metagenomes/metatranscriptomes, mapping reads to assemblies, and preparing for genome binning
+VEBA-biosynthetic_env	VEBA-biosynthetic_env.yml	16GB	BGC detection with antiSMASH, convert genbank files to tabular format, assess novelty of BGC
+VEBA-preprocess_env	VEBA-preprocess_env.yml	4GB-16GB	Preprocess reads by quality filtering, removing adapters, removing human contamination, and properly pairing
+VEBA-binning-eukaryotic_env	VEBA-binning-eukaryotic_env.yml	128GB	Binning for recovering eukaryotic genomes with exon-aware gene modeling and lineage-specific quality assessment
+VEBA-binning-prokaryotic_env	VEBA-binning-prokaryotic_env.yml	16GB	Iterative consensus binning for recovering prokaryotic genomes with lineage-specific quality assessment
+VEBA-binning-viral_env	VEBA-binning-viral_env.yml	16GB	Detection of viral genomes and quality assessment
+VEBA-classify_env	VEBA-classify_env.yml	16GB-64GB	Classify eukaryotic, prokaryotic, and viral genomes
+VEBA-cluster_env	VEBA-cluster_env.yml	32GB	Species-level clustering of genomes and lineage-specific orthogroup detection.
+VEBA-database_env	VEBA-database_env.yml	64GB	Contains all the programs needed to download and build the VEBA database
+VEBA-mapping_env	VEBA-mapping_env.yml	16GB	Aligns reads to local or global index of genomes. By default uses Bowtie2 but future versions will use Salmon as well.
+VEBA-phylogeny_env	VEBA-phylogeny_env.yml	16+GB	Constructs phylogenetic trees given a marker set using concatenated protein alignments

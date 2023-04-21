@@ -213,6 +213,9 @@ ________________________________________________________________
 
 
 #### Change Log:
+* [2023.4.20] - Updated `cluster.py` and associated `global_clustering.py`/`local_clustering.py` scripts to use `mmseqs2_wrapper.py` which now automatically outputs representative sequences.  
+* [2023.4.17] - Added `check_fasta_duplicates.py` script that gives `0` and `1` exit codes for fasta without and with duplicates, respectively.  Added `reformat_representative_sequences.py` to reformat representative sequences from `MMSEQS2` into either a table or fasta file where the identifers are cluster labels.  Removed `--dbtype` from `[global/local]_clustering.py`.  Removed appended prefix for `.graph.pkl` and `dict.pkl` in `edgelist_to_clusters.py`.  Added `mmseqs2_wrapper.py` and `hmmer_wrapper.py` scripts.
+* [2023.4.13] - Added an option to `merge_generalized_mapping.py` to include the sample index in a filepath and also an option to remove empty features (useful for Salmon).  Added an `executable='/bin/bash'` option to the `subprocess.Popen` calls in `GenoPype` to address [issues/23](https://github.com/jolespin/veba/issues/23).
 * [2023.3.23] - Added `genbanks/[id_genome]/` to output directory of `biosynthetic.py` which has symlinks to all the BGC genbanks from `antiSMASH`.
 * [2023.3.20] - Added `database` field to `source_taxonomy.tsv.gz` in `VDB-Microeukaryotic_v2.1` as [an additional file](https://zenodo.org/record/7485114/files/source_taxonomy_with_database.tsv.gz?download=1) which wille eventually replace the default file.  Also changed `SourceID` to `id_source` in updated version.
 * [2023.3.17] - Fixed rare bug when `antiSMASH` genbank files have a space appended to the contig.  Also fixed a typo in the BGC features fasta file name.

@@ -8,7 +8,7 @@ from tqdm import tqdm
 from Bio.SeqIO.FastaIO import SimpleFastaParser
 
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.1.20"
+__version__ = "2023.4.17"
 
 def main(args=None):
     # Path info
@@ -43,8 +43,8 @@ def main(args=None):
 
 
     parser_export = parser.add_argument_group('Export arguments')
-    parser_export.add_argument("-g", "--export_graph", type=str,   help = "prefix/to/graph pickle output files: nx.Graph [appends .graph.pkl]")
-    parser_export.add_argument("-d", "--export_dict", type=str,   help = "prefix/to/dict output file: {id_cluster: {id_a, id_b, ...}} [appends .dict.pkl]")
+    parser_export.add_argument("-g", "--export_graph", type=str,   help = "prefix/to/graph pickled output files: nx.Graph suggested prefix is .graph.pkl")
+    parser_export.add_argument("-d", "--export_dict", type=str,   help = "prefix/to/dict pickled output file: {id_cluster: {id_a, id_b, ...}} suggested prefix is .dict.pkl")
 
     # parser.add_argument("--export_edgelist", type=str,   help = "prefix/to/edgelist output files")
 
@@ -73,7 +73,6 @@ def main(args=None):
         df_edgelist.iloc[:,:2] = df_edgelist.iloc[:,:2].applymap(get_basename)
 
     edgelist = df_edgelist.iloc[:,:2].values.tolist()
-
 
     identifiers = set.union(*map(set, edgelist))
 
@@ -139,9 +138,11 @@ def main(args=None):
 
     # Export pickle
     if opts.export_graph is not None:
-        nx.write_gpickle(graph, "{}.graph.pkl".format(opts.export_graph))
+        with open("{}".format(opts.export_graph), "wb") as f:
+            pickle.dump(graph, f)
+
     if opts.export_dict is not None:
-        with open("{}.dict.pkl".format(opts.export_dict), "wb") as f:
+        with open("{}".format(opts.export_dict), "wb") as f:
             pickle.dump(cluster_to_nodes, f)
 
     # # Export edgelist
@@ -152,7 +153,7 @@ def main(args=None):
         for id_cluster, nodes in tqdm(cluster_to_nodes.items(), "Writing fasta files for each cluster: {}".format(opts.output_fasta_directory)):
             with open(os.path.join(opts.output_fasta_directory, "{}.{}".format(id_cluster, opts.output_fasta_extension)), "w") as f:
                 for id_node in sorted(nodes):
-                    print(">{}\n{}".format(id_node, id_to_sequence[id_node]), file=f)
+                    print(">{} {}\n{}".format(id_node, id_cluster, id_to_sequence[id_node]), file=f)
 
 if __name__ == "__main__":
     main()

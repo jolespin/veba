@@ -12,7 +12,7 @@ from soothsayer_utils import *
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.3.9"
+__version__ = "2023.3.23"
 
 # antiSMASH
 def get_antismash_cmd( input_filepaths, output_filepaths, output_directory, directories, opts):
@@ -45,8 +45,12 @@ do read -r -a ARRAY <<< $LINE
         # Genbanks to table
         %s -i %s/${ID} -o %s/${ID}/antismash_features.tsv.gz -s %s/${ID}/synopsis.tsv.gz -t %s/${ID}/type_counts.tsv.gz --fasta_output %s/${ID}/bgc.features.faa.gz
 
-        # Symlink
+        # Symlink proteins
         ln -sfr %s/${ID}/bgc.features.faa.gz %s/${ID}.bgc_features.faa.gz
+
+        # Symlink genbanks
+        mkdir -p %s/${ID}
+        ln -sfr %s/${ID}/*.region*.gbk %s/${ID}/
 
         # Completed
         echo "Completed: $(date)" > %s/${ID}/ANTISMASH_CHECKPOINT
@@ -95,9 +99,15 @@ done < %s
     output_directory,
     output_directory,
 
-    # Symlink
+    # Symlink (proteins)
     output_directory,
     directories[("output", "features")],
+
+    # Symlink (genbanks)
+    directories[("output", "genbanks")],
+    output_directory,
+    directories[("output", "genbanks")],
+
     output_directory,
 
     # Remove large assembly
@@ -549,6 +559,7 @@ def main(args=None):
     directories["intermediate"] = create_directory(os.path.join(directories["project"], "intermediate"))
     os.environ["TMPDIR"] = directories["tmp"]
     directories[("output", "features")] = create_directory(os.path.join(directories["output"], "features"))
+    directories[("output", "genbanks")] = create_directory(os.path.join(directories["output"], "genbanks"))
 
 
     # Info
