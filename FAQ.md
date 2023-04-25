@@ -403,7 +403,7 @@ To get around this, use an equal sign when providing the argument values.  (i.e.
 
 #### 39. I get the following error when running `featureCounts`:  `ERROR: Paired-end reads were detected in single-end read library`
 
-I've only seen this for a single sample in the hundreds of samples processed in [issue/22](https://github.com/jolespin/veba/issues/22). The workaround was to use `--featurecounts_options='-p'`
+This is happens with the update of `subread v2.0.1 -> v2.0.3` [issue/22](https://github.com/jolespin/veba/issues/22).  For v1.1.1, `binning-viral.py` uses `v2.0.3` before I realized they changed the functionality. The workaround was to use `--featurecounts_options='-p --countReadPairs'`.  In v1.1.2, `subread` has been updated to `v2.0.3` in `VEBA-assembly_env, VEBA-binning-*_env, and VEBA-mapping_env` which uses `-p --countReadPairs` flags as default and bypasses it if `--long_reads` flag is used. Read [this BioStars post](https://www.biostars.org/p/9561574/#9561663) for more information.
 
 #### 40. How can I reinstall just a single module or environment? 
 
