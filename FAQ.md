@@ -410,3 +410,30 @@ This is happens with the update of `subread v2.0.1 -> v2.0.3` [issue/22](https:/
 Perhaps you customized your environment and broke it or it just never installed correctly and you're just noticing it now.  Regardless, it's pretty easy to patch your installation. 
 
 [Just follow these steps from the PATCH guide.](https://github.com/jolespin/veba/blob/main/install/PATCHES.md#6-how-can-i-reinstall-just-a-single-module)
+
+#### 41. Why did the `DAS_Tool` step of `binning-prokaryotic.py` fail?
+
+Most likely your bins didn't have any marker genes so they failed QC.  To confirm this, check the log files: 
+
+
+Notice here there were no queries aligned:
+```
+Total time = 1.466s
+Reported 0 pairwise alignments, 0 HSPs.
+0 queries aligned.
+```
+
+You may also see this error that files are empty:
+
+```
+Error: Error detecting input file format. First line seems to be blank.
+verifying blast did not work
+mv: cannot stat 'veba_output/binning/prokaryotic/22_UDP0074_S22_L003/intermediate/2__prodigal/gene_models.faa.scg': No such file or directory
+single copy gene prediction using diamond failed. Aborting
+```
+
+If you think this is an error, take a look at your assembly quality: 
+
+`cat [fasta] | seqkit seq -m [minimum_threshold] -a`
+
+Are there any large contigs? What's the N50? 
