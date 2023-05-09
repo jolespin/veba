@@ -13,7 +13,7 @@ from soothsayer_utils import *
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.3.16"
+__version__ = "2023.5.8"
 
 # DATABASE_METAEUK="/usr/local/scratch/CORE/jespinoz/db/veba/v1.0/Classify/Eukaryotic/eukaryotic"
 
@@ -415,6 +415,7 @@ def get_featurecounts_cmd(input_filepaths, output_filepaths, output_directory, d
         "-T {}".format(opts.n_jobs),
         "-g gene_id",
         "-t CDS",
+        "-L" if opts.long_reads else "-p --countReadPairs",
         opts.featurecounts_options,
         " ".join(opts.bam),
     ")",
@@ -890,10 +891,7 @@ def add_executables_to_environment(opts):
     # Display
 
     for name in sorted(accessory_scripts):
-        if name.endswith(".py"):
-            executables[name] = "python " + os.path.join(opts.script_directory, "scripts", name)
-        else: 
-            executables[name] = os.path.join(opts.script_directory, "scripts", name)
+        executables[name] = "'{}'".format(os.path.join(opts.script_directory, "scripts", name)) # Can handle spaces in path
 
 
     print(format_header( "Adding executables to path from the following source: {}".format(opts.path_config), "-"), file=sys.stdout)
@@ -955,7 +953,6 @@ def main(args=None):
     parser_binning.add_argument("-a", "--algorithm", type=str, default="metabat2", help="Binning algorithm: {concoct, metabat2}  [Default: metabat2] ")
     parser_binning.add_argument("-m", "--minimum_contig_length", type=int, default=1500, help="Minimum contig length.  [Default: 1500] ")
     parser_binning.add_argument("-s", "--minimum_genome_length", type=int, default=2000000, help="Minimum genome length.  [Default: 2000000] ")
-
     parser_binning.add_argument("--concoct_fragment_length", type=int, default=10000, help="CONCOCT | Fragment length [Default: 10000] ")
     parser_binning.add_argument("--concoct_overlap_length", type=int, default=0, help="CONCOCT | Fragment overlap length [Default: 0] ")
     parser_binning.add_argument("--concoct_options", type=str, default="", help="CONCOCT | More options (e.g. --arg 1 ) [Default: '']")
@@ -981,12 +978,11 @@ def main(args=None):
     # parser_busco.add_argument("--busco_offline", type=str, help="BUSCO | Offline database path")
     parser_busco.add_argument("--busco_completeness", type=float, default=50.0, help = "BUSCO completeness [Default: 50.0]")
     parser_busco.add_argument("--busco_contamination", type=float, default=10.0, help = "BUSCO contamination [Default: 10.0]")
-
     parser_busco.add_argument("--busco_evalue", type=float, default=0.001, help="BUSCO | E-value cutoff for BLAST searches. Allowed formats, 0.001 or 1e-03 [Default: 1e-03]")
 
     # featureCounts
     parser_featurecounts = parser.add_argument_group('featureCounts arguments')
-    # parser_featurecounts.add_argument("--single_ended",  action="store_true", help="featureCounts | Single ended reads.  If long-reads are used, please use this flag. | http://bioinf.wehi.edu.au/featureCounts/")
+    parser_featurecounts.add_argument("--long_reads", action="store_true", help="featureCounts | Use this if long reads are being used")
     parser_featurecounts.add_argument("--featurecounts_options", type=str, default="", help="featureCounts | More options (e.g. --arg 1 ) [Default: ''] | http://bioinf.wehi.edu.au/featureCounts/")
 
 

@@ -59,7 +59,9 @@ The following output files will produced:
 
 #### 2. Map reads to global reference and create base counts tables
 
-Here we are map all of the reads to the global reference and create base counts tables for contigs and ORFs using *featureCounts*.
+Here we are map all of the reads to the global reference and create base counts tables for contigs and ORFs using *featureCounts*. 
+
+**Note:** Versions prior to v1.1.2 require the output directory to include the sample name. (e.g., `-o veba_output/mapping/global/${ID}` where `-n` is not used.  In v1.1.2+, the output directory is automatic (e.g., `veba_output/mapping/global/` and `-n ${ID}` are used)
 
 **Conda Environment:** `conda activate VEBA-mapping_env`
 
@@ -79,7 +81,7 @@ for ID in $(cat identifiers.list); do
 	R2=veba_output/preprocess/${ID}/output/cleaned_2.fastq.gz
 	
 	# Specify the output directory
-	OUT_DIR=veba_output/mapping/global/${ID}
+	OUT_DIR=veba_output/mapping/global
 	
 	# Set up command	
 	CMD="source activate VEBA-mapping_env && mapping.py -1 ${R1} -2 ${R2} -n ${ID} -o ${OUT_DIR} -p ${N_JOBS} -x ${INDEX_DIRECTORY}"

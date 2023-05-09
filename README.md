@@ -19,6 +19,8 @@ ___________________________________________________________________
 ### Installation and databases
 Please refer to the [*Installation and Database Configuration Guide*](install/README.md) for software installation and database configuration.
 
+**Current Developmental Version:** `v1.1.2`
+
 **Current Stable Version:** [`v1.1.1`](https://github.com/jolespin/veba/releases/tag/v1.1.1)
 
 Versions `v1.x.x` are installed using preconfigured `conda` environments.  I'm aiming for `bioconda` packages for each module in the `v2.0.0` release.

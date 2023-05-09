@@ -1,4 +1,4 @@
-name: VEBA-binning-viral_env__v2023.3.14
+name: VEBA-binning-viral_env__v2023.4.25
 channels:
   - conda-forge
   - bioconda

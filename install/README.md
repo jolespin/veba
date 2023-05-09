@@ -103,7 +103,7 @@ cd veba/install
 
 **Recommended resource allocatation:** 4 hours with 15 GB memory (include extra time for variable I/O speed for various hosts)
 
-For `v1.1.0`, **this should take ~1.75 hours (~108 minutes) with ~15 GB memory allocated**.  The update from `CheckM1` -> `CheckM2` and installation of `antiSMASH` require more memory and may require grid access if head node is limited.
+For `v1.1.0+`, **this should take ~1.75 hours (~108 minutes) with ~15 GB memory allocated**.  The update from `CheckM1` -> `CheckM2` and installation of `antiSMASH` require more memory and may require grid access if head node is limited.
 
 ```
 bash install_veba.sh

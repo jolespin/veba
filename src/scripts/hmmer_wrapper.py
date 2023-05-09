@@ -11,7 +11,7 @@ from soothsayer_utils import *
 
 pd.options.display.max_colwidth = 100
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.4.17"
+__version__ = "2023.5.8"
 
 # Check
 def get_check_cmd( input_filepaths, output_filepaths, output_directory, directories, opts):
@@ -142,7 +142,8 @@ def add_executables_to_environment(opts):
 
     # Display
     for name in sorted(accessory_scripts):
-        executables[name] = "python " + os.path.join(opts.script_directory, name)
+        executables[name] = "'{}'".format(os.path.join(opts.script_directory, name)) # Can handle spaces in path
+        
     print(format_header( "Adding executables to path from the following source: {}".format(opts.path_config), "-"), file=sys.stdout)
     for name, executable in executables.items():
         if name in required_executables:

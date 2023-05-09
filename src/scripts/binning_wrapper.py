@@ -12,7 +12,7 @@ from soothsayer_utils import *
 
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.2.7"
+__version__ = "2023.5.8"
 
 def get_maxbin2_cmd( input_filepaths, output_filepaths, output_directory, directories, opts):
     # Create dummy scaffolds_to_bins.tsv to overwrite later. This makes DAS_Tool easier to run
@@ -770,10 +770,7 @@ def add_executables_to_environment(opts):
     # Display
 
     for name in sorted(accessory_scripts):
-        if name.endswith(".py"):
-            executables[name] = "python " + os.path.join(opts.script_directory, name)
-        else: 
-            executables[name] = os.path.join(opts.script_directory, name)
+        executables[name] = "'{}'".format(os.path.join(opts.script_directory, name)) # Can handle spaces in path
 
 
     print(format_header( "Adding executables to path from the following source: {}".format(opts.path_config), "-"), file=sys.stdout)

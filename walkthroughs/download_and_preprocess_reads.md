@@ -151,7 +151,7 @@ for ID in  $(cat identifiers.list); do
 	rm -f logs/${N}.*
 	
 	# Set up the command (use source from base environment instead of conda because of the `init` issues)
-	CMD="source activate VEBA-preprocess_env && preprocess.py -n ${ID} -1 ${R1} -2 ${R2} -p ${N_JOBS} -x ${HUMAN_INDEX} -k ${RIBOSOMAL_KMERS} --retain_contaminated_reads 0 --retain_kmer_hits 0 --retain_non_kmer_hits 0"
+	CMD="source activate VEBA-preprocess_env && preprocess.py -n ${ID} -1 ${R1} -2 ${R2} -p ${N_JOBS} -x ${HUMAN_INDEX} -k ${RIBOSOMAL_KMERS} --retain_contaminated_reads 0 --retain_kmer_hits 0 --retain_non_kmer_hits 0 -o veba_output/preprocess"
 	
 	# If you have SunGrid engine, do something like this:
 	# qsub -o logs/${N}.o -e logs/${N}.e -cwd -N ${N} -j y -pe threaded ${N_JOBS} "${CMD}"

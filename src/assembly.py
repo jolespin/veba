@@ -12,7 +12,7 @@ from soothsayer_utils import *
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.3.7"
+__version__ = "2023.5.8"
 
 # Assembly
 def get_assembly_cmd( input_filepaths, output_filepaths, output_directory, directories, opts):
@@ -277,6 +277,7 @@ def get_featurecounts_cmd(input_filepaths, output_filepaths, output_directory, d
         "-F SAF",
         "--tmpDir {}".format(os.path.join(directories["tmp"], "featurecounts")),
         "-T {}".format(opts.n_jobs),
+        "-p --countReadPairs",
         opts.featurecounts_options,
         input_filepaths[2],
     ")",
@@ -360,7 +361,8 @@ def add_executables_to_environment(opts):
 
     # Display
     for name in sorted(accessory_scripts):
-        executables[name] = "python " + os.path.join(opts.script_directory, "scripts", name)
+        executables[name] = "'{}'".format(os.path.join(opts.script_directory, "scripts", name)) # Can handle spaces in path
+
     print(format_header( "Adding executables to path from the following source: {}".format(opts.path_config), "-"), file=sys.stdout)
     for name, executable in executables.items():
         if name in required_executables:

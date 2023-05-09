@@ -13,7 +13,7 @@ from soothsayer_utils import *
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.2.27"
+__version__ = "2023.5.8"
 
 # Assembly
 def get_concatenate_cmd( input_filepaths, output_filepaths, output_directory, directories, opts):
@@ -179,6 +179,31 @@ def get_consensus_genome_classification_cmd( input_filepaths, output_filepaths, 
     ]
     return cmd
 
+def get_krona_cmd( input_filepaths, output_filepaths, output_directory, directories, opts):
+
+    # Command
+    cmd = [ 
+        os.environ["compile_krona.py"],
+        "-i {}".format(input_filepaths[0]),
+        "-m eukaryotic",
+        "-o {}".format(os.path.join(output_directory, "krona.tsv")),
+
+            "&&",
+
+        os.environ["ktImportText"],
+        "-n='Eukaryotic Taxonomy'",
+        "-o {}".format(os.path.join(output_directory, "krona.html")),
+        os.path.join(output_directory, "krona.tsv"),
+
+            "&&",
+
+        "ln -sf $(realpath {}) {}".format(
+        os.path.join(output_directory, "krona.html"),
+        directories["output"],
+        )
+    ]
+    return cmd
+
 def get_consensus_cluster_classification_cmd( input_filepaths, output_filepaths, output_directory, directories, opts):
 
     # Command
@@ -233,6 +258,8 @@ def add_executables_to_environment(opts):
     required_executables = {
         "hmmsearch",
         "seqkit",
+        "ktImportText",
+
     }
     accessory_scripts = set([ 
         "filter_hmmsearch_results.py",
@@ -242,6 +269,7 @@ def add_executables_to_environment(opts):
         "insert_column_to_table.py",
         "metaeuk_wrapper.py",
         "scaffolds_to_bins.py",
+        "compile_krona.py",
         # "consensus_orthogroup_annotation.py",
     ])
 
@@ -267,7 +295,8 @@ def add_executables_to_environment(opts):
 
     # Display
     for name in sorted(accessory_scripts):
-        executables[name] = "python " + os.path.join(opts.script_directory, "scripts", name)
+        executables[name] = "'{}'".format(os.path.join(opts.script_directory, "scripts", name)) # Can handle spaces in path
+
     print(format_header( "Adding executables to path from the following source: {}".format(opts.path_config), "-"), file=sys.stdout)
     for name, executable in executables.items():
         if name in required_executables:
@@ -500,6 +529,47 @@ def create_pipeline(opts, directories, f_cmds):
                 validate_inputs=True,
                 validate_outputs=True,
     )
+
+    # ==========
+    # Krona
+    # ==========
+    step += 1
+
+    program = "krona"
+    program_label = "{}__{}".format(step, program)
+    # Add to directories
+    output_directory = directories[("intermediate",  program_label)] = create_directory(os.path.join(directories["intermediate"], program_label))
+
+    # Info
+    description = "Krona graph for eukaryotic classification"
+
+
+    # i/o
+    input_filepaths = output_filepaths
+    output_filenames = ["krona.tsv", "krona.html"]
+    output_filepaths = list(map(lambda filename: os.path.join(output_directory, filename), output_filenames))
+
+    params = {
+        "input_filepaths":input_filepaths,
+        "output_filepaths":output_filepaths,
+        "output_directory":output_directory,
+        "opts":opts,
+        "directories":directories,
+    }
+
+    cmd = get_krona_cmd(**params)
+
+    pipeline.add_step(
+                id=program,
+                description = description,
+                step=step,
+                cmd=cmd,
+                input_filepaths = input_filepaths,
+                output_filepaths = output_filepaths,
+                validate_inputs=True,
+                validate_outputs=True,
+    )
+
 
     if opts.clusters:
         # ==========

@@ -1,4 +1,4 @@
-name: VEBA-annotate_env__v2022.2.28
+name: VEBA-annotate_env__v2023.4.28
 channels:
   - bioconda
   - conda-forge
@@ -13,9 +13,12 @@ dependencies:
   - biopython=1.79=py37h5e8e339_1
   - boost-cpp=1.74.0=h312852a_4
   - brotlipy=0.7.0=py37h540881e_1004
+  - bz2file=0.98=py_0
   - bzip2=1.0.8=h7f98852_4
   - ca-certificates=2022.12.7=ha878542_0
+  - certifi=2022.12.7=pyhd8ed1ab_0
   - cffi=1.14.6=py37hc58025e_0
+  - charset-normalizer=2.1.1=pyhd8ed1ab_0
   - colorama=0.4.6=pyhd8ed1ab_0
   - cryptography=38.0.2=py37h38fbfac_1
   - dbus=1.13.6=h48d8840_2
@@ -34,8 +37,9 @@ dependencies:
   - gmp=6.2.1=h58526e2_0
   - gst-plugins-base=1.18.4=hf529b03_2
   - gstreamer=1.18.4=h76c114f_2
-  - hmmer=3.3.2=h1b792b2_1
+  - hmmer=3.3.2=h87f3376_2
   - icu=68.1=h58526e2_0
+  - idna=3.4=pyhd8ed1ab_0
   - jpeg=9d=h36c2ea0_0
   - kofamscan=1.3.0=hdfd78af_2
   - krb5=1.19.2=hcc1bbae_0
@@ -79,7 +83,9 @@ dependencies:
   - nss=3.69=hb5efdd6_0
   - numpy=1.21.4=py37h31617e3_0
   - openssl=1.1.1t=h0b41bf4_0
+  - pandas=1.3.5=py37he8f5f7f_0
   - parallel=20170422=pl5.22.0_0
+  - pathlib2=2.3.7.post1=py37h89c1867_1
   - pcre=8.45=h9c3ff4c_0
   - perl=5.22.0.1=0
   - pigz=2.6=h27826a3_0
@@ -99,18 +105,25 @@ dependencies:
   - python-dateutil=2.8.2=pyhd8ed1ab_0
   - python-tzdata=2022.7=pyhd8ed1ab_0
   - python_abi=3.7=2_cp37m
+  - pytz=2022.7.1=pyhd8ed1ab_0
   - pytz-deprecation-shim=0.1.0.post0=py37h89c1867_2
   - qt=5.12.9=hda022c4_4
   - readline=8.1=h46c0cb4_0
+  - requests=2.28.2=pyhd8ed1ab_0
   - ruby=2.7.2=he592edb_3
   - scandir=1.10.0=py37h540881e_5
   - scipy=1.7.3=py37hf2a6cf1_0
+  - seqkit=2.4.0=h9ee0642_0
   - setuptools=59.6.0=py37h89c1867_0
   - six=1.16.0=pyh6c4a22f_0
   - soothsayer_utils=2022.2.9=py_0
   - sqlite=3.36.0=h9cd32fc_0
   - taxopy=0.11.0=pyhdfd78af_0
   - tk=8.6.11=h21135ba_0
+  - tqdm=4.64.1=pyhd8ed1ab_0
+  - tzdata=2022g=h191b570_0
+  - tzlocal=4.2=py37h89c1867_1
+  - urllib3=1.26.14=pyhd8ed1ab_0
   - wget=1.20.3=ha56f1ee_1
   - wheel=0.37.0=pyhd8ed1ab_1
   - xorg-kbproto=1.0.7=h7f98852_1002

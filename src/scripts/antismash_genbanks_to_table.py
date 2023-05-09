@@ -6,7 +6,7 @@ from Bio import SeqIO
 from tqdm import tqdm
 
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.3.16"
+__version__ = "2023.5.1"
 
 def main(args=None):
     # Path info
@@ -28,6 +28,8 @@ def main(args=None):
     parser.add_argument("-s","--synopsis", type=str, help = "Summary file output")
     parser.add_argument("-t","--type_counts", type=str, help = "Type counts summary file output")
     parser.add_argument("-f","--fasta_output", type=str, help = "Fasta file output")
+    parser.add_argument("--sample", type=str, help = "Sample of origin")
+
     parser.add_argument("--sep", type=str, default=" ", help = "Seperator between [id_gene]<sep>[bgc_description].  The space makes it a id and description.  If duplicate identifiers, you can separate with underscores (e.g., '__') [Default: <space>]")
 
     # Options
@@ -132,6 +134,10 @@ def main(args=None):
         i_to_component = pd.Series(i_to_component)
         df_bgcs.insert(loc=1, column="component_id", value=i_to_component)
 
+        # Add sample of origin if provided
+        if opts.sample:
+            df_bgcs["sample_of_origin"] = opts.sample
+
 
         # df_bgcs = df_bgcs.set_index(drop=False)
 
@@ -147,6 +153,11 @@ def main(args=None):
             df_typecounts_noedges = pd.DataFrame([[*x[0], x[1]] for x in value_counts.items()], columns=["id_genome", "bgc_type", "number_of_bgcs(not_on_edge)"]).set_index(["id_genome", "bgc_type"]).sort_values("number_of_bgcs(not_on_edge)", ascending=False)
 
             df_type_counts = pd.concat([df_typecounts_with_edges, df_typecounts_noedges], axis=1).fillna(0).astype(int)
+
+            # Add sample of origin if provided
+            if opts.sample:
+                df_synopsis["sample_of_origin"] = opts.sample
+                
             df_type_counts.to_csv(opts.type_counts, sep="\t")
 
         if opts.synopsis:
@@ -159,6 +170,10 @@ def main(args=None):
 
             fields = ['genome_id', 'contig_id', 'region_id', 'bgc_type','cluster_on_contig_edge', 'number_of_genes']
             df_synopsis = df_synopsis.loc[:,fields]
+            
+            # Add sample of origin if provided
+            if opts.sample:
+                df_synopsis["sample_of_origin"] = opts.sample
             df_synopsis.to_csv(opts.synopsis, sep="\t")
 
 

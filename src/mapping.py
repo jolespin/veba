@@ -12,7 +12,7 @@ from soothsayer_utils import *
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.2.1"
+__version__ = "2023.5.8"
 
 
 # Bowtie2
@@ -135,6 +135,7 @@ def get_featurecounts_cmd(input_filepaths, output_filepaths, output_directory, d
         "-T {}".format(opts.n_jobs),
         "-g {}".format(opts.attribute_type),
         "-t {}".format(opts.feature_type),
+        "-p --countReadPairs",
         opts.featurecounts_options,
         input_filepaths[0],
     ")",
@@ -151,6 +152,7 @@ def get_featurecounts_cmd(input_filepaths, output_filepaths, output_directory, d
         "-F SAF",
         "--tmpDir {}".format(os.path.join(directories["tmp"], "featurecounts")),
         "-T {}".format(opts.n_jobs),
+        "-p --countReadPairs",
         opts.featurecounts_options,
         input_filepaths[0],
     ")",
@@ -259,7 +261,7 @@ def add_executables_to_environment(opts):
 
     # Display
     for name in sorted(accessory_scripts):
-        executables[name] = "python " + os.path.join(opts.script_directory, "scripts", name)
+        executables[name] = "'{}'".format(os.path.join(opts.script_directory, "scripts", name)) # Can handle spaces in path
     print(format_header( "Adding executables to path from the following source: {}".format(opts.path_config), "-"), file=sys.stdout)
     for name, executable in executables.items():
         if name in required_executables:
@@ -514,6 +516,7 @@ def main(args=None):
     parser_featurecounts.add_argument("-g", "--attribute_type", type=str, default="gene_id", help = "Attribute type in GTF/GFF file. [Default: gene_id]")
     parser_featurecounts.add_argument("-t", "--feature_type", type=str, default="CDS", help = "Feature type in GTF/GFF file. [Default: CDS]")
     parser_featurecounts.add_argument("--retain_featurecounts", default=0, type=int, help = "Retain feature counts output table (a slimmer version is output regardless). 0=No, 1=yes [Default: 0]") 
+    # parser_featurecounts.add_argument("--long_reads", action="store_true", help="featureCounts | Use this if long reads are being used")
     parser_featurecounts.add_argument("--featurecounts_options", type=str, default="", help="featureCounts | More options (e.g. --arg 1 ) [Default: ''] | http://bioinf.wehi.edu.au/featureCounts/")
 
     parser_identifiers = parser.add_argument_group('Identifier arguments')
@@ -534,15 +537,15 @@ def main(args=None):
 
     # Directories
     directories = dict()
-
     directories["project"] = create_directory(opts.project_directory)
-    # directories["preprocessing"] = create_directory(os.path.join(directories["project"], "preprocessing"))
-    directories["output"] = create_directory(os.path.join(directories["project"], "output"))
-    directories["log"] = create_directory(os.path.join(directories["project"], "log"))
-    directories["tmp"] = create_directory(os.path.join(directories["project"], "tmp"))
-    directories["checkpoints"] = create_directory(os.path.join(directories["project"], "checkpoints"))
-    directories["intermediate"] = create_directory(os.path.join(directories["project"], "intermediate"))
+    directories["sample"] = create_directory(os.path.join(directories["project"], opts.name))
+    directories["output"] = create_directory(os.path.join(directories["sample"], "output"))
+    directories["log"] = create_directory(os.path.join(directories["sample"], "log"))
+    directories["tmp"] = create_directory(os.path.join(directories["sample"], "tmp"))
+    directories["checkpoints"] = create_directory(os.path.join(directories["sample"], "checkpoints"))
+    directories["intermediate"] = create_directory(os.path.join(directories["sample"], "intermediate"))
     os.environ["TMPDIR"] = directories["tmp"]
+
 
     # Info
     print(format_header(__program__, "="), file=sys.stdout)

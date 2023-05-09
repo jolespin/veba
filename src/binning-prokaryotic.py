@@ -12,7 +12,7 @@ from soothsayer_utils import *
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.3.15"
+__version__ = "2023.5.8"
 
 # Assembly
 def get_coverage_cmd( input_filepaths, output_filepaths, output_directory, directories, opts):
@@ -396,6 +396,7 @@ def get_featurecounts_cmd(input_filepaths, output_filepaths, output_directory, d
         "-T {}".format(opts.n_jobs),
         "-g gene_id",
         "-t CDS",
+        "-L" if opts.long_reads else "-p --countReadPairs",
         opts.featurecounts_options,
         " ".join(opts.bam),
     "&&",
@@ -469,7 +470,7 @@ def get_consolidate_cmd(input_filepaths, output_filepaths, output_directory, dir
     cmd += [ 
         "&&",
         # "cp -rf",
-        "ln -sfr",
+        "ln -sf",
         input_filepaths[4],
         os.path.join(output_directory,"genomes"),
     ]
@@ -1197,11 +1198,7 @@ def add_executables_to_environment(opts):
 
     # Display
     for name in sorted(accessory_scripts):
-        if name.endswith(".py"):
-            executables[name] = "python " + os.path.join(opts.script_directory, "scripts", name)
-        else:
-            executables[name] =  os.path.join(opts.script_directory, "scripts", name)
-
+        executables[name] = "'{}'".format(os.path.join(opts.script_directory, "scripts", name)) # Can handle spaces in path
 
     print(format_header( "Adding executables to path from the following source: {}".format(opts.path_config), "-"), file=sys.stdout)
     for name, executable in executables.items():
@@ -1279,6 +1276,7 @@ def main(args=None):
 
     # featureCounts
     parser_featurecounts = parser.add_argument_group('featureCounts arguments')
+    parser_featurecounts.add_argument("--long_reads", action="store_true", help="featureCounts | Use this if long reads are being used")
     parser_featurecounts.add_argument("--featurecounts_options", type=str, default="", help="featureCounts | More options (e.g. --arg 1 ) [Default: ''] | http://bioinf.wehi.edu.au/featureCounts/")
 
     # Tiara

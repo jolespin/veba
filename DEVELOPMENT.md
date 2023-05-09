@@ -185,7 +185,7 @@ ________________________________________________________________
 
 **Definitely:**
 
-* Create a `assembly_longreads.py` module that uses `MetaFlye`
+* Create a `assembly-longreads.py` module that uses `MetaFlye`
 * Create a `noncoding.py` module that uses `tRNASCAN-SE` and other goodies.
 * Expand Microeukaryotic Protein Database
 * Automated consensus protein cluster annotations.  First need to create a hierarchical naming scheme that uses NR > KOFAM > Pfam.
@@ -195,9 +195,12 @@ ________________________________________________________________
 * Install each module via `bioconda`
 * Add checks for `annotate.py` to ensure there are no proteins > 100K in length.
 * Add support for `STAR` in `mapping.py` and `index.py`.  This will require adding the `exon` field to `Prodigal` GFF file (`MetaEuk` modified GFF files already have exon ids). 
+* Speed up `binning-eukaryotic.py` by accessing `BUSCO` backends and only running gene calls for genes relevant to genome.  If it passes `BUSCO` filters, then run actual gene calls.
+* Build a clustered version of the Microeukaryotic Protein Database that is more efficient to run.
 
 **Probably (Yes)?:**
-
+* Add [iPHoP](https://bitbucket.org/srouxjgi/iphop/src/main/) to `binning-viral.py`.
+* Add wrapper for [Krona graphs](https://github.com/tillrobin/iMGMC/blob/master/tutorials/map-to-MAGs-Krona-plot.md).
 * Add a `metabolic.py` module
 * Swap [`TransDecoder`](https://github.com/TransDecoder/TransDecoder) for [`TransSuite`](https://github.com/anonconda/TranSuite)
 * Add support for `Anvi'o` object export in `cluster.py`
@@ -206,13 +209,19 @@ ________________________________________________________________
 **...Maybe (Not)?**
 
 * Add `VAMB` as an option for `binning-prokaryotic.py` (requires python >= 3.7,<3.8)
-* Add an option for sample name prefix in `assembly.py`
 
 
 ________________________________________________________________
 
 
 #### Change Log:
+* [2023.5.8] - Added `convert_counts_table.py` which converts a counts table (and metadata) to [Pandas pickle](https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.to_pickle.html), [Anndata h5ad](https://anndata.readthedocs.io/en/latest/generated/anndata.AnnData.write_h5ad.html), or [Biom hdf5](https://biom-format.org/documentation/generated/biom.table.Table.to_hdf5.html#biom.table.Table.to_hdf5)
+* [2023.5.8] - Fixed output directory for `mapping.py` which now uses `output_directory/${NAME}` structure like `binning-*.py`.
+* [2023.5.8] - Removed "python" prefix for script calls and now uses shebang in script for executable. Also added single paranthesis around script filepath (e.g., `'[script_filepath]'`) to escape characters/spaces in filepath.
+* [2023.5.8] - Added support for `index.py` to accept individual `--references [file.fasta]` and `--gene_models [file.gff]`.
+* [2023.4.25] - Removed relative symlinks for `binning-prokaryotic.py` and `biosynthetic.py` [!NEED TO TEST!]
+* [2023.4.25] - Added `stdin` support for `scaffolds_to_bins.py` along with the ability to input genome tables [id_genome]<tab>[filepath].  Also added progress bars.
+* [2023.4.23] - As a result of [issues/22](https://github.com/jolespin/veba/issues/22), `assembly.py`, `assembly-sequential.py`, `binning-*.py`, and `mapping.py` will use `-p --countReadPairs` for `featureCounts` and updates `subread 2.0.1 -> subread 2.0.3`.  For `binning-*.py`, long reads can be used with the `--long_reads` flag.
 * [2023.4.20] - Updated `cluster.py` and associated `global_clustering.py`/`local_clustering.py` scripts to use `mmseqs2_wrapper.py` which now automatically outputs representative sequences.  
 * [2023.4.17] - Added `check_fasta_duplicates.py` script that gives `0` and `1` exit codes for fasta without and with duplicates, respectively.  Added `reformat_representative_sequences.py` to reformat representative sequences from `MMSEQS2` into either a table or fasta file where the identifers are cluster labels.  Removed `--dbtype` from `[global/local]_clustering.py`.  Removed appended prefix for `.graph.pkl` and `dict.pkl` in `edgelist_to_clusters.py`.  Added `mmseqs2_wrapper.py` and `hmmer_wrapper.py` scripts.
 * [2023.4.13] - Added an option to `merge_generalized_mapping.py` to include the sample index in a filepath and also an option to remove empty features (useful for Salmon).  Added an `executable='/bin/bash'` option to the `subprocess.Popen` calls in `GenoPype` to address [issues/23](https://github.com/jolespin/veba/issues/23).

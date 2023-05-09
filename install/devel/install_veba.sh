@@ -1,13 +1,13 @@
 #!/bin/bash
-# __VERSION__ = "2023.1.24"
+# __VERSION__ = "2023.5.8"
 SCRIPT_PATH=$(realpath $0)
 PREFIX=$(echo $SCRIPT_PATH | python -c "import sys; print('/'.join(sys.stdin.read().split('/')[:-1]))")
 CONDA_BASE=$(conda run -n base bash -c "echo \${CONDA_PREFIX}")
 
 # Update permissions
-echo "Updating permissions for scripts in ${PREFIX}/../src"
-chmod 755 ${PREFIX}/../src/*.py
-chmod 755 ${PREFIX}/../src/scripts/*
+echo "Updating permissions for scripts in ${PREFIX}/../../src"
+chmod 755 ${PREFIX}/../../src/*.py
+chmod 755 ${PREFIX}/../../src/scripts/*
 
 # Install mamba
 conda install -c conda-forge mamba -y 
@@ -25,9 +25,9 @@ for ENV_YAML in ${PREFIX}/environments/VEBA*.yml; do
 
     # Copy over files to environment bin/
     echo -e "\t*Copying VEBA modules into ${ENV_NAME} environment path"
-    cp -r ${PREFIX}/../src/*.py ${CONDA_BASE}/envs/${ENV_NAME}/bin/
+    cp -r ${PREFIX}/../../src/*.py ${CONDA_BASE}/envs/${ENV_NAME}/bin/
     echo -e "\t*Copying VEBA utility scripts into ${ENV_NAME} environment path"
-    cp -r ${PREFIX}/../src/scripts/ ${CONDA_BASE}/envs/${ENV_NAME}/bin/
+    cp -r ${PREFIX}/../../src/scripts/ ${CONDA_BASE}/envs/${ENV_NAME}/bin/
     # Symlink the utility scripts to bin/
     echo -e "\t*Symlinking VEBA utility scripts into ${ENV_NAME} environment path"
     ln -sf ${CONDA_BASE}/envs/${ENV_NAME}/bin/scripts/* ${CONDA_BASE}/envs/${ENV_NAME}/bin/

@@ -6,7 +6,7 @@ from genopype import *
 from soothsayer_utils import *
 
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.2.1"
+__version__ = "2023.5.8"
 
 # ==============
 # Agostic commands
@@ -438,7 +438,7 @@ def add_executables_to_environment(opts):
 
     # Display
     for name in sorted(accessory_scripts):
-        executables[name] = "python " + os.path.join(opts.script_directory, "scripts", name)
+        executables[name] = "'{}'".format(os.path.join(opts.script_directory, "scripts", name)) # Can handle spaces in path
     print(format_header( "Adding executables to path from the following source: {}".format(opts.path_config), "-"), file=sys.stdout)
     for name, executable in executables.items():
         if name in required_executables:
@@ -448,6 +448,27 @@ def add_executables_to_environment(opts):
 
 # Configure parameters
 def configure_parameters(opts, directories):
+
+
+    print("Checking input files:", file=sys.stdout)
+    if opts.references.endswith((".fasta",".fa",".fna")):
+        fp = os.path.join(directories["tmp"], "references.list")
+        print(" * --references inferred as fasta format file", file=sys.stdout)
+        with open(fp, "w") as f:
+            print(opts.references, file=f)
+        print(" * * Setting --references to {}".format(fp), file=sys.stdout)
+        opts.references = fp
+
+
+    if opts.gene_models.endswith((".gff",".gff3",".gtf")):
+        fp = os.path.join(directories["tmp"], "gene_models.gff")
+        print(" * --gene_models inferred as fasta format file", file=sys.stdout)
+        with open(fp, "w") as f:
+            print(opts.gene_models, file=f)
+        print(" * * Setting --gene_models to {}".format(fp), file=sys.stdout)
+        opts.gene_models = fp
+
+
     df_references = pd.read_csv(opts.references, sep="\t", header=None)
     df_gene_models = pd.read_csv(opts.gene_models, sep="\t", header=None)
 
@@ -466,9 +487,7 @@ def configure_parameters(opts, directories):
     if opts.mode == "local":
         opts.samples = sorted(set(df_references.iloc[:,0]))
 
-
-
-    # Set environment variables
+    # Set enviroment variables
     add_executables_to_environment(opts=opts)
 
 def main(args=None):

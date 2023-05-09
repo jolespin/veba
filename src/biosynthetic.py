@@ -12,7 +12,7 @@ from soothsayer_utils import *
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.3.23"
+__version__ = "2023.5.8"
 
 # antiSMASH
 def get_antismash_cmd( input_filepaths, output_filepaths, output_directory, directories, opts):
@@ -45,12 +45,20 @@ do read -r -a ARRAY <<< $LINE
         # Genbanks to table
         %s -i %s/${ID} -o %s/${ID}/antismash_features.tsv.gz -s %s/${ID}/synopsis.tsv.gz -t %s/${ID}/type_counts.tsv.gz --fasta_output %s/${ID}/bgc.features.faa.gz
 
+        # Compile table for Krona graph
+        %s -i %s/${ID}/type_counts.tsv.gz -m biosynthetic-local -o %s/${ID}/krona.tsv
+
+        # Create Krona graph
+        %s -i %s/${ID}/krona.tsv -o %s/${ID}/krona.html -n ${ID}
+
         # Symlink proteins
-        ln -sfr %s/${ID}/bgc.features.faa.gz %s/${ID}.bgc_features.faa.gz
+        SRC=$(realpath %s/${ID}/bgc.features.faa.gz)
+        ln -sf ${SRC} %s/${ID}.bgc_features.faa.gz
 
         # Symlink genbanks
         mkdir -p %s/${ID}
-        ln -sfr %s/${ID}/*.region*.gbk %s/${ID}/
+        SRC=$(realpath %s/${ID}/*.region*.gbk)
+        ln -sf ${SRC} %s/${ID}/
 
         # Completed
         echo "Completed: $(date)" > %s/${ID}/ANTISMASH_CHECKPOINT
@@ -75,6 +83,12 @@ done < %s
 %s -a 0 -e %s/*/type_counts.tsv.gz | gzip > %s/bgc.type_counts.tsv.gz
 %s -a 0 -e %s/*/synopsis.tsv.gz | gzip > %s/bgc.synopsis.tsv.gz
 
+# Krona
+# Compile table for Krona graph
+%s -i %s/bgc.type_counts.tsv.gz -m biosynthetic-global -o %s/krona.tsv
+
+# Create Krona graph
+%s -i %s/krona.tsv -o %s/krona.html -n 'antiSMASH'
 """%( 
     # Args
     output_directory,
@@ -99,6 +113,15 @@ done < %s
     output_directory,
     output_directory,
 
+    # Krona (Local)
+    os.environ["compile_krona.py"],
+    output_directory,
+    output_directory,
+
+    os.environ["ktImportText"],
+    output_directory,
+    output_directory,
+
     # Symlink (proteins)
     output_directory,
     directories[("output", "features")],
@@ -112,7 +135,6 @@ done < %s
 
     # Remove large assembly
     output_directory,
-
     input_filepaths[0],
 
     # Concatenate
@@ -125,6 +147,15 @@ done < %s
     directories["output"],
 
     os.environ["concatenate_dataframes.py"],
+    output_directory,
+    directories["output"],
+
+    # Krona (Global)
+    os.environ["compile_krona.py"],
+    output_directory,
+    output_directory,
+
+    os.environ["ktImportText"],
     output_directory,
     directories["output"],
     ),
@@ -248,6 +279,7 @@ def add_executables_to_environment(opts):
         "antismash_genbanks_to_table.py", 
         "concatenate_dataframes.py",
         "bgc_novelty_scorer.py",
+        "compile_krona.py",
         }
 
     required_executables={
@@ -255,6 +287,9 @@ def add_executables_to_environment(opts):
                 "antismash",
                 # 2
                 "diamond",
+
+                # Krona
+                "ktImportText",
 
      } | accessory_scripts
 
@@ -278,7 +313,8 @@ def add_executables_to_environment(opts):
     # Display
    
     for name in sorted(accessory_scripts):
-        executables[name] = "python " + os.path.join(opts.script_directory, "scripts", name)
+        executables[name] = "'{}'".format(os.path.join(opts.script_directory, "scripts", name)) # Can handle spaces in path
+                    
     print(format_header( "Adding executables to path from the following source: {}".format(opts.path_config), "-"), file=sys.stdout)
     for name, executable in executables.items():
         if name in required_executables:
@@ -318,6 +354,7 @@ def create_pipeline(opts, directories, f_cmds):
         "bgc.type_counts.tsv.gz",
         "bgc.synopsis.tsv.gz",
         "features/*.features.faa.gz",
+        "krona.html",
         ]
     output_filepaths = list(map(lambda filename: os.path.join(directories["output"], filename), output_filenames))
 

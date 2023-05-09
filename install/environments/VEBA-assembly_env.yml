@@ -1,4 +1,4 @@
-name: VEBA-assembly_env__2022.12.21
+name: VEBA-assembly_env__2023.4.25
 channels:
   - conda-forge
   - bioconda
@@ -82,7 +82,7 @@ dependencies:
   - numpy=1.23.5=py39h3d75532_0
   - openjdk=17.0.3=hafdced1_4
   - openmp=8.0.1=0
-  - openssl=1.1.1s=h0b41bf4_1
+  - openssl=1.1.1t=h0b41bf4_0
   - pandas=1.5.2=py39h4661b88_0
   - pathlib2=2.3.7.post1=py39hf3d152e_2
   - pbzip2=1.1.13=0
@@ -109,7 +109,7 @@ dependencies:
   - six=1.16.0=pyh6c4a22f_0
   - soothsayer_utils=2022.2.9=py_0
   - spades=3.15.5=h95f258a_1
-  - subread=2.0.1=h7132678_2
+  - subread=2.0.3=h7132678_1
   - sysroot_linux-64=2.17=h4a8ded7_13
   - tbb=2021.7.0=h924138e_1
   - tk=8.6.12=h27826a3_0
