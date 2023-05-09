@@ -7,7 +7,7 @@ from soothsayer_utils import check_packages, assert_acceptable_arguments
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.5.28"
+__version__ = "2023.5.8"
 
 
 @check_packages(["anndata"])
@@ -56,11 +56,11 @@ def main(args=None):
     # Parser
     parser = argparse.ArgumentParser(description=description, usage=usage, epilog=epilog, formatter_class=argparse.RawTextHelpFormatter)
     # Pipeline
-    parser.add_argument("-i","--input", required=True, default="stdin", type=str, help = "path/to/input.tsv[.gz] [Default: stdin]")
+    parser.add_argument("-i","--input", required=True, default="stdin", type=str, help = "path/to/input.tsv[.gz] rows=samples, columns=features [Default: stdin]")
     parser.add_argument("-f","--format", required=True, type=str, help = "{pickle, anndata, biom}")
     parser.add_argument("-o","--output", required=True, type=str, help = "Recommended extensions: {pickle:pkl, anndata:h5ad, biom:biom}")
-    parser.add_argument("-n", "--sample_metadata", type=str, help = "Sample metadata")
-    parser.add_argument("-m", "--feature_metadata", type=str, help = "Feature metadata")
+    parser.add_argument("-n", "--sample_metadata", type=str, help = "Sample metadata.  rows=samples, columns=fields [Optional]")
+    parser.add_argument("-m", "--feature_metadata", type=str, help = "Feature metadata.  rows=featurse, columns=fields [Optional]")
     parser.add_argument("-d", "--sep", type=str, default="\t", help = "Input delimiter [Default: <tab>]")
     parser.add_argument("-c", "--compress", action="store_true", help = "Gzip compress output")
 
