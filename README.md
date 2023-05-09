@@ -15,6 +15,12 @@ Espinoza JL, Dupont CL. VEBA: a modular end-to-end suite for in silico recovery,
 
 ___________________________________________________________________
 
+### Announcements
+* [2023.5.8] - `v1.1.2` is in the later stages of development and addresses some issues with `featureCounts` erroring out because of an update from `subread 2.0.1 → 2.0.3`. 
+* [2023.5.8] - In the process of dockerizing each environment.  Conda builds will be next on the list.
+
+___________________________________________________________________
+
 
 ### Installation and databases
 Please refer to the [*Installation and Database Configuration Guide*](install/README.md) for software installation and database configuration.
@@ -31,6 +37,8 @@ ___________________________________________________________________
 Please refer to the [*Walkthrough Guides*](walkthroughs/README.md) for tutorials and workflows on how to get started.
 
  [A synopsis of *VEBA* (PDF)](presentations/VEBA-Overview_2022-10-18.pdf)
+ 
+ 
 
 ___________________________________________________________________
 
