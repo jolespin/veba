@@ -3,7 +3,7 @@ import sys, os, glob, argparse, warnings
 import pandas as pd
 
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2022.12.12"
+__version__ = "2022.5.10"
 
 def main(argv=None):
     # Path info
@@ -60,18 +60,28 @@ def main(argv=None):
     if opts.prepend_index_levels:
         opts.prepend_index_levels = list(map(lambda x:x.strip(), opts.prepend_index_levels.split(",")))    
 
-    dataframes = list()
-    for i, fp in enumerate(opts.dataframes):
-        df = None
-        try:
+    if opts.allow_empty_or_missing_files:
+        dataframes = list()
+        for i, fp in enumerate(opts.dataframes):
+            df = None
+            try:
+                df = pd.read_csv(fp, sep=opts.delimiter, index_col=opts.index_column, header=opts.header)
+                if opts.prepend_column_levels is not None:
+                    df.columns = df.columns.map(lambda x: (opts.prepend_column_levels[i], x))
+                if opts.prepend_index_levels is not None:
+                    df.index = df.index.map(lambda x: (*opts.prepend_index_levels, x))
+            except (pd.errors.EmptyDataError, FileNotFoundError) as e:
+                print("[Skipping] {}".format(e), file=sys.stderr)
+            if df is not None:
+                dataframes.append(df)
+    else:
+        dataframes = list()
+        for i, fp in enumerate(opts.dataframes):
             df = pd.read_csv(fp, sep=opts.delimiter, index_col=opts.index_column, header=opts.header)
             if opts.prepend_column_levels is not None:
                 df.columns = df.columns.map(lambda x: (opts.prepend_column_levels[i], x))
             if opts.prepend_index_levels is not None:
                 df.index = df.index.map(lambda x: (*opts.prepend_index_levels, x))
-        except (pd.errors.EmptyDataError, FileNotFoundError) as e:
-            print("[Skipping] {}".format(e), file=sys.stderr)
-        if df is not None:
             dataframes.append(df)
         
     df_concat = pd.concat(dataframes, axis=opts.axis)
