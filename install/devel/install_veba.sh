@@ -1,5 +1,5 @@
 #!/bin/bash
-# __VERSION__ = "2023.5.8"
+# __VERSION__ = "2023.5.10"
 SCRIPT_PATH=$(realpath $0)
 PREFIX=$(echo $SCRIPT_PATH | python -c "import sys; print('/'.join(sys.stdin.read().split('/')[:-1]))")
 CONDA_BASE=$(conda run -n base bash -c "echo \${CONDA_PREFIX}")
@@ -14,7 +14,7 @@ conda install -c conda-forge mamba -y
 # conda update mamba -y  # Recommended
 
 # Environemnts
-for ENV_YAML in ${PREFIX}/environments/VEBA*.yml; do
+for ENV_YAML in ${PREFIX}/../environments/VEBA*.yml; do
     # Get environment name
     ENV_NAME=$(basename $ENV_YAML .yml)
     ENV_NAME=test-${ENV_NAME}
