@@ -1,6 +1,6 @@
 #!/usr/bin/env Rscript
 #https://github.com/jessieren/VirFinder/blob/master/bin/VirFinder_wrapper.R
-version = "2023.2.23"
+# __version__ = "2023.2.23"
 
 library("optparse")
  
