@@ -502,7 +502,7 @@ rm -rf logs/${N}.*
 BINNING_DIRECTORY=veba_output/binning/eukaryotic
 
 # Clusters are optional but if you have already clustered then use it
-CLUSTERS=veba_output/cluster/eukaryotic/output/clusters.tsv
+CLUSTERS=veba_output/cluster/output/global/mags_to_slcs.tsv
 
 # Set up the command
 CMD="source activate VEBA-classify_env && classify-eukaryotic.py -i ${BINNING_DIRECTORY} -c ${CLUSTERS} -o veba_output/classify/eukaryotic -p ${N_JOBS}"
