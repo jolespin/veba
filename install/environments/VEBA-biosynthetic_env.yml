@@ -1,4 +1,4 @@
-name: VEBA-biosynthetic_env__v2023.5.1
+name: VEBA-biosynthetic_env__v2023.5.15
 channels:
   - conda-forge
   - bioconda
@@ -44,6 +44,7 @@ dependencies:
   - cffi=1.15.1=py38h4a40e3a_3
   - charset-normalizer=2.1.1=pyhd8ed1ab_0
   - colorama=0.4.6=pyhd8ed1ab_0
+  - coreutils=9.3=h0b41bf4_0
   - contourpy=1.0.6=py38h43d8883_0
   - cryptography=39.0.0=py38h3d167d9_0
   - curl=7.88.1=hdc1c0ab_1
@@ -61,7 +62,7 @@ dependencies:
   - fonts-conda-forge=1=0
   - fonttools=4.38.0=py38h0a891b7_1
   - freetype=2.12.1=hca18f0e_1
-  - genopype=2021.8.18=py_0
+  - genopype=2023.5.15=py_0
   - gettext=0.21.1=h27087fc_0
   - gflags=2.2.2=he1b5a44_1004
   - ghostscript=9.54.0=h27087fc_2
@@ -242,7 +243,7 @@ dependencies:
   - setuptools=65.6.3=pyhd8ed1ab_0
   - six=1.16.0=pyh6c4a22f_0
   - snappy=1.1.10=h9fff704_0
-  - soothsayer_utils=2022.2.9=py_0
+  - soothsayer_utils=2022.6.24=py_0
   - sqlite=3.40.0=h4ff8645_0
   - threadpoolctl=3.1.0=pyh8a188c0_0
   - tk=8.6.12=h27826a3_0

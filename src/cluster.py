@@ -12,7 +12,7 @@ from soothsayer_utils import *
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.5.8"
+__version__ = "2023.5.15"
 
 # Global clustering
 def get_global_clustering_cmd( input_filepaths, output_filepaths, output_directory, directories, opts):
@@ -40,8 +40,10 @@ def get_global_clustering_cmd( input_filepaths, output_filepaths, output_directo
 
             "&&",
 
-        "ln -sf {} {}".format(os.path.realpath(os.path.join(output_directory, "output")), os.path.join(directories["output"], "global")),
-
+        "SRC={}; DST={}; SRC=$(realpath --relative-to $DST $SRC); ln -sf $SRC $DST".format(
+            os.path.join(output_directory, "output"), 
+            os.path.join(directories["output"], "global"),
+            ),
     ]
 
     return cmd
@@ -73,7 +75,10 @@ def get_local_clustering_cmd( input_filepaths, output_filepaths, output_director
 
             "&&",
 
-        "ln -sf {} {}".format(os.path.realpath(os.path.join(output_directory, "output")), os.path.join(directories["output"], "local")),
+        "SRC={}; DST={}; SRC=$(realpath --relative-to $DST $SRC); ln -sf $SRC $DST".format(
+            os.path.join(output_directory, "output"), 
+            os.path.join(directories["output"], "local"),
+            ),
 
     ]
 

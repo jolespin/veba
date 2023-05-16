@@ -1,4 +1,4 @@
-name: VEBA-database_env__v2023.1.12
+name: VEBA-database_env__v2023.5.15
 channels:
   - conda-forge
   - bioconda
@@ -17,6 +17,7 @@ dependencies:
   - cffi=1.15.0=py39h4bc2ebd_0
   - charset-normalizer=2.0.12=pyhd8ed1ab_0
   - colorama=0.4.4=pyh9f0ad1d_0
+  - coreutils=9.3=h0b41bf4_0
   - cryptography=36.0.2=py39hd97740a_1
   - dbus=1.13.6=h5008d03_3
   - diamond=2.0.14=hb97b32f_1
@@ -25,7 +26,7 @@ dependencies:
   - fontconfig=2.14.0=h8e229c2_0
   - freetype=2.10.4=h0708190_1
   - gawk=5.1.0=h7f98852_0
-  - genopype=2021.8.18=py_0
+  - genopype=2023.5.15=py_0
   - gettext=0.19.8.1=h73d1719_1008
   - gst-plugins-base=1.18.5=hf529b03_3
   - gstreamer=1.18.5=h9f60fe5_3
@@ -102,7 +103,7 @@ dependencies:
   - seqkit=2.3.1=h9ee0642_0
   - setuptools=62.1.0=py39hf3d152e_0
   - six=1.16.0=pyh6c4a22f_0
-  - soothsayer_utils=2022.2.9=py_0
+  - soothsayer_utils=2022.6.24=py_0
   - sqlite=3.38.2=h4ff8645_0
   - tar=1.34=ha1f6473_0
   - tk=8.6.12=h27826a3_0

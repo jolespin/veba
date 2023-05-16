@@ -5,7 +5,7 @@ import pandas as pd
 from tqdm import tqdm
 
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2021.03.27"
+__version__ = "2021.5.12"
 
 def main(args=None):
     # Path info
@@ -20,7 +20,7 @@ def main(args=None):
     # Parser
     parser = argparse.ArgumentParser(description=description, usage=usage, epilog=epilog, formatter_class=argparse.RawTextHelpFormatter)
     # Pipeline
-    parser.add_argument("-c","--orthogroups", type=str, help = "path/to/orthogroups")
+    parser.add_argument("-c","--protein_clusters", type=str, help = "path/to/proteins_to_orthogroups.tsv")
     parser.add_argument("-m","--mapping_directory", type=str, help = "path/to/mapping_directory")
     parser.add_argument("-o","--output_directory", type=str, help = "path/to/output_directory [Default: veba_output/counts]", default="veba_output/counts")
     parser.add_argument("-f","--format", type=str, default="tsv", help = "Output format: {tsv, csv, pickle} [Future will support feather, parquet] [Default: tsv]")
@@ -35,7 +35,8 @@ def main(args=None):
 
 
     # ORF -> ORTHOGROUP
-    orf_to_orthogroup = pd.read_csv(opts.orthogroups, sep="\t", index_col=0, header=None).iloc[:,0]
+    orf_to_orthogroup = pd.read_csv(opts.protein_clusters, sep="\t", index_col=0, header=None).iloc[:,0]
+    orf_to_orthogroup.to_frame().to_csv(os.path.join(opts.output_directory, "orf_to_orthogroup.tsv"), sep="\t", header=None)
 
     # Merge orf counts
     counts = dict()

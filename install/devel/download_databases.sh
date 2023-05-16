@@ -1,6 +1,6 @@
 #!/bin/bash
-# __VERSION__ = "2023.3.6"
-# VEBA_DATABASE_VERSION = "VDB_v4.1"
+# __VERSION__ = "2023.5.14"
+# VEBA_DATABASE_VERSION = "VDB_v5"
 # MICROEUKAYROTIC_DATABASE_VERSION = "VDB-Microeukaryotic_v2.1"
 
 # Create database
@@ -128,14 +128,27 @@ cat ${DATABASE_DIRECTORY}/Annotate/NCBIfam-AMRFinder/*.HMM | gzip > ${DATABASE_D
 rm -rf ${DATABASE_DIRECTORY}/Annotate/NCBIfam-AMRFinder/*.HMM
 rm -rf ${DATABASE_DIRECTORY}/NCBIfam-AMRFinder.HMM.tar.gz
 
-# NCBI non-redundant
+# # NCBI non-redundant
+# echo ". .. ... ..... ........ ............."
+# echo "x * Processing NCBI non-redundant diamond database"
+# echo ". .. ... ..... ........ ............."
+# mkdir -v -p ${DATABASE_DIRECTORY}/Annotate/nr
+# wget -v -P ${DATABASE_DIRECTORY} https://ftp.ncbi.nlm.nih.gov/blast/db/FASTA/nr.gz
+# diamond makedb --in ${DATABASE_DIRECTORY}/nr.gz --db ${DATABASE_DIRECTORY}/Annotate/nr/nr.dmnd --taxonmap ${DATABASE_DIRECTORY}/Classify/NCBITaxonomy/prot.accession2taxid.FULL.gz --taxonnodes ${DATABASE_DIRECTORY}/Classify/NCBITaxonomy/nodes.dmp --taxonnames ${DATABASE_DIRECTORY}/Classify/NCBITaxonomy/names.dmp
+# rm -rf ${DATABASE_DIRECTORY}/nr.gz
+
+# UniRef
 echo ". .. ... ..... ........ ............."
-echo "x * Processing NCBI non-redundant diamond database"
+echo "x * Processing UniRef diamond database"
 echo ". .. ... ..... ........ ............."
-mkdir -v -p ${DATABASE_DIRECTORY}/Annotate/nr
-wget -v -P ${DATABASE_DIRECTORY} https://ftp.ncbi.nlm.nih.gov/blast/db/FASTA/nr.gz
-diamond makedb --in ${DATABASE_DIRECTORY}/nr.gz --db ${DATABASE_DIRECTORY}/Annotate/nr/nr.dmnd --taxonmap ${DATABASE_DIRECTORY}/Classify/NCBITaxonomy/prot.accession2taxid.FULL.gz --taxonnodes ${DATABASE_DIRECTORY}/Classify/NCBITaxonomy/nodes.dmp --taxonnames ${DATABASE_DIRECTORY}/Classify/NCBITaxonomy/names.dmp
-rm -rf ${DATABASE_DIRECTORY}/nr.gz
+mkdir -v -p ${DATABASE_DIRECTORY}/Annotate/UniRef
+wget -v -P ${DATABASE_DIRECTORY} https://ftp.uniprot.org/pub/databases/uniprot/uniref/uniref90/uniref90.fasta.gz
+diamond makedb --in ${DATABASE_DIRECTORY}/uniref90.fasta.gz --db ${DATABASE_DIRECTORY}/Annotate/UniRef/uniref90.dmnd
+rm -rf ${DATABASE_DIRECTORY}/uniref90.fasta.gz
+
+wget -v -P ${DATABASE_DIRECTORY} https://ftp.uniprot.org/pub/databases/uniprot/uniref/uniref50/uniref50.fasta.gz
+diamond makedb --in ${DATABASE_DIRECTORY}/uniref50.fasta.gz --db ${DATABASE_DIRECTORY}/Annotate/UniRef/uniref50.dmnd
+rm -rf ${DATABASE_DIRECTORY}/uniref50.fasta.gz
 
 #MiBIG
 mkdir -v -p ${DATABASE_DIRECTORY}/Annotate/MIBiG

@@ -1,4 +1,4 @@
-name: VEBA-binning-eukaryotic_env__v2023.4.25
+name: VEBA-binning-eukaryotic_env__v2023.5.15
 channels:
   - conda-forge
   - bioconda
@@ -34,6 +34,7 @@ dependencies:
   - cffi=1.15.0=py38h3931269_0
   - charset-normalizer=2.0.12=pyhd8ed1ab_0
   - colorama=0.4.4=pyh9f0ad1d_0
+  - coreutils=9.3=h0b41bf4_0
   - concoct=1.1.0=py38h7be5676_2
   - coverm=0.6.1=ha1d52fc_2
   - cryptography=36.0.0=py38h9ce1e76_0
@@ -58,7 +59,7 @@ dependencies:
   - gawk=5.1.0=h7f98852_0
   - gcc_impl_linux-64=9.4.0=h03d3576_13
   - gcc_linux-64=9.4.0=h391b98a_7
-  - genopype=2021.8.18=py_0
+  - genopype=2023.5.15=py_0
   - gettext=0.21.0=hf68c758_0
   - gfortran_impl_linux-64=9.4.0=h0003116_13
   - gfortran_linux-64=9.4.0=hf0ab688_7
@@ -297,7 +298,7 @@ dependencies:
   - setuptools=60.9.3=py38h578d9bd_0
   - six=1.16.0=pyh6c4a22f_0
   - skorch=0.9.0=pyh7b7c402_0
-  - soothsayer_utils=2022.2.9=py_0
+  - soothsayer_utils=2022.6.24=py_0
   - sqlite=3.38.0=hc218d9a_0
   - starcode=1.4=hec16e2b_2
   - subread=2.0.3=h7132678_1

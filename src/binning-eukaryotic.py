@@ -13,7 +13,7 @@ from soothsayer_utils import *
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.5.8"
+__version__ = "2023.5.15"
 
 # DATABASE_METAEUK="/usr/local/scratch/CORE/jespinoz/db/veba/v1.0/Classify/Eukaryotic/eukaryotic"
 
@@ -429,17 +429,24 @@ def get_featurecounts_cmd(input_filepaths, output_filepaths, output_directory, d
 def get_output_cmd(input_filepaths, output_filepaths, output_directory, directories, opts):
     cmd = [
         "rm -rf {}".format(os.path.join(output_directory, "*")),
+            "&&",
     ]
 
+    cmd += [
+    "DST={}; (for SRC in {}; do SRC=$(realpath --relative-to $DST $SRC); ln -sf $SRC $DST; done)".format(
+        output_directory,
+        " ".join(input_filepaths), 
+        )
+    ]
 
-    for fp in input_filepaths:
-        fn = fp.split("/")[-1]
-        cmd += [ 
-            "&&",
-            "ln -sf",
-            os.path.realpath(os.path.join(fp)),
-            os.path.join(output_directory,fn),
-        ]
+    # for fp in input_filepaths:
+    #     fn = fp.split("/")[-1]
+    #     cmd += [ 
+    #         "&&",
+    #         "ln -sf",
+    #         os.path.join(fp),
+    #         os.path.join(output_directory,fn),
+    #     ]
         
         
     cmd += [ 

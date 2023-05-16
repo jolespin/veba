@@ -13,7 +13,7 @@ from soothsayer_utils import *
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.5.8"
+__version__ = "2023.5.15"
 
 # Assembly
 def preprocess( input_filepaths, output_filepaths, output_directory, directories, opts):
@@ -183,12 +183,12 @@ def get_iqtree_cmd(input_filepaths, output_filepaths, output_directory, director
 def get_symlink_cmd(input_filepaths, output_filepaths, output_directory, directories, opts):
     
     # Command
-    cmd = ["("]
-    for filepath in input_filepaths:
-        # cmd.append("ln -f -s {} {}".format(os.path.realpath(filepath), os.path.realpath(output_directory)))
-        cmd.append("ln -f -s {} {}".format(os.path.realpath(filepath), output_directory))
-        cmd.append("&&")
-    cmd[-1] = ")"
+    cmd = [
+    "DST={}; (for SRC in {}; do SRC=$(realpath --relative-to $DST $SRC); ln -sf $SRC $DST; done)".format(
+        output_directory,
+        " ".join(input_filepaths), 
+        )
+    ]
     return cmd
 
 # ============

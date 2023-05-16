@@ -215,11 +215,16 @@ ________________________________________________________________
 
 
 #### Change Log:
+* [2023.5.15] - Changed `prokaryotic_taxonomy.tsv` and `prokaryotic_taxonomy.clusters.tsv` in `classify-prokaryotic.py` (along with eukaryotic and viral) files to `taxonomy.tsv` and `taxonomy.clusters.tsv` for uniformity.
+* [2023.5.15] - Updating all symlinks to relative links (also in `fastq_preprocessor`) to prepare for dockerization and updating all environments to use updated GenoPype 2023.4.13.
+* [2023.5.14] - Changed `nr` to `uniref` in `annotate.py` and added `propagate_annotations_from_representatives.py` script while simplifying `merge_annotations_and_taxonomy.py` to `merge_annotations.py` and excluding taxonomy operations.
+* [2023.5.14] - Changed `nr` to `UniRef90` and `UniRef50` in `VDB_v5` 
+* [2023.5.12] - Changed `orfs_to_orthogroups.tsv` to `proteins_to_orthogroups.tsv` for consistency with the `cluster.py` module.  Will eventually find some consitency with `scaffolds_to_bins/scaffolds_to_mags` but this will be later.
+* [2023.5.12] - Added a `scaffolds_to_mags.tsv` in the clustering output.
 * [2023.5.8] - Added `convert_counts_table.py` which converts a counts table (and metadata) to [Pandas pickle](https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.to_pickle.html), [Anndata h5ad](https://anndata.readthedocs.io/en/latest/generated/anndata.AnnData.write_h5ad.html), or [Biom hdf5](https://biom-format.org/documentation/generated/biom.table.Table.to_hdf5.html#biom.table.Table.to_hdf5)
 * [2023.5.8] - Fixed output directory for `mapping.py` which now uses `output_directory/${NAME}` structure like `binning-*.py`.
 * [2023.5.8] - Removed "python" prefix for script calls and now uses shebang in script for executable. Also added single paranthesis around script filepath (e.g., `'[script_filepath]'`) to escape characters/spaces in filepath.
 * [2023.5.8] - Added support for `index.py` to accept individual `--references [file.fasta]` and `--gene_models [file.gff]`.
-* [2023.4.25] - Removed relative symlinks for `binning-prokaryotic.py` and `biosynthetic.py` [!NEED TO TEST!]
 * [2023.4.25] - Added `stdin` support for `scaffolds_to_bins.py` along with the ability to input genome tables [id_genome]<tab>[filepath].  Also added progress bars.
 * [2023.4.23] - As a result of [issues/22](https://github.com/jolespin/veba/issues/22), `assembly.py`, `assembly-sequential.py`, `binning-*.py`, and `mapping.py` will use `-p --countReadPairs` for `featureCounts` and updates `subread 2.0.1 -> subread 2.0.3`.  For `binning-*.py`, long reads can be used with the `--long_reads` flag.
 * [2023.4.20] - Updated `cluster.py` and associated `global_clustering.py`/`local_clustering.py` scripts to use `mmseqs2_wrapper.py` which now automatically outputs representative sequences.  

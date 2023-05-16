@@ -34,14 +34,14 @@ N=index-global
 rm -f logs/${N}.*
 
 # Get list to all genomes
-ls veba_output/binning/*/*/output/genomes/*.fa > veba_output/misc/all_genomes.list
+ls veba_output/binning/*/*/output/genomes/*.fa > veba_output/misc/genomes.list
 
-GENOMES=veba_output/misc/all_genomes.list
+GENOMES=veba_output/misc/genomes.list
 
 # Get list to all gene models
-ls veba_output/binning/*/*/output/genomes/*.gff > veba_output/misc/all_genomes.gene_models.list
+ls veba_output/binning/*/*/output/genomes/*.gff > veba_output/misc/gene_models.list
 
-GENE_MODELS=veba_output/misc/all_genomes.gene_models.list
+GENE_MODELS=veba_output/misc/gene_models.list
 
 # Set up command
 CMD="source activate VEBA-mapping_env && index.py -r ${GENOMES} -g ${GENE_MODELS} -o veba_output/index/global/ -p ${N_JOBS}"
@@ -101,7 +101,7 @@ The following output files will produced for each sample:
 * genome_spatial_coverage.tsv.gz - Spatial coverage of MAG within sample (based on `samtools coverage`)
 
 #### 3. Merge the counts tables for all the samples:
-We have individual counts vectors for ORFs and contigs per sample.  Now we need to merge the contig counts and ORF counts separately.  While we are at it, let's aggregate the contig counts into MAGs and SLCs then aggregate the ORF counts into SSOs.  We are going to use the `merge_contig_mapping.py` and `merge_orf_mapping.py` scripts installed with *VEBA*.  If for some reason they aren't installed, then download them here:
+We have individual counts vectors for ORFs and contigs per sample.  Now we need to merge the contig counts and ORF counts separately.  While we are at it, let's aggregate the contig counts into MAGs and SLCs then aggregate the ORF counts into SSPCs (previously referred to as SSO).  We are going to use the `merge_contig_mapping.py` and `merge_orf_mapping.py` scripts installed with *VEBA*.  If for some reason they aren't installed, then download them here:
 https://github.com/jolespin/veba/tree/main/src/scripts
 
 ```
@@ -111,20 +111,21 @@ MAPPING_DIRECTORY=veba_output/mapping/global
 # Set output directory (this is default)
 OUT_DIR=veba_output/counts
 
-# Concatenate all of the scaffolds to bins from all of the domains
-cat veba_output/binning/*/*/output/scaffolds_to_bins.tsv > veba_output/misc/all_genomes.scaffolds_to_bins.tsv
+# If you have run the cluster.py module you can use this:
+SCAFFOLDS_TO_MAGS=veba_output/cluster/output/global/scaffolds_to_mags.tsv
+SCAFFOLDS_TO_SLCS=veba_output/cluster/output/global/scaffolds_to_slcs.tsv
+#MAGS_TO_SLCS=veba_output/cluster/output/global/mags_to_slcs.tsv
+PROTEINS_TO_ORTHOGROUPS=veba_output/cluster/output/global/proteins_to_orthogroups.tsv
 
-SCAFFOLDS_TO_BINS=veba_output/misc/all_genomes.scaffolds_to_bins.tsv
+# If you skipped the clustering, you can oncatenate all of the scaffolds to bins from all of the domains
+cat veba_output/binning/*/*/output/scaffolds_to_bins.tsv > veba_output/misc/all_genomes.scaffolds_to_mags.tsv
+SCAFFOLDS_TO_MAGS=veba_output/misc/all_genomes.scaffolds_to_mags.tsv
 
-# Get clustering results
-CLUSTERS=veba_output/cluster/output/global/mags_to_slcs.tsv
-ORTHOGROUPS=veba_output/cluster/output/global/proteins_to_orthogroups.tsv
-
-# Merge contig-level counts
-merge_contig_mapping.py -m ${MAPPING_DIRECTORY} -c ${CLUSTERS}  -i ${SCAFFOLDS_TO_BINS} -o ${OUT_DIR}
+# Merge contig-level counts (excu
+merge_contig_mapping.py -m ${MAPPING_DIRECTORY} -c ${MAGS_TO_SLCS}  -i ${SCAFFOLDS_TO_MAGS} -o ${OUT_DIR}
 
 # Merge ORF-level counts
-merge_orf_mapping.py -m ${MAPPING_DIRECTORY} -c ${ORTHOGROUPS} -o ${OUT_DIR}
+merge_orf_mapping.py -m ${MAPPING_DIRECTORY} -c ${PROTEINS_TO_ORTHOGROUPS} -o ${OUT_DIR}
 ```
 
 The following output files will produced: 

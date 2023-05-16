@@ -12,7 +12,7 @@ from soothsayer_utils import *
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.5.8"
+__version__ = "2023.5.15"
 
 
 # Bowtie2
@@ -186,11 +186,11 @@ def get_featurecounts_cmd(input_filepaths, output_filepaths, output_directory, d
         "rm {}".format(os.path.join(output_directory, "featurecounts.*.tsv")),
         ]
 
-    if opts.orfs_to_orthogroups:
+    if opts.proteins_to_orthogroups:
         cmd += [ 
             "&&",
             os.environ["groupby_table.py"],
-            "-m {}".format(opts.orfs_to_orthogroups),
+            "-m {}".format(opts.proteins_to_orthogroups),
             "-t {}".format(os.path.join(output_directory, "counts.orfs.tsv.gz")),
             "-o {}".format(os.path.join(output_directory, "counts.orthogroups.tsv.gz")),
         ]
@@ -218,11 +218,12 @@ def get_featurecounts_cmd(input_filepaths, output_filepaths, output_directory, d
 # Symlink
 def get_symlink_cmd(input_filepaths, output_filepaths, output_directory, directories, opts):
     # Command
-    cmd = ["("]
-    for filepath in input_filepaths:
-        cmd.append("ln -f -s {} {}".format(os.path.realpath(filepath), os.path.realpath(output_directory)))
-        cmd.append("&&")
-    cmd[-1] = ")"
+    cmd = [
+    "DST={}; (for SRC in {}; do SRC=$(realpath --relative-to $DST $SRC); ln -sf $SRC $DST; done)".format(
+        output_directory,
+        " ".join(input_filepaths), 
+        )
+    ]
     return cmd
 
 # ============
@@ -337,7 +338,7 @@ def create_pipeline(opts, directories, f_cmds):
     input_filepaths = output_filepaths
 
     output_filenames = ["counts.orfs.tsv.gz", "counts.scaffolds.tsv.gz"]
-    if opts.orfs_to_orthogroups:
+    if opts.proteins_to_orthogroups:
         output_filenames.append("counts.orthogroups.tsv.gz")
     if opts.scaffolds_to_bins:
         output_filenames.append("counts.mags.tsv.gz")
@@ -394,7 +395,7 @@ def create_pipeline(opts, directories, f_cmds):
         os.path.join(directories[("intermediate", "2__featurecounts")], "counts.scaffolds.tsv.gz"),
     ]
 
-    if opts.orfs_to_orthogroups:
+    if opts.proteins_to_orthogroups:
         input_filepaths += [ 
             os.path.join(directories[("intermediate", "2__featurecounts")], "counts.orthogroups.tsv.gz"),
         ]
@@ -457,8 +458,8 @@ def configure_parameters(opts, directories):
     if opts.reference_fasta is None:
         opts.reference_fasta =  opts.reference_index
 
-    if opts.orfs_to_orthogroups is not None:
-        assert os.path.exists(opts.orfs_to_orthogroups)
+    if opts.proteins_to_orthogroups is not None:
+        assert os.path.exists(opts.proteins_to_orthogroups)
 
     if opts.scaffolds_to_bins is not None:
         assert os.path.exists(opts.scaffolds_to_bins)
@@ -520,7 +521,7 @@ def main(args=None):
     parser_featurecounts.add_argument("--featurecounts_options", type=str, default="", help="featureCounts | More options (e.g. --arg 1 ) [Default: ''] | http://bioinf.wehi.edu.au/featureCounts/")
 
     parser_identifiers = parser.add_argument_group('Identifier arguments')
-    parser_identifiers.add_argument("--orfs_to_orthogroups", type=str, help = "path/to/orf_to_orthogroup.tsv, [id_orf]<tab>[id_orthogroup], No header")
+    parser_identifiers.add_argument("--proteins_to_orthogroups", type=str, help = "path/to/protein_to_orthogroup.tsv, [id_orf]<tab>[id_orthogroup], No header")
     parser_identifiers.add_argument("--scaffolds_to_bins", type=str, help = "path/to/scaffold_to_bins.tsv, [id_scaffold]<tab>[id_bin], No header")
     parser_identifiers.add_argument("--scaffolds_to_clusters", type=str, help = "path/to/scaffold_to_cluster.tsv, [id_scaffold]<tab>[id_cluster], No header")
 

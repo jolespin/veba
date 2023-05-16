@@ -29,7 +29,6 @@ def main(args=None):
     parser.add_argument("-t","--type_counts", type=str, help = "Type counts summary file output")
     parser.add_argument("-f","--fasta_output", type=str, help = "Fasta file output")
     parser.add_argument("--sample", type=str, help = "Sample of origin")
-
     parser.add_argument("--sep", type=str, default=" ", help = "Seperator between [id_gene]<sep>[bgc_description].  The space makes it a id and description.  If duplicate identifiers, you can separate with underscores (e.g., '__') [Default: <space>]")
 
     # Options
@@ -45,7 +44,7 @@ def main(args=None):
     genbank_region_filepaths = glob.glob(os.path.join(opts.antismash_directory, "*region*.gbk"))
     if len(genbank_region_filepaths):
         output = list()
-        for fp in glob.glob(os.path.join(opts.antismash_directory, "*region*.gbk")):
+        for fp in genbank_region_filepaths:
             # Get genome and region identifiers
             if opts.name:
                 id_genome = opts.name

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 from __future__ import print_function, division
-import sys, os, argparse, glob, shutil, time
+import sys, os, argparse, glob, shutil, time, gzip
 from multiprocessing import cpu_count
 from collections import OrderedDict, defaultdict
 
@@ -14,7 +14,7 @@ from soothsayer_utils import *
 
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.5.8"
+__version__ = "2023.5.12"
 
 def get_basename(x):
     _, fn = os.path.split(x)
@@ -98,6 +98,7 @@ def main(args=None):
     parser_io.add_argument("-i", "--input", type=str, default="stdin",  help = "path/to/input.tsv, Format: Must include the follow columns (No header) [organism_type]<tab>[id_sample]<tab>[id_mag]<tab>[genome]<tab>[proteins] but can include additional columns to the right (e.g., [cds]<tab>[gene_models]).  Suggested input is from `compile_genomes_table.py` script. [Default: stdin]")
     parser_io.add_argument("-o","--output_directory", type=str, default="global_clustering_output", help = "path/to/project_directory [Default: global_clustering_output]")
     parser_io.add_argument("-e", "--no_singletons", action="store_true", help="Exclude singletons") #isPSLC-1_SSPC-3345__SRR178126
+    parser_io.add_argument("-r", "--no_representative_sequences", action="store_true", help="Exclude representative sequences") #isPSLC-1_SSPC-3345__SRR178126
 
     # Utility
     parser_utility = parser.add_argument_group('Utility arguments')
@@ -123,7 +124,6 @@ def main(args=None):
     parser_mmseqs2.add_argument("--protein_cluster_prefix", type=str, default="SSPC-", help="Cluster prefix [Default: 'SSPC-")
     parser_mmseqs2.add_argument("--protein_cluster_suffix", type=str, default="", help="Cluster suffix [Default: '")
     parser_mmseqs2.add_argument("--protein_cluster_prefix_zfill", type=int, default=0, help="Cluster prefix zfill. Use 7 to match identifiers from OrthoFinder.  Use 0 to add no zfill. [Default: 0]") #7
-
     parser_mmseqs2.add_argument("--mmseqs2_options", type=str, default="", help="MMSEQS2 | More options (e.g. --arg 1 ) [Default: '']")
 
     # Options
@@ -466,7 +466,18 @@ def main(args=None):
         fcr_data[organism_type]["functional_fcr"] = 1 - (feature_to_cluster.nunique()/feature_to_cluster.size)
     df_fcr = pd.DataFrame(fcr_data).T.sort_index()
     df_fcr.index.name = "organism_type"
-    
+
+    print(" * ({}) Getting representative sequences".format(format_duration(t0)), file=sys.stdout)
+    if not opts.no_representative_sequences:
+        with open(os.path.join(directories["output"], "representative_sequences.faa"), "w") as f_out:
+            for fp in glob.glob(os.path.join(directories["intermediate"], "*", "clusters", "*", "output", "representative_sequences.tsv.gz" )):
+                with gzip.open(fp, "rt") as f_in:
+                    next(f_in)
+                    for line in f_in:
+                        line = line.strip()
+                        id_cluster, id_representative_sequence, sequence = line.split("\t")
+                        print(">{} {}\n{}".format(id_cluster, id_representative_sequence, sequence), file=f_out)
+        
     # Writing output files
     print(format_header(" * ({}) Writing Output Tables:".format(format_duration(t0))), file=sys.stdout)
     df_mags.to_csv(os.path.join(directories["output"], "identifier_mapping.genomes.tsv"), sep="\t")
@@ -476,9 +487,10 @@ def main(args=None):
     df_proteinclusters.to_csv(os.path.join(directories["output"], "protein_clusters.tsv"), sep="\t")
     df_fcr.to_csv(os.path.join(directories["output"], "feature_compression_ratios.tsv"), sep="\t")
     df_mags["id_genome_cluster"].to_frame().dropna(how="any", axis=0).to_csv(os.path.join(directories["output"], "mags_to_slcs.tsv"), sep="\t", header=None)
+    df_scaffolds["id_genome"].to_frame().dropna(how="any", axis=0).to_csv(os.path.join(directories["output"], "scaffolds_to_mags.tsv"), sep="\t", header=None)
     df_scaffolds["id_genome_cluster"].to_frame().dropna(how="any", axis=0).to_csv(os.path.join(directories["output"], "scaffolds_to_slcs.tsv"), sep="\t", header=None)
     df_proteins["id_protein_cluster"].to_frame().dropna(how="any", axis=0).to_csv(os.path.join(directories["output"], "proteins_to_orthogroups.tsv"), sep="\t", header=None) # Change labels?
-    print(*map(lambda fp: " * {}".format(fp), glob.glob(os.path.join(directories["output"],"*.tsv"))), sep="\n", file=sys.stdout )
+    print(*map(lambda fp: " * {}".format(fp), glob.glob(os.path.join(directories["output"],"*.tsv")) + glob.glob(os.path.join(directories["output"],"*.faa"))), sep="\n", file=sys.stdout )
 
 
 if __name__ == "__main__":

@@ -27,7 +27,7 @@ def get_concatenate_cmd( input_filepaths, output_filepaths, output_directory, di
         os.environ["cut_table_by_column_labels.py"], #[id_mag]<tab>[id_slc]<tab>[classification]|OPTIONAL:<tab>[weight]
         "--columns lineage,agreement,taxid,provirus",
         ">",
-        os.path.join(directories["output"], "viral_taxonomy.tsv"),
+        os.path.join(directories["output"], "taxonomy.tsv"),
     ]
     return cmd
 
@@ -61,9 +61,9 @@ def get_genomad_taxonomy_cmd( input_filepaths, output_filepaths, output_director
 
         os.environ["cut_table_by_column_labels.py"], #[id_mag]<tab>[id_slc]<tab>[classification]|OPTIONAL:<tab>[weight]
         "--columns lineage,agreement,taxid",
-        os.path.join(output_directory,  "viral_taxonomy.tsv"),
+        os.path.join(output_directory,  "taxonomy.tsv"),
         ">",
-        os.path.join(directories["output"], "viral_taxonomy.tsv"),
+        os.path.join(directories["output"], "taxonomy.tsv"),
 
     ]
 
@@ -175,7 +175,7 @@ def create_pipeline(opts, directories, f_cmds):
         input_filepaths = [
             opts.viral_binning_directory,
             ]
-        output_filenames = ["viral_taxonomy.tsv"]
+        output_filenames = ["taxonomy.tsv"]
         output_filepaths = list(map(lambda filename: os.path.join(output_directory, filename), output_filenames))
 
         params = {
@@ -213,7 +213,7 @@ def create_pipeline(opts, directories, f_cmds):
         input_filepaths = [
             opts.genomes,
             ]
-        output_filenames = ["viral_taxonomy.tsv"]
+        output_filenames = ["taxonomy.tsv"]
         output_filepaths = list(map(lambda filename: os.path.join(directories["output"], filename), output_filenames))
 
         params = {
@@ -254,10 +254,10 @@ def create_pipeline(opts, directories, f_cmds):
 
         # i/o
         input_filepaths = [
-            os.path.join(directories["output"], "viral_taxonomy.tsv"),
+            os.path.join(directories["output"], "taxonomy.tsv"),
             opts.clusters,
             ]
-        output_filenames = ["viral_taxonomy.clusters.tsv"]
+        output_filenames = ["taxonomy.clusters.tsv"]
         output_filepaths = list(map(lambda filename: os.path.join(output_directory, filename), output_filenames))
 
         params = {

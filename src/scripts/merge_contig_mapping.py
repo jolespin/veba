@@ -5,7 +5,7 @@ import pandas as pd
 from tqdm import tqdm
 
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2022.06.27"
+__version__ = "2022.5.12"
 
 def main(args=None):
     # Path info
@@ -21,7 +21,7 @@ def main(args=None):
     parser = argparse.ArgumentParser(description=description, usage=usage, epilog=epilog, formatter_class=argparse.RawTextHelpFormatter)
     # Pipeline
     parser.add_argument("-i","--scaffolds_to_bins", type=str, help = "path/to/binning_directory")
-    parser.add_argument("-c","--clusters", type=str, help = "path/to/clusters")
+    parser.add_argument("-c","--genome_clusters", type=str, help = "path/to/mags_to_slcs.tsv")
     parser.add_argument("-m","--mapping_directory", type=str, help = "path/to/mapping_directory")
     parser.add_argument("-o","--output_directory", type=str, help = "path/to/output_directory [Default: veba_output/counts]", default="veba_output/counts")
     parser.add_argument("-f","--format", type=str, default="tsv", help = "Output format: {tsv, csv, pickle} [Future will support feather, parquet] [Default: tsv]")
@@ -40,7 +40,7 @@ def main(args=None):
     contig_to_mag.to_frame().to_csv(os.path.join(opts.output_directory, "scaffold_to_mag.tsv"), sep="\t", header=None)
 
     # MAG -> SLC
-    mag_to_slc = pd.read_csv(opts.clusters, sep="\t", index_col=0, header=None).iloc[:,0]
+    mag_to_slc = pd.read_csv(opts.genome_clusters, sep="\t", index_col=0, header=None).iloc[:,0]
     mag_to_slc.to_frame().to_csv(os.path.join(opts.output_directory, "mag_to_slc.tsv"), sep="\t", header=None)
 
     # Merge contig counts

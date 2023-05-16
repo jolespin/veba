@@ -1,4 +1,4 @@
-name: VEBA-cluster_env__v2023.2.9
+name: VEBA-cluster_env__v2023.5.15
 channels:
   - conda-forge
   - bioconda
@@ -18,10 +18,11 @@ dependencies:
   - cffi=1.15.1=py311h409f033_3
   - charset-normalizer=2.1.1=pyhd8ed1ab_0
   - colorama=0.4.6=pyhd8ed1ab_0
+  - coreutils=9.3=h0b41bf4_0
   - cryptography=39.0.0=py311h9b4c7bb_0
   - fastani=1.33=h0fdf51a_1
   - gawk=5.1.0=h7f98852_0
-  - genopype=2021.8.18=py_0
+  - genopype=2023.5.15=py_0
   - gettext=0.21.1=h27087fc_0
   - gsl=2.7=he838d99_0
   - icu=70.1=h27087fc_0
@@ -70,7 +71,7 @@ dependencies:
   - seqkit=2.3.1=h9ee0642_0
   - setuptools=66.1.1=pyhd8ed1ab_0
   - six=1.16.0=pyh6c4a22f_0
-  - soothsayer_utils=2022.2.9=py_0
+  - soothsayer_utils=2022.6.24=py_0
   - tk=8.6.12=h27826a3_0
   - tqdm=4.64.1=pyhd8ed1ab_0
   - tzdata=2022g=h191b570_0

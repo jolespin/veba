@@ -12,7 +12,7 @@ from soothsayer_utils import *
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.5.8"
+__version__ = "2023.5.15"
 
 # antiSMASH
 def get_antismash_cmd( input_filepaths, output_filepaths, output_directory, directories, opts):
@@ -29,6 +29,8 @@ do read -r -a ARRAY <<< $LINE
     GENE_MODELS=${ARRAY[2]}
 
     CHECKPOINT="%s/${ID}/ANTISMASH_CHECKPOINT"
+
+    CWD=${PWD}
 
     if [ ! -f ${CHECKPOINT} ]; then
 
@@ -52,13 +54,16 @@ do read -r -a ARRAY <<< $LINE
         %s -i %s/${ID}/krona.tsv -o %s/${ID}/krona.html -n ${ID}
 
         # Symlink proteins
-        SRC=$(realpath %s/${ID}/bgc.features.faa.gz)
-        ln -sf ${SRC} %s/${ID}.bgc_features.faa.gz
+        SRC=%s/${ID}/bgc.features.faa.gz
+        DST=%s/
+        SRC=$(realpath --relative-to ${DST} ${SRC})
+        ln -sf ${SRC} ${DST}/${ID}.bgc_features.faa.gz
 
         # Symlink genbanks
         mkdir -p %s/${ID}
-        SRC=$(realpath %s/${ID}/*.region*.gbk)
-        ln -sf ${SRC} %s/${ID}/
+        SRC=%s/${ID}/*.region*.gbk
+        DST=%s/
+        ln -sf ${SRC} ${DST}
 
         # Completed
         echo "Completed: $(date)" > %s/${ID}/ANTISMASH_CHECKPOINT
@@ -252,19 +257,6 @@ def get_novelty_score_cmd(input_filepaths, output_filepaths, output_directory, d
         "--evalue {}".format(opts.evalue),
     ]
     return cmd
-
-
-# # Symlink
-# def get_symlink_cmd(input_filepaths, output_filepaths, output_directory, directories, opts):
-    
-#     # Command
-#     cmd = ["("]
-#     for filepath in input_filepaths:
-        
-#         cmd.append("ln -f -s {} {}".format(os.path.realpath(filepath), output_directory))
-#         cmd.append("&&")
-#     cmd[-1] = ")"
-#     return cmd
 
 # ============
 # Run Pipeline

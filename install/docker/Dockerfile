@@ -1,4 +1,4 @@
-# v2023.5.10
+# v2023.5.11
 # # =================================
 # # Ubuntu
 # # =================================
@@ -45,9 +45,12 @@ FROM continuumio/miniconda3
 
 ARG ENV_NAME
 
-SHELL ["/bin/bash", "-l", "-c"]
+SHELL ["/bin/bash","-l", "-c"]
 
 WORKDIR /root/
+
+# Data
+RUN mkdir -p /data/
 
 # Retrieve VEBA repository
 RUN mkdir -p veba/
@@ -62,8 +65,8 @@ RUN /opt/conda/bin/conda init bash && \
     /opt/conda/bin/conda config --add channels bioconda && \
     /opt/conda/bin/conda config --add channels conda-forge && \
     /opt/conda/bin/conda update conda -y && \
-    /opt/conda/bin/conda install -c conda-forge mamba -y && \
-    /opt/conda/bin/mamba init bash && \
+    # /opt/conda/bin/conda install -c conda-forge mamba -y && \ # Mamba adds about 450 MB to image
+    # /opt/conda/bin/mamba init bash && \
     /opt/conda/bin/conda clean -afy
 
 # =================================
@@ -72,13 +75,18 @@ RUN /opt/conda/bin/conda init bash && \
 ENV PATH /opt/conda/bin:$PATH
 
 # Create environment
-RUN mamba env create -n ${ENV_NAME} -f veba/install/environments/${ENV_NAME}.yml
+RUN conda env create -n ${ENV_NAME} -f veba/install/environments/${ENV_NAME}.yml
+# RUN mamba env create -n ${ENV_NAME} -f veba/install/environments/${ENV_NAME}.yml
 
 # Add environment scripts to environment bin
 RUN /bin/bash veba/install/update_environment_scripts.sh veba/
 
-# Add contents to path
-ENV PATH /opt/conda/envs/${ENV_NAME}/bin:$PATH
+# # Add contents to path
+# ENV PATH /opt/conda/envs/${ENV_NAME}/bin:$PATH
 
 # Set up environment
-RUN /bin/bash -c "source activate ${ENV_NAME}"
+RUN echo "conda activate ${ENV_NAME}" >> ~/.bashrc
+
+# Set entrypoint to bash
+ENTRYPOINT ["bash", "-l", "-c"]
+

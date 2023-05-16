@@ -1,4 +1,4 @@
-name: VEBA-annotate_env__v2023.4.28
+name: VEBA-annotate_env__v2023.5.15
 channels:
   - bioconda
   - conda-forge
@@ -11,26 +11,31 @@ dependencies:
   - backports=1.0=pyhd8ed1ab_3
   - backports.zoneinfo=0.2.1=py37h540881e_5
   - biopython=1.79=py37h5e8e339_1
+  - blast=2.13.0=hf3cf87c_0
   - boost-cpp=1.74.0=h312852a_4
   - brotlipy=0.7.0=py37h540881e_1004
   - bz2file=0.98=py_0
   - bzip2=1.0.8=h7f98852_4
-  - ca-certificates=2022.12.7=ha878542_0
-  - certifi=2022.12.7=pyhd8ed1ab_0
+  - c-ares=1.18.1=h7f98852_0
+  - ca-certificates=2023.5.7=hbcca054_0
+  - certifi=2023.5.7=pyhd8ed1ab_0
   - cffi=1.14.6=py37hc58025e_0
   - charset-normalizer=2.1.1=pyhd8ed1ab_0
   - colorama=0.4.6=pyhd8ed1ab_0
+  - coreutils=9.3=h0b41bf4_0
   - cryptography=38.0.2=py37h38fbfac_1
+  - curl=7.87.0=h5eee18b_0
   - dbus=1.13.6=h48d8840_2
-  - diamond=2.0.11=hdcc8f71_0
+  - diamond=2.1.6=h5b5514e_1
   - easel=0.48=h779adbc_0
   - eggnog-mapper=2.1.6=pyhdfd78af_0
+  - entrez-direct=16.2=he881be0_1
   - expat=2.4.1=h9c3ff4c_0
   - fontconfig=2.13.1=hba837de_1005
   - freetype=2.10.4=h0708190_1
   - gawk=5.1.0=h7f98852_0
   - gdbm=1.18=h0a1914f_2
-  - genopype=2021.8.18=py_0
+  - genopype=2023.5.15=py_0
   - gettext=0.19.8.1=h0b5b191_1005
   - glib=2.68.4=h9c3ff4c_0
   - glib-tools=2.68.4=h9c3ff4c_0
@@ -47,7 +52,9 @@ dependencies:
   - libblas=3.9.0=11_linux64_openblas
   - libcblas=3.9.0=11_linux64_openblas
   - libclang=11.1.0=default_ha53f305_1
+  - libcurl=7.87.0=h91b91d3_0
   - libedit=3.1.20191231=he28a2e2_2
+  - libev=4.33=h516909a_1
   - libevent=2.1.10=hcdb4288_3
   - libffi=3.3=h58526e2_2
   - libgcc=7.2.0=h69d50b8_2
@@ -60,12 +67,14 @@ dependencies:
   - libidn2=2.3.2=h7f98852_0
   - liblapack=3.9.0=11_linux64_openblas
   - libllvm11=11.1.0=hf817b99_2
+  - libnghttp2=1.51.0=hdcd2b5c_0
   - libogg=1.3.4=h7f98852_1
   - libopenblas=0.3.17=pthreads_h8fe5266_1
   - libopus=1.3.1=h7f98852_1
   - libpng=1.6.37=h21135ba_2
   - libpq=13.3=hd57d9b9_0
-  - libstdcxx-ng=11.1.0=h56837e0_8
+  - libssh2=1.10.0=haa6b8db_3
+  - libstdcxx-ng=12.2.0=h46fd767_19
   - libunistring=0.9.10=h7f98852_0
   - libuuid=2.32.1=h7f98852_1000
   - libvorbis=1.3.7=h9c3ff4c_0
@@ -73,6 +82,7 @@ dependencies:
   - libxkbcommon=1.0.3=he3ba5ed_0
   - libxml2=2.9.12=h72842e0_0
   - libxslt=1.1.33=h15afd5d_2
+  - libzlib=1.2.13=h166bdaf_4
   - lxml=4.7.1=py37h77fd288_0
   - lz4-c=1.9.3=h9c3ff4c_1
   - mmseqs2=13.45111=h95f258a_1
@@ -88,6 +98,25 @@ dependencies:
   - pathlib2=2.3.7.post1=py37h89c1867_1
   - pcre=8.45=h9c3ff4c_0
   - perl=5.22.0.1=0
+  - perl-app-cpanminus=1.7043=pl5.22.0_0
+  - perl-archive-tar=2.18=pl5.22.0_2
+  - perl-carp=1.38=pl5.22.0_0
+  - perl-common-sense=3.74=0
+  - perl-compress-raw-bzip2=2.069=1
+  - perl-compress-raw-zlib=2.069=3
+  - perl-data-dumper=2.161=pl5.22.0_0
+  - perl-exporter=5.72=pl5.22.0_0
+  - perl-exporter-tiny=0.042=1
+  - perl-extutils-makemaker=7.24=pl5.22.0_1
+  - perl-io-compress=2.069=pl5.22.0_2
+  - perl-io-zlib=1.10=1
+  - perl-json=2.90=1
+  - perl-json-xs=2.34=0
+  - perl-list-moreutils=0.428=pl5.22.0_0
+  - perl-pathtools=3.73=h470a237_2
+  - perl-scalar-list-utils=1.45=2
+  - perl-test-more=1.001002=pl5.22.0_0
+  - perl-threaded=5.32.1=hdfd78af_1
   - pigz=2.6=h27826a3_0
   - pip=21.3.1=pyhd8ed1ab_0
   - prodigal=2.6.3=h779adbc_3
@@ -116,7 +145,7 @@ dependencies:
   - seqkit=2.4.0=h9ee0642_0
   - setuptools=59.6.0=py37h89c1867_0
   - six=1.16.0=pyh6c4a22f_0
-  - soothsayer_utils=2022.2.9=py_0
+  - soothsayer_utils=2022.6.24=py_0
   - sqlite=3.36.0=h9cd32fc_0
   - taxopy=0.11.0=pyhdfd78af_0
   - tk=8.6.11=h21135ba_0
@@ -139,5 +168,5 @@ dependencies:
   - xorg-xproto=7.0.31=h7f98852_1007
   - xz=5.2.5=h516909a_1
   - yaml=0.2.5=h516909a_0
-  - zlib=1.2.11=h516909a_1010
+  - zlib=1.2.13=h166bdaf_4
   - zstd=1.5.0=ha95c52a_0

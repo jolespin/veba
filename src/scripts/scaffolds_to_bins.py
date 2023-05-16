@@ -1,11 +1,11 @@
 #!/usr/bin/env python
-import sys, os, glob, argparse, gzip
+import sys, os, glob, argparse, gzip, warnings
 from collections import OrderedDict
 import pandas as pd
 from tqdm import tqdm
 
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.4.25"
+__version__ = "2023.5.11"
 
 def main(args=None):
     # Path info
@@ -21,7 +21,7 @@ def main(args=None):
     parser = argparse.ArgumentParser(description=description, usage=usage, epilog=epilog, formatter_class=argparse.RawTextHelpFormatter)
     # Pipeline
     parser.add_argument("-i","--binning_directory", type=str, help = "path/to/binning_directory [Cannot use with --genomes]")
-    parser.add_argument("-g","--genomes", type=str, default="stdin", help = "path/to/genomes as either .list with each line as a path to genome.fasta or a table [id_genome]<tab>[path/to/fasta] [Cannot use with --binning_directory] [Default: stdin]")
+    parser.add_argument("-g","--genomes", default="stdin", type=str, help = "path/to/genomes as either .list with each line as a path to genome.fasta or a table [id_genome]<tab>[path/to/fasta] [Cannot use with --binning_directory] [Default: stdin]")
     parser.add_argument("-x","--extension", default="fa", type=str, help = "Binning file extension [Default: fa]")
     parser.add_argument("--sep", type=str, default="\t",  help = "Seperator [Default: '\t'")
     parser.add_argument("--scaffold_column_name", type=str, default="Scaffold", help="Scaffold column name [Default: Scaffold]")
@@ -38,20 +38,7 @@ def main(args=None):
     # Parse
     assert opts.column_order in {"scaffold,bin", "bin,scaffold"}, "Must choose either 'scaffold,bin' or 'bin,scaffold' for --column_order"
     
-
-    if opts.binning_directory:
-        if opts.genomes == "stdin":
-            assert sys.stdin.isatty(), "--genomes cannot have any stdin if --binning_directory is selected"
-        else:
-            assert not opts.genomes,  "--genomes cannot be used if --binning_directory is selected"
-    else:
-        if opts.genomes != "stdin":
-            assert os.path.exists(opts.genomes)
-        else:
-            assert not sys.stdin.isatty(), "If --binning_directory is not selected and --genomes is not provided explicit file then stdin is expected"
-
     # assert bool(opts.binning_directory) != bool(opts.genomes), "Must choose either --binning_directory or --genomes, not both."
-
 
     if not opts.bin_prefix:
         opts.bin_prefix = ""
@@ -60,6 +47,14 @@ def main(args=None):
 
     if opts.binning_directory:
         assert os.path.exists(opts.binning_directory), "{} does not exist".format(opts.binning_directory)
+        if opts.genomes == "stdin":
+            # assert sys.stdin.isatty(), "--genomes cannot have any stdin if --binning_directory is selected"
+            if sys.stdin.isatty():
+                warnings.warn("stdin is ignored")
+        else:
+            raise Exception("--genomes cannot be used if --binning_directory is selected")
+        
+
         for filepath in glob.glob(os.path.join(opts.binning_directory, "*.{}".format(opts.extension))):
             id_bin = filepath.split("/")[-1][:-1*(len(opts.extension)+1)]
             id_bin = "{}{}".format(opts.bin_prefix, id_bin)
@@ -80,9 +75,13 @@ def main(args=None):
             f.close()
 
     else:
+        assert opts.binning_directory is None, "--genomes cannot be used if --binning_directory is selected"
         if opts.genomes:
             if opts.genomes == "stdin":
                 opts.genomes = sys.stdin 
+            else:
+                assert os.path.exists(opts.genomes)
+
 
             # Load table
             df_genomes = pd.read_csv(opts.genomes, sep="\t", index_col=0, header=None)

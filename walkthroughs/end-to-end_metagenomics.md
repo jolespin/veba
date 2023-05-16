@@ -449,8 +449,8 @@ CMD="source activate VEBA-classify_env && classify-viral.py -i ${BINNING_DIRECTO
 
 **The following output files will produced:** 
 
-* viral\_taxonomy.tsv - Viral genome classification based on geNomad classifications
-* viral\_taxonomy.clusters.tsv - Viral cluster classification (If `--clusters` are provided)
+* taxonomy.tsv - Viral genome classification based on geNomad classifications
+* taxonomy.clusters.tsv - Viral cluster classification (If `--clusters` are provided)
 
 #### 11. Classify prokaryotic genomes
 Prokaryotic classification is performed using `GTDB-Tk`.  Classification can be performed using the intermediate binning results which is easier.  Alternatively, if you have prokaryotes identified elsewhere you can still classify using the `--genomes` argument instead.
@@ -481,8 +481,8 @@ CMD="source activate VEBA-classify_env && classify-prokaryotic.py -i ${BINNING_D
 
 The following output files will produced: 
 
-* prokaryotic\_taxonomy.tsv - Prokaryotic genome classification based on GTDB-Tk
-* prokaryotic\_taxonomy.clusters.tsv - Prokaryotic cluster classification (If --clusters are provided)
+* taxonomy.tsv - Prokaryotic genome classification based on GTDB-Tk
+* taxonomy.clusters.tsv - Prokaryotic cluster classification (If --clusters are provided)
 
 #### 12. Classify eukaryotic genomes
 *VEBA* is going to use the *MetaEuk/MMSEQS2* protein alignments based on [*VEBA's* microeukaryotic protein database](https://doi.org/10.6084/m9.figshare.19668855.v1).  The default is to use [BUSCO's eukaryota_odb10](https://busco-data.ezlab.org/v5/data/lineages/eukaryota_odb10.2020-09-10.tar.gz) marker set but you can use the annotations from all proteins if you want by providing the `--include_all_genes` flag. The former will take a little bit longer since it needs to run *hmmsearch* but it's more robust and doesn't take that much longer.
@@ -513,13 +513,29 @@ CMD="source activate VEBA-classify_env && classify-eukaryotic.py -i ${BINNING_DI
 
 The following output files will produced: 
 
-* eukaryotic\_taxonomy.tsv - Eukaryotic genome classification based on microeukaryotic protein database and BUSCO's eukaryota_odb10 marker set
-* eukaryotic\_taxonomy.clusters.tsv - Eukaryotic cluster classification (If --clusters are provided)
+* taxonomy.tsv - Eukaryotic genome classification based on microeukaryotic protein database and BUSCO's eukaryota_odb10 marker set
+* taxonomy.clusters.tsv - Eukaryotic cluster classification (If --clusters are provided)
 * gene-source\_lineage.tsv - Gene source lineage and scores for classifying MAGs [id_gene, id_scaffold, id_mag, id_target, id_source, lineage, bitscore]
 
+#### 13. Merge classifications
+Instead of having 3 separate classification tables, it would be much more useful to have 1 single classifcation table for viruses, prokaryotes, and eukaryotes.  To do this, use the following wrapper script: 
 
-#### 13. Annotate proteins
-Now that allf of the MAGs are recovered and classified, let's annotate the proteins using best-hit against NR, Pfam, and KOFAM.
+**Recommended memory request:** `1 GB`
+
+
+**Conda Environment:** `conda activate VEBA-classify_env`
+
+```
+merge_taxonomy_classifications.py -i veba_output/classify -o veba_output/classify
+```
+
+The following output files will produced: 
+
+* taxonomy_classifications.tsv - Taxonomy with respect to genomes 
+* taxonomy_classifications.clusters.tsv - Taxonomy with respect to genome clusters
+
+#### 14. Annotate proteins
+Now that allf of the MAGs are recovered and classified, let's annotate the proteins using best-hit against UniRef, Pfam, and KOFAM.
 
 **Conda Environment:** `conda activate VEBA-annotate_env`
 
@@ -604,7 +620,7 @@ for i in $(seq -f "%03g" 1 ${N_PARTITIONS}); do
 
 The following output files will produced: 
 
-* protein_annotations.tsv.gz - Concatenated annotations from Diamond (NR), HMMSearch (Pfam), HMMSearch (NCBIfam-AMRFinder), HMMSearch (AntiFam), and KOFAMSCAN (KOFAM)
+* annotations.tsv.gz - Concatenated annotations from Diamond (NR), HMMSearch (Pfam), HMMSearch (NCBIfam-AMRFinder), HMMSearch (AntiFam), and KOFAMSCAN (KOFAM)
 * lineage.weighted_majority_vote.contigs.tsv.gz - [Experimental] Lineage predictions for contigs based on NR annotations.  This should be used only for experimentation as lineages are not determined using core markers. Contig-level classifications.
 * lineage.weighted_majority_vote.genomes.tsv.gz - [Experimental] Lineage predictions for contigs based on NR annotations.  This should be used only for experimentation as lineages are not determined using core markers. MAG-level classifications.
 

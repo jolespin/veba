@@ -13,7 +13,7 @@ from soothsayer_utils import *
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.5.8"
+__version__ = "2023.5.15"
 
 # Assembly
 def get_concatenate_cmd( input_filepaths, output_filepaths, output_directory, directories, opts):
@@ -197,9 +197,10 @@ def get_krona_cmd( input_filepaths, output_filepaths, output_directory, director
 
             "&&",
 
-        "ln -sf $(realpath {}) {}".format(
+        "SRC={}; DST={}; SRC=$(realpath --relative-to $DST $SRC); ln -sf $SRC $DST".format(
         os.path.join(output_directory, "krona.html"),
         directories["output"],
+        
         )
     ]
     return cmd
@@ -230,22 +231,6 @@ def get_consensus_cluster_classification_cmd( input_filepaths, output_filepaths,
 
     ]
     return cmd
-
-
-
-
-
-# Symlink
-# def get_symlink_cmd(input_filepaths, output_filepaths, output_directory, directories, opts):
-    
-#     # Command
-#     cmd = ["("]
-#     for filepath in input_filepaths:
-#         # cmd.append("ln -f -s {} {}".format(os.path.realpath(filepath), os.path.realpath(output_directory)))
-#         cmd.append("ln -f -s {} {}".format(os.path.realpath(filepath), output_directory))
-#         cmd.append("&&")
-#     cmd[-1] = ")"
-#     return cmd
 
 # ============
 # Run Pipeline
@@ -506,7 +491,7 @@ def create_pipeline(opts, directories, f_cmds):
     # i/o
     input_filepaths = output_filepaths
     
-    output_filenames = ["eukaryotic_taxonomy.tsv"]
+    output_filenames = ["taxonomy.tsv"]
     output_filepaths = list(map(lambda filename: os.path.join(output_directory, filename), output_filenames))
 
     params = {
@@ -545,7 +530,7 @@ def create_pipeline(opts, directories, f_cmds):
 
 
     # i/o
-    input_filepaths = output_filepaths
+    input_filepaths = [os.path.join(directories["output"], "taxonomy.tsv")]
     output_filenames = ["krona.tsv", "krona.html"]
     output_filepaths = list(map(lambda filename: os.path.join(output_directory, filename), output_filenames))
 
@@ -587,9 +572,8 @@ def create_pipeline(opts, directories, f_cmds):
 
 
         # i/o
-        input_filepaths = output_filepaths
-        
-        output_filenames = ["eukaryotic_taxonomy.clusters.tsv"]
+        input_filepaths = [os.path.join(directories["output"], "taxonomy.tsv")]
+        output_filenames = ["taxonomy.clusters.tsv"]
         output_filepaths = list(map(lambda filename: os.path.join(output_directory, filename), output_filenames))
 
         params = {

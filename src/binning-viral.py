@@ -13,7 +13,7 @@ from soothsayer_utils import *
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.5.8"
+__version__ = "2023.5.15"
 
 # geNomad
 def get_genomad_cmd(input_filepaths, output_filepaths, output_directory, directories, opts):
@@ -337,26 +337,16 @@ def get_output_cmd(input_filepaths, output_filepaths, output_directory, director
     # checkm lineage_wf --tab_table -f checkm_output/${ID}/output.tab --pplacer_threads ${N_JOBS} -t ${N_JOBS} -x fa -r ${BINS} ${OUT_DIR}
     cmd = [
         "rm -rf {}".format(os.path.join(output_directory, "*")),
-
-        # # For pipeline purposes, most likely this file will be overwritten later in this step
-        # "cat",
-        # opts.fasta,
-        # "|",
-        # os.environ["seqkit"],
-        # "seq",
-        # "-m {}".format(opts.minimum_contig_length),
-        # ">" ,
-        # output_filepaths[2],
+            "&&",
     ]
 
-    for fp in input_filepaths:
-        fn = fp.split("/")[-1]
-        cmd += [ 
-                "&&",
-            "ln -sf",
-            os.path.realpath(os.path.join(fp)),
-            os.path.join(output_directory,fn),
-        ]
+    cmd += [
+    "DST={}; (for SRC in {}; do SRC=$(realpath --relative-to $DST $SRC); ln -sf $SRC $DST; done)".format(
+        output_directory,
+        " ".join(input_filepaths), 
+        )
+    ]
+
 
     cmd += [ 
             "&&",

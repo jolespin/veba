@@ -14,7 +14,7 @@ from soothsayer_utils import *
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.5.8"
+__version__ = "2023.5.15"
 
 # GTDB-Tk
 def get_gtdbtk_cmd( input_filepaths, output_filepaths, output_directory, directories, opts):
@@ -80,7 +80,7 @@ def get_gtdbtk_cmd( input_filepaths, output_filepaths, output_directory, directo
         os.path.join(output_directory, "classify", "gtdbtk.ar122.summary.tsv"),
         os.path.join(output_directory, "classify", "gtdbtk.bac120.summary.tsv"),
         ">",
-        os.path.join(directories["output"], "prokaryotic_taxonomy.tsv"),
+        os.path.join(directories["output"], "taxonomy.tsv"),
 
             "&&",
 
@@ -107,7 +107,7 @@ def get_krona_cmd( input_filepaths, output_filepaths, output_directory, director
 
             "&&",
 
-        "ln -sf $(realpath {}) {}".format(
+        "SRC={}; DST={}; SRC=$(realpath --relative-to $DST $SRC); ln -sf $SRC $DST".format(
         os.path.join(output_directory, "krona.html"),
         directories["output"],
         )
@@ -227,7 +227,7 @@ def create_pipeline(opts, directories, f_cmds):
         input_filepaths = [
             opts.genomes,
             ]
-    output_filenames = ["prokaryotic_taxonomy.tsv"]
+    output_filenames = ["taxonomy.tsv"]
     output_filepaths = list(map(lambda filename: os.path.join(directories["output"], filename), output_filenames))
 
     params = {
@@ -308,10 +308,10 @@ def create_pipeline(opts, directories, f_cmds):
 
         # i/o
         input_filepaths = [
-            os.path.join(directories["output"], "prokaryotic_taxonomy.tsv"),
+            os.path.join(directories["output"], "taxonomy.tsv"),
             opts.clusters,
             ]
-        output_filenames = ["prokaryotic_taxonomy.clusters.tsv"]
+        output_filenames = ["taxonomy.clusters.tsv"]
         output_filepaths = list(map(lambda filename: os.path.join(output_directory, filename), output_filenames))
 
         params = {

@@ -12,7 +12,7 @@ from soothsayer_utils import *
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.5.8"
+__version__ = "2023.5.15"
 
 # Assembly
 def get_coverage_cmd( input_filepaths, output_filepaths, output_directory, directories, opts):
@@ -453,47 +453,23 @@ def get_consolidate_cmd(input_filepaths, output_filepaths, output_directory, dir
         os.path.join(output_directory, "checkm2_results.filtered.tsv"),
     ]
 
-    # # Genomes
-    # for fp in glob.glob(input_filepaths[4]):
-    #     fn = os.path.split(fp)[1]
-    #     src = os.path.realpath(os.path.join(fp))
-    #     dst = os.path.join(output_directory,"genomes", fn)
-    #     cmd += [ 
-    #         "&&",
-    #         "ln -sf",
-    #         src,
-    #         dst,
-    #     ]
-    
         # Genomes
 
     cmd += [ 
-        "&&",
-        # "cp -rf",
-        "ln -sf",
+            "&&",
+        "SRC={}; DST={}; SRC=$(realpath --relative-to $DST $SRC); ln -sf $SRC $DST".format(
         input_filepaths[4],
         os.path.join(output_directory,"genomes"),
+    ),
     ]
     
-    # # Featurecounts
-    # for fp in [input_filepaths[5]]:
-    #     fn = os.path.split(fp)[1]
-    #     src = os.path.realpath(os.path.join(fp))
-    #     dst = os.path.join(output_directory, fn)
-    #     cmd += [ 
-    #         "&&",
-    #         "ln -sf",
-    #         src,
-    #         dst,
-    #     ]
-
     # Featurecounts
     cmd += [
             "&&",
-            # "ln -sfr",
-            "cp -rf",
+        "SRC={}; DST={}; SRC=$(realpath --relative-to $DST $SRC); ln -sf $SRC $DST".format(
             input_filepaths[5],
             output_directory,
+        )
         ]
         
     # SeqKit
