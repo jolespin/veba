@@ -69,4 +69,4 @@ The following output files will produced:
 
 #### Next steps:
 
-Synthesize products and save humanity.
+Synthesize products, preserve the ecosystem, and save humanity.
