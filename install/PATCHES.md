@@ -198,3 +198,37 @@ In this example, we are going to reinstall the `VEBA-binning-prokarytic_env` env
 Don't forget to include the `.` because this specifies you're IN the repository you want to use for the files.  
 
 5. Finish up your patch by creating activate/deactivate scripts along with setting/unsetting necessary environment variables: `bash install/update_environment_variables.sh /path/to/veba_database`
+
+##### 7. How can I update the annotation databases going from v1.1.1 to v1.1.2? That is, how can I get the UniRef 
+
+First set your database directory: 
+
+```
+DATABASE_DIRECTORY=path/to/veba_database
+```
+
+Then run this command: 
+
+```
+# UniRef
+echo ". .. ... ..... ........ ............."
+echo "x * Processing UniRef diamond database"
+echo ". .. ... ..... ........ ............."
+mkdir -v -p ${DATABASE_DIRECTORY}/Annotate/UniRef
+
+wget -v -P ${DATABASE_DIRECTORY}/Annotate/UniRef/ https://ftp.uniprot.org/pub/databases/uniprot/current_release/uniref/uniref90/uniref90.release_note
+wget -v -P ${DATABASE_DIRECTORY} https://ftp.uniprot.org/pub/databases/uniprot/uniref/uniref90/uniref90.fasta.gz
+diamond makedb --in ${DATABASE_DIRECTORY}/uniref90.fasta.gz --db ${DATABASE_DIRECTORY}/Annotate/UniRef/uniref90.dmnd
+rm -rf ${DATABASE_DIRECTORY}/uniref90.fasta.gz
+
+wget -v -P ${DATABASE_DIRECTORY}/Annotate/UniRef/ https://ftp.uniprot.org/pub/databases/uniprot/current_release/uniref/uniref50/uniref50.release_note
+wget -v -P ${DATABASE_DIRECTORY} https://ftp.uniprot.org/pub/databases/uniprot/uniref/uniref50/uniref50.fasta.gz
+diamond makedb --in ${DATABASE_DIRECTORY}/uniref50.fasta.gz --db ${DATABASE_DIRECTORY}/Annotate/UniRef/uniref50.dmnd
+rm -rf ${DATABASE_DIRECTORY}/uniref50.fasta.gz
+```
+
+Optionally, remove the nr database which won't be used anymore by VEBA:
+
+```
+rm -rf ${DATABASE_DIRECTORY}/Annotate/nr
+```
