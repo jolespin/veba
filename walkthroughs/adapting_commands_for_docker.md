@@ -9,6 +9,7 @@ _____________________________________________________
 2. Pull the image for the module
 3. Run Docker container
 4. Get the results
+5. Use Singularity (Coming Soon)
 
 _____________________________________________________
 
@@ -24,7 +25,7 @@ Let's say you wanted to use the `assembly.py` module.  Download the Docker image
 
 ```
 VERSION=1.1.2
-docker image pull veba/assembly:1.1.2
+docker image pull jolespin/veba_assembly:1.1.2
 ``` 
 
 #### 3. Run Docker container
