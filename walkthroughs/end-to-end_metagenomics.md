@@ -295,7 +295,7 @@ N=pseudo-coassembly
 
 N_JOBS=16 # Let's use more threads here because we are going to be handling multiple samples at once
 
-CMD="source activate VEBA-assembly_env && coverage.py -f veba_output/misc/all_sample_specific_mags.unbinned_contigs.gt1500.fasta -r reads_table.tsv -p ${N_JOBS} -o veba_output/assembly/pseudo-coassembly -m 1500"
+CMD="source activate VEBA-assembly_env && coverage.py -f veba_output/misc/all_sample_specific_mags.unbinned_contigs.gt1500.fasta -r veba_output/misc/reads_table.tsv -p ${N_JOBS} -o veba_output/assembly/pseudo-coassembly -m 1500"
 
 # Either run this command or use SunGridEnginge/SLURM
 ```

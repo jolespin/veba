@@ -12,7 +12,7 @@ from soothsayer_utils import *
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.5.15"
+__version__ = "2023.5.16"
 
 # .............................................................................
 # Notes
@@ -201,6 +201,7 @@ def get_featurecounts_cmd(input_filepaths, output_filepaths, output_directory, d
         "-F SAF",
         "--tmpDir {}".format(os.path.join(directories["tmp"], "featurecounts")),
         "-T {}".format(opts.n_jobs),
+        "-p --countReadPairs",
         opts.featurecounts_options,
         *input_filepaths[1:],
     ")",

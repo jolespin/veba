@@ -137,6 +137,23 @@ rm -rf ${DATABASE_DIRECTORY}/NCBIfam-AMRFinder.HMM.tar.gz
 # diamond makedb --in ${DATABASE_DIRECTORY}/nr.gz --db ${DATABASE_DIRECTORY}/Annotate/nr/nr.dmnd --taxonmap ${DATABASE_DIRECTORY}/Classify/NCBITaxonomy/prot.accession2taxid.FULL.gz --taxonnodes ${DATABASE_DIRECTORY}/Classify/NCBITaxonomy/nodes.dmp --taxonnames ${DATABASE_DIRECTORY}/Classify/NCBITaxonomy/names.dmp
 # rm -rf ${DATABASE_DIRECTORY}/nr.gz
 
+# # UniRef
+# echo ". .. ... ..... ........ ............."
+# echo "x * Processing UniRef diamond database"
+# echo ". .. ... ..... ........ ............."
+# mkdir -v -p ${DATABASE_DIRECTORY}/Annotate/UniRef
+
+# wget -v -P ${DATABASE_DIRECTORY}/Annotate/UniRef/ https://ftp.uniprot.org/pub/databases/uniprot/current_release/uniref/uniref90/uniref90.release_note
+# wget -v -P ${DATABASE_DIRECTORY} https://ftp.uniprot.org/pub/databases/uniprot/uniref/uniref90/uniref90.fasta.gz
+# diamond makedb --in ${DATABASE_DIRECTORY}/uniref90.fasta.gz --db ${DATABASE_DIRECTORY}/Annotate/UniRef/uniref90.dmnd
+# rm -rf ${DATABASE_DIRECTORY}/uniref90.fasta.gz
+
+# wget -v -P ${DATABASE_DIRECTORY}/Annotate/UniRef/ https://ftp.uniprot.org/pub/databases/uniprot/current_release/uniref/uniref50/uniref50.release_note
+# wget -v -P ${DATABASE_DIRECTORY} https://ftp.uniprot.org/pub/databases/uniprot/uniref/uniref50/uniref50.fasta.gz
+# diamond makedb --in ${DATABASE_DIRECTORY}/uniref50.fasta.gz --db ${DATABASE_DIRECTORY}/Annotate/UniRef/uniref50.dmnd
+# rm -rf ${DATABASE_DIRECTORY}/uniref50.fasta.gz
+
+
 #MiBIG
 mkdir -v -p ${DATABASE_DIRECTORY}/Annotate/MIBiG
 wget -v -P ${DATABASE_DIRECTORY} https://dl.secondarymetabolites.org/mibig/mibig_prot_seqs_3.1.fasta

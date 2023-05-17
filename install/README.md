@@ -5,9 +5,9 @@ One issue with having large-scale pipeline suites with open-source software is t
 
 The basis for these environments is creating a separate environment for each module with the `VEBA-` prefix and `_env` as the suffix.  For example `VEBA-assembly_env` or `VEBA-binning-prokaryotic_env`.  Because of this, `VEBA` is currently not available as a `conda` package but each module will be in the near future.  In the meantime, please use the `veba/install/install_veba.sh` script which installs each environment from the yaml files in `veba/install/environments/`. After installing the environments, use the `veba/install/download_databases` script to download and configure the databases while also adding the environment variables to the activate/deactivate scripts in each environment.  To install anything manually, just read the scripts as they are well documented and refer to different URL and paths for specific installation options.
 
-The majority of the time taken to build database is downloading/decompressing large archives, `Diamond` database creation of NR, and `MMSEQS2` database creation of microeukaryotic protein database.
+The majority of the time taken to build database is downloading/decompressing large archives, `Diamond` database creation of UniRef, and `MMSEQS2` database creation of microeukaryotic protein database.
 
-Total size is `390 GB` but if you have certain databases installed already then you can just symlink them so the `VEBA_DATABASE` path has the correct structure.  Note, the exact size may vary as Pfam and NR are updated regularly.
+Total size is `214 GB` but if you have certain databases installed already then you can just symlink them so the `VEBA_DATABASE` path has the correct structure.  Note, the exact size may vary as Pfam and UniRef are updated regularly.
 
 Each major version will be packaged as a [release](https://github.com/jolespin/veba/releases) which will include a log of module and script versions. 
 
@@ -111,10 +111,9 @@ bash install_veba.sh
 
 **3. Activate the database conda environment, download, and configure databases**
 
-**Recommended resource allocatation:** 16 hours with 64 GB memory (include extra time for variable I/O speed for various hosts)
+**Recommended resource allocatation:**  48 GB memory (time is dependent on I/O of database repositories)
 
-
-⚠️ **This step should take ~11 hrs with 64 GB memory** and should be run using a compute grid via SLURM or SunGridEngine.  If this command is run on the head node it will likely fail or timeout if a connection is interrupted. The most computationally intensive steps are creating a `Diamond` database of NCBI's non-redundant reference and a `MMSEQS2` database of the microeukaryotic protein database.  Note the duration will depend on several factors including your internet connection speed and the i/o of public repositories.
+⚠️ **This step should use up to 48 GB memory** and should be run using a compute grid via SLURM or SunGridEngine.  If this command is run on the head node it will likely fail or timeout if a connection is interrupted. The most computationally intensive steps are creating a `Diamond` database of NCBI's non-redundant reference and a `MMSEQS2` database of the microeukaryotic protein database.  Note the duration will depend on several factors including your internet connection speed and the i/o of public repositories.
 
 If issues arise, please [submit a GitHub issue](https://github.com/jolespin/veba/issues) prefixed with `[Database]`. We are here to help :)
 
@@ -197,6 +196,11 @@ Future versions will have `bioconda` installation available.
 bash update_environment_variables.sh
 ```
 
+**If you want to use containerized versions:**
+
+Please refer to the [adapting commands for Docker walkthrough](https://github.com/jolespin/veba/blob/main/walkthroughs/adapting_commands_for_docker.md).
+
+
 ____________________________________________________________
 
 ### Uninstall:
@@ -239,7 +243,7 @@ There are currently 2 ways to update veba:
 | VEBA-classify_env            | VEBA-classify_env.yml            | 16GB-64GB              | Classify eukaryotic, prokaryotic, and viral genomes                                                                      | 1                   | Taxonomic classification of eukaryotic genomes                                                                  |
 | VEBA-cluster_env             | VEBA-cluster_env.yml             | 32GB                   | Species-level clustering of genomes and lineage-specific orthogroup   detection.                                         | 4                   | Taxonomic classification and isolation source of viral genomes                                                  |
 | VEBA-database_env            | VEBA-database_env.yml            | 64GB                   | Contains all the programs needed to download and build the VEBA database                                                 | 32                  | Species-level clustering of genomes and lineage-specific orthogroup detection                                   |
-| VEBA-mapping_env             | VEBA-mapping_env.yml             | 16GB                   | Aligns reads to local or global index of genomes. By default uses Bowtie2   but future versions will use Salmon as well. | 32                  | Annotates translated gene calls against NR, Pfam, and KOFAM                                                     |
+| VEBA-mapping_env             | VEBA-mapping_env.yml             | 16GB                   | Aligns reads to local or global index of genomes. By default uses Bowtie2   but future versions will use Salmon as well. | 32                  | Annotates translated gene calls against UniRef, Pfam, and KOFAM                                                     |
 | VEBA-phylogeny_env           | VEBA-phylogeny_env.yml           | 16+GB                  | Constructs phylogenetic trees given a marker set using concatenated   protein alignments                                 | 32                  | Constructs phylogenetic trees given a marker set                                                                |
 | Stable                       | VEBA-mapping_env                 | index.py               | 16GB                                                                                                                     | 4                   | Builds local or global index for alignment to genomes                                                           |
 | Stable                       | VEBA-mapping_env                 | mapping.py             | 16GB                                                                                                                     | 4                   | Aligns reads to local or global index of genomes                                                                |
@@ -284,8 +288,150 @@ A protein database is required not only for eukaryotic gene calls using MetaEuk 
 #### Database Structure:
 
 **Current:**
+*VEBA Database* version: `VDB_v5`
+`VDB_v4` → `VDB_v5` replaces `nr` with `UniRef90` and `UniRef50`.  Also includes `MiBIG` database.
 
-* *VEBA Database* version: `VDB_v4`
+```
+tree -L 3 .
+├── ACCESS_DATE
+├── Annotate
+│   ├── KOFAM
+│   │   ├── ko_list
+│   │   └── profiles
+│   ├── MIBiG
+│   │   └── mibig_v3.1.dmnd
+│   ├── NCBIfam-AMRFinder
+│   │   ├── NCBIfam-AMRFinder.changelog.txt
+│   │   ├── NCBIfam-AMRFinder.hmm.gz
+│   │   └── NCBIfam-AMRFinder.tsv
+│   ├── Pfam
+│   │   ├── Pfam-A.hmm.gz
+│   │   └── relnotes.txt
+│   └── UniRef
+│       ├── uniref50.dmnd
+│       └── uniref90.dmnd
+├── Classify
+│   ├── CheckM2
+│   │   └── uniref100.KO.1.dmnd
+│   ├── CheckV
+│   │   ├── genome_db
+│   │   ├── hmm_db
+│   │   └── README.txt
+│   ├── geNomad
+│   │   ├── genomad_db
+│   │   ├── genomad_db.dbtype
+│   │   ├── genomad_db_h
+│   │   ├── genomad_db_h.dbtype
+│   │   ├── genomad_db_h.index
+│   │   ├── genomad_db.index
+│   │   ├── genomad_db.lookup
+│   │   ├── genomad_db_mapping
+│   │   ├── genomad_db.source
+│   │   ├── genomad_db_taxonomy
+│   │   ├── genomad_integrase_db
+│   │   ├── genomad_integrase_db.dbtype
+│   │   ├── genomad_integrase_db_h
+│   │   ├── genomad_integrase_db_h.dbtype
+│   │   ├── genomad_integrase_db_h.index
+│   │   ├── genomad_integrase_db.index
+│   │   ├── genomad_integrase_db.lookup
+│   │   ├── genomad_integrase_db.source
+│   │   ├── genomad_marker_metadata.tsv
+│   │   ├── genomad_mini_db -> genomad_db
+│   │   ├── genomad_mini_db.dbtype
+│   │   ├── genomad_mini_db_h -> genomad_db_h
+│   │   ├── genomad_mini_db_h.dbtype -> genomad_db_h.dbtype
+│   │   ├── genomad_mini_db_h.index -> genomad_db_h.index
+│   │   ├── genomad_mini_db.index
+│   │   ├── genomad_mini_db.lookup -> genomad_db.lookup
+│   │   ├── genomad_mini_db_mapping -> genomad_db_mapping
+│   │   ├── genomad_mini_db.source -> genomad_db.source
+│   │   ├── genomad_mini_db_taxonomy -> genomad_db_taxonomy
+│   │   ├── mini_set_ids
+│   │   ├── names.dmp
+│   │   ├── nodes.dmp
+│   │   ├── plasmid_hallmark_annotation.txt
+│   │   ├── version.txt
+│   │   └── virus_hallmark_annotation.txt
+│   ├── GTDBTk
+│   │   ├── fastani
+│   │   ├── markers
+│   │   ├── masks
+│   │   ├── metadata
+│   │   ├── mrca_red
+│   │   ├── msa
+│   │   ├── pplacer
+│   │   ├── radii
+│   │   ├── split
+│   │   ├── taxonomy
+│   │   └── temp
+│   ├── Microeukaryotic
+│   │   ├── humann_uniref50_annotations.tsv.gz
+│   │   ├── md5_checksums
+│   │   ├── microeukaryotic
+│   │   ├── microeukaryotic.dbtype
+│   │   ├── microeukaryotic.eukaryota_odb10
+│   │   ├── microeukaryotic.eukaryota_odb10.dbtype
+│   │   ├── microeukaryotic.eukaryota_odb10_h
+│   │   ├── microeukaryotic.eukaryota_odb10_h.dbtype
+│   │   ├── microeukaryotic.eukaryota_odb10_h.index
+│   │   ├── microeukaryotic.eukaryota_odb10.index
+│   │   ├── microeukaryotic.eukaryota_odb10.lookup
+│   │   ├── microeukaryotic.eukaryota_odb10.source
+│   │   ├── microeukaryotic_h
+│   │   ├── microeukaryotic_h.dbtype
+│   │   ├── microeukaryotic_h.index
+│   │   ├── microeukaryotic.index
+│   │   ├── microeukaryotic.lookup
+│   │   ├── microeukaryotic.source
+│   │   ├── reference.eukaryota_odb10.list
+│   │   ├── RELEASE_NOTES
+│   │   ├── source_taxonomy.tsv.gz
+│   │   ├── source_to_lineage.dict.pkl.gz
+│   │   └── target_to_source.dict.pkl.gz
+│   └── NCBITaxonomy
+│       ├── citations.dmp
+│       ├── delnodes.dmp
+│       ├── division.dmp
+│       ├── gc.prt
+│       ├── gencode.dmp
+│       ├── images.dmp
+│       ├── merged.dmp
+│       ├── names.dmp
+│       ├── nodes.dmp
+│       ├── prot.accession2taxid.FULL.gz
+│       └── readme.txt
+├── Contamination
+│   ├── AntiFam
+│   │   ├── AntiFam.hmm.gz
+│   │   ├── relnotes
+│   │   └── version
+│   ├── chm13v2.0
+│   │   ├── chm13v2.0.1.bt2
+│   │   ├── chm13v2.0.2.bt2
+│   │   ├── chm13v2.0.3.bt2
+│   │   ├── chm13v2.0.4.bt2
+│   │   ├── chm13v2.0.rev.1.bt2
+│   │   └── chm13v2.0.rev.2.bt2
+│   └── kmers
+│       └── ribokmers.fa.gz
+└── MarkerSets
+    ├── Archaea_76.hmm.gz
+    ├── Bacteria_71.hmm.gz
+    ├── CPR_43.hmm.gz
+    ├── eukaryota_odb10.hmm.gz
+    ├── eukaryota_odb10.scores_cutoff.tsv.gz
+    ├── Fungi_593.hmm.gz
+    ├── Protista_83.hmm.gz
+    └── README
+```
+
+
+**Deprecated:**
+
+<details>
+	<summary> *VEBA Database* version: `VDB_v4` </summary>
+	
 
 `VDB_v4` is `VDB_v3.1` with the following changes: 1) `CheckM1` database swapped for `CheckM2` database;  includes `geNomad` database; and 3) updates `CheckV` database.  Refer to [development log](https://github.com/jolespin/veba/blob/main/DEVELOPMENT.md#release-v11-currently-testing-before-official-release) for specifics.
 
@@ -422,9 +568,7 @@ tree -L 3 .
 
 31 directories, 96 files
 ```
-
-
-**Deprecated:**
+</details>
 
 
 <details>

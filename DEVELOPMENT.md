@@ -6,6 +6,26 @@ ________________________________________________________________
 
 #### Current Releases:
 
+##### Release v1.1.2
+* Created Docker images for all modules
+* Replaced all absolute path symlinks with relative symlinks
+* Changed `prokaryotic_taxonomy.tsv` and `prokaryotic_taxonomy.clusters.tsv` in `classify-prokaryotic.py` (along with eukaryotic and viral) files to `taxonomy.tsv` and `taxonomy.clusters.tsv` for uniformity.
+* Updating all symlinks to relative links (also in `fastq_preprocessor`) to prepare for dockerization and updating all environments to use updated GenoPype 2023.4.13.
+* Changed `nr` to `uniref` in `annotate.py` and added `propagate_annotations_from_representatives.py` script while simplifying `merge_annotations_and_taxonomy.py` to `merge_annotations.py` and excluding taxonomy operations.
+* Changed `nr` to `UniRef90` and `UniRef50` in `VDB_v5` 
+* Changed `orfs_to_orthogroups.tsv` to `proteins_to_orthogroups.tsv` for consistency with the `cluster.py` module.  Will eventually find some consitency with `scaffolds_to_bins/scaffolds_to_mags` but this will be later.
+* Added a `scaffolds_to_mags.tsv` in the clustering output.
+* Added `convert_counts_table.py` which converts a counts table (and metadata) to [Pandas pickle](https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.to_pickle.html), [Anndata h5ad](https://anndata.readthedocs.io/en/latest/generated/anndata.AnnData.write_h5ad.html), or [Biom hdf5](https://biom-format.org/documentation/generated/biom.table.Table.to_hdf5.html#biom.table.Table.to_hdf5)
+* Fixed output directory for `mapping.py` which now uses `output_directory/${NAME}` structure like `binning-*.py`.
+* Removed "python" prefix for script calls and now uses shebang in script for executable. Also added single paranthesis around script filepath (e.g., `'[script_filepath]'`) to escape characters/spaces in filepath.
+* Added support for `index.py` to accept individual `--references [file.fasta]` and `--gene_models [file.gff]`.
+* Added `stdin` support for `scaffolds_to_bins.py` along with the ability to input genome tables [id_genome]<tab>[filepath].  Also added progress bars.
+* As a result of [issues/22](https://github.com/jolespin/veba/issues/22), `assembly.py`, `assembly-sequential.py`, `binning-*.py`, and `mapping.py` will use `-p --countReadPairs` for `featureCounts` and updates `subread 2.0.1 -> subread 2.0.3`.  For `binning-*.py`, long reads can be used with the `--long_reads` flag.
+* Updated `cluster.py` and associated `global_clustering.py`/`local_clustering.py` scripts to use `mmseqs2_wrapper.py` which now automatically outputs representative sequences.  
+* Added `check_fasta_duplicates.py` script that gives `0` and `1` exit codes for fasta without and with duplicates, respectively.  Added `reformat_representative_sequences.py` to reformat representative sequences from `MMSEQS2` into either a table or fasta file where the identifers are cluster labels.  Removed `--dbtype` from `[global/local]_clustering.py`.  Removed appended prefix for `.graph.pkl` and `dict.pkl` in `edgelist_to_clusters.py`.  Added `mmseqs2_wrapper.py` and `hmmer_wrapper.py` scripts.
+* Added an option to `merge_generalized_mapping.py` to include the sample index in a filepath and also an option to remove empty features (useful for Salmon).  Added an `executable='/bin/bash'` option to the `subprocess.Popen` calls in `GenoPype` to address [issues/23](https://github.com/jolespin/veba/issues/23).
+* Added `genbanks/[id_genome]/` to output directory of `biosynthetic.py` which has symlinks to all the BGC genbanks from `antiSMASH`.
+
 ##### Release v1.1.1
 
 * Most important update includes fixing a broken VEBA-`binning-viral.yml` install recipe which had package conflicts for `aria2` 30e8b0a.
@@ -200,7 +220,6 @@ ________________________________________________________________
 
 **Probably (Yes)?:**
 * Add [iPHoP](https://bitbucket.org/srouxjgi/iphop/src/main/) to `binning-viral.py`.
-* Add wrapper for [Krona graphs](https://github.com/tillrobin/iMGMC/blob/master/tutorials/map-to-MAGs-Krona-plot.md).
 * Add a `metabolic.py` module
 * Swap [`TransDecoder`](https://github.com/TransDecoder/TransDecoder) for [`TransSuite`](https://github.com/anonconda/TranSuite)
 * Add support for `Anvi'o` object export in `cluster.py`
@@ -215,6 +234,8 @@ ________________________________________________________________
 
 
 #### Change Log:
+* [2023.5.16] - Created Docker images for all modules
+* [2023.5.16] - Replaced all absolute path symlinks with relative symlinks.
 * [2023.5.15] - Changed `prokaryotic_taxonomy.tsv` and `prokaryotic_taxonomy.clusters.tsv` in `classify-prokaryotic.py` (along with eukaryotic and viral) files to `taxonomy.tsv` and `taxonomy.clusters.tsv` for uniformity.
 * [2023.5.15] - Updating all symlinks to relative links (also in `fastq_preprocessor`) to prepare for dockerization and updating all environments to use updated GenoPype 2023.4.13.
 * [2023.5.14] - Changed `nr` to `uniref` in `annotate.py` and added `propagate_annotations_from_representatives.py` script while simplifying `merge_annotations_and_taxonomy.py` to `merge_annotations.py` and excluding taxonomy operations.
@@ -275,7 +296,7 @@ ________________________________________________________________
 * [2022.02.22] - Made the original `preprocess.py` -> `preprocess-kneaddata.py` and the new `preprocess.py` a wrapper around `fastq_preprocessor`
 * [2022.02.22] - Made the `index.py` module
 * [2022.02.22] - `concatenate_fasta.py` and `concatenate_gff.py`
-* [2022.02.02] - `consensus_genome_classification.py``
+* [2022.02.02] - `consensus_genome_classification.py`
 
 
 ________________________________________________________________
@@ -304,13 +325,7 @@ https://github.com/alexdobin/STAR/issues/994
 https://github.com/alexdobin/STAR/issues/867
 
 
-**Annotate:**
 
-* If `--identifier_mapping` is `[id_orf]<tab>[id_contig]<tab>[id_mag]<tab>[id_orthogroup] then it does consensus annotations for orthogroups using UniFunc
-
-**Scripts:**
-
-* get_orthogroup\_consensus\_annotation.py [Not working w/ stdin]
 
 
 

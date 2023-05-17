@@ -38,14 +38,14 @@ dependencies:
   - bz2file=0.98=py_0
   - bzip2=1.0.8=h7f98852_4
   - c-ares=1.18.1=h7f98852_0
-  - ca-certificates=2022.12.7=ha878542_0
+  - ca-certificates=2023.5.7=hbcca054_0
   - cairo=1.16.0=h18b612c_1001
-  - certifi=2022.12.7=pyhd8ed1ab_0
+  - certifi=2023.5.7=pyhd8ed1ab_0
   - cffi=1.15.1=py38h4a40e3a_3
   - charset-normalizer=2.1.1=pyhd8ed1ab_0
   - colorama=0.4.6=pyhd8ed1ab_0
-  - coreutils=9.3=h0b41bf4_0
   - contourpy=1.0.6=py38h43d8883_0
+  - coreutils=9.3=h0b41bf4_0
   - cryptography=39.0.0=py38h3d167d9_0
   - curl=7.88.1=hdc1c0ab_1
   - cycler=0.11.0=pyhd8ed1ab_0
@@ -149,7 +149,7 @@ dependencies:
   - numpy=1.23.5=py38h7042d01_0
   - openjdk=11.0.15=hc6918da_0
   - openjpeg=2.5.0=hfec8fc6_2
-  - openssl=3.1.0=hd590300_2
+  - openssl=3.1.0=hd590300_3
   - orc=1.8.3=hfdbbad2_0
   - packaging=22.0=pyhd8ed1ab_0
   - pandas=1.5.2=py38h8f669ce_0
@@ -279,4 +279,4 @@ dependencies:
   - zlib=1.2.13=h166bdaf_4
   - zstd=1.5.2=h6239696_4
   - pip:
-      - bigslice==1.1.1
+      - pysqlite3==0.5.0

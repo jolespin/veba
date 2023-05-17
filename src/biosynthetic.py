@@ -12,7 +12,7 @@ from soothsayer_utils import *
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.5.15"
+__version__ = "2023.5.16"
 
 # antiSMASH
 def get_antismash_cmd( input_filepaths, output_filepaths, output_directory, directories, opts):
@@ -57,13 +57,14 @@ do read -r -a ARRAY <<< $LINE
         SRC=%s/${ID}/bgc.features.faa.gz
         DST=%s/
         SRC=$(realpath --relative-to ${DST} ${SRC})
-        ln -sf ${SRC} ${DST}/${ID}.bgc_features.faa.gz
-
+        [ -f "$SRC" ] && ln -sf ${SRC} ${DST}/${ID}.bgc_features.faa.gz
+        
         # Symlink genbanks
         mkdir -p %s/${ID}
         SRC=%s/${ID}/*.region*.gbk
         DST=%s/
-        ln -sf ${SRC} ${DST}
+        SRC=$(realpath --relative-to ${DST} ${SRC})
+        [ -f "$SRC" ] && ln -sf ${SRC} ${DST}
 
         # Completed
         echo "Completed: $(date)" > %s/${ID}/ANTISMASH_CHECKPOINT
@@ -93,7 +94,7 @@ done < %s
 %s -i %s/bgc.type_counts.tsv.gz -m biosynthetic-global -o %s/krona.tsv
 
 # Create Krona graph
-%s -i %s/krona.tsv -o %s/krona.html -n 'antiSMASH'
+%s %s/krona.tsv -o %s/krona.html -n 'antiSMASH'
 """%( 
     # Args
     output_directory,
@@ -157,11 +158,11 @@ done < %s
 
     # Krona (Global)
     os.environ["compile_krona.py"],
-    output_directory,
-    output_directory,
+    directories["output"],
+    directories["output"],
 
     os.environ["ktImportText"],
-    output_directory,
+    directories["output"],
     directories["output"],
     ),
     ]

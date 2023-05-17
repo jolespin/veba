@@ -161,11 +161,11 @@ diamond makedb --in ${DATABASE_DIRECTORY}/mibig_prot_seqs_3.1.rmdup.fasta --db $
 rm -rf ${DATABASE_DIRECTORY}/mibig_prot_seqs_3.1.fasta
 rm -rf ${DATABASE_DIRECTORY}/mibig_prot_seqs_3.1.rmdup.fasta
 
-#BiG-SLiCE
-mkdir -v -p ${DATABASE_DIRECTORY}/Annotate/BiG-SLiCE
-wget -v -P ${DATABASE_DIRECTORY} https://github.com/medema-group/bigslice/releases/download/v1.0.0/bigslice-models.2020-04-27.tar.gz
-tar xzfv ${DATABASE_DIRECTORY}/bigslice-models.2020-04-27.tar.gz -C ${DATABASE_DIRECTORY}/Annotate/BiG-SLiCE
-rm -rf ${DATABASE_DIRECTORY}/bigslice-models.2020-04-27.tar.gz
+# #BiG-SLiCE
+# mkdir -v -p ${DATABASE_DIRECTORY}/Annotate/BiG-SLiCE
+# wget -v -P ${DATABASE_DIRECTORY} https://github.com/medema-group/bigslice/releases/download/v1.0.0/bigslice-models.2020-04-27.tar.gz
+# tar xzfv ${DATABASE_DIRECTORY}/bigslice-models.2020-04-27.tar.gz -C ${DATABASE_DIRECTORY}/Annotate/BiG-SLiCE
+# rm -rf ${DATABASE_DIRECTORY}/bigslice-models.2020-04-27.tar.gz
 
 # Contamination
 echo ". .. ... ..... ........ ............."

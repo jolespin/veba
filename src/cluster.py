@@ -40,9 +40,9 @@ def get_global_clustering_cmd( input_filepaths, output_filepaths, output_directo
 
             "&&",
 
-        "SRC={}; DST={}; SRC=$(realpath --relative-to $DST $SRC); ln -sf $SRC $DST".format(
+        "SRC={}; DST={}; SRC=$(realpath --relative-to $DST $SRC); ln -sf $SRC $DST/global".format(
             os.path.join(output_directory, "output"), 
-            os.path.join(directories["output"], "global"),
+            directories["output"],
             ),
     ]
 
@@ -75,9 +75,9 @@ def get_local_clustering_cmd( input_filepaths, output_filepaths, output_director
 
             "&&",
 
-        "SRC={}; DST={}; SRC=$(realpath --relative-to $DST $SRC); ln -sf $SRC $DST".format(
+        "SRC={}; DST={}; SRC=$(realpath --relative-to $DST $SRC); ln -sf $SRC $DST/local".format(
             os.path.join(output_directory, "output"), 
-            os.path.join(directories["output"], "local"),
+            directories["output"],
             ),
 
     ]

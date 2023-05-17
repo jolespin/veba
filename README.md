@@ -16,18 +16,16 @@ Espinoza JL, Dupont CL. VEBA: a modular end-to-end suite for in silico recovery,
 ___________________________________________________________________
 
 ### Announcements
-* [2023.5.8] - `v1.1.2` is in the later stages of development and addresses some issues with `featureCounts` erroring out because of an update from `subread 2.0.1 → 2.0.3`. 
-* [2023.5.8] - In the process of dockerizing each environment.  Conda builds will be next on the list.
-
+* `v1.1.2` fixes a fatal error with `featureCounts`
+* Docker images are now available for all modules
 ___________________________________________________________________
 
 
 ### Installation and databases
 Please refer to the [*Installation and Database Configuration Guide*](install/README.md) for software installation and database configuration.
 
-**Current Developmental Version:** `v1.1.2`
 
-**Current Stable Version:** [`v1.1.1`](https://github.com/jolespin/veba/releases/tag/v1.1.1)
+**Current Stable Version:** [`v1.1.2`](https://github.com/jolespin/veba/releases/tag/v1.1.2)
 
 Versions `v1.x.x` are installed using preconfigured `conda` environments.  I'm aiming for `bioconda` packages for each module in the `v2.0.0` release.
 
