@@ -4,9 +4,9 @@
    \/   |______ |_____] |     |
 ```
 ### Description
-The *Viral Eukaryotic Bacterial Archaeal* (VEBA) is an open-source software suite developed with all domains of microorganisms as the primary objective (not post hoc adjustments) including prokaryotic, eukaryotic, and viral organisms.  To our knowledge, VEBA is the first end-to-end metagenomics software suite that can directly recover and analyze eukaryotic and viral genomes in addition to prokaryotic genomes with integrated support for CPR. VEBA implements a novel iterative binning procedure and an optional hybrid sample-specific/multi-sample framework that recovers more genomes than non-iterative methods.  To optimize the microeukaryotic gene calling and taxonomic classifications, VEBA includes a consensus microeukaryotic database containing protists and fungi compiled from several existing databases. VEBA also provides a unique clustering-based dereplication strategy allowing for sample-specific genomes and proteins to be directly compared across non-overlapping biological samples.  In addition, VEBA is the only pipeline that automates the detection of CPR bacteria and implements the appropriate genome quality assessments for said organisms.   
+The *Viral Eukaryotic Bacterial Archaeal* (VEBA) is an open-source software suite developed with all domains of microorganisms as the primary objective (not post hoc adjustments) including prokaryotic, eukaryotic, and viral organisms.  VEBA is an end-to-end metagenomics and bioprospecting software suite that can directly recover and analyze eukaryotic and viral genomes in addition to prokaryotic genomes with native support for CPR. VEBA implements a novel iterative binning procedure and an optional hybrid sample-specific/multi-sample framework that recovers more genomes than non-iterative methods.  To optimize the microeukaryotic gene calling and taxonomic classifications, VEBA includes a consensus microeukaryotic database containing protists and fungi compiled from several existing databases. VEBA also provides a unique clustering-based dereplication strategy allowing for sample-specific genomes and proteins to be directly compared across non-overlapping biological samples. 
 
-**VEBA now automates biosynthetic gene cluster identification and novelty scores.**
+**VEBA now automates biosynthetic gene cluster identification and novelty scores for bioprospecting.**
 
 ___________________________________________________________________
 ### Citation
@@ -17,7 +17,8 @@ ___________________________________________________________________
 
 ### Announcements
 * `v1.1.2` fixes a fatal error with `featureCounts`
-* Docker images are now available for all modules
+* Docker images are now available for all modules via [DockerHub](https://hub.docker.com/repositories/jolespin)
+
 ___________________________________________________________________
 
 
@@ -30,20 +31,24 @@ Please refer to the [*Installation and Database Configuration Guide*](install/RE
 Versions `v1.x.x` are installed using preconfigured `conda` environments.  I'm aiming for `bioconda` packages for each module in the `v2.0.0` release.
 
 ___________________________________________________________________
+
 ### Getting started with *VEBA*
 
 Please refer to the [*Walkthrough Guides*](walkthroughs/README.md) for tutorials and workflows on how to get started.
 
  [A synopsis of *VEBA* (PDF)](presentations/VEBA-Overview_2022-10-18.pdf)
  
- 
-
 ___________________________________________________________________
 
 ### Frequently Asked Questions
 
 If perusing the [*Frequently Asked Questions*](FAQ.md) doesn't address your question, feel free to submit a [GitHub issue](https://github.com/jolespin/veba/issues/new) with the `[Question]` prefix in the title.
 
+___________________________________________________________________
+
+### What's next for *VEBA*?
+
+Check out the [*VEBA* Development Log](DEVELOPMENT.md) for insight into what is being implemented in the upcoming version.
 
 ___________________________________________________________________
 
@@ -53,11 +58,13 @@ Please refer to the [*Modules*](src/README.md) for a description of all *VEBA* m
 
 [![Schematic](images/Schematic.png)](images/Schematic.pdf)
 
-**Stable:**
+#### Stable:
 
 * **preprocess** – Fastq quality trimming, adapter removal, decontamination, and read statistics calculations
 
 * **assembly** – Assemble reads, align reads to assembly, and count mapped reads
+
+* **biosynthetic** – Identify biosynthetic gene clusters in prokaryotes and fungi
 
 * **coverage** – Align reads to (concatenated) reference and counts mapped reads
 
@@ -84,9 +91,7 @@ Please refer to the [*Modules*](src/README.md) for a description of all *VEBA* m
 * **mapping** – Aligns reads to local or global index of genomes
 
 
-**Developmental and Experimental:**
-
-* **biosynthetic** – Identify biosynthetic gene clusters in prokaryotes and fungi
+#### Developmental and Experimental:
 
 * **assembly-sequential** – Assemble metagenomes sequentially
 
@@ -154,11 +159,4 @@ veba_output/binning/viral/${ID}/output/
 The above are default output locations but they can be customized.
 
 ___________________________________________________________________
-
-### What's next for *VEBA*?
-
-Check out the [*VEBA* Development Log](DEVELOPMENT.md) for insight into what is being implemented in the upcoming version.
-
-___________________________________________________________________
-
 
