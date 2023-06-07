@@ -13,7 +13,7 @@ from soothsayer_utils.soothsayer_utils import assert_acceptable_arguments
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.5.14"
+__version__ = "2023.6.1"
 
 def get_diamond_cmd( input_filepaths, output_filepaths, output_directory, directories, opts, program):
     tmp = os.path.join(directories["tmp"], program)
@@ -567,7 +567,8 @@ def configure_parameters(opts, directories):
     assert_acceptable_arguments(opts.diamond_sensitivity, {"", "fast", "mid-sensitive", "sensitive", "more-sensitive", "very-sensitive", "ultra-sensitive"})
     assert_acceptable_arguments(opts.uniref, {"uniref90","uniref50"})
 
-    assert bool(opts.identifier_mapping) != bool(opts.protein_clusters), "--identifier_mapping is for protein-level annotations and cannot be used with --protein_clusters"
+    if opts.identifier_mapping or opts.protein_clusters:
+        assert bool(opts.identifier_mapping) != bool(opts.protein_clusters), "--identifier_mapping is for protein-level annotations and cannot be used with --protein_clusters"
 
     # Set environment variables
     add_executables_to_environment(opts=opts)

@@ -10,7 +10,7 @@ echo -e "================"
 FILE=../environments/${ENV_NAME}.yml
 if [ -f "$FILE" ]; then
     NAME=$(echo $ENV_NAME | cut -f1 -d "_" | cut -c6-)
-    TAG="veba/${NAME}:${VERSION}"
+    TAG="jolespin/veba_${NAME}:${VERSION}"
     echo -e "Creating Docker image ${TAG} for ${ENV_NAME}"
     docker build --build-arg ENV_NAME=${ENV_NAME} -t ${TAG} -f Dockerfile ../../
 else 

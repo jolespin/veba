@@ -5,6 +5,9 @@
 ________________________________________________________________
 
 #### Current Releases:
+##### Release v1.1.3
+* Fixed minor error in `binning-prokaryotic.py` where the `--veba_database` argument wasn't utilized and only the environment variable `VEBA_DATABASE` could be used.
+* Updated the Docker images to have `/volumes/input`, `/volumes/output`, and `/volumes/database` directories to mount. 
 
 ##### Release v1.1.2
 * Created Docker images for all modules
@@ -234,6 +237,8 @@ ________________________________________________________________
 
 
 #### Change Log:
+* [2023.5.18] - Added `compile_protein_cluster_prevalence_table.py` script
+* [2023.5.17] - Added `convert_table_to_fasta.py` script
 * [2023.5.16] - Created Docker images for all modules
 * [2023.5.16] - Replaced all absolute path symlinks with relative symlinks.
 * [2023.5.15] - Changed `prokaryotic_taxonomy.tsv` and `prokaryotic_taxonomy.clusters.tsv` in `classify-prokaryotic.py` (along with eukaryotic and viral) files to `taxonomy.tsv` and `taxonomy.clusters.tsv` for uniformity.

@@ -12,7 +12,7 @@ from soothsayer_utils import *
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.5.15"
+__version__ = "2023.6.7"
 
 # Assembly
 def get_coverage_cmd( input_filepaths, output_filepaths, output_directory, directories, opts):
@@ -335,7 +335,7 @@ def get_checkm2_cmd(input_filepaths, output_filepaths, output_directory, directo
         "-x faa",
         # "--tmpdir {}".format(os.environ["TMPDIR"] if "TMPDIR" in os.environ else directories["tmp"]), # Hack around: OSError: AF_UNIX path too long
         "--tmpdir {}".format(os.path.join(directories["tmp"], "checkm2")),
-        "--database_path {}".format(os.path.join(os.environ["VEBA_DATABASE"], "Classify", "CheckM2", "uniref100.KO.1.dmnd")),
+        "--database_path {}".format(os.path.join(opts.veba_database, "Classify", "CheckM2", "uniref100.KO.1.dmnd")),
         opts.checkm2_options,
             "&&",
 
