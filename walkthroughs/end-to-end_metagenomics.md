@@ -455,7 +455,7 @@ CMD="source activate VEBA-classify_env && classify-viral.py -i ${BINNING_DIRECTO
 #### 11. Classify prokaryotic genomes
 Prokaryotic classification is performed using `GTDB-Tk`.  Classification can be performed using the intermediate binning results which is easier.  Alternatively, if you have prokaryotes identified elsewhere you can still classify using the `--genomes` argument instead.
 
-**Recommended memory request:** `60 GB`
+**Recommended memory request:** `72 GB`
 
 **Conda Environment:** `conda activate VEBA-classify_env`
 

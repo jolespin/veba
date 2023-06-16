@@ -10,7 +10,7 @@ from soothsayer_utils import *
 
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.3.17"
+__version__ = "2023.6.13"
 
 def main(args=None):
     # Path info
@@ -31,7 +31,9 @@ def main(args=None):
     parser.add_argument("-o","--output", type=str, default="stdout", help = "path/to/output [Default: stdout]")
     parser.add_argument("-f","--output_format", type=str, default="table", help = "Format of output: {table, fasta} [Default: table]")
     parser.add_argument("-v", "--version", action='version', version="{} v{}".format(__program__, __version__))
-   
+    parser.add_argument("--no_sequences", action="store_true", help = "Don't include sequences in table")
+    parser.add_argument("--no_header", action="store_true", help = "Don't include header in table")
+
     # Options
     opts = parser.parse_args()
 
@@ -53,7 +55,10 @@ def main(args=None):
         df["representative_sequence"] = representative_sequences
         df.index.name = "id_representative_sequence"
         df = df.reset_index(drop=False).set_index("id_cluster")[["id_representative_sequence", "representative_sequence"]]
-        df.to_csv(opts.output, sep="\t")
+        if opts.no_sequences:
+            df = df.drop(["representative_sequence"], axis=1)
+        
+        df.to_csv(opts.output, sep="\t", header=not bool(opts.no_header))
 
     if opts.output_format == "fasta":
         representative_sequences.index = representative_sequences.index.map(lambda id_sequence: "{} {}".format(id_to_cluster[id_sequence], id_sequence))

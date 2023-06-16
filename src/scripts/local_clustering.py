@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 from __future__ import print_function, division
-import sys, os, argparse, glob, shutil, time, gzip
+import sys, os, argparse, glob, shutil, time, gzip, warnings
 from multiprocessing import cpu_count
 from collections import OrderedDict, defaultdict
 
@@ -14,13 +14,33 @@ from soothsayer_utils import *
 
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.5.12"
+__version__ = "2023.6.15"
 
 def get_basename(x):
     _, fn = os.path.split(x)
     if fn.endswith(".gz"):
         fn = fn[:-3]
     return ".".join(fn.split(".")[:-1])
+
+def get_protein_cluster_prevalence(df_input:pd.DataFrame):
+    # Read Input
+    genomes = sorted(df_input.iloc[:,0].unique())
+    clusters = sorted(df_input.iloc[:,2].unique())
+
+    # Create array
+    A = np.zeros((len(genomes), len(clusters)), dtype=int)
+
+    for _, (id_genome, id_protein, id_cluster) in df_input.iterrows():
+        i = genomes.index(id_genome)
+        j = clusters.index(id_cluster)
+        A[i,j] += 1
+
+    # Create output
+    df_output = pd.DataFrame(A, index=genomes, columns=clusters)
+    df_output.index.name = "id_genome"
+    df_output.columns.name = "id_protein-cluster"
+
+    return df_output
 
 # Set environment variables
 def add_executables_to_environment(opts):
@@ -140,6 +160,8 @@ def main(args=None):
     directories = dict()
     directories["project"] = create_directory(opts.output_directory)
     directories["output"] = create_directory(os.path.join(directories["project"], "output"))
+    directories["pangenome_tables"] = create_directory(os.path.join(directories["output"], "pangenome_tables"))
+    directories["serialization"] = create_directory(os.path.join(directories["output"], "serialization"))
     directories["log"] = create_directory(os.path.join(directories["project"], "log"))
     directories["tmp"] = create_directory(os.path.join(directories["project"], "tmp"))
     directories["checkpoints"] = create_directory(os.path.join(directories["project"], "checkpoints"))
@@ -269,6 +291,8 @@ def main(args=None):
             "--cluster_prefix_zfill {}".format(opts.genome_cluster_prefix_zfill),
             "-o {}".format(os.path.join(os.path.split(fp)[0], "genome_clusters.tsv")),
             "--identifiers {}".format(os.path.join(directories["intermediate"], organism_type, id_sample, "genome_identifiers.list")),
+            "--export_graph {}".format(os.path.join(directories["serialization"], f"{organism_type}.networkx_graph.pkl")),
+            "--export_dict {}".format(os.path.join(directories["serialization"], f"{organism_type}.dict.pkl")),
 
                 "&&",
 
@@ -288,6 +312,11 @@ def main(args=None):
             write_returncode=os.path.join(directories["log"], "{}.returncode".format(name)),
             checkpoint=os.path.join(directories["checkpoints"], name),
             )
+        if hasattr(cmd, "returncode_"):
+            if cmd.returncode_ != 0:
+                print("[Error] | {}".format(description), file=sys.stdout)
+                print("Check the following files:\ncat {}".format(os.path.join(directories["log"], "{}.*".format(name))), file=sys.stdout)
+                sys.exit(cmd.returncode_)
 
     # MMSEQS2
     print(format_header(" * ({}) Running MMSEQS2:".format(format_duration(t0))), file=sys.stdout)
@@ -318,46 +347,6 @@ def main(args=None):
             # Run MMSEQS2
             name = "mmseqs2__{}__{}".format(organism_type, id_genomecluster)
             description = "[Program = MMSEQS2] [Organism_Type = {}] [Sample_ID = {}] [Genome_Cluster = {}]".format(organism_type, id_sample, id_genomecluster)
-            # cmd = Command([
-            #     os.environ["mmseqs"],
-            #     "easy-cluster",
-            #     os.path.join(genomecluster_directory, "proteins.faa" ),
-            #     os.path.join(genomecluster_directory, "mmseqs2"),
-            #     directories["tmp"],
-            #     "--threads {}".format(opts.n_jobs),
-            #     "--min-seq-id {}".format(opts.minimum_identity_threshold/100),
-            #     "-c {}".format(opts.minimum_coverage_threshold),
-            #     "--cov-mode 1",
-            #     "--dbtype 1",
-            #     opts.mmseqs2_options,
-
-            #         "&&",
-
-            #     os.environ["edgelist_to_clusters.py"],
-            #     "-i {}".format(os.path.join(genomecluster_directory, "mmseqs2_cluster.tsv")),
-            #     "--no_singletons" if bool(opts.no_singletons) else "",
-            #     "--cluster_prefix {}_{}".format(id_genomecluster, opts.protein_cluster_prefix),
-            #     "--cluster_suffix {}".format(opts.protein_cluster_suffix) if bool(opts.protein_cluster_suffix) else "",
-            #     "--cluster_prefix_zfill {}".format(opts.protein_cluster_prefix_zfill),
-            #     "-o {}".format(os.path.join(genomecluster_directory, "protein_clusters.tsv")),
-            #     "--identifiers {}".format(os.path.join(genomecluster_directory, "protein_identifiers.list")),
-
-            #         "&&",
-
-            #     "rm -rf",
-            #     os.path.join(genomecluster_directory, "mmseqs2_all_seqs.fasta"),
-            #     os.path.join(genomecluster_directory, "proteins.faa"),
-            #     os.path.join(directories["tmp"], "*"),
-
-            #         "&&",
-
-            #     "gzip",
-            #     os.path.join(genomecluster_directory, "mmseqs2_rep_seq.fasta"),
-
-            #     ], 
-            #     name=name, 
-            #     f_cmds=f_cmds,
-            #     )
 
             cmd = Command([
                 os.environ["mmseqs2_wrapper.py"],
@@ -374,6 +363,12 @@ def main(args=None):
                 "--cluster_prefix_zfill {}".format(opts.protein_cluster_prefix_zfill),
                 "--basename protein_clusters",
                 "--identifiers {}".format(os.path.join(genomecluster_directory, "protein_identifiers.list")),
+                "--no_sequences_and_header",
+
+                    "&&",
+
+                "rm -rf",
+                os.path.join(genomecluster_directory, "proteins.faa" ),
                 ], 
                 name=name, 
                 f_cmds=f_cmds,
@@ -478,16 +473,45 @@ def main(args=None):
     df_fcr = pd.DataFrame(fcr_data).T.sort_index()
     df_fcr.index.names = ["organism_type", "id_sample"]
     
-    print(" * ({}) Getting representative sequences".format(format_duration(t0)), file=sys.stdout)
+    # Get representative sequences
     if not opts.no_representative_sequences:
-        with open(os.path.join(directories["output"], "representative_sequences.faa"), "w") as f_out:
-            for fp in glob.glob(os.path.join(directories["intermediate"], "*", "clusters", "*", "output", "representative_sequences.tsv.gz" )):
-                with gzip.open(fp, "rt") as f_in:
-                    next(f_in)
-                    for line in f_in:
-                        line = line.strip()
-                        id_cluster, id_representative_sequence, sequence = line.split("\t")
-                        print(">{} {}\n{}".format(id_cluster, id_representative_sequence, sequence), file=f_out)
+        # print(format_header(" * ({}) Compiling representative sequences:".format(format_duration(t0))), file=sys.stdout)
+        # local_clustering_output/intermediate/eukaryotic/S1/clusters/S1__ESLC-1/output/representative_sequences.tsv.gz
+        proteincluster_to_representative = list()
+        for fp in glob.glob(os.path.join(directories["intermediate"], "*","*", "clusters", "*","output", "representative_sequences.tsv.gz")):
+            a = pd.read_csv(fp, sep="\t", index_col=0, header=None).iloc[:,0]
+            proteincluster_to_representative.append(a)
+        proteincluster_to_representative = pd.concat(proteincluster_to_representative)
+
+        with open(os.path.join(directories["output"], "representative_sequences.faa"), "w") as f_representatives:
+            for id_proteincluster, id_representative in pv(proteincluster_to_representative.items(), description=" * ({}) Writing protein cluster representative sequences".format(format_duration(t0)), unit="sequence", total=proteincluster_to_representative.size):
+                seq = protein_to_sequence[id_representative]
+                header = f"{id_proteincluster} {id_representative}"
+                print(f">{header}\n{seq}", file=f_representatives)
+    
+    # Write prevalence table
+    # print(format_header(" * ({}) Compiling pangenome protein cluster prevalence tables:".format(format_duration(t0))), file=sys.stdout)
+    genome_to_number_of_singletons = list()
+    genome_to_ratio_of_singletons = list()
+    for id_genomecluster, df in pv(df_proteins.groupby("id_genome_cluster"), description=" * ({}) Writing protein prevalence pangenome tables and counting singletons".format(format_duration(t0)), unit="genome cluster", total=df_proteins["id_genome_cluster"].nunique()):
+        # Prevalence
+        df = df.reset_index().loc[:,["id_genome", "id_protein", "id_protein_cluster"]]
+        df_prevalence = get_protein_cluster_prevalence(df)
+        df_prevalence.to_csv(os.path.join(directories["pangenome_tables"], f"{id_genomecluster}.tsv.gz"), sep="\t")
+
+        # Singletons
+        if df_prevalence.shape[0] > 1:  
+            df_prevalence = df_prevalence > 0
+            number_of_singletons = df_prevalence.loc[:,df_prevalence.sum(axis=0)[lambda x: x == 1].index].sum(axis=1)
+            ratio_of_singletons = number_of_singletons/df_prevalence.sum(axis=1)
+            genome_to_number_of_singletons.append(number_of_singletons)
+            genome_to_ratio_of_singletons.append(ratio_of_singletons)
+
+    if len(genome_to_number_of_singletons):
+        df_mags["number_of_singleton_protein_clusters"] = pd.concat(genome_to_number_of_singletons).reindex(df_mags.index).astype("Int64")
+        df_mags["ratio_of_protein_cluster_are_singletons"] = pd.concat(genome_to_ratio_of_singletons)
+    else:
+        warnings.warn("No clusters with more than 1 genome so singleton analysis does not apply")
 
     # Writing output files
     print(format_header(" * ({}) Writing Output Tables:".format(format_duration(t0))), file=sys.stdout)

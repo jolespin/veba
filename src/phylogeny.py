@@ -13,7 +13,7 @@ from soothsayer_utils import *
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.5.15"
+__version__ = "2023.6.12"
 
 # Assembly
 def preprocess( input_filepaths, output_filepaths, output_directory, directories, opts):
@@ -537,7 +537,7 @@ def main(args=None):
     # Pipeline
     parser_io = parser.add_argument_group('Required I/O arguments')
     parser_io.add_argument("-d", "--database_hmm", type=str,  help=f"path/to/HMM database of markers")
-    parser_io.add_argument("-a","--proteins", type=str, help = "Can be the following format: 1) Tab-seperated value table of [id_mag]<tab>[path/to/protein.fasta]; 2) Files with list of filepaths [path/to/protein.fasta]; or 3) Directory of protein fasta using --extension")
+    parser_io.add_argument("-a","--proteins", type=str, help = "Can be the following format: 1) Tab-seperated value table of [id_mag]<tab>[path/to/protein.fasta] (No header); 2) Files with list of filepaths [path/to/protein.fasta] (uses --extension); or 3) Directory of protein fasta  (uses --extension)")
     parser_io.add_argument("-o","--output_directory", type=str, default="veba_output/phylogeny", help = "path/to/project_directory [Default: veba_output/phylogeny]")
     parser_io.add_argument("-x", "--extension", type=str, default="faa", help = "Fasta file extension for proteins if a list is provided [Default: faa]")
 

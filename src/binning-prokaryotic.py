@@ -12,7 +12,7 @@ from soothsayer_utils import *
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.6.7"
+__version__ = "2023.6.12"
 
 # Assembly
 def get_coverage_cmd( input_filepaths, output_filepaths, output_directory, directories, opts):
@@ -63,8 +63,8 @@ def get_coverage_cmd( input_filepaths, output_filepaths, output_directory, direc
     return cmd
 
 
-# Prodigal
-def get_prodigal_cmd(input_filepaths, output_filepaths, output_directory, directories, opts):
+# Pyrodigal
+def get_pyrodigal_cmd(input_filepaths, output_filepaths, output_directory, directories, opts):
 
     cmd = [
         "cat",
@@ -73,18 +73,39 @@ def get_prodigal_cmd(input_filepaths, output_filepaths, output_directory, direct
         os.environ["seqkit"],
         "seq",
         "-m {}".format(opts.minimum_contig_length),
-        "|",
-        os.environ["prodigal"],
+        ">",
+        os.path.join(directories["tmp"], "tmp.fasta"),
+
+            "&&",
+        
+        os.environ["pyrodigal"],
         "-p meta",
-        "-g {}".format(opts.prodigal_genetic_code),
+        "-i {}".format(os.path.join(directories["tmp"], "tmp.fasta")),
+        "-g {}".format(opts.pyrodigal_genetic_code),
         "-f gff",
         "-d {}".format(os.path.join(output_directory, "gene_models.ffn")),
         "-a {}".format(os.path.join(output_directory, "gene_models.faa")),
+        "--min-gene {}".format(opts.pyrodigal_minimum_gene_length),
+        "--min-edge-gene {}".format(opts.pyrodigal_minimum_edge_gene_length),
+        "--max-overlap {}".format(opts.pyrodigal_maximum_gene_overlap_length),
+        # "-j {}".format(opts.n_jobs),
+        ">",
+        os.path.join(directories["tmp"], "tmp.gff"),
+
+            "&&",
+
+        "cat",
+        os.path.join(directories["tmp"], "tmp.gff"),
         "|",
         os.environ["append_geneid_to_prodigal_gff.py"],
         "-a gene_id",
         ">",
         os.path.join(output_directory, "gene_models.gff"),
+
+            "&&",
+
+        "rm",
+        os.path.join(directories["tmp"], "tmp.*")
 
     ]
     return cmd
@@ -223,7 +244,7 @@ def get_dastool_cmd(input_filepaths, output_filepaths, output_directory, directo
         "--write_bins 1",
         "--create_plots 0",
         "--threads {}".format(opts.n_jobs),
-        "--proteins {}".format(os.path.join(directories[("intermediate",  "2__prodigal")], "gene_models.faa")),
+        "--proteins {}".format(os.path.join(directories[("intermediate",  "2__pyrodigal")], "gene_models.faa")),
         "--debug",
         opts.dastool_options,
         # Eukaryotic
@@ -300,9 +321,9 @@ def get_dastool_cmd(input_filepaths, output_filepaths, output_directory, directo
         "&&",
         os.environ["partition_gene_models.py"],
         "-i {}".format(os.path.join(output_directory, "__DASTool_scaffolds2bin.no_eukaryota.txt")),
-        "-g {}".format(os.path.join(directories[("intermediate",  "2__prodigal")], "gene_models.gff")),
-        "-d {}".format(os.path.join(directories[("intermediate",  "2__prodigal")], "gene_models.ffn")),
-        "-a {}".format(os.path.join(directories[("intermediate",  "2__prodigal")], "gene_models.faa")),
+        "-g {}".format(os.path.join(directories[("intermediate",  "2__pyrodigal")], "gene_models.gff")),
+        "-d {}".format(os.path.join(directories[("intermediate",  "2__pyrodigal")], "gene_models.ffn")),
+        "-a {}".format(os.path.join(directories[("intermediate",  "2__pyrodigal")], "gene_models.faa")),
         "-o {}".format(os.path.join(output_directory, "__DASTool_bins")),
         "--use_mag_as_description",
 
@@ -576,18 +597,18 @@ def create_pipeline(opts, directories, f_cmds):
     )
 
     # ==========
-    # Prodigal
+    # Pyrodigal
     # ==========
     step = 2
 
-    program = "prodigal"
+    program = "pyrodigal"
     program_label = "{}__{}".format(step, program)
     # Add to directories
     output_directory = directories[("intermediate",  program_label)] = create_directory(os.path.join(directories["intermediate"], program_label))
 
 
     # Info
-    description = "Gene calls via Prodigal"
+    description = "Gene calls via Pyrodigal"
     # i/o
     input_filepaths = [
         opts.fasta,
@@ -608,7 +629,7 @@ def create_pipeline(opts, directories, f_cmds):
         "directories":directories,
     }
 
-    cmd = get_prodigal_cmd(**params)
+    cmd = get_pyrodigal_cmd(**params)
     pipeline.add_step(
                 id=program_label,
                 description = description,
@@ -894,7 +915,7 @@ def create_pipeline(opts, directories, f_cmds):
             os.path.join(directories[("intermediate",  "{}__binning_maxbin2-40".format(steps["binning_maxbin2-40"]))], "scaffolds_to_bins.tsv"),
             os.path.join(directories[("intermediate",  "{}__binning_concoct".format(steps["binning_concoct"]))], "scaffolds_to_bins.tsv"),
             input_fasta,
-            # os.path.join(directories[("intermediate",  "2__prodigal")], "gene_models.faa"),
+            # os.path.join(directories[("intermediate",  "2__pyrodigal")], "gene_models.faa"),
         ]
 
         output_filenames = [
@@ -1007,7 +1028,7 @@ def create_pipeline(opts, directories, f_cmds):
     # i/o
     input_filepaths = [ 
         opts.fasta,
-        os.path.join(directories[("intermediate",  "2__prodigal")], "gene_models.gff"),
+        os.path.join(directories[("intermediate",  "2__pyrodigal")], "gene_models.gff"),
         *opts.bam,
     ]
 
@@ -1128,7 +1149,7 @@ def add_executables_to_environment(opts):
                 # 6
                 "DAS_Tool",
                 # 7
-                "prodigal",
+                "pyrodigal",
                 # 8
                 "checkm2",
                 # 9 
@@ -1240,7 +1261,10 @@ def main(args=None):
     # parser_binning.add_argument("--metacoag_options", type=str, default="", help="metacoag | More options (e.g. --arg 1 ) [Default: '']")
 
     parser_genemodels = parser.add_argument_group('Gene model arguments')
-    parser_genemodels.add_argument("--prodigal_genetic_code", type=str, default=11, help="Prodigal -g translation table [Default: 11]")
+    parser_genemodels.add_argument("--pyrodigal_minimum_gene_length", type=int, default=90, help="Pyrodigal | Minimum gene length [Default: 90]")
+    parser_genemodels.add_argument("--pyrodigal_minimum_edge_gene_length", type=int, default=60, help="Pyrodigal | Minimum edge gene length [Default: 60]")
+    parser_genemodels.add_argument("--pyrodigal_maximum_gene_overlap_length", type=int, default=60, help="Pyrodigal | Maximum gene overlap length [Default: 60]")
+    parser_genemodels.add_argument("--pyrodigal_genetic_code", type=str, default=11, help="Pyrodigal -g translation table [Default: 11]")
 
     parser_evaluation = parser.add_argument_group('Evaluation arguments')
     parser_evaluation.add_argument("--dastool_searchengine", type=str, default="diamond", help="DAS_Tool searchengine. [Default: diamond] | https://github.com/cmks/DAS_Tool")

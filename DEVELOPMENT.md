@@ -8,6 +8,10 @@ ________________________________________________________________
 ##### Release v1.1.3
 * Fixed minor error in `binning-prokaryotic.py` where the `--veba_database` argument wasn't utilized and only the environment variable `VEBA_DATABASE` could be used.
 * Updated the Docker images to have `/volumes/input`, `/volumes/output`, and `/volumes/database` directories to mount. 
+* Replaced `prodigal` with `pyrodigal` as it is faster and under active development.
+* Added support for missing classifications in `compile_krona.py` and `consensus_genome_classification.py`.
+* Updated `GTDB-Tk` from version `2.1.3` → `2.3.0` and `GTDB` from version `r202_v2` → `r214`. Changed `${VEBA_DATABASE}/Classify/GTDBTk` → `${VEBA_DATABASE}/Classify/GTDB`.  Added `gtdb_r214.msh` to `GTDB` database for ANI screening.
+* Added pangenome and singularity tables to `cluster.py` (and associated global/local clustering scripts) to output automatically.
 
 ##### Release v1.1.2
 * Created Docker images for all modules
@@ -23,7 +27,7 @@ ________________________________________________________________
 * Removed "python" prefix for script calls and now uses shebang in script for executable. Also added single paranthesis around script filepath (e.g., `'[script_filepath]'`) to escape characters/spaces in filepath.
 * Added support for `index.py` to accept individual `--references [file.fasta]` and `--gene_models [file.gff]`.
 * Added `stdin` support for `scaffolds_to_bins.py` along with the ability to input genome tables [id_genome]<tab>[filepath].  Also added progress bars.
-* As a result of [issues/22](https://github.com/jolespin/veba/issues/22), `assembly.py`, `assembly-sequential.py`, `binning-*.py`, and `mapping.py` will use `-p --countReadPairs` for `featureCounts` and updates `subread 2.0.1 -> subread 2.0.3`.  For `binning-*.py`, long reads can be used with the `--long_reads` flag.
+* As a result of [issues/22](https://github.com/jolespin/veba/issues/22), `assembly.py`, `assembly-sequential.py`, `binning-*.py`, and `mapping.py` will use `-p --countReadPairs` for `featureCounts` and updates `subread 2.0.1 → subread 2.0.3`.  For `binning-*.py`, long reads can be used with the `--long_reads` flag.
 * Updated `cluster.py` and associated `global_clustering.py`/`local_clustering.py` scripts to use `mmseqs2_wrapper.py` which now automatically outputs representative sequences.  
 * Added `check_fasta_duplicates.py` script that gives `0` and `1` exit codes for fasta without and with duplicates, respectively.  Added `reformat_representative_sequences.py` to reformat representative sequences from `MMSEQS2` into either a table or fasta file where the identifers are cluster labels.  Removed `--dbtype` from `[global/local]_clustering.py`.  Removed appended prefix for `.graph.pkl` and `dict.pkl` in `edgelist_to_clusters.py`.  Added `mmseqs2_wrapper.py` and `hmmer_wrapper.py` scripts.
 * Added an option to `merge_generalized_mapping.py` to include the sample index in a filepath and also an option to remove empty features (useful for Salmon).  Added an `executable='/bin/bash'` option to the `subprocess.Popen` calls in `GenoPype` to address [issues/23](https://github.com/jolespin/veba/issues/23).
@@ -38,7 +42,7 @@ ________________________________________________________________
 * Added `--dastool_minimum_score` to `binning-prokaryotic.py` module
 * Added a wrapper around `STAR` aligner
 * Updated `merge_generalized_mapping.py` script to take in BAM files instead of being dependent on a specific directory.
-* Added option to have no header in `subst_table.py`
+* Added option to have no header in `subset_table.py`
 
 ##### Release v1.1.0
 
@@ -207,36 +211,44 @@ ________________________________________________________________
 #### Path to `v2.0.0`:
 
 **Definitely:**
-
+* Consistent usage of the following terms: 1) dataframe vs. table; 2) protein-cluster vs. orthogroup.
+* Add support for `FAMSA` in `phylogeny.py`
 * Create a `assembly-longreads.py` module that uses `MetaFlye`
 * Create a `noncoding.py` module that uses `tRNASCAN-SE` and other goodies.
-* Expand Microeukaryotic Protein Database
-* Automated consensus protein cluster annotations.  First need to create a hierarchical naming scheme that uses NR > KOFAM > Pfam.
-* Create a wrapper around `hmmsearch` that takes in score cutoffs and outputs a useable table.  This will be used in place of `KOFAMSCAN` which creates thousands of intermediate files.
+* Expand Microeukaryotic Protein Database to include more fungi (Mycocosm)
 * Add MAG-level counts to prokaryotic and eukaryotic. Add optional bam file for viral binning, if so then add MAG-level counts
 * Support genome table input for `biosynthetic.py`, `phylogeny.py`, `index.py`, etc.
 * Install each module via `bioconda`
 * Add checks for `annotate.py` to ensure there are no proteins > 100K in length.
-* Add support for `STAR` in `mapping.py` and `index.py`.  This will require adding the `exon` field to `Prodigal` GFF file (`MetaEuk` modified GFF files already have exon ids). 
+* Add support for `Salmon` in `mapping.py` and `index.py`.  This can be used instead of `STAR` which will require adding the `exon` field to `Prodigal` GFF file (`MetaEuk` modified GFF files already have exon ids). 
 * Speed up `binning-eukaryotic.py` by accessing `BUSCO` backends and only running gene calls for genes relevant to genome.  If it passes `BUSCO` filters, then run actual gene calls.
 * Build a clustered version of the Microeukaryotic Protein Database that is more efficient to run.
 
 **Probably (Yes)?:**
+
 * Add [iPHoP](https://bitbucket.org/srouxjgi/iphop/src/main/) to `binning-viral.py`.
 * Add a `metabolic.py` module
 * Swap [`TransDecoder`](https://github.com/TransDecoder/TransDecoder) for [`TransSuite`](https://github.com/anonconda/TranSuite)
-* Add support for `Anvi'o` object export in `cluster.py`
 * Add spatial coverage to `coverage.py` script like in `mapping.py` module? Maybe just the samtools coverage output.
+* Reimplement `KOFAMSCAN` (which creates thousands of intermediate files) using `hmmer_wrapper.py`.
 
 **...Maybe (Not)?**
 
 * Add `VAMB` as an option for `binning-prokaryotic.py` (requires python >= 3.7,<3.8)
+* Add support for `Anvi'o` object export in `cluster.py`.  Installation is quite involved as of 2023.6.12
 
 
 ________________________________________________________________
 
 
-#### Change Log:
+#### Change Log: 
+* [2023.6.16] - Compiled and pushed `gtdb_r214.msh` mash file to [Zenodo:8048187](https://zenodo.org/record/8048187) which is now used by default in `classify-prokaryotic.py`.  It is now included in `VDB_v5.1`.
+* [2023.6.15] - Cleaned up global and local clustering intermediate files.  Added pangenome tables and singelton information to outputs.
+* [2023.6.12] - Changed `${VEBA_DATABASE}/Classify/GTDBTk` → `${VEBA_DATABASE}/Classify/GTDB`.
+* [2023.6.12] - Replace `prodigal` with `pyrodigal` in `binning-prokaryotic.py` (`prodigal` is still in environment b/c `DAS_Tool` dependency).
+* [2023.6.12] - `consensus_genome_classification.py` now based missing classifications off of a missing weight value. Defaults for unclassified labels are `Unclassified prokaryote`, `Unclassified eukaryote`, and `Unclassified virus` for the various classification modules. Also changed "id_genome_cluster" to "id" and "genomes" to "components" to generalize for eukaryotic classification.
+* [2023.6.12] - `global_clustering.py` and `local_clustering.py` (accessible through `cluster.py`) now outputs NetworkX graph and Python dictionary pickled objects.
+* [2023.6.12] - Added support for missing values and unclassified taxa in `compile_krona.py` and `consensus_genome_classification.py`.  
 * [2023.5.18] - Added `compile_protein_cluster_prevalence_table.py` script
 * [2023.5.17] - Added `convert_table_to_fasta.py` script
 * [2023.5.16] - Created Docker images for all modules
@@ -252,7 +264,7 @@ ________________________________________________________________
 * [2023.5.8] - Removed "python" prefix for script calls and now uses shebang in script for executable. Also added single paranthesis around script filepath (e.g., `'[script_filepath]'`) to escape characters/spaces in filepath.
 * [2023.5.8] - Added support for `index.py` to accept individual `--references [file.fasta]` and `--gene_models [file.gff]`.
 * [2023.4.25] - Added `stdin` support for `scaffolds_to_bins.py` along with the ability to input genome tables [id_genome]<tab>[filepath].  Also added progress bars.
-* [2023.4.23] - As a result of [issues/22](https://github.com/jolespin/veba/issues/22), `assembly.py`, `assembly-sequential.py`, `binning-*.py`, and `mapping.py` will use `-p --countReadPairs` for `featureCounts` and updates `subread 2.0.1 -> subread 2.0.3`.  For `binning-*.py`, long reads can be used with the `--long_reads` flag.
+* [2023.4.23] - As a result of [issues/22](https://github.com/jolespin/veba/issues/22), `assembly.py`, `assembly-sequential.py`, `binning-*.py`, and `mapping.py` will use `-p --countReadPairs` for `featureCounts` and updates `subread 2.0.1 → subread 2.0.3`.  For `binning-*.py`, long reads can be used with the `--long_reads` flag.
 * [2023.4.20] - Updated `cluster.py` and associated `global_clustering.py`/`local_clustering.py` scripts to use `mmseqs2_wrapper.py` which now automatically outputs representative sequences.  
 * [2023.4.17] - Added `check_fasta_duplicates.py` script that gives `0` and `1` exit codes for fasta without and with duplicates, respectively.  Added `reformat_representative_sequences.py` to reformat representative sequences from `MMSEQS2` into either a table or fasta file where the identifers are cluster labels.  Removed `--dbtype` from `[global/local]_clustering.py`.  Removed appended prefix for `.graph.pkl` and `dict.pkl` in `edgelist_to_clusters.py`.  Added `mmseqs2_wrapper.py` and `hmmer_wrapper.py` scripts.
 * [2023.4.13] - Added an option to `merge_generalized_mapping.py` to include the sample index in a filepath and also an option to remove empty features (useful for Salmon).  Added an `executable='/bin/bash'` option to the `subprocess.Popen` calls in `GenoPype` to address [issues/23](https://github.com/jolespin/veba/issues/23).
@@ -298,7 +310,7 @@ ________________________________________________________________
 * [2022.03.14] - Created a `binning_wrapper.py` to normalize the binning process and add --minimum_genome_length capabilities. This is useful for eukaryotic binning but more complicated for prokaryotic binning because the current pipeline is hardcoded to handle errors on iterative binning. Also switched to CoverM for all coverage calculations because it's faster. Split out prokaryotic, eukaryotic, and viral binning environments. For eukaryotic binning, I've removed EukCC and use BUSCO v5 instead.
 * [2022.03.01] - Added a domain classification script that is run during prokaryotic binning. I've created a hack that moves all of the eukaryotic genomes to another directory to allow for proper gene calls in a separate module. This hack will remain until DAS_Tool can handle custom gene sets because it cannot in the current version. The other option is to remove 
 * [2022.02.24] - Added saf file to `assembly.py` and feature counts of scaffolds/transcripts
-* [2022.02.22] - Made the original `preprocess.py` -> `preprocess-kneaddata.py` and the new `preprocess.py` a wrapper around `fastq_preprocessor`
+* [2022.02.22] - Made the original `preprocess.py` → `preprocess-kneaddata.py` and the new `preprocess.py` a wrapper around `fastq_preprocessor`
 * [2022.02.22] - Made the `index.py` module
 * [2022.02.22] - `concatenate_fasta.py` and `concatenate_gff.py`
 * [2022.02.02] - `consensus_genome_classification.py`

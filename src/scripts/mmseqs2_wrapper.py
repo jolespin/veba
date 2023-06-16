@@ -12,7 +12,7 @@ from soothsayer_utils import *
 
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.5.8"
+__version__ = "2023.6.13"
 
 # Check
 def get_check_cmd( input_filepaths, output_filepaths, output_directory, directories, opts):
@@ -68,8 +68,8 @@ def get_compile_cmd(input_filepaths, output_filepaths, output_directory, directo
             "--cluster_suffix {}".format(opts.cluster_suffix) if bool(opts.cluster_suffix) else "",
             "--cluster_prefix_zfill {}".format(opts.cluster_prefix_zfill),
             "-o {}".format(os.path.join(output_directory, "{}.tsv".format(opts.basename))),
-            "-g {}".format(os.path.join(output_directory, "{}.graph.pkl".format(opts.basename))),
-            "-d {}".format(os.path.join(output_directory, "{}.dict.pkl".format(opts.basename))),
+            # "-g {}".format(os.path.join(output_directory, "{}.networkx_graph.pkl".format(opts.basename))),
+            # "-d {}".format(os.path.join(output_directory, "{}.dict.pkl".format(opts.basename))),
             "--identifiers {}".format(opts.identifiers) if bool(opts.identifiers) else "",
             
                 "&&",
@@ -80,6 +80,11 @@ def get_compile_cmd(input_filepaths, output_filepaths, output_directory, directo
             "-f table",
             "-o {}".format(os.path.join(output_directory, "representative_sequences.tsv.gz")),
     ]
+    if opts.no_sequences_and_header:
+        cmd += [ 
+            "--no_sequences",
+            "--no_header",
+        ]
 
     return cmd
 
@@ -236,8 +241,8 @@ def create_pipeline(opts, directories, f_cmds):
     input_filepaths = output_filepaths
     output_filenames = [
         "{}.tsv".format(opts.basename),
-        "{}.graph.pkl".format(opts.basename),
-        "{}.dict.pkl".format(opts.basename),
+        # "{}.networkx_graph.pkl".format(opts.basename),
+        # "{}.dict.pkl".format(opts.basename),
         "representative_sequences.tsv.gz",
     ]
     output_filepaths = list(map(lambda filename: os.path.join(output_directory, filename), output_filenames))
@@ -293,7 +298,6 @@ def main(args=None):
     parser_io.add_argument("-e", "--no_singletons", action="store_true", help="Exclude singletons")
     parser_io.add_argument("-b", "--basename", type=str, default="clusters", help="Basename for clustering files [Default: clusters]")
 
-
     # Utility
     parser_utility = parser.add_argument_group('Utility arguments')
     parser_utility.add_argument("--path_config", type=str,  default="CONDA_PREFIX", help="path/to/config.tsv [Default: CONDA_PREFIX]")  #site-packges in future
@@ -312,6 +316,7 @@ def main(args=None):
     parser_mmseqs2.add_argument("--cluster_prefix_zfill", type=int, default=0, help="Sequence cluster prefix zfill. Use 7 to match identifiers from OrthoFinder.  Use 0 to add no zfill. [Default: 0]") #7
     parser_mmseqs2.add_argument("--mmseqs2_options", type=str, default="", help="MMSEQS2 | More options (e.g. --arg 1 ) [Default: '']")
     parser_mmseqs2.add_argument("--identifiers", type=str, help = "Identifiers to include for `edgelist_to_clusters.py`.  If missing identifiers and singletons are allowed, then they will be included as singleton clusters with weight of np.inf")
+    parser_mmseqs2.add_argument("--no_sequences_and_header", action="store_true", help = "Don't include sequences or header in table.  Useful for concatenation and reduced redundancy of sequences")
 
     # Options
     opts = parser.parse_args()
@@ -333,7 +338,6 @@ def main(args=None):
     directories["checkpoints"] = create_directory(os.path.join(directories["project"], "checkpoints"))
     directories["intermediate"] = create_directory(os.path.join(directories["project"], "intermediate"))
     os.environ["TMPDIR"] = directories["tmp"]
-
 
     # Info
     print(format_header(__program__, "="), file=sys.stdout)

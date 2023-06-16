@@ -3,12 +3,11 @@ from __future__ import print_function, division
 import sys, os, argparse, glob
 import numpy as np
 import pandas as pd
-from tqdm import tqdm 
 
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.5.1"
+__version__ = "2023.6.12"
 
 
 def main(args=None):
@@ -29,6 +28,8 @@ def main(args=None):
     parser.add_argument("-o","--output", type=str, default="stdout", help = "path/to/output.tsv [Default: stdout]")
     parser.add_argument("-m","--mode", type=str, required=True, help = "{prokaryotic, eukaryotic, biosynthetic-global, biosynthetic-local}")
     parser.add_argument("-R", "--retain_rank_prefix", action="store_true", help = "Retain rank prefixes for modes {prokaryotic, eukaryotic} (e.g., d__, p__, c__)")
+    parser.add_argument("-u", "--unclassified_label", default="Unclassified", type=str, help = "Unclassified label [Default: Unclassified]")
+
     # parser.add_argument("-C", "--remove_incomplete", action="store_true", help = "Remove BGCs on contig edge for biosynthetic mode")
     # parser.add_argument("-G", "--remove_genome_column", action="store_true", help = "Remove the genome ID for biosynthetic mode.  Useful when using lots of genomes.")
 
@@ -48,7 +49,21 @@ def main(args=None):
     df_input = pd.read_csv(opts.input, sep="\t", index_col=0)
     if opts.mode == "prokaryotic":
         value_counts = df_input["classification"].value_counts()
-        df_output = pd.DataFrame(np.stack(value_counts.index.map(lambda classification: list(classification.split(";")))))
+        try:
+            df_output = pd.DataFrame(np.stack(value_counts.index.map(lambda classification: list(classification.split(";")))))
+        except ValueError:
+            sizes = value_counts.index.map(lambda classification: len(classification.split(";")))
+            index = list()
+            for i,s in zip(value_counts.index, sizes):
+                if s < 7:
+                    i = ";".join(map(lambda x: f"{x}__{opts.unclassified_label}", list("dpcofgs")))
+                else:
+                    if s > 7:
+                        print(f"Not sure why {i} has more than 7 fields.  Please double check this.", file=sys.stderr)
+                index.append(i)
+            value_counts.index = index
+            df_output = pd.DataFrame(np.stack(value_counts.index.map(lambda classification: list(classification.split(";")))))
+
         if not opts.retain_rank_prefix:
             df_output = df_output.applymap(lambda x: x.split("__")[-1])
         df_output.columns = ["domain", "phylum","class", "order", "family", "genus", "species"]
@@ -56,7 +71,20 @@ def main(args=None):
 
     if opts.mode == "eukaryotic":
         value_counts = df_input["consensus_classification"].value_counts()
-        df_output = pd.DataFrame(np.stack(value_counts.index.map(lambda classification: list(classification.split(";")))))
+        try:
+            df_output = pd.DataFrame(np.stack(value_counts.index.map(lambda classification: list(classification.split(";")))))
+        except ValueError:
+            sizes = value_counts.index.map(lambda classification: len(classification.split(";")))
+            index = list()
+            for i,s in zip(value_counts.index, sizes):
+                if s < 5:
+                    i = ";".join(map(lambda x: f"{x}__{opts.unclassified_label}", list("cofgs")))
+                else:
+                    if s > 5:
+                        print(f"Not sure why {i} has more than 5 fields.  Please double check this.", file=sys.stderr)
+                index.append(i)
+            value_counts.index = index
+            df_output = pd.DataFrame(np.stack(value_counts.index.map(lambda classification: list(classification.split(";")))))
         if not opts.retain_rank_prefix:
             df_output = df_output.applymap(lambda x: x.split("__")[-1])
         df_output.columns = ["class", "order", "family", "genus", "species"]

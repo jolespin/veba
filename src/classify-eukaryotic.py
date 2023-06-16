@@ -13,7 +13,7 @@ from soothsayer_utils import *
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.5.15"
+__version__ = "2023.6.12"
 
 # Assembly
 def get_concatenate_cmd( input_filepaths, output_filepaths, output_directory, directories, opts):
@@ -227,6 +227,7 @@ def get_consensus_cluster_classification_cmd( input_filepaths, output_filepaths,
         "--leniency {}".format(opts.leniency),
         "-o {}".format(output_filepaths[0]),
         "-r c__,o__,f__,g__,s__",
+        "-u 'Unclassified eukaryote'",
 
 
     ]
