@@ -13,6 +13,8 @@ ___________________________________________________________________
 
 Espinoza JL, Dupont CL. VEBA: a modular end-to-end suite for in silico recovery, clustering, and analysis of prokaryotic, microeukaryotic, and viral genomes from metagenomes. BMC Bioinformatics. 2022 Oct 12;23(1):419. [doi: 10.1186/s12859-022-04973-8](https://doi.org/10.1186/s12859-022-04973-8). PMID: 36224545.
 
+Please cite the software dependencies described under the [*Dependency Citation Table*](CITATIONS.md).
+
 ___________________________________________________________________
 
 ### Announcements
