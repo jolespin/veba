@@ -13,13 +13,12 @@ from soothsayer_utils import *
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.5.15"
+__version__ = "2023.6.20"
 
 # DATABASE_METAEUK="/usr/local/scratch/CORE/jespinoz/db/veba/v1.0/Classify/Eukaryotic/eukaryotic"
 
 
 def get_preprocess_cmd(input_filepaths, output_filepaths, output_directory, directories, opts):
-    # checkv end_to_end ${FASTA} ${OUT_DIR} -t ${N_JOBS} --restart
 
     cmd = [
         "(",
@@ -388,10 +387,62 @@ rm -rf %s
     "--contamination {}".format(opts.busco_contamination),
     "--unbinned",
     ]
-
-
     
     return cmd
+
+# barrnap
+def get_barrnap_cmd(input_filepaths, output_filepaths, output_directory, directories, opts):
+    cmd = [
+
+
+"""
+
+    for GENOME_FASTA in {};
+    do 
+        ID = $(basename $GENOME_FASTA .fa)
+        {} --kingdom euk --threads {} --lencutoff {} --reject {} --evalue {} --outseq {} $GENOME_FASTA > {}
+        rm $GENOME_FASTA.fai
+    done
+
+""".format(
+        os.path.join(directories[("intermediate",  "3__busco")],  "filtered", "genomes", "*.fa"),
+        os.environ["barrnap"],
+        opts.n_jobs,
+        opts.barrnap_length_cutoff, 
+        opts.barrnap_reject, 
+        opts.barrnap_evalue,
+        os.path.join(output_directory, "$ID.rRNA.fasta"),
+        os.path.join(output_directory, "$ID.rRNA.gff"),
+    ),
+    ]
+    return cmd
+
+# tRNAscan-SE
+def get_trnascan_cmd(input_filepaths, output_filepaths, output_directory, directories, opts):
+    cmd = [
+
+"""
+
+    for GENOME_FASTA in {};
+    do 
+        ID = $(basename $GENOME_FASTA .fa)
+        {} -E --forceow --progress --threads {} --fasta {} --gff {} --struct {} {} $GENOME_FASTA > {}
+
+    done
+
+""".format(
+        os.path.join(directories[("intermediate",  "3__busco")],  "filtered", "genomes", "*.fa"),
+        os.environ["tRNAscan-SE"],
+        opts.n_jobs,
+        os.path.join(output_directory, "$ID.tRNA.fasta"),
+        os.path.join(output_directory, "$ID.tRNA.gff"),
+        os.path.join(output_directory, "$ID.tRNA.struct"),
+        opts.trnascan_options,
+        os.path.join(output_directory, "$ID.tRNA.txt"),
+    ),
+    ]
+    return cmd
+
 
 def get_featurecounts_cmd(input_filepaths, output_filepaths, output_directory, directories, opts):
     # ORF-Level Counts
@@ -435,19 +486,17 @@ def get_output_cmd(input_filepaths, output_filepaths, output_directory, director
     cmd += [
     "DST={}; (for SRC in {}; do SRC=$(realpath --relative-to $DST $SRC); ln -sf $SRC $DST; done)".format(
         output_directory,
-        " ".join(input_filepaths), 
+        " ".join(input_filepaths[:-3]), 
         )
     ]
 
-    # for fp in input_filepaths:
-    #     fn = fp.split("/")[-1]
-    #     cmd += [ 
-    #         "&&",
-    #         "ln -sf",
-    #         os.path.join(fp),
-    #         os.path.join(output_directory,fn),
-    #     ]
-        
+    cmd += [
+        "DST={}; (for SRC in {}; do SRC=$(realpath --relative-to $DST $SRC); ln -sf $SRC $DST; done)".format(
+        os.path.join(directories[("intermediate",  "3__busco")],  "filtered", "genomes"),
+        " ".join(input_filepaths[-3:]), 
+        )
+    ]
+    
         
     cmd += [ 
         "&&",
@@ -468,6 +517,7 @@ def get_output_cmd(input_filepaths, output_filepaths, output_directory, director
         os.path.join(output_directory,"genome_statistics.tsv"),
         ")",
     ]
+    
 
 
     
@@ -715,9 +765,113 @@ def create_pipeline(opts, directories, f_cmds):
     steps[program] = step
 
     # ==========
-    # featureCounts
+    # barrnap
     # ==========
     step = 4
+
+    program = "barrnap"
+    program_label = "{}__{}".format(step, program)
+    # Add to directories
+    output_directory = directories[("intermediate",  program_label)] = create_directory(os.path.join(directories["intermediate"], program_label))
+
+
+    # Info
+    description = "Detecting rRNA genes"
+    # i/o
+    input_filepaths = [
+        os.path.join(directories[("intermediate",  "3__busco")],  "filtered", "genomes", "*.fa"),
+    ]
+
+    output_filenames = [
+        "*.rRNA.fasta",
+        "*.rRNA.gff",
+    ]
+    output_filepaths = list(map(lambda filename: os.path.join(output_directory, filename), output_filenames))
+
+    params = {
+        "input_filepaths":input_filepaths,
+        "output_filepaths":output_filepaths,
+        "output_directory":output_directory,
+        "opts":opts,
+        "directories":directories,
+    } 
+
+    cmd = get_barrnap_cmd(**params)
+    pipeline.add_step(
+                id=program_label,
+                description = description,
+                step=step,
+                cmd=cmd,
+                input_filepaths = input_filepaths,
+                output_filepaths = output_filepaths,
+                validate_inputs=False,
+                validate_outputs=False,
+                errors_ok=False,
+                acceptable_returncodes={0},                    
+                log_prefix=program_label,
+                # acceptable_returncodes= {0,1},
+
+    )
+
+
+    steps[program] = step
+
+    # ==========
+    # tRNASCAN-se
+    # ==========
+    step = 5
+
+    program = "trnascan-se"
+    program_label = "{}__{}".format(step, program)
+    # Add to directories
+    output_directory = directories[("intermediate",  program_label)] = create_directory(os.path.join(directories["intermediate"], program_label))
+
+
+    # Info
+    description = "Detecting tRNA genes"
+    # i/o
+    input_filepaths = [
+        os.path.join(directories[("intermediate",  "3__busco")],  "filtered", "genomes", "*.fa"),
+    ]
+
+    output_filenames = [
+        "*.tRNA.fasta",
+        "*.tRNA.gff",
+    ]
+    output_filepaths = list(map(lambda filename: os.path.join(output_directory, filename), output_filenames))
+
+    params = {
+        "input_filepaths":input_filepaths,
+        "output_filepaths":output_filepaths,
+        "output_directory":output_directory,
+        "opts":opts,
+        "directories":directories,
+    } 
+
+    cmd = get_trnascan_cmd(**params)
+    pipeline.add_step(
+                id=program_label,
+                description = description,
+                step=step,
+                cmd=cmd,
+                input_filepaths = input_filepaths,
+                output_filepaths = output_filepaths,
+                validate_inputs=False,
+                validate_outputs=False,
+                errors_ok=False,
+                acceptable_returncodes={0},                    
+                log_prefix=program_label,
+                # acceptable_returncodes= {0,1},
+
+    )
+
+
+    steps[program] = step
+
+    # ==========
+    # featureCounts
+    # ==========
+    step = 6
 
     # Info
     program = "featurecounts"
@@ -764,7 +918,7 @@ def create_pipeline(opts, directories, f_cmds):
     # =============
     # Output
     # =============
-    step = 5
+    step = 7
 
     program = "output"
     program_label = "{}__{}".format(step, program)
@@ -787,7 +941,15 @@ def create_pipeline(opts, directories, f_cmds):
         os.path.join(directories[("intermediate",  "3__busco")],  "filtered", "genomes"),
 
         # featureCounts
-        os.path.join(directories[("intermediate",  "4__featurecounts")], "featurecounts.orfs.tsv.gz"),
+        os.path.join(directories[("intermediate",  "6__featurecounts")], "featurecounts.orfs.tsv.gz"),
+
+        # barrnap
+        os.path.join(directories[("intermediate",  "4__barrnap")], "*.rRNA.*"),
+
+        # tRNAscan-SE
+        os.path.join(directories[("intermediate",  "5__trnascan-se")], "*.tRNA.fasta"),
+        os.path.join(directories[("intermediate",  "5__trnascan-se")], "*.tRNA.gff"),
+
     ]
 
     output_filenames =  [
@@ -858,6 +1020,8 @@ def add_executables_to_environment(opts):
                 "busco",
                 "featureCounts",
                 "tiara",
+                "barrnap",
+                "tRNAscan-SE",
 
 
      } | accessory_scripts
@@ -933,6 +1097,8 @@ def main(args=None):
 
     # Pipeline
     parser_io = parser.add_argument_group('I/O arguments')
+    parser_io.add_argument("-t","--tiara_results", type=str, required=True, help = "path/to/scaffolds.fasta")
+
     parser_io.add_argument("-f","--fasta", type=str, required=True, help = "path/to/scaffolds.fasta")
     parser_io.add_argument("-b","--bam", type=str, nargs="+", required=True, help = "path/to/mapped.sorted.bam files separated by spaces. ")
     parser_io.add_argument("-n", "--name", type=str, help="Name of sample", required=True)
@@ -980,12 +1146,34 @@ def main(args=None):
     parser_metaeuk.add_argument("--metaeuk_options", type=str, default="", help="MetaEuk | More options (e.g. --arg 1 ) [Default: ''] https://github.com/soedinglab/metaeuk")
     # --split-memory-limit 70G: https://github.com/soedinglab/metaeuk/issues/59
 
+    # Pyrodigal
+    parser_pyrodigal = parser.add_argument_group('Pyrodigal arguments (Mitochondria)')
+    parser_pyrodigal.add_argument("--pyrodigal_minimum_gene_length", type=int, default=90, help="Pyrodigal | Minimum gene length [Default: 90]")
+    parser_pyrodigal.add_argument("--pyrodigal_minimum_edge_gene_length", type=int, default=60, help="Pyrodigal | Minimum edge gene length [Default: 60]")
+    parser_pyrodigal.add_argument("--pyrodigal_maximum_gene_overlap_length", type=int, default=60, help="Pyrodigal | Maximum gene overlap length [Default: 60]")
+    parser_pyrodigal.add_argument("--pyrodigal_mitochondrial_genetic_code", type=int, default=3, help="Pyrodigal -g translation table (https://www.ncbi.nlm.nih.gov/Taxonomy/Utils/wprintgc.cgi/) [Default: 3] (The Yeast Mitochondrial Code))")
+    parser_pyrodigal.add_argument("--pyrodigal_plastid_genetic_code", type=int, default=3, help="Pyrodigal -g translation table (https://www.ncbi.nlm.nih.gov/Taxonomy/Utils/wprintgc.cgi/) [Default: 3] (The Yeast Mitochondrial Code))")
+
     # BUSCO
     parser_busco = parser.add_argument_group('BUSCO arguments')
     # parser_busco.add_argument("--busco_offline", type=str, help="BUSCO | Offline database path")
     parser_busco.add_argument("--busco_completeness", type=float, default=50.0, help = "BUSCO completeness [Default: 50.0]")
     parser_busco.add_argument("--busco_contamination", type=float, default=10.0, help = "BUSCO contamination [Default: 10.0]")
     parser_busco.add_argument("--busco_evalue", type=float, default=0.001, help="BUSCO | E-value cutoff for BLAST searches. Allowed formats, 0.001 or 1e-03 [Default: 1e-03]")
+
+    # rRNA
+    parser_barrnap = parser.add_argument_group('barrnap arguments')
+    parser_barrnap.add_argument("--barrnap_length_cutoff", type=float, default=0.8,  help="barrnap | Proportional length threshold to label as partial [Default: 0.8]")
+    parser_barrnap.add_argument("--barrnap_reject", type=float, default=0.25,  help="barrnap | Proportional length threshold to reject prediction [Default: 0.25]")
+    parser_barrnap.add_argument("--barrnap_evalue", type=float, default=1e-6,  help="barrnap | Similarity e-value cut-off [Default: 1e-6]")
+
+    # tRNA
+    parser_trnascan = parser.add_argument_group('tRNAscan-SE arguments')
+    parser_trnascan.add_argument("--trnascan_nuclear_options", type=str, default="", help="tRNAscan-SE | More options (e.g. --arg 1 ) [Default: ''] | https://github.com/UCSC-LoweLab/tRNAscan-SE")
+    parser_trnascan.add_argument("--trnascan_mitochondrial_searchmode", type=str, default="-O", help="tRNAscan-SE | Search mode [Default: '-O'] | https://github.com/UCSC-LoweLab/tRNAscan-SE")
+    parser_trnascan.add_argument("--trnascan_mitochondrial_options", type=str, default="", help="tRNAscan-SE | More options (e.g. --arg 1 ) [Default: ''] | https://github.com/UCSC-LoweLab/tRNAscan-SE")
+    parser_trnascan.add_argument("--trnascan_plastid_searchmode", type=str, default="-O", help="tRNAscan-SE | Search mode [Default: '-O'] | https://github.com/UCSC-LoweLab/tRNAscan-SE")
+    parser_trnascan.add_argument("--trnascan_plastid_options", type=str, default="", help="tRNAscan-SE | More options (e.g. --arg 1 ) [Default: ''] | https://github.com/UCSC-LoweLab/tRNAscan-SE")
 
     # featureCounts
     parser_featurecounts = parser.add_argument_group('featureCounts arguments')

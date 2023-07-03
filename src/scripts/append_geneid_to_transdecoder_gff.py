@@ -165,6 +165,7 @@ def main(args=None):
                             "=",
                             id_exon,
                             ";",
+                            "gene_biotype=protein_coding;",
 
                             sep="",
                         file=f_out)                        

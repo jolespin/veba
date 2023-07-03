@@ -13,7 +13,7 @@ from soothsayer_utils.soothsayer_utils import assert_acceptable_arguments
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.6.1"
+__version__ = "2023.6.20"
 
 def get_diamond_cmd( input_filepaths, output_filepaths, output_directory, directories, opts, program):
     tmp = os.path.join(directories["tmp"], program)
@@ -126,10 +126,11 @@ def get_merge_annotations_cmd( input_filepaths, output_filepaths, output_directo
         os.environ["merge_annotations.py"],
         "--diamond_uniref {}".format(input_filepaths[0]),
         "--diamond_mibig {}".format(input_filepaths[1]),
-        "--hmmsearch_pfam {}".format(input_filepaths[2]),
-        "--hmmsearch_amr {}".format(input_filepaths[3]),
-        "--hmmsearch_antifam {}".format(input_filepaths[4]),
-        "--kofam {}".format(input_filepaths[5]),
+        "--diamond_vfdb {}".format(input_filepaths[2]),
+        "--hmmsearch_pfam {}".format(input_filepaths[3]),
+        "--hmmsearch_amr {}".format(input_filepaths[4]),
+        "--hmmsearch_antifam {}".format(input_filepaths[5]),
+        "--kofam {}".format(input_filepaths[6]),
         # "--veba_database {}".format(opts.veba_database),
         "--fasta {}".format(opts.proteins),
         "-o {}".format(output_directory)
@@ -299,10 +300,53 @@ def create_pipeline(opts, directories, f_cmds):
                 validate_inputs=True,
                 validate_outputs=True,
     )
+
+    # ==========
+    # Diamond
+    # ==========
+    step = 3
+
+    program = "diamond-vfdb"
+    program_label = "{}__{}".format(step, program)
+    # Add to directories
+    output_directory = directories[("intermediate",  program_label)] = create_directory(os.path.join(directories["intermediate"], program_label))
+
+    # Info
+    description = "Diamond [VFDB]"
+
+    # i/o
+    input_filepaths = [
+        opts.proteins, 
+         os.path.join(opts.veba_database, "Annotate", "VFDB", "VFDB_setA_pro.dmnd"),
+        ]
+    output_filenames = ["output.tsv.gz"]
+    output_filepaths = list(map(lambda filename: os.path.join(output_directory, filename), output_filenames))
+
+    params = {
+        "input_filepaths":input_filepaths,
+        "output_filepaths":output_filepaths,
+        "output_directory":output_directory,
+        "opts":opts,
+        "directories":directories,
+        "program":program,
+    }
+
+    cmd = get_diamond_cmd(**params)
+
+    pipeline.add_step(
+                id=program,
+                description = description,
+                step=step,
+                cmd=cmd,
+                input_filepaths = input_filepaths,
+                output_filepaths = output_filepaths,
+                validate_inputs=True,
+                validate_outputs=True,
+    )
     # ==========
     # HMMSearch-Pfam
     # ==========
-    step = 3
+    step = 4
 
     program = "hmmsearch-pfam"
     program_label = "{}__{}".format(step, program)
@@ -344,7 +388,7 @@ def create_pipeline(opts, directories, f_cmds):
     # =============
     # HMMSearch-AMR
     # =============
-    step = 4
+    step = 5
 
     program = "hmmsearch-amr"
     program_label = "{}__{}".format(step, program)
@@ -386,7 +430,7 @@ def create_pipeline(opts, directories, f_cmds):
     # =================
     # HMMSearch-AntiFam
     # =================
-    step = 5
+    step = 6
 
     program = "hmmsearch-antifam"
     program_label = "{}__{}".format(step, program)
@@ -427,7 +471,7 @@ def create_pipeline(opts, directories, f_cmds):
     # ==========
     # KOFAMSCAN
     # ==========
-    step = 6
+    step = 7
 
     program = "kofamscan"
     program_label = "{}__{}".format(step, program)
@@ -469,7 +513,7 @@ def create_pipeline(opts, directories, f_cmds):
     # ==========
     # Merge annotations
     # ==========
-    step = 7
+    step = 8
 
     program = "merge_annotations"
     program_label = "{}__{}".format(step, program)
@@ -483,10 +527,11 @@ def create_pipeline(opts, directories, f_cmds):
     input_filepaths = [
         os.path.join(directories[("intermediate",  "1__diamond-uniref")], "output.tsv.gz"),
         os.path.join(directories[("intermediate",  "2__diamond-mibig")], "output.tsv.gz"),
-        os.path.join(directories[("intermediate",  "3__hmmsearch-pfam")], "output.tsv.gz"),
-        os.path.join(directories[("intermediate",  "4__hmmsearch-amr")], "output.tsv.gz"),
-        os.path.join(directories[("intermediate",  "5__hmmsearch-antifam")], "output.tsv.gz"),
-        os.path.join(directories[("intermediate",  "6__kofamscan")], "output.tsv.gz"),
+        os.path.join(directories[("intermediate",  "3__diamond-vfdb")], "output.tsv.gz"),
+        os.path.join(directories[("intermediate",  "4__hmmsearch-pfam")], "output.tsv.gz"),
+        os.path.join(directories[("intermediate",  "5__hmmsearch-amr")], "output.tsv.gz"),
+        os.path.join(directories[("intermediate",  "6__hmmsearch-antifam")], "output.tsv.gz"),
+        os.path.join(directories[("intermediate",  "7__kofamscan")], "output.tsv.gz"),
 
 
     ]
@@ -519,7 +564,7 @@ def create_pipeline(opts, directories, f_cmds):
     # Propagate annotations
     # ==========
     if opts.protein_clusters:
-        step = 8
+        step = 9
 
         program = "propogate_annotations"
         program_label = "{}__{}".format(step, program)

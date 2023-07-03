@@ -12,7 +12,7 @@ from soothsayer_utils import *
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.6.12"
+__version__ = "2023.6.20"
 
 # Assembly
 def get_coverage_cmd( input_filepaths, output_filepaths, output_directory, directories, opts):
@@ -402,6 +402,90 @@ def get_checkm2_cmd(input_filepaths, output_filepaths, output_directory, directo
     ]
     return cmd
 
+# barrnap
+def get_barrnap_cmd(input_filepaths, output_filepaths, output_directory, directories, opts):
+    cmd = [
+        "cat",
+        input_filepaths[0],
+        ">",
+        os.path.join(directories["tmp"], "genomes_to_domain.tsv"),
+
+"""
+
+FP={} 
+for DOMAIN in $(cut -f2 $FP | sort -u); 
+do 
+    DOMAIN_ABBREVIATION=$(echo $DOMAIN | python -c 'import sys; print(sys.stdin.read().lower()[:3])')
+    
+    # Get MAGs for each domain (not all will have passed QC)
+    for ID in $(cat $FP | grep $DOMAIN | cut -f1)
+    do 
+        GENOME_FASTA=$(ls {}) || GENOME_FASTA=""
+        if [ -e "$GENOME_FASTA" ]; then
+            {} --kingdom $DOMAIN_ABBREVIATION --threads {} --lencutoff {} --reject {} --evalue {} --outseq {} $GENOME_FASTA > {}
+            rm $GENOME_FASTA.fai
+        fi
+    done
+done
+
+rm -f {}
+""".format(
+        os.path.join(directories["tmp"], "genomes_to_domain.tsv"),
+        os.path.join(os.path.split(input_filepaths[1])[0],"$ID.fa"),
+        os.environ["barrnap"],
+        opts.n_jobs,
+        opts.barrnap_length_cutoff, 
+        opts.barrnap_reject, 
+        opts.barrnap_evalue,
+        os.path.join(output_directory, "$ID.rRNA.fasta"),
+        os.path.join(output_directory, "$ID.rRNA.gff"),
+        os.path.join(directories["tmp"], "genomes_to_domain.tsv"),
+    ),
+    ]
+    return cmd
+
+# tRNAscan-SE
+def get_trnascan_cmd(input_filepaths, output_filepaths, output_directory, directories, opts):
+    cmd = [
+        "cat",
+        input_filepaths[0],
+        ">",
+        os.path.join(directories["tmp"], "genomes_to_domain.tsv"),
+
+
+"""
+
+FP={} 
+for DOMAIN in $(cut -f2 $FP | sort -u); 
+do 
+    DOMAIN_ABBREVIATION=$(echo $DOMAIN | python -c 'import sys; print(sys.stdin.read().upper()[:1])')
+    
+    # Get MAGs for each domain (not all will have passed QC)
+    for ID in $(cat $FP | grep $DOMAIN | cut -f1)
+    do 
+        GENOME_FASTA=$(ls {}) || GENOME_FASTA=""
+        if [ -e "$GENOME_FASTA" ]; then
+            {} -$DOMAIN_ABBREVIATION --forceow --progress --threads {} --fasta {} --gff {} --struct {} {} $GENOME_FASTA > {}
+        fi
+    done
+done
+
+rm -f {}
+""".format(
+        os.path.join(directories["tmp"], "genomes_to_domain.tsv"),
+        os.path.join(os.path.split(input_filepaths[1])[0],"$ID.fa"),
+        os.environ["tRNAscan-SE"],
+        opts.n_jobs,
+        os.path.join(output_directory, "$ID.tRNA.fasta"),
+        os.path.join(output_directory, "$ID.tRNA.gff"),
+        os.path.join(output_directory, "$ID.tRNA.struct"),
+        opts.trnascan_options,
+        os.path.join(output_directory, "$ID.tRNA.txt"),
+        os.path.join(directories["tmp"], "genomes_to_domain.tsv"),
+    )
+    ]
+    return cmd
+
 
 def get_featurecounts_cmd(input_filepaths, output_filepaths, output_directory, directories, opts):
     # ORF-Level Counts
@@ -490,7 +574,7 @@ def get_consolidate_cmd(input_filepaths, output_filepaths, output_directory, dir
         "SRC={}; DST={}; SRC=$(realpath --relative-to $DST $SRC); ln -sf $SRC $DST".format(
             input_filepaths[5],
             output_directory,
-        )
+        ),
         ]
         
     # SeqKit
@@ -535,6 +619,34 @@ def get_consolidate_cmd(input_filepaths, output_filepaths, output_directory, dir
         # "rm -rf {}".format(os.path.join(directories["tmp"],"*")),
 
     ]
+
+        # tRNA
+    cmd += [ 
+            "&&",
+        "SRC={}; DST={}; SRC=$(realpath --relative-to $DST $SRC); ln -sf $SRC $DST".format(
+        input_filepaths[6],
+        os.path.join(output_directory,"genomes"),
+    ),
+    ]
+
+        # tRNA
+    cmd += [ 
+            "&&",
+        "SRC={}; DST={}; SRC=$(realpath --relative-to $DST $SRC); ln -sf $SRC $DST".format(
+        input_filepaths[7],
+        os.path.join(output_directory,"genomes"),
+    ),
+    ]
+
+        # rRNA
+    cmd += [ 
+            "&&",
+        "SRC={}; DST={}; SRC=$(realpath --relative-to $DST $SRC); ln -sf $SRC $DST".format(
+        input_filepaths[8],
+        os.path.join(output_directory,"genomes"),
+    ),
+    ]
+    
 
 
     return cmd
@@ -1011,6 +1123,112 @@ def create_pipeline(opts, directories, f_cmds):
         # Reset input_fasta
         input_fasta = os.path.join(directories["tmp"], "unbinned_{}.fasta".format(iteration))
 
+    # ==========
+    # barrnap
+    # ==========
+    step  += 1
+
+    program = "barrnap"
+    program_label = "{}__{}".format(step, program)
+    # Add to directories
+    output_directory = directories[("intermediate",  program_label)] = create_directory(os.path.join(directories["intermediate"], program_label))
+
+
+    # Info
+    description = "Detecting rRNA genes"
+    # i/o
+    input_filepaths = [
+        os.path.join(directories["intermediate"], "*__dastool",  "consensus_domain_classification", "predictions.tsv"),
+        os.path.join(directories["intermediate"], "*__checkm2", "filtered", "genomes", "*"),
+    ]
+
+    output_filenames = [
+        "*.rRNA.fasta",
+        "*.rRNA.gff",
+    ]
+    output_filepaths = list(map(lambda filename: os.path.join(output_directory, filename), output_filenames))
+
+    params = {
+        "input_filepaths":input_filepaths,
+        "output_filepaths":output_filepaths,
+        "output_directory":output_directory,
+        "opts":opts,
+        "directories":directories,
+    } 
+
+    cmd = get_barrnap_cmd(**params)
+    pipeline.add_step(
+                id=program_label,
+                description = description,
+                step=step,
+                cmd=cmd,
+                input_filepaths = input_filepaths,
+                output_filepaths = output_filepaths,
+                validate_inputs=False,
+                validate_outputs=False,
+                errors_ok=False,
+                acceptable_returncodes={0},                    
+                log_prefix=program_label,
+                # acceptable_returncodes= {0,1},
+
+    )
+
+
+    steps[program] = step
+
+    # ==========
+    # tRNASCAN-se
+    # ==========
+    step  += 1
+
+    program = "trnascan-se"
+    program_label = "{}__{}".format(step, program)
+    # Add to directories
+    output_directory = directories[("intermediate",  program_label)] = create_directory(os.path.join(directories["intermediate"], program_label))
+
+
+    # Info
+    description = "Detecting tRNA genes"
+    # i/o
+    input_filepaths = [
+        os.path.join(directories["intermediate"], "*__dastool",  "consensus_domain_classification", "predictions.tsv"),
+        os.path.join(directories["intermediate"], "*__checkm2", "filtered", "genomes", "*"),
+    ]
+
+    output_filenames = [
+        "*.tRNA.fasta",
+        "*.tRNA.gff",
+    ]
+    output_filepaths = list(map(lambda filename: os.path.join(output_directory, filename), output_filenames))
+
+    params = {
+        "input_filepaths":input_filepaths,
+        "output_filepaths":output_filepaths,
+        "output_directory":output_directory,
+        "opts":opts,
+        "directories":directories,
+    } 
+
+    cmd = get_trnascan_cmd(**params)
+    pipeline.add_step(
+                id=program_label,
+                description = description,
+                step=step,
+                cmd=cmd,
+                input_filepaths = input_filepaths,
+                output_filepaths = output_filepaths,
+                validate_inputs=False,
+                validate_outputs=False,
+                errors_ok=False,
+                acceptable_returncodes={0},                    
+                log_prefix=program_label,
+                # acceptable_returncodes= {0,1},
+
+    )
+
+
+    steps[program] = step
+
 
     # ==========
     # featureCounts
@@ -1082,6 +1300,9 @@ def create_pipeline(opts, directories, f_cmds):
         os.path.join(directories["intermediate"], "*__checkm2",  "filtered", "checkm2_results.filtered.tsv"),
         os.path.join(directories["intermediate"], "*__checkm2", "filtered", "genomes", "*"),
         os.path.join(directories[("intermediate", "{}__featurecounts".format(step-1))], "featurecounts.orfs.tsv.gz"),
+        os.path.join(directories[("intermediate", "{}__trnascan-se".format(step-2))], "*.tRNA.fasta"),
+        os.path.join(directories[("intermediate", "{}__trnascan-se".format(step-2))], "*.tRNA.gff"),
+        os.path.join(directories[("intermediate", "{}__barrnap".format(step-3))], "*.rRNA.*"),
     ]
 
     output_filenames =  [
@@ -1121,6 +1342,8 @@ def create_pipeline(opts, directories, f_cmds):
     )
 
 
+
+
     return pipeline
 
 # Set environment variables
@@ -1158,6 +1381,10 @@ def add_executables_to_environment(opts):
                 "featureCounts",
                 # 11
                 "tiara",
+                # 12
+                "barrnap",
+                # 13
+                "tRNAscan-SE",
  
      } | accessory_scripts
 
@@ -1264,7 +1491,7 @@ def main(args=None):
     parser_genemodels.add_argument("--pyrodigal_minimum_gene_length", type=int, default=90, help="Pyrodigal | Minimum gene length [Default: 90]")
     parser_genemodels.add_argument("--pyrodigal_minimum_edge_gene_length", type=int, default=60, help="Pyrodigal | Minimum edge gene length [Default: 60]")
     parser_genemodels.add_argument("--pyrodigal_maximum_gene_overlap_length", type=int, default=60, help="Pyrodigal | Maximum gene overlap length [Default: 60]")
-    parser_genemodels.add_argument("--pyrodigal_genetic_code", type=str, default=11, help="Pyrodigal -g translation table [Default: 11]")
+    parser_genemodels.add_argument("--pyrodigal_genetic_code", type=int, default=11, help="Pyrodigal -g translation table [Default: 11]")
 
     parser_evaluation = parser.add_argument_group('Evaluation arguments')
     parser_evaluation.add_argument("--dastool_searchengine", type=str, default="diamond", help="DAS_Tool searchengine. [Default: diamond] | https://github.com/cmks/DAS_Tool")
@@ -1274,6 +1501,16 @@ def main(args=None):
     parser_evaluation.add_argument("--checkm2_contamination", type=float, default=10.0, help="CheckM2 contamination threshold [Default: 10.0]")
     parser_evaluation.add_argument("--checkm2_options", type=str, default="", help="CheckM lineage_wf | More options (e.g. --arg 1 ) [Default: '']")
 
+    # rRNA
+    parser_barrnap = parser.add_argument_group('barrnap arguments')
+    parser_barrnap.add_argument("--barrnap_length_cutoff", type=float, default=0.8,  help="barrnap | Proportional length threshold to label as partial [Default: 0.8]")
+    parser_barrnap.add_argument("--barrnap_reject", type=float, default=0.25,  help="barrnap | Proportional length threshold to reject prediction [Default: 0.25]")
+    parser_barrnap.add_argument("--barrnap_evalue", type=float, default=1e-6,  help="barrnap | Similarity e-value cut-off [Default: 1e-6]")
+
+    # tRNA
+    parser_trnascan = parser.add_argument_group('tRNAscan-SE arguments')
+    parser_trnascan.add_argument("--trnascan_options", type=str, default="", help="tRNAscan-SE | More options (e.g. --arg 1 ) [Default: ''] | https://github.com/UCSC-LoweLab/tRNAscan-SE")
+
     # featureCounts
     parser_featurecounts = parser.add_argument_group('featureCounts arguments')
     parser_featurecounts.add_argument("--long_reads", action="store_true", help="featureCounts | Use this if long reads are being used")
@@ -1281,7 +1518,7 @@ def main(args=None):
 
     # Tiara
     parser_domain = parser.add_argument_group('Domain classification arguments')
-    parser_domain.add_argument("--logit_transform", type=str, default="softmax", help = " Transformation for consensus_domain_classification: {softmax, tss} [Default: softmax")
+    parser_domain.add_argument("--logit_transform", type=str, default="softmax", help = " Transformation for consensus_domain_classification: {softmax, tss} [Default: softmax]")
     parser_domain.add_argument("--tiara_minimum_length", type=int, default=3000, help="Tiara | Minimum contig length. Anything lower than 3000 is not recommended. [Default: 3000]")
     parser_domain.add_argument("--tiara_options", type=str, default="", help="Tiara | More options (e.g. --arg 1 ) [Default: ''] | https://github.com/ibe-uw/tiara")
 

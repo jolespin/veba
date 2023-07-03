@@ -211,15 +211,17 @@ ________________________________________________________________
 #### Path to `v2.0.0`:
 
 **Definitely:**
+* Add contig region and exons to `prodigal` GFF.
 * Consistent usage of the following terms: 1) dataframe vs. table; 2) protein-cluster vs. orthogroup.
 * Add support for `FAMSA` in `phylogeny.py`
 * Create a `assembly-longreads.py` module that uses `MetaFlye`
-* Create a `noncoding.py` module that uses `tRNASCAN-SE` and other goodies.
+* Add tRNA and rRNA detection in prokaryotic and eukaryotic binning modules.
 * Expand Microeukaryotic Protein Database to include more fungi (Mycocosm)
 * Add MAG-level counts to prokaryotic and eukaryotic. Add optional bam file for viral binning, if so then add MAG-level counts
 * Support genome table input for `biosynthetic.py`, `phylogeny.py`, `index.py`, etc.
 * Install each module via `bioconda`
 * Add checks for `annotate.py` to ensure there are no proteins > 100K in length.
+* Add VFDB to `annotate.py`
 * Add support for `Salmon` in `mapping.py` and `index.py`.  This can be used instead of `STAR` which will require adding the `exon` field to `Prodigal` GFF file (`MetaEuk` modified GFF files already have exon ids). 
 * Speed up `binning-eukaryotic.py` by accessing `BUSCO` backends and only running gene calls for genes relevant to genome.  If it passes `BUSCO` filters, then run actual gene calls.
 * Build a clustered version of the Microeukaryotic Protein Database that is more efficient to run.
@@ -241,7 +243,10 @@ ________________________________________________________________
 ________________________________________________________________
 
 
-#### Change Log: 
+#### Change Log:
+* [2023.7.3] - Added `eukaryotic_gene_modeling_wrapper.py` which 1) splits nuclear, mitochondrial, and plastid genomes; 2) performs gene modeling via `MetaEuk` and `Pyrodigal`; 3) performs rRNA detection via `BARRNAP`; 4) performs tRNA detection via `tRNAscan-SE`; 5) merges processed GFF files; and 5) calculates sequences statistics. 
+* [2023.6.29] - Added `gene_biotype=protein_coding` to `prodigal` GFF output. 
+* [2023.6.20] - Added `VFDB` to `annotate.py` and database.
 * [2023.6.16] - Compiled and pushed `gtdb_r214.msh` mash file to [Zenodo:8048187](https://zenodo.org/record/8048187) which is now used by default in `classify-prokaryotic.py`.  It is now included in `VDB_v5.1`.
 * [2023.6.15] - Cleaned up global and local clustering intermediate files.  Added pangenome tables and singelton information to outputs.
 * [2023.6.12] - Changed `${VEBA_DATABASE}/Classify/GTDBTk` → `${VEBA_DATABASE}/Classify/GTDB`.

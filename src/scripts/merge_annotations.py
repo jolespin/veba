@@ -6,7 +6,7 @@ import numpy as np
 from soothsayer_utils import read_hmmer, pv, get_file_object, assert_acceptable_arguments, format_header
 
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.5.14"
+__version__ = "2023.6.20"
 
 # disclaimer = format_header("DISCLAIMER: Lineage predictions are NOT robust and DO NOT USE CORE MARKERS.  Please only use for exploratory suggestions.")
 
@@ -73,7 +73,7 @@ def main(args=None):
     # Path info
     description = """
     Running: {} v{} via Python v{} | {}""".format(__program__, __version__, sys.version.split(" ")[0], sys.executable)
-    usage = "{} -i  <identifier_mapping> -d <uniref.blast6> --hmmsearch_pfam <pfam.hmmsearch.tblout> --hmmsearch_amr <amr.hmmsearch.tblout> --hmmsearch_antifam <antifam.hmmsearch.tblout> -a <gene_models.faa> -o <output_directory>".format(__program__)
+    usage = "{} -i  <identifier_mapping> -d <uniref.blast6> -m <mibig.blast6> -b <vfdb.blast6> --hmmsearch_pfam <pfam.hmmsearch.tblout> --hmmsearch_amr <amr.hmmsearch.tblout> --hmmsearch_antifam <antifam.hmmsearch.tblout> -a <gene_models.faa> -o <output_directory>".format(__program__)
     epilog = "Copyright 2021 Josh L. Espinoza (jespinoz@jcvi.org)"
 
     # Parser
@@ -83,6 +83,7 @@ def main(args=None):
     parser_required.add_argument("-o","--output_directory", type=str, default="annotation_output",  help = "Output directory for annotations [Default: annotation_output]")
     parser_required.add_argument("-d","--diamond_uniref", type=str, required=True,  help = "path/to/diamond_uniref.blast6 in blast6 format (No header, cannot be empty) with the following fields: \nqseqid sseqid stitle pident length mismatch qlen qstart qend slen sstart send evalue bitscore qcovhsp scovhsp")
     parser_required.add_argument("-m","--diamond_mibig", type=str, required=True,  help = "path/to/diamond_mibig.blast6 in blast6 format (No header) with the following fields: \nqseqid sseqid stitle pident length mismatch qlen qstart qend slen sstart send evalue bitscore qcovhsp scovhsp")
+    parser_required.add_argument("-b","--diamond_vfdb", type=str, required=True,  help = "path/to/diamond_vfdb.blast6 in blast6 format (No header) with the following fields: \nqseqid sseqid stitle pident length mismatch qlen qstart qend slen sstart send evalue bitscore qcovhsp scovhsp")
     parser_required.add_argument("-k","--kofam", type=str, required=True,  help = "path/to/kofamscan.tblout hmmsearch results in tblout format")
     parser_required.add_argument("-p", "--hmmsearch_pfam", type=str, required=True,  help = "path/to/hmmsearch.tblout hmmsearch results in tblout format")
     parser_required.add_argument("-n", "--hmmsearch_amr", type=str, required=True,  help = "path/to/hmmsearch.tblout hmmsearch results in tblout format")
@@ -165,6 +166,17 @@ def main(args=None):
     df_diamond_mibig = df_diamond_mibig.drop(["stitle"], axis=1)
     proteins = proteins | set(df_diamond_mibig.index)
 
+    print(" * Reading Diamond table [VFDB]: {}".format(opts.diamond_mibig), file=sys.stderr)
+    columns = ["qseqid","sseqid", "stitle", "pident","length","mismatch","qlen","qstart","qend", "slen", "sstart","send", "evalue","bitscore","qcovhsp","scovhsp"]
+    try:
+        df_diamond_vfdb = pd.read_csv(opts.diamond_vfdb, sep="\t", index_col=None, header=None)
+    except pd.errors.EmptyDataError:
+        df_diamond_vfdb = pd.DataFrame(columns=columns)
+    df_diamond_vfdb.columns = columns
+    df_diamond_vfdb = df_diamond_vfdb.set_index("qseqid")
+    df_diamond_vfdb = df_diamond_vfdb.drop(["stitle"], axis=1)
+    proteins = proteins | set(df_diamond_vfdb.index)
+
     print(" * Reading HMMSearch table [Pfam]: {}".format(opts.hmmsearch_pfam), file=sys.stderr)
     df_hmmsearch_pfam = read_hmmer(opts.hmmsearch_pfam, program="hmmsearch", format="tblout", verbose=False)
     if not df_hmmsearch_pfam.empty:
@@ -233,7 +245,7 @@ def main(args=None):
 
     df_hmms_pfam = df_hmms_pfam.applymap(lambda x: x if isinstance(x,list) else [])
     df_hmms_pfam.insert(loc=0, column="number_of_hits", value=df_hmms_pfam["ids"].map(len))
-    df_hmms_pfam.index.name = "id_protein"
+    df_hmms_pfam.index.name = "id_protein-representative"
 
     # AMR
     if not df_hmmsearch_amr.empty:
@@ -261,7 +273,7 @@ def main(args=None):
     else:
         df_hmms_amr = pd.DataFrame(index=proteins, columns=["hit", "ids", "names", "evalues", "scores"])
     df_hmms_amr = df_hmms_amr.applymap(lambda x: x if isinstance(x,list) else [])
-    df_hmms_amr.index.name = "id_protein"
+    df_hmms_amr.index.name = "id_protein-representative"
     df_hmms_amr.insert(loc=0, column="number_of_hits", value=df_hmms_amr["ids"].map(len))
 
 
@@ -293,7 +305,7 @@ def main(args=None):
         df_hmms_antifam = pd.DataFrame(index=proteins, columns=["hit", "ids", "names", "evalues", "scores"])
     df_hmms_antifam["hit"] = df_hmms_antifam["hit"].fillna(False)
     df_hmms_antifam = df_hmms_antifam.applymap(lambda x: x if isinstance(x,list) else [])
-    df_hmms_antifam.index.name = "id_protein"
+    df_hmms_antifam.index.name = "id_protein-representative"
     df_hmms_antifam.insert(loc=0, column="number_of_hits", value=df_hmms_antifam["ids"].map(len))
 
     # KOFAMSCAN
@@ -328,12 +340,12 @@ def main(args=None):
 
     # Output table
     dataframes = list()
-    for (name, df) in zip([ "UniRef", "MIBiG", "Pfam", "NCBIfam-AMR", "AntiFam", "KOFAM"],[df_diamond_uniref, df_diamond_mibig, df_hmms_pfam, df_hmms_amr, df_hmms_antifam, df_hmms_kofam]):
+    for (name, df) in zip([ "UniRef", "MIBiG", "VFDB", "Pfam", "NCBIfam-AMR", "AntiFam", "KOFAM"],[df_diamond_uniref, df_diamond_mibig, df_diamond_vfdb, df_hmms_pfam, df_hmms_amr, df_hmms_antifam, df_hmms_kofam]):
         df = df.copy()
         df.columns = df.columns.map(lambda x: (name,x))
         dataframes.append(df)
     df_annotations = pd.concat(dataframes, axis=1)
-    df_annotations.index.name = "id_protein"
+    df_annotations.index.name = "id_protein-representative"
 
     # Composite label
     protein_to_labels = dict()

@@ -4,7 +4,7 @@ from collections import OrderedDict
 # import pandas as pd
 
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.6.29"
+__version__ = "2023.6.30"
 
 def main(args=None):
     # Path info
@@ -21,7 +21,7 @@ def main(args=None):
     # Pipeline
     parser.add_argument("-i","--input", type=str, default="stdin", help = "path/to/gene_models.gff [Default: stdin]")
     parser.add_argument("-o","--output", type=str, default="stdout", help = "path/to/gene_models.updated.gff [Default: stdout]")
-    parser.add_argument("-a","--attribute", type=str, default="gene_id",  help = "Attribute to add to GFF [Default: gene_id]")
+    # parser.add_argument("-a","--attribute", type=str, default="gene_id",  help = "Attribute to add to GFF [Default: gene_id]")
 
 
     # Options
@@ -47,21 +47,29 @@ def main(args=None):
         if line.startswith("#"):
             print(line, file=f_out)
         else:
-            id_contig = line.split("\t")[0]
-            id = line.split("ID=")[1].split(";")[0]
+            fields = line.split("\t")
+            id_contig = fields[0]
+            start = fields[3]
+            end = fields[4]
+            strand = fields[6]
+            description = fields[-1]
+            assert "Name=" in description, "Incorrect BARRNAP formatting.  Should have Name= in last field."
+            name = description.split("Name=")[-1]
+            name = name.split(";")[0]
+            name = name[5:]
+            id_gene = "{}::{}:{}-{}({})".format(name, id_contig, start, end, strand)
             print(
                 line,
+                ";",
+                "ID",
+                "=",
+                id_gene,
+                ";"
                 "contig_id",
                 "=",
                 id_contig,
                 ";",
-                opts.attribute, 
-                "=",
-                id_contig,
-                "_",
-                id.split("_")[-1],
-                ";",
-                "gene_biotype=protein_coding",
+                "gene_biotype=rRNA",
                 ";",
                 sep="",
             file=f_out)
