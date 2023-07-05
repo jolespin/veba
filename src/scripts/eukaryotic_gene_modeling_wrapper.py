@@ -12,7 +12,7 @@ from soothsayer_utils import *
 
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.7.3"
+__version__ = "2023.7.4"
 
 # Tiara
 def get_tiara_cmd(input_filepaths, output_filepaths, output_directory, directories, opts):
@@ -331,7 +331,7 @@ def get_symlink_cmd(input_filepaths, output_filepaths, output_directory, directo
 
     # Nuclear
     cmd = [
-    "DST={}; SRC_DIRECTORY={}; (for SRC in $SRC_DIRECTORY/*.faa $SRC_DIRECTORY/*.ffn; do SRC=$(realpath --relative-to $DST $SRC); ln -sf $SRC $DST; done)".format(
+    "DST={}; SRC_DIRECTORY={}; (for SRC in $SRC_DIRECTORY/*.faa $SRC_DIRECTORY/*.ffn $SRC_DIRECTORY/*.ffn $SRC_DIRECTORY/identifier_mapping.metaeuk.tsv $SRC_DIRECTORY/identifier_mapping.tsv; do SRC=$(realpath --relative-to $DST $SRC); ln -sf $SRC $DST; done)".format(
         output_directory,
         directories[("intermediate", "2__metaeuk")],
         ),
@@ -367,7 +367,7 @@ def get_symlink_cmd(input_filepaths, output_filepaths, output_directory, directo
     cmd += [
         "&&",
 
-    "DST={}; SRC_DIRECTORY={}; (for SRC in $SRC_DIRECTORY/*.faa $SRC_DIRECTORY/*.ffn; do SRC=$(realpath --relative-to $DST $SRC); ln -sf $SRC $DST; done)".format(
+    "DST={}; SRC_DIRECTORY={}; (for SRC in $SRC_DIRECTORY/*.faa $SRC_DIRECTORY/*.ffn $SRC_DIRECTORY/identifier_mapping.tsv; do SRC=$(realpath --relative-to $DST $SRC); ln -sf $SRC $DST; done)".format(
         os.path.join(output_directory,"mitochondrion"),
         directories[("intermediate", "3__pyrodigal-mitochondrion")],
         ),
@@ -401,7 +401,7 @@ def get_symlink_cmd(input_filepaths, output_filepaths, output_directory, directo
     cmd += [
         "&&",
 
-    "DST={}; SRC_DIRECTORY={}; (for SRC in $SRC_DIRECTORY/*.faa $SRC_DIRECTORY/*.ffn; do SRC=$(realpath --relative-to $DST $SRC); ln -sf $SRC $DST; done)".format(
+    "DST={}; SRC_DIRECTORY={}; (for SRC in $SRC_DIRECTORY/*.faa $SRC_DIRECTORY/*.ffn $SRC_DIRECTORY/identifier_mapping.tsv; do SRC=$(realpath --relative-to $DST $SRC); ln -sf $SRC $DST; done)".format(
         os.path.join(output_directory,"plastid"),
         directories[("intermediate", "4__pyrodigal-plastid")],
         ),
@@ -1206,7 +1206,12 @@ def create_pipeline(opts, directories, f_cmds):
     ]
 
     output_filenames =  [
-        "*.tsv",
+        "genome_statistics.tsv",
+        "gene_statistics.cds.tsv",
+        "gene_statistics.rRNA.tsv",
+        "gene_statistics.tRNA.tsv",
+
+
     ]
 
 
