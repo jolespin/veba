@@ -449,7 +449,9 @@ def get_stats_cmd(input_filepaths, output_filepaths, output_directory, directori
         os.path.join(output_directory, "*", "*.fa"),
 
         "|",
-        """python -c 'import sys, pandas as pd; df = pd.read_csv(sys.stdin, sep="\t", index_col=0); df.index = df.index.map(lambda x: "/".join(x.split("/")[2:])[:-3]); df.to_csv(sys.stdout, sep="\t")'""",
+        # """python -c 'import sys, pandas as pd; df = pd.read_csv(sys.stdin, sep="\t", index_col=0); df.index = df.index.map(lambda x: "/".join(x.split("/")[2:])[:-3]); df.to_csv(sys.stdout, sep="\t")'""",
+        """python -c 'import sys, pandas as pd; df = pd.read_csv(sys.stdin, sep="\t", index_col=0); df.index = df.index.map(lambda x: x.split("output/")[-1][:-3]); df.to_csv(sys.stdout, sep="\t")'""",
+
         ">",
         os.path.join(output_directory,"genome_statistics.tsv"),
 
@@ -468,7 +470,9 @@ def get_stats_cmd(input_filepaths, output_filepaths, output_directory, directori
         os.path.join(output_directory,"*",  "*.ffn"),
 
         "|",
-        """python -c 'import sys, pandas as pd; df = pd.read_csv(sys.stdin, sep="\t", index_col=0); df.index = df.index.map(lambda x: "/".join(x.split("/")[2:])[:-4]); df.to_csv(sys.stdout, sep="\t")'""",
+        # """python -c 'import sys, pandas as pd; df = pd.read_csv(sys.stdin, sep="\t", index_col=0); df.index = df.index.map(lambda x: "/".join(x.split("/")[2:])[:-4]); df.to_csv(sys.stdout, sep="\t")'""",
+            """python -c 'import sys, pandas as pd; df = pd.read_csv(sys.stdin, sep="\t", index_col=0); df.index = df.index.map(lambda x: x.split("output/")[-1][:-4]); df.to_csv(sys.stdout, sep="\t")'""",
+
         ">",
         os.path.join(output_directory,"gene_statistics.cds.tsv"),
 
@@ -486,7 +490,9 @@ def get_stats_cmd(input_filepaths, output_filepaths, output_directory, directori
         os.path.join(output_directory,"*",  "*.rRNA"),
 
         "|",
-        """python -c 'import sys, pandas as pd; df = pd.read_csv(sys.stdin, sep="\t", index_col=0); df.index = df.index.map(lambda x: "/".join(x.split("/")[2:])[:-5]); df.to_csv(sys.stdout, sep="\t")'""",
+        # """python -c 'import sys, pandas as pd; df = pd.read_csv(sys.stdin, sep="\t", index_col=0); df.index = df.index.map(lambda x: "/".join(x.split("/")[2:])[:-5]); df.to_csv(sys.stdout, sep="\t")'""",
+        """python -c 'import sys, pandas as pd; df = pd.read_csv(sys.stdin, sep="\t", index_col=0); df.index = df.index.map(lambda x: x.split("output/")[-1][:-5]); df.to_csv(sys.stdout, sep="\t")'""",
+
         ">",
         os.path.join(output_directory,"gene_statistics.rRNA.tsv"),
 
@@ -504,7 +510,9 @@ def get_stats_cmd(input_filepaths, output_filepaths, output_directory, directori
         os.path.join(output_directory,"*",  "*.tRNA"),
 
         "|",
-        """python -c 'import sys, pandas as pd; df = pd.read_csv(sys.stdin, sep="\t", index_col=0); df.index = df.index.map(lambda x: "/".join(x.split("/")[2:])[:-5]); df.to_csv(sys.stdout, sep="\t")'""",
+        # """python -c 'import sys, pandas as pd; df = pd.read_csv(sys.stdin, sep="\t", index_col=0); df.index = df.index.map(lambda x: "/".join(x.split("/")[2:])[:-5]); df.to_csv(sys.stdout, sep="\t")'""",
+        """python -c 'import sys, pandas as pd; df = pd.read_csv(sys.stdin, sep="\t", index_col=0); df.index = df.index.map(lambda x: x.split("output/")[-1][:-5]); df.to_csv(sys.stdout, sep="\t")'""",
+
         ">",
         os.path.join(output_directory,"gene_statistics.tRNA.tsv"),
             

@@ -13,7 +13,7 @@ from soothsayer_utils import *
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.5.15"
+__version__ = "2023.7.7"
 
 # geNomad
 def get_genomad_cmd(input_filepaths, output_filepaths, output_directory, directories, opts):
@@ -38,7 +38,6 @@ def get_genomad_cmd(input_filepaths, output_filepaths, output_directory, directo
         "cp",
         os.path.join(directories["tmp"], "input.fasta"),
         os.path.join(directories["output"], "unbinned.fasta"),
-
 
             "&&",
 
@@ -293,7 +292,27 @@ def get_prodigal_cmd(input_filepaths, output_filepaths, output_directory, direct
         "-a {}".format(os.path.join(output_directory, "gene_models.faa")),
         "-o {}".format(os.path.join(directories[("intermediate",  "2__checkv")],"filtered", "genomes")),
 
-            "&&",
+"""
+
+OUTPUT_DIRECTORY={}
+
+for GENOME_FASTA in {};
+do
+    ID=$(basename $GENOME_FASTA .fa)
+    DIR_GENOME=$(dirname $GENOME_FASTA)
+    GFF_CDS=$DIR_GENOME/$ID.gff
+    GFF_OUTPUT=$OUTPUT_DIRECTORY/$ID.gff
+    >$GFF_OUTPUT.tmp
+    {} -f $GENOME_FASTA -o $GFF_OUTPUT.tmp -n $ID -c $GFF_CDS -d Virus
+    mv $GFF_OUTPUT.tmp $GFF_OUTPUT
+done
+
+""".format(
+        os.path.join(directories[("intermediate",  "2__checkv")],"filtered", "genomes"),
+        os.path.join(directories[("intermediate",  "2__checkv")],"filtered", "genomes", "*.fa"),
+        os.environ["compile_gff.py"],
+    ),
+
 
         "rm -rf",
         os.path.join(output_directory, "gene_models.gff"),
@@ -747,6 +766,7 @@ def add_executables_to_environment(opts):
         "filter_checkv_results.py",
         "virfinder_wrapper.r",
         "genomad_taxonomy_wrapper.py",
+        "compile_gff.py",
         # "subset_table.py",
         # "concatenate_dataframes.py",
     }

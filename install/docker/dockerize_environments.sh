@@ -1,4 +1,4 @@
-for ENV_NAME in $(ls ../environments/ | grep ".yml" | grep -v "VEBA-preprocess_env"); 
+for ENV_NAME in $(ls ../environments/ | grep ".yml"); 
 do 
     ENV_NAME=$(echo $ENV_NAME | cut -f1 -d ".")
     echo $ENV_NAME

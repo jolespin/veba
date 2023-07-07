@@ -32,12 +32,12 @@ for ENV_NAME in VEBA-binning-prokaryotic_env; do
 
 #GTDB-Tk
 echo ". .. ... ..... ........ ............."
-echo "xiv * Adding the following environment variable to VEBA environments: export GTDBTK_DATA_PATH=${REALPATH_DATABASE_DIRECTORY}/Classify/GTDBTk/"
+echo "xiv * Adding the following environment variable to VEBA environments: export GTDBTK_DATA_PATH=${REALPATH_DATABASE_DIRECTORY}/Classify/GTDB/"
 for ENV_NAME in VEBA-classify_env; do 
     ENV_NAME=test-${ENV_NAME}
     ENV_PREFIX=${CONDA_BASE}/envs/${ENV_NAME}
     # GTDB-Tk
-    echo "export GTDBTK_DATA_PATH=${REALPATH_DATABASE_DIRECTORY}/Classify/GTDBTk/" >> ${ENV_PREFIX}/etc/conda/activate.d/veba.sh
+    echo "export GTDBTK_DATA_PATH=${REALPATH_DATABASE_DIRECTORY}/Classify/GTDB/" >> ${ENV_PREFIX}/etc/conda/activate.d/veba.sh
     echo "unset GTDBTK_DATA_PATH" >> ${ENV_PREFIX}/etc/conda/deactivate.d/veba.sh
     done 
 

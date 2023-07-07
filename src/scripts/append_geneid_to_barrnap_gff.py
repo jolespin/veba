@@ -56,7 +56,6 @@ def main(args=None):
             assert "Name=" in description, "Incorrect BARRNAP formatting.  Should have Name= in last field."
             name = description.split("Name=")[-1]
             name = name.split(";")[0]
-            name = name[5:]
             id_gene = "{}::{}:{}-{}({})".format(name, id_contig, start, end, strand)
             print(
                 line,

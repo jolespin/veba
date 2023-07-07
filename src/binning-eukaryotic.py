@@ -13,7 +13,7 @@ from soothsayer_utils import *
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.6.20"
+__version__ = "2023.7.6"
 
 # DATABASE_METAEUK="/usr/local/scratch/CORE/jespinoz/db/veba/v1.0/Classify/Eukaryotic/eukaryotic"
 
@@ -128,15 +128,11 @@ def get_binning_cmd( input_filepaths, output_filepaths, output_directory, direct
         "--logit_transform {}".format(opts.logit_transform),
 
         # Move all (this is a hack)
-        "&&",
+            "&&",
 
 
         "mv {} {}".format(os.path.join(output_directory, "bins", "*.fa"), os.path.join(output_directory,  "bins", "non-eukaryota")),
-        # "for FP in %s; do BN=$(basename ${FP} .fa); mv $FP %s/%s${BN}.fa; done"%(
-        #     os.path.join(output_directory, "bins", "*.fa"),
-        #     os.path.join(output_directory,  "bins", "non-eukaryota"),
-        #     prefix,
-        #     ),
+
         # Move just Eukaryota back
         "&&",
         "for ID_GENOME in $(cat %s); do mv %s/${ID_GENOME}.* %s; done"%(
@@ -144,16 +140,18 @@ def get_binning_cmd( input_filepaths, output_filepaths, output_directory, direct
             os.path.join(output_directory,  "bins", "non-eukaryota"),
             os.path.join(output_directory,  "bins"),
             ),
-        # Non-Eukaryotic scaffolds
-        # "&&",
-        # "> {}".format(os.path.join(directories["tmp"], "non-eukaryota.scaffolds.fasta")), # Create empty file
-        "&&",
+        # Get scaffolds from non-eukaryotic bins
+
+            "&&",
+
         "(for FP in {}; do cat $FP >> {}; done) 2> /dev/null || > {}".format( # Handle edge cases where there aren't any non-eukaryota bins
             os.path.join(output_directory, "bins", "non-eukaryota", "*.fa"),
             os.path.join(directories["tmp"], "non-eukaryota.scaffolds.fasta"),
             os.path.join(directories["tmp"], "non-eukaryota.scaffolds.fasta"),
-            ), 
-        "&&",
+            ),
+
+            "&&",
+
         "cat",
         os.path.join(directories["tmp"], "non-eukaryota.scaffolds.fasta"),
         "|",
@@ -165,7 +163,8 @@ def get_binning_cmd( input_filepaths, output_filepaths, output_directory, direct
         os.path.join(output_directory, "non-eukaryota.scaffolds.list"),
 
         # Remove non-eukaryotic scaffolds
-        "&&",
+            "&&",
+
         "cat",
         os.path.join(os.path.join(directories["tmp"], "scaffolds_to_bins.tsv")),
         "|",
@@ -180,7 +179,8 @@ def get_binning_cmd( input_filepaths, output_filepaths, output_directory, direct
         "[ -s {} ] || (echo 'No eukaryotic bins' && exit 1)".format(os.path.join(output_directory, "scaffolds_to_bins.tsv")),
 
         # Save non-eukaryotic scaffolds separately
-        "&&",
+            "&&",
+    
         "cat",
         os.path.join(os.path.join(directories["tmp"], "scaffolds_to_bins.tsv")),
         "|",
@@ -192,14 +192,17 @@ def get_binning_cmd( input_filepaths, output_filepaths, output_directory, direct
         # "true",
         ">",
         os.path.join(output_directory,  "non-eukaryota.scaffolds_to_bins.tsv"), # Make empty file
-        "&&",
+
+            "&&",
+
         "cut",
         "-f1",
         os.path.join(output_directory, "scaffolds_to_bins.tsv"),
         ">",
         os.path.join(output_directory, "binned.list"),
 
-        "&&",
+            "&&",
+
         # Unique bins
         "cut -f2",
         os.path.join(output_directory, "scaffolds_to_bins.tsv"),
@@ -208,7 +211,8 @@ def get_binning_cmd( input_filepaths, output_filepaths, output_directory, direct
         "-u",
         ">",
         os.path.join(output_directory, "bins.list"),
-        "&&",
+
+            "&&",
 
         "(",
         "rm -rf {} {} {} {} {}".format(
@@ -286,12 +290,12 @@ def get_binning_cmd( input_filepaths, output_filepaths, output_directory, direct
 #     ]
 #     return cmd
 
-def get_metaeuk_cmd(input_filepaths, output_filepaths, output_directory, directories, opts):
+def get_eukaryotic_gene_modeling_cmd(input_filepaths, output_filepaths, output_directory, directories, opts):
 
     cmd = [
         # Get the eukaryotic contigs
         "cat",
-        opts.fasta,
+        opts.fasta, #input_filepaths[0]
         "|",
         os.environ["seqkit"],
         "seq",
@@ -303,32 +307,66 @@ def get_metaeuk_cmd(input_filepaths, output_filepaths, output_directory, directo
         ">",
         os.path.join(directories["tmp"], "scaffolds.binned.eukaryotic.fasta"), # contigs
 
-        # Run MetaEuk
+    # Run Eukaryotic Gene Modeling
         "&&",
-        os.environ["metaeuk_wrapper.py"],
-        "--metaeuk_database {}".format(opts.metaeuk_database),
-        "--fasta {}".format(os.path.join(directories["tmp"], "scaffolds.binned.eukaryotic.fasta")),
-        "--scaffolds_to_bins {}".format(os.path.join(directories[("intermediate",  "1__binning_{}".format(opts.algorithm))], "scaffolds_to_bins.tsv")),
-        "-o {}".format(output_directory),
-        "--n_jobs {}".format(opts.n_jobs),
-        "--metaeuk_sensitivity {}".format(opts.metaeuk_sensitivity),
-        "--metaeuk_evalue {}".format(opts.metaeuk_evalue),
+    os.environ["eukaryotic_gene_modeling_wrapper.py"],
+    "--fasta {}".format(os.path.join(directories["tmp"], "scaffolds.binned.eukaryotic.fasta")),
+    "--scaffolds_to_bins {}".format(input_filepaths[1]),
+    "--tiara_results {}".format(input_filepaths[2]),
+    "--metaeuk_database {}".format(opts.metaeuk_database),
+    "-o {}".format(output_directory),
+    "-p {}".format(opts.n_jobs),
+
+    # MetaEuk
+    "--metaeuk_sensitivity {}".format(opts.metaeuk_sensitivity),
+    "--metaeuk_evalue {}".format(opts.metaeuk_evalue),
+
+    # Pyrodigal
+    "--pyrodigal_minimum_gene_length {}".format(opts.pyrodigal_minimum_gene_length),
+    "--pyrodigal_minimum_edge_gene_length {}".format(opts.pyrodigal_minimum_edge_gene_length),
+    "--pyrodigal_maximum_gene_overlap_length {}".format(opts.pyrodigal_maximum_gene_overlap_length),
+    "--pyrodigal_mitochondrial_genetic_code {}".format(opts.pyrodigal_mitochondrial_genetic_code),
+    "--pyrodigal_plastid_genetic_code {}".format(opts.pyrodigal_plastid_genetic_code),
+
+    # BARRNAP
+    "--barrnap_length_cutoff {}".format(opts.barrnap_length_cutoff),
+    "--barrnap_reject {}".format(opts.barrnap_reject),
+    "--barrnap_evalue {}".format(opts.barrnap_evalue),
+
+    # tRNAscan-SE
+    "--trnascan_mitochondrial_searchmode='{}'".format(opts.trnascan_mitochondrial_searchmode),
+    "--trnascan_plastid_searchmode='{}'".format(opts.trnascan_plastid_searchmode),
     ]
 
     if opts.metaeuk_options:
-        cmd += ["--metaeuk_options {}".format(opts.metaeuk_options)]
+        cmd += [
+            "--metaeuk_options {}".format(opts.metaeuk_options),
+        ]
+    if opts.trnascan_nuclear_options:
+        cmd += [
+            "--trnascan_nuclear_options {}".format(opts.trnascan_nuclear_options),
+        ]
+    if opts.trnascan_mitochondrial_options:
+        cmd += [
+            "--trnascan_mitochondrial_options {}".format(opts.trnascan_mitochondrial_options),
+        ]
+    if opts.trnascan_plastid_options:
+        cmd += [
+            "--trnascan_plastid_options {}".format(opts.trnascan_plastid_options),
+        ]
 
     return cmd
 
-# def get_busco_offline_cmd(input_filepaths, output_filepaths, output_directory, directories, opts):
 
 def get_busco_cmd(input_filepaths, output_filepaths, output_directory, directories, opts):
 
     cmd = [
 """
 # Create busco output directory
-rm -rf %s
-mkdir -p %s
+BUSCO_OUTPUT_DIRECTORY=%s
+TMP_BUSCO_DIRECTORY=%s
+rm -rf $BUSCO_OUTPUT_DIRECTORY
+mkdir -p $BUSCO_OUTPUT_DIRECTORY
 
 # Iterate through protein fasta from MetaEuk
 for FP in %s;
@@ -337,49 +375,49 @@ for FP in %s;
     do ID_GENOME=$(basename $FP .faa);
 
     # Create MAG-specific subdirectory within busco output
-    OUT_DIR=%s/${ID_GENOME}
-    mkdir -p ${OUT_DIR}
+    OUT_DIR=$BUSCO_OUTPUT_DIRECTORY/$ID_GENOME
+    mkdir -p $OUT_DIR
 
     echo $FP
     echo $ID_GENOME
     echo $OUT_DIR
 
     # BUSCO Command
-    %s --force -i $FP -o $OUT_DIR -m protein --auto-lineage-euk -c %d --evalue %f --download_path %s
+    %s --force -i $FP -o $OUT_DIR -m protein --auto-lineage-euk -c %d --evalue %f --download_path $TMP_BUSCO_DIRECTORY
 
     # Remove big intermediate files
 
     echo "Removing run_*. .. ... ..... ........"
-    rm -rf ${OUT_DIR}/run_*
+    rm -rf $OUT_DIR/run_*
 
     echo "Removing auto_lineage. .. ... ..... ........"
-    rm -rf ${OUT_DIR}/auto_lineage
+    rm -rf $OUT_DIR/auto_lineage
 
 # End for-loop
 done
 
 # Removing temporary busco files
-rm -rf %s
+rm -rf $TMP_BUSCO_DIRECTORY/*
 """%( 
     # Args
     os.path.join(output_directory, "busco_output"),
-    os.path.join(output_directory, "busco_output"),
-    os.path.join(directories[("intermediate",  "2__metaeuk")], "genomes", "*.faa"),
-    os.path.join(output_directory, "busco_output"),
+    os.path.join(directories["tmp"],"busco"),
+    os.path.join(directories[("intermediate",  "2__eukaryotic_gene_modeling")], "output", "*.faa"),
     os.environ["busco"],
     opts.n_jobs,
     opts.busco_evalue,
-    os.path.join(directories["tmp"],"busco"),
-    os.path.join(directories["tmp"],"busco", "*"),
     ),
+
     os.environ["merge_busco_json.py"],
     "-i {}".format(os.path.join(output_directory, "busco_output")),
     "-j {}".format(os.path.join(output_directory, "busco_results.json")),
     "-o {}".format(os.path.join(output_directory, "busco_results.tsv")),
-    "&&",
+
+        "&&",
+
     os.environ["filter_busco_results.py"],
     "-i {}".format(os.path.join(output_directory, "busco_results.tsv")),
-    "-g {}".format(directories[("intermediate",  "2__metaeuk")]),
+    "-g {}".format(os.path.join(directories[("intermediate",  "2__eukaryotic_gene_modeling")], "output")),
     "-o {}".format(os.path.join(output_directory, "filtered")),
     "-m {}".format(opts.minimum_contig_length),
     "-f {}".format(opts.fasta),
@@ -390,66 +428,13 @@ rm -rf %s
     
     return cmd
 
-# barrnap
-def get_barrnap_cmd(input_filepaths, output_filepaths, output_directory, directories, opts):
-    cmd = [
-
-
-"""
-
-    for GENOME_FASTA in {};
-    do 
-        ID = $(basename $GENOME_FASTA .fa)
-        {} --kingdom euk --threads {} --lencutoff {} --reject {} --evalue {} --outseq {} $GENOME_FASTA > {}
-        rm $GENOME_FASTA.fai
-    done
-
-""".format(
-        os.path.join(directories[("intermediate",  "3__busco")],  "filtered", "genomes", "*.fa"),
-        os.environ["barrnap"],
-        opts.n_jobs,
-        opts.barrnap_length_cutoff, 
-        opts.barrnap_reject, 
-        opts.barrnap_evalue,
-        os.path.join(output_directory, "$ID.rRNA.fasta"),
-        os.path.join(output_directory, "$ID.rRNA.gff"),
-    ),
-    ]
-    return cmd
-
-# tRNAscan-SE
-def get_trnascan_cmd(input_filepaths, output_filepaths, output_directory, directories, opts):
-    cmd = [
-
-"""
-
-    for GENOME_FASTA in {};
-    do 
-        ID = $(basename $GENOME_FASTA .fa)
-        {} -E --forceow --progress --threads {} --fasta {} --gff {} --struct {} {} $GENOME_FASTA > {}
-
-    done
-
-""".format(
-        os.path.join(directories[("intermediate",  "3__busco")],  "filtered", "genomes", "*.fa"),
-        os.environ["tRNAscan-SE"],
-        opts.n_jobs,
-        os.path.join(output_directory, "$ID.tRNA.fasta"),
-        os.path.join(output_directory, "$ID.tRNA.gff"),
-        os.path.join(output_directory, "$ID.tRNA.struct"),
-        opts.trnascan_options,
-        os.path.join(output_directory, "$ID.tRNA.txt"),
-    ),
-    ]
-    return cmd
-
 
 def get_featurecounts_cmd(input_filepaths, output_filepaths, output_directory, directories, opts):
     # ORF-Level Counts
     cmd = [
 
         "cat", 
-        os.path.join(directories[("intermediate",  "2__metaeuk")], "genomes", "*.gff"),
+        os.path.join(directories[("intermediate",  "3__busco")],  "filtered","genomes","*.gff"),
         ">",
         os.path.join(directories["tmp"], "gene_models.eukaryotic.gff"),
         "&&",
@@ -486,37 +471,31 @@ def get_output_cmd(input_filepaths, output_filepaths, output_directory, director
     cmd += [
     "DST={}; (for SRC in {}; do SRC=$(realpath --relative-to $DST $SRC); ln -sf $SRC $DST; done)".format(
         output_directory,
-        " ".join(input_filepaths[:-3]), 
+        " ".join(input_filepaths), 
         )
     ]
 
-    cmd += [
-        "DST={}; (for SRC in {}; do SRC=$(realpath --relative-to $DST $SRC); ln -sf $SRC $DST; done)".format(
-        os.path.join(directories[("intermediate",  "3__busco")],  "filtered", "genomes"),
-        " ".join(input_filepaths[-3:]), 
-        )
-    ]
-    
         
-    cmd += [ 
-        "&&",
-        # Statistics
-        "(",
-        os.environ["seqkit"],
-        "stats",
-        "-a",
-        "-b",
-        "-T",
-        "-j {}".format(opts.n_jobs),
-        os.path.join(output_directory, "genomes", "*.fa"),
+    # cmd += [ 
+    #         "&&",
 
-        "|",
+    #     # Statistics
+    #     "(",
+    #     os.environ["seqkit"],
+    #     "stats",
+    #     "-a",
+    #     "-b",
+    #     "-T",
+    #     "-j {}".format(opts.n_jobs),
+    #     os.path.join(output_directory, "genomes", "*.fa"),
 
-        """python -c 'import sys, pandas as pd; df = pd.read_csv(sys.stdin, sep="\t", index_col=0); df.index = df.index.map(lambda x: x[:-3]); df.to_csv(sys.stdout, sep="\t")'"""
-        ">",
-        os.path.join(output_directory,"genome_statistics.tsv"),
-        ")",
-    ]
+    #     "|",
+
+    #     """python -c 'import sys, pandas as pd; df = pd.read_csv(sys.stdin, sep="\t", index_col=0); df.index = df.index.map(lambda x: x[:-3]); df.to_csv(sys.stdout, sep="\t")'"""
+    #     ">",
+    #     os.path.join(output_directory,"genome_statistics.tsv"),
+    #     ")",
+    # ]
     
 
 
@@ -616,6 +595,8 @@ def create_pipeline(opts, directories, f_cmds):
     # i/o
     output_filepaths = [
         os.path.join(output_directory, "scaffolds_to_bins.tsv"),
+        os.path.join(output_directory, "scaffolds_to_bins.tsv"),
+
     ]
 
 
@@ -650,11 +631,11 @@ def create_pipeline(opts, directories, f_cmds):
     steps[program] = step
 
     # =============
-    # MetaEuk
+    # Eukaryotic gene modeling
     # =============
     step = 2
 
-    program = "metaeuk"
+    program = "eukaryotic_gene_modeling"
     program_label = "{}__{}".format(step, program)
 
     # Add to directories
@@ -668,15 +649,16 @@ def create_pipeline(opts, directories, f_cmds):
             # os.path.join(directories[("intermediate",  "1__binning_{}".format(opts.algorithm))], "bins"),
             opts.fasta,
             os.path.join(directories[("intermediate",  "1__binning_{}".format(opts.algorithm))], "scaffolds_to_bins.tsv"),
+            os.path.join(directories[("intermediate",  "1__binning_{}".format(opts.algorithm))], "consensus_domain_classification", "tiara_output.tsv"),
         ]
 
     output_filenames = [
-        "genomes/*.fa",
-        "genomes/*.faa",
-        "genomes/*.gff",
-        "genomes/*.ffn",
-        "identifier_mapping.metaeuk.tsv", 
-        "metaeuk.headersMap.tsv",
+        "output/*.fa",
+        "output/*.faa",
+        "output/*.gff",
+        "output/*.ffn",
+        "output/identifier_mapping.metaeuk.tsv", 
+        # "metaeuk.headersMap.tsv",
     ]
 
     output_filepaths = list(map(lambda filename: os.path.join(output_directory, filename), output_filenames))
@@ -689,7 +671,7 @@ def create_pipeline(opts, directories, f_cmds):
         "directories":directories,
     }
 
-    cmd = get_metaeuk_cmd(**params)
+    cmd = get_eukaryotic_gene_modeling_cmd(**params)
 
     pipeline.add_step(
                 id=program_label,
@@ -723,7 +705,7 @@ def create_pipeline(opts, directories, f_cmds):
 
 
     input_filepaths = [
-            os.path.join(directories[("intermediate",  "2__metaeuk")], "genomes", "*.faa"),
+            os.path.join(directories[("intermediate",  "2__eukaryotic_gene_modeling")], "output", "*.faa"),
         ]
 
     output_filenames = [
@@ -765,113 +747,9 @@ def create_pipeline(opts, directories, f_cmds):
     steps[program] = step
 
     # ==========
-    # barrnap
-    # ==========
-    step = 4
-
-    program = "barrnap"
-    program_label = "{}__{}".format(step, program)
-    # Add to directories
-    output_directory = directories[("intermediate",  program_label)] = create_directory(os.path.join(directories["intermediate"], program_label))
-
-
-    # Info
-    description = "Detecting rRNA genes"
-    # i/o
-    input_filepaths = [
-        os.path.join(directories[("intermediate",  "3__busco")],  "filtered", "genomes", "*.fa"),
-    ]
-
-    output_filenames = [
-        "*.rRNA.fasta",
-        "*.rRNA.gff",
-    ]
-    output_filepaths = list(map(lambda filename: os.path.join(output_directory, filename), output_filenames))
-
-    params = {
-        "input_filepaths":input_filepaths,
-        "output_filepaths":output_filepaths,
-        "output_directory":output_directory,
-        "opts":opts,
-        "directories":directories,
-    } 
-
-    cmd = get_barrnap_cmd(**params)
-    pipeline.add_step(
-                id=program_label,
-                description = description,
-                step=step,
-                cmd=cmd,
-                input_filepaths = input_filepaths,
-                output_filepaths = output_filepaths,
-                validate_inputs=False,
-                validate_outputs=False,
-                errors_ok=False,
-                acceptable_returncodes={0},                    
-                log_prefix=program_label,
-                # acceptable_returncodes= {0,1},
-
-    )
-
-
-    steps[program] = step
-
-    # ==========
-    # tRNASCAN-se
-    # ==========
-    step = 5
-
-    program = "trnascan-se"
-    program_label = "{}__{}".format(step, program)
-    # Add to directories
-    output_directory = directories[("intermediate",  program_label)] = create_directory(os.path.join(directories["intermediate"], program_label))
-
-
-    # Info
-    description = "Detecting tRNA genes"
-    # i/o
-    input_filepaths = [
-        os.path.join(directories[("intermediate",  "3__busco")],  "filtered", "genomes", "*.fa"),
-    ]
-
-    output_filenames = [
-        "*.tRNA.fasta",
-        "*.tRNA.gff",
-    ]
-    output_filepaths = list(map(lambda filename: os.path.join(output_directory, filename), output_filenames))
-
-    params = {
-        "input_filepaths":input_filepaths,
-        "output_filepaths":output_filepaths,
-        "output_directory":output_directory,
-        "opts":opts,
-        "directories":directories,
-    } 
-
-    cmd = get_trnascan_cmd(**params)
-    pipeline.add_step(
-                id=program_label,
-                description = description,
-                step=step,
-                cmd=cmd,
-                input_filepaths = input_filepaths,
-                output_filepaths = output_filepaths,
-                validate_inputs=False,
-                validate_outputs=False,
-                errors_ok=False,
-                acceptable_returncodes={0},                    
-                log_prefix=program_label,
-                # acceptable_returncodes= {0,1},
-
-    )
-
-
-    steps[program] = step
-
-    # ==========
     # featureCounts
     # ==========
-    step = 6
+    step = 4
 
     # Info
     program = "featurecounts"
@@ -884,7 +762,7 @@ def create_pipeline(opts, directories, f_cmds):
     # i/o
     input_filepaths = [ 
         opts.fasta,
-        os.path.join(directories[("intermediate",  "2__metaeuk")], "genomes", "*.gff"),
+        os.path.join(directories[("intermediate",  "3__busco")],"filtered", "genomes", "*.gff"),
         *opts.bam,
     ]
 
@@ -918,7 +796,7 @@ def create_pipeline(opts, directories, f_cmds):
     # =============
     # Output
     # =============
-    step = 7
+    step = 5
 
     program = "output"
     program_label = "{}__{}".format(step, program)
@@ -932,6 +810,10 @@ def create_pipeline(opts, directories, f_cmds):
 
         # BUSCO
         os.path.join(directories[("intermediate",  "3__busco")],  "filtered", "identifier_mapping.metaeuk.tsv"),
+        os.path.join(directories[("intermediate",  "3__busco")],  "filtered", "genome_statistics.tsv"),
+        os.path.join(directories[("intermediate",  "3__busco")],  "filtered", "gene_statistics.cds.tsv"),
+        os.path.join(directories[("intermediate",  "3__busco")],  "filtered", "gene_statistics.rRNA.tsv"),
+        os.path.join(directories[("intermediate",  "3__busco")],  "filtered", "gene_statistics.tRNA.tsv"),
         os.path.join(directories[("intermediate",  "3__busco")],  "filtered", "busco_results.filtered.tsv"),
         os.path.join(directories[("intermediate",  "3__busco")], "filtered", "scaffolds_to_bins.tsv"),
         os.path.join(directories[("intermediate",  "3__busco")],  "filtered", "bins.list"),
@@ -941,14 +823,8 @@ def create_pipeline(opts, directories, f_cmds):
         os.path.join(directories[("intermediate",  "3__busco")],  "filtered", "genomes"),
 
         # featureCounts
-        os.path.join(directories[("intermediate",  "6__featurecounts")], "featurecounts.orfs.tsv.gz"),
+        os.path.join(directories[("intermediate",  "4__featurecounts")], "featurecounts.orfs.tsv.gz"),
 
-        # barrnap
-        os.path.join(directories[("intermediate",  "4__barrnap")], "*.rRNA.*"),
-
-        # tRNAscan-SE
-        os.path.join(directories[("intermediate",  "5__trnascan-se")], "*.tRNA.fasta"),
-        os.path.join(directories[("intermediate",  "5__trnascan-se")], "*.tRNA.gff"),
 
     ]
 
@@ -1011,7 +887,8 @@ def add_executables_to_environment(opts):
         "consensus_domain_classification.py",
         "merge_busco_json.py",
         "filter_busco_results.py",
-        "metaeuk_wrapper.py",
+        # "metaeuk_wrapper.py",
+        "eukaryotic_gene_modeling_wrapper.py",
     }
 
     required_executables={
@@ -1097,8 +974,6 @@ def main(args=None):
 
     # Pipeline
     parser_io = parser.add_argument_group('I/O arguments')
-    parser_io.add_argument("-t","--tiara_results", type=str, required=True, help = "path/to/scaffolds.fasta")
-
     parser_io.add_argument("-f","--fasta", type=str, required=True, help = "path/to/scaffolds.fasta")
     parser_io.add_argument("-b","--bam", type=str, nargs="+", required=True, help = "path/to/mapped.sorted.bam files separated by spaces. ")
     parser_io.add_argument("-n", "--name", type=str, help="Name of sample", required=True)
@@ -1142,7 +1017,6 @@ def main(args=None):
     parser_metaeuk = parser.add_argument_group('MetaEuk arguments')
     parser_metaeuk.add_argument("--metaeuk_sensitivity", type=float, default=4.0, help="MetaEuk | Sensitivity: 1.0 faster; 4.0 fast; 7.5 sensitive  [Default: 4.0]")
     parser_metaeuk.add_argument("--metaeuk_evalue", type=float, default=0.01, help="MetaEuk | List matches below this E-value (range 0.0-inf) [Default: 0.01]")
-    # parser_metaeuk.add_argument("--metaeuk_database", type=str, default=DATABASE_METAEUK, help="MetaEuk | More options (e.g. --arg 1 ) [Default: {}]".format(DATABASE_METAEUK))
     parser_metaeuk.add_argument("--metaeuk_options", type=str, default="", help="MetaEuk | More options (e.g. --arg 1 ) [Default: ''] https://github.com/soedinglab/metaeuk")
     # --split-memory-limit 70G: https://github.com/soedinglab/metaeuk/issues/59
 
@@ -1151,8 +1025,8 @@ def main(args=None):
     parser_pyrodigal.add_argument("--pyrodigal_minimum_gene_length", type=int, default=90, help="Pyrodigal | Minimum gene length [Default: 90]")
     parser_pyrodigal.add_argument("--pyrodigal_minimum_edge_gene_length", type=int, default=60, help="Pyrodigal | Minimum edge gene length [Default: 60]")
     parser_pyrodigal.add_argument("--pyrodigal_maximum_gene_overlap_length", type=int, default=60, help="Pyrodigal | Maximum gene overlap length [Default: 60]")
-    parser_pyrodigal.add_argument("--pyrodigal_mitochondrial_genetic_code", type=int, default=3, help="Pyrodigal -g translation table (https://www.ncbi.nlm.nih.gov/Taxonomy/Utils/wprintgc.cgi/) [Default: 3] (The Yeast Mitochondrial Code))")
-    parser_pyrodigal.add_argument("--pyrodigal_plastid_genetic_code", type=int, default=3, help="Pyrodigal -g translation table (https://www.ncbi.nlm.nih.gov/Taxonomy/Utils/wprintgc.cgi/) [Default: 3] (The Yeast Mitochondrial Code))")
+    parser_pyrodigal.add_argument("--pyrodigal_mitochondrial_genetic_code", type=int, default=4, help="Pyrodigal -g translation table (https://www.ncbi.nlm.nih.gov/Taxonomy/Utils/wprintgc.cgi/) [Default: 4] (The Mold, Protozoan, and Coelenterate Mitochondrial Code and the Mycoplasma/Spiroplasma Code))")
+    parser_pyrodigal.add_argument("--pyrodigal_plastid_genetic_code", type=int, default=11, help="Pyrodigal -g translation table (https://www.ncbi.nlm.nih.gov/Taxonomy/Utils/wprintgc.cgi/) [Default: 11] (The Bacterial, Archaeal and Plant Plastid Code))")
 
     # BUSCO
     parser_busco = parser.add_argument_group('BUSCO arguments')
@@ -1170,7 +1044,7 @@ def main(args=None):
     # tRNA
     parser_trnascan = parser.add_argument_group('tRNAscan-SE arguments')
     parser_trnascan.add_argument("--trnascan_nuclear_options", type=str, default="", help="tRNAscan-SE | More options (e.g. --arg 1 ) [Default: ''] | https://github.com/UCSC-LoweLab/tRNAscan-SE")
-    parser_trnascan.add_argument("--trnascan_mitochondrial_searchmode", type=str, default="-O", help="tRNAscan-SE | Search mode [Default: '-O'] | https://github.com/UCSC-LoweLab/tRNAscan-SE")
+    parser_trnascan.add_argument("--trnascan_mitochondrial_searchmode", type=str, default="-O", help="tRNAscan-SE | Search mode [Default: '-O'] | Current best option according to developer: https://github.com/UCSC-LoweLab/tRNAscan-SE/issues/24")
     parser_trnascan.add_argument("--trnascan_mitochondrial_options", type=str, default="", help="tRNAscan-SE | More options (e.g. --arg 1 ) [Default: ''] | https://github.com/UCSC-LoweLab/tRNAscan-SE")
     parser_trnascan.add_argument("--trnascan_plastid_searchmode", type=str, default="-O", help="tRNAscan-SE | Search mode [Default: '-O'] | https://github.com/UCSC-LoweLab/tRNAscan-SE")
     parser_trnascan.add_argument("--trnascan_plastid_options", type=str, default="", help="tRNAscan-SE | More options (e.g. --arg 1 ) [Default: ''] | https://github.com/UCSC-LoweLab/tRNAscan-SE")
@@ -1179,7 +1053,6 @@ def main(args=None):
     parser_featurecounts = parser.add_argument_group('featureCounts arguments')
     parser_featurecounts.add_argument("--long_reads", action="store_true", help="featureCounts | Use this if long reads are being used")
     parser_featurecounts.add_argument("--featurecounts_options", type=str, default="", help="featureCounts | More options (e.g. --arg 1 ) [Default: ''] | http://bioinf.wehi.edu.au/featureCounts/")
-
 
     # Options
     opts = parser.parse_args()

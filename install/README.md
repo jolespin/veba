@@ -83,7 +83,7 @@ The `VEBA` installation is going to configure some `conda` environments for you 
 ```
 # For stable version, download and decompress the tarball:
 
-VERSION="1.1.1"
+VERSION="1.1.2"
 wget https://github.com/jolespin/veba/archive/refs/tags/v${VERSION}.tar.gz
 tar -xvf v${VERSION}.tar.gz && mv veba-${VERSION} veba
 
@@ -288,7 +288,155 @@ A protein database is required not only for eukaryotic gene calls using MetaEuk 
 #### Database Structure:
 
 **Current:**
-*VEBA Database* version: `VDB_v5`
+*VEBA Database* version: `VDB_v5.1`
+
+* `VDB_v5` → `VDB_v5.1` updates `GTDB` database from `r207_v2` → `r214`.  
+* Changes `${VEBA_DATABASE}/Classify/GTDBTk` → `${VEBA_DATABASE}/Classify/GTDB`.
+* Adds `gtdb_r214.msh` to `${VEBA_DATABASE}/Classify/GTDB/mash/` for ANI screens.
+* Adds `VFDB` to `${VEBA_DATABASE}/Annotate/VFDB/VFDB_setA_pro.dmnd` for virulence factor annotation.
+
+```
+tree -L 3 .
+├── ACCESS_DATE
+├── Annotate
+│   ├── KOFAM
+│   │   ├── ko_list
+│   │   └── profiles
+│   ├── MIBiG
+│   │   └── mibig_v3.1.dmnd
+│   ├── NCBIfam-AMRFinder
+│   │   ├── NCBIfam-AMRFinder.changelog.txt
+│   │   ├── NCBIfam-AMRFinder.hmm.gz
+│   │   └── NCBIfam-AMRFinder.tsv
+│   ├── Pfam
+│   │   ├── Pfam-A.hmm.gz
+│   │   └── relnotes.txt
+│   └── UniRef
+│       ├── uniref50.dmnd
+│       ├── uniref50.release_note
+│       ├── uniref90.dmnd
+│       └── uniref90.release_note
+├── Classify
+│   ├── CheckM2
+│   │   └── uniref100.KO.1.dmnd
+│   ├── CheckV
+│   │   ├── genome_db
+│   │   ├── hmm_db
+│   │   └── README.txt
+│   ├── geNomad
+│   │   ├── genomad_db
+│   │   ├── genomad_db.dbtype
+│   │   ├── genomad_db_h
+│   │   ├── genomad_db_h.dbtype
+│   │   ├── genomad_db_h.index
+│   │   ├── genomad_db.index
+│   │   ├── genomad_db.lookup
+│   │   ├── genomad_db_mapping
+│   │   ├── genomad_db.source
+│   │   ├── genomad_db_taxonomy
+│   │   ├── genomad_integrase_db
+│   │   ├── genomad_integrase_db.dbtype
+│   │   ├── genomad_integrase_db_h
+│   │   ├── genomad_integrase_db_h.dbtype
+│   │   ├── genomad_integrase_db_h.index
+│   │   ├── genomad_integrase_db.index
+│   │   ├── genomad_integrase_db.lookup
+│   │   ├── genomad_integrase_db.source
+│   │   ├── genomad_marker_metadata.tsv
+│   │   ├── genomad_mini_db -> genomad_db
+│   │   ├── genomad_mini_db.dbtype
+│   │   ├── genomad_mini_db_h -> genomad_db_h
+│   │   ├── genomad_mini_db_h.dbtype -> genomad_db_h.dbtype
+│   │   ├── genomad_mini_db_h.index -> genomad_db_h.index
+│   │   ├── genomad_mini_db.index
+│   │   ├── genomad_mini_db.lookup -> genomad_db.lookup
+│   │   ├── genomad_mini_db_mapping -> genomad_db_mapping
+│   │   ├── genomad_mini_db.source -> genomad_db.source
+│   │   ├── genomad_mini_db_taxonomy -> genomad_db_taxonomy
+│   │   ├── mini_set_ids
+│   │   ├── names.dmp
+│   │   ├── nodes.dmp
+│   │   ├── plasmid_hallmark_annotation.txt
+│   │   ├── version.txt
+│   │   └── virus_hallmark_annotation.txt
+│   ├── GTDB
+│   │   ├── fastani
+│   │   ├── markers
+│   │   ├── mash
+│   │   ├── masks
+│   │   ├── metadata
+│   │   ├── mrca_red
+│   │   ├── msa
+│   │   ├── pplacer
+│   │   ├── radii
+│   │   ├── split
+│   │   ├── taxonomy
+│   │   └── temp
+│   ├── Microeukaryotic
+│   │   ├── humann_uniref50_annotations.tsv.gz
+│   │   ├── md5_checksums
+│   │   ├── microeukaryotic
+│   │   ├── microeukaryotic.dbtype
+│   │   ├── microeukaryotic.eukaryota_odb10
+│   │   ├── microeukaryotic.eukaryota_odb10.dbtype
+│   │   ├── microeukaryotic.eukaryota_odb10_h
+│   │   ├── microeukaryotic.eukaryota_odb10_h.dbtype
+│   │   ├── microeukaryotic.eukaryota_odb10_h.index
+│   │   ├── microeukaryotic.eukaryota_odb10.index
+│   │   ├── microeukaryotic.eukaryota_odb10.lookup
+│   │   ├── microeukaryotic.eukaryota_odb10.source
+│   │   ├── microeukaryotic_h
+│   │   ├── microeukaryotic_h.dbtype
+│   │   ├── microeukaryotic_h.index
+│   │   ├── microeukaryotic.index
+│   │   ├── microeukaryotic.lookup
+│   │   ├── microeukaryotic.source
+│   │   ├── reference.eukaryota_odb10.list
+│   │   ├── RELEASE_NOTES
+│   │   ├── source_taxonomy.tsv.gz
+│   │   ├── source_to_lineage.dict.pkl.gz
+│   │   └── target_to_source.dict.pkl.gz
+│   └── NCBITaxonomy
+│       ├── citations.dmp
+│       ├── delnodes.dmp
+│       ├── division.dmp
+│       ├── gc.prt
+│       ├── gencode.dmp
+│       ├── merged.dmp
+│       ├── names.dmp
+│       ├── nodes.dmp
+│       ├── prot.accession2taxid.FULL.gz
+│       └── readme.txt
+├── Contamination
+│   ├── AntiFam
+│   │   ├── AntiFam.hmm.gz
+│   │   ├── relnotes
+│   │   └── version
+│   ├── chm13v2.0
+│   │   ├── chm13v2.0.1.bt2
+│   │   ├── chm13v2.0.2.bt2
+│   │   ├── chm13v2.0.3.bt2
+│   │   ├── chm13v2.0.4.bt2
+│   │   ├── chm13v2.0.rev.1.bt2
+│   │   └── chm13v2.0.rev.2.bt2
+│   └── kmers
+│       └── ribokmers.fa.gz
+└── MarkerSets
+    ├── Archaea_76.hmm.gz
+    ├── Bacteria_71.hmm.gz
+    ├── CPR_43.hmm.gz
+    ├── eukaryota_odb10.hmm.gz
+    ├── eukaryota_odb10.scores_cutoff.tsv.gz
+    ├── Fungi_593.hmm.gz
+    ├── Protista_83.hmm.gz
+    └── README
+```
+
+**Deprecated:**
+
+<details>
+	<summary> *VEBA Database* version: `VDB_v5` </summary>
+	
 `VDB_v4` → `VDB_v5` replaces `nr` with `UniRef90` and `UniRef50`.  Also includes `MiBIG` database.
 
 ```
@@ -425,9 +573,6 @@ tree -L 3 .
     ├── Protista_83.hmm.gz
     └── README
 ```
-
-
-**Deprecated:**
 
 <details>
 	<summary> *VEBA Database* version: `VDB_v4` </summary>

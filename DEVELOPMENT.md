@@ -211,6 +211,9 @@ ________________________________________________________________
 #### Path to `v2.0.0`:
 
 **Definitely:**
+
+* Add `genome_statistics.tsv`, `gene_statistics.cds.tsv`, etc. to `binning-*.py` modules.
+* Add `VFDB` homology to `biosynthetic.py`.
 * Add contig region and exons to `prodigal` GFF.
 * Consistent usage of the following terms: 1) dataframe vs. table; 2) protein-cluster vs. orthogroup.
 * Add support for `FAMSA` in `phylogeny.py`
@@ -227,9 +230,9 @@ ________________________________________________________________
 * Build a clustered version of the Microeukaryotic Protein Database that is more efficient to run.
 
 **Probably (Yes)?:**
-
+* Build Metaphlan (and HUMAnN) database from genomes.
 * Add [iPHoP](https://bitbucket.org/srouxjgi/iphop/src/main/) to `binning-viral.py`.
-* Add a `metabolic.py` module
+* Add a `metabolic.py` module	
 * Swap [`TransDecoder`](https://github.com/TransDecoder/TransDecoder) for [`TransSuite`](https://github.com/anonconda/TranSuite)
 * Add spatial coverage to `coverage.py` script like in `mapping.py` module? Maybe just the samtools coverage output.
 * Reimplement `KOFAMSCAN` (which creates thousands of intermediate files) using `hmmer_wrapper.py`.
@@ -244,6 +247,7 @@ ________________________________________________________________
 
 
 #### Change Log:
+* [2023.7.7] - Added `compile_gff.py` to merge CDS, rRNA, and tRNA GFF files.  Used in `binning-prokaryotic.py` and `binning-viral.py`.  `binning-eukaryotic.py` uses the source of this in the backend of `filter_busco_results.py`.
 * [2023.7.3] - Added `eukaryotic_gene_modeling_wrapper.py` which 1) splits nuclear, mitochondrial, and plastid genomes; 2) performs gene modeling via `MetaEuk` and `Pyrodigal`; 3) performs rRNA detection via `BARRNAP`; 4) performs tRNA detection via `tRNAscan-SE`; 5) merges processed GFF files; and 5) calculates sequences statistics. 
 * [2023.6.29] - Added `gene_biotype=protein_coding` to `prodigal` GFF output. 
 * [2023.6.20] - Added `VFDB` to `annotate.py` and database.
