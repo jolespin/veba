@@ -54,6 +54,7 @@ ___________________________________________________________________
 	* [Virulence factor database](http://www.mgc.ac.cn/VFs/main.htm) (`VFDB`) is now included in annotations
 	* [UniRef50/90](https://www.uniprot.org/help/uniref) is now included in annotations
 	* `Krona` plots are generated for taxonomy classifications and biosynthetic gene cluster detection
+	* Fixed a minor issue in `biosynthetic.py` where the fasta and genbank files were not properly symlinked.  Also added virulence factor results to synopsis.
 	
 	
 * **`VEBA` Database**:
