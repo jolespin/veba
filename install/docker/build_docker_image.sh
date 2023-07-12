@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# __version__ = "2023.7.11"
+
 ENV_NAME=$1;
 VERSION=$(head -n 1 ../../VERSION)
 

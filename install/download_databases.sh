@@ -1,5 +1,5 @@
 #!/bin/bash
-# __VERSION__ = "2023.6.20"
+# __version__ = "2023.6.20"
 # VEBA_DATABASE_VERSION = "VDB_v5.1"
 # MICROEUKAYROTIC_DATABASE_VERSION = "VDB-Microeukaryotic_v2.1"
 

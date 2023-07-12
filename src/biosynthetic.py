@@ -12,15 +12,16 @@ from soothsayer_utils import *
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.5.16"
+__version__ = "2023.7.11"
 
 # antiSMASH
 def get_antismash_cmd( input_filepaths, output_filepaths, output_directory, directories, opts):
     # Command
     cmd = [
 """
-mkdir -p %s
-
+OUTPUT_DIRECTORY=%s
+INTERMEDIATE_DIRECTORY=%s
+mkdir -p ${INTERMEDIATE_DIRECTORY}
 n=1
 while IFS= read -r LINE
 do read -r -a ARRAY <<< $LINE
@@ -28,7 +29,7 @@ do read -r -a ARRAY <<< $LINE
     GENOME=${ARRAY[1]}
     GENE_MODELS=${ARRAY[2]}
 
-    CHECKPOINT="%s/${ID}/ANTISMASH_CHECKPOINT"
+    CHECKPOINT="${INTERMEDIATE_DIRECTORY}/${ID}/ANTISMASH_CHECKPOINT"
 
     CWD=${PWD}
 
@@ -37,40 +38,52 @@ do read -r -a ARRAY <<< $LINE
         echo "[Running ${ID}]"
 
         # Remove directory
-        rm -rf %s/${ID}
+        rm -rf ${INTERMEDIATE_DIRECTORY}/${ID}
 
         START_TIME=${SECONDS}
 
         # Run antiSMASH
-        %s --allow-long-headers --verbose --skip-zip-file -c %d --output-dir %s/${ID} --html-title ${ID} --taxon %s --minlength %d --databases %s --hmmdetection-strictness %s --logfile %s/${ID}/log.txt --genefinding-gff3 ${GENE_MODELS} ${GENOME}
+        %s --allow-long-headers --verbose --skip-zip-file -c %d --output-dir ${INTERMEDIATE_DIRECTORY}/${ID} --html-title ${ID} --taxon %s --minlength %d --databases %s --hmmdetection-strictness %s --logfile ${INTERMEDIATE_DIRECTORY}/${ID}/log.txt --genefinding-gff3 ${GENE_MODELS} ${GENOME}
 
         # Genbanks to table
-        %s -i %s/${ID} -o %s/${ID}/antismash_features.tsv.gz -s %s/${ID}/synopsis.tsv.gz -t %s/${ID}/type_counts.tsv.gz --fasta_output %s/${ID}/bgc.features.faa.gz
+        %s -i ${INTERMEDIATE_DIRECTORY}/${ID} -o ${INTERMEDIATE_DIRECTORY}/${ID}/antismash_components.tsv.gz -s ${INTERMEDIATE_DIRECTORY}/${ID}/synopsis.tsv.gz -t ${INTERMEDIATE_DIRECTORY}/${ID}/type_counts.tsv.gz --fasta_output ${INTERMEDIATE_DIRECTORY}/${ID}/bgc.components.faa.gz
 
         # Compile table for Krona graph
-        %s -i %s/${ID}/type_counts.tsv.gz -m biosynthetic-local -o %s/${ID}/krona.tsv
+        %s -i ${INTERMEDIATE_DIRECTORY}/${ID}/type_counts.tsv.gz -m biosynthetic-local -o ${INTERMEDIATE_DIRECTORY}/${ID}/krona.tsv
 
         # Create Krona graph
-        %s -i %s/${ID}/krona.tsv -o %s/${ID}/krona.html -n ${ID}
+        %s -o ${INTERMEDIATE_DIRECTORY}/${ID}/krona.html -n ${ID} ${INTERMEDIATE_DIRECTORY}/${ID}/krona.tsv
 
         # Symlink proteins
-        SRC=%s/${ID}/bgc.features.faa.gz
-        DST=%s/
-        SRC=$(realpath --relative-to ${DST} ${SRC})
-        [ -f "$SRC" ] && ln -sf ${SRC} ${DST}/${ID}.bgc_features.faa.gz
-        
+        FASTA_DIRECTORY=${OUTPUT_DIRECTORY}/fasta/
+        SRC_FILES=${INTERMEDIATE_DIRECTORY}/${ID}/bgc.components.faa.gz
+        DST=${FASTA_DIRECTORY}/
+
+        for SRC in $(ls ${SRC_FILES})
+        do
+            if [ -f "${SRC}" ]; then
+                SRC=$(realpath --relative-to ${DST} ${SRC})
+                ln -sf ${SRC} ${DST}/${ID}.faa.gz
+            fi
+        done
+
         # Symlink genbanks
-        mkdir -p %s/${ID}
-        SRC=%s/${ID}/*.region*.gbk
-        DST=%s/
-        SRC=$(realpath --relative-to ${DST} ${SRC})
-        [ -f "$SRC" ] && ln -sf ${SRC} ${DST}
+        GENBANK_DIRECTORY=${OUTPUT_DIRECTORY}/genbanks/
+        mkdir -p ${GENBANK_DIRECTORY}/${ID}
+        SRC_FILES=${INTERMEDIATE_DIRECTORY}/${ID}/*.region*.gbk
+        DST=${GENBANK_DIRECTORY}/${ID}/
+
+        for SRC in $(ls ${SRC_FILES})
+        do
+            SRC=$(realpath --relative-to ${DST} ${SRC})
+            ln -sf ${SRC} ${DST}
+        done
 
         # Completed
-        echo "Completed: $(date)" > %s/${ID}/ANTISMASH_CHECKPOINT
+        echo "Completed: $(date)" > ${INTERMEDIATE_DIRECTORY}/${ID}/ANTISMASH_CHECKPOINT
 
         # Remove large assembly files
-        rm -rf %s/${ID}/assembly.*
+        rm -rf ${INTERMEDIATE_DIRECTORY}/${ID}/assembly.*
 
         END_TIME=${SECONDS}
         RUN_TIME=$((END_TIME-START_TIME))
@@ -85,85 +98,59 @@ do read -r -a ARRAY <<< $LINE
 done < %s
 
 # Concatenate tables
-%s -a 0 -e %s/*/antismash_features.tsv.gz | gzip > %s/bgc.features.tsv.gz
-%s -a 0 -e %s/*/type_counts.tsv.gz | gzip > %s/bgc.type_counts.tsv.gz
-%s -a 0 -e %s/*/synopsis.tsv.gz | gzip > %s/bgc.synopsis.tsv.gz
+%s -a 0 -e ${INTERMEDIATE_DIRECTORY}/*/antismash_components.tsv.gz | gzip > ${OUTPUT_DIRECTORY}/bgc.components.tsv.gz
+%s -a 0 -e ${INTERMEDIATE_DIRECTORY}/*/type_counts.tsv.gz | gzip > ${OUTPUT_DIRECTORY}/bgc.type_counts.tsv.gz
+%s -a 0 -e ${INTERMEDIATE_DIRECTORY}/*/synopsis.tsv.gz | gzip > ${OUTPUT_DIRECTORY}/bgc.synopsis.tsv.gz
 
 # Krona
 # Compile table for Krona graph
-%s -i %s/bgc.type_counts.tsv.gz -m biosynthetic-global -o %s/krona.tsv
+%s -i ${OUTPUT_DIRECTORY}/bgc.type_counts.tsv.gz -m biosynthetic-global -o ${OUTPUT_DIRECTORY}/krona.tsv
 
 # Create Krona graph
-%s %s/krona.tsv -o %s/krona.html -n 'antiSMASH'
+%s ${OUTPUT_DIRECTORY}/krona.tsv -o ${OUTPUT_DIRECTORY}/krona.html -n 'antiSMASH'
 """%( 
     # Args
-    output_directory,
-    output_directory,
+    directories["output"],
     output_directory,
 
     # antiSMASH
     os.environ["antismash"],
     opts.n_jobs,
-    output_directory,
     opts.taxon,
     opts.minimum_contig_length,
     opts.antismash_database,
     opts.hmmdetection_strictness,
-    output_directory,
 
     # Summary table
     os.environ["antismash_genbanks_to_table.py"],
-    output_directory,
-    output_directory,
-    output_directory,
-    output_directory,
-    output_directory,
 
     # Krona (Local)
     os.environ["compile_krona.py"],
-    output_directory,
-    output_directory,
 
     os.environ["ktImportText"],
-    output_directory,
-    output_directory,
 
     # Symlink (proteins)
-    output_directory,
-    directories[("output", "features")],
 
     # Symlink (genbanks)
-    directories[("output", "genbanks")],
-    output_directory,
-    directories[("output", "genbanks")],
-
-    output_directory,
 
     # Remove large assembly
-    output_directory,
+
+    # Input
     input_filepaths[0],
 
     # Concatenate
     os.environ["concatenate_dataframes.py"],
-    output_directory,
-    directories["output"],
 
     os.environ["concatenate_dataframes.py"],
-    output_directory,
-    directories["output"],
 
     os.environ["concatenate_dataframes.py"],
-    output_directory,
-    directories["output"],
 
     # Krona (Global)
     os.environ["compile_krona.py"],
-    directories["output"],
-    directories["output"],
+
 
     os.environ["ktImportText"],
-    directories["output"],
-    directories["output"],
+
     ),
     ]
 
@@ -180,22 +167,23 @@ def get_diamond_cmd( input_filepaths, output_filepaths, output_directory, direct
             "&&",
         
         "cat",
-        os.path.join(input_filepaths[0], "*", "bgc.features.faa.gz"),
+        os.path.join(input_filepaths[0], "*", "bgc.components.faa.gz"),
         "|",
         "gzip -d",
         ">",
-        os.path.join(directories["tmp"], "features.concatenated.faa"),
+        os.path.join(directories["tmp"], "components.concatenated.faa"),
 
+        # MiBIG
             "&&",
 
         os.environ["diamond"],
         "blastp",
         "--db {}".format(input_filepaths[1]),
-        "--query {}".format(os.path.join(directories["tmp"], "features.concatenated.faa")),
+        "--query {}".format(os.path.join(directories["tmp"], "components.concatenated.faa")),
         "--threads {}".format(opts.n_jobs),
         "-f 6 {}".format(" ".join(fields)),
         "--evalue {}".format(opts.diamond_evalue),
-        "-o {}".format(os.path.join(output_directory, "homology.mibig.no_header.tsv")),
+        "-o {}".format(os.path.join(output_directory, "diamond_output.mibig.no_header.tsv")),
         "--max-target-seqs 1",
         "--tmpdir {}".format(os.path.join(directories["tmp"], "diamond")),
         # "--header 2",
@@ -206,37 +194,79 @@ def get_diamond_cmd( input_filepaths, output_filepaths, output_directory, direct
         ]
     cmd += [ 
         opts.diamond_options,
-    ]
 
-    cmd += [ 
-            "&&",
+                "&&",
             
         "echo",
         "'{}'".format("\t".join(fields)),
         ">",
-        os.path.join(directories["output"], "homology.mibig.tsv"),
+        os.path.join(output_directory, "diamond_output.mibig.tsv"),
 
             "&&",
 
         "cat",
-        os.path.join(output_directory, "homology.mibig.no_header.tsv"),
+        os.path.join(output_directory, "diamond_output.mibig.no_header.tsv"),
         ">>",
-        os.path.join(directories["output"], "homology.mibig.tsv"),
+        os.path.join(output_directory, "diamond_output.mibig.tsv"),
 
+        # VFDB
+                "&&",
 
+        "rm -rf {}".format(os.path.join(directories["tmp"], "diamond", "*")),
+
+                "&&",
+
+        os.environ["diamond"],
+        "blastp",
+        "--db {}".format(input_filepaths[2]),
+        "--query {}".format(os.path.join(directories["tmp"], "components.concatenated.faa")),
+        "--threads {}".format(opts.n_jobs),
+        "-f 6 {}".format(" ".join(fields)),
+        "--evalue {}".format(opts.diamond_evalue),
+        "-o {}".format(os.path.join(output_directory, "diamond_output.vfdb.no_header.tsv")),
+        "--max-target-seqs 1",
+        "--tmpdir {}".format(os.path.join(directories["tmp"], "diamond")),
+        # "--header 2",
+    ]
+    if bool(opts.diamond_sensitivity):
+        cmd += [ 
+            "--{}".format(opts.diamond_sensitivity),
+        ]
+    cmd += [ 
+        opts.diamond_options,
+
+                "&&",
+            
+        "echo",
+        "'{}'".format("\t".join(fields)),
+        ">",
+        os.path.join(output_directory, "diamond_output.vfdb.tsv"),
 
             "&&",
-            
-        "pigz",
-        "-f",
-        "-p {}".format(opts.n_jobs),
-        os.path.join(directories["output"], "homology.mibig.tsv"),
+
+        "cat",
+        os.path.join(output_directory, "diamond_output.vfdb.no_header.tsv"),
+        ">>",
+        os.path.join(output_directory, "diamond_output.vfdb.tsv"),
+
+    ]
+
+    cmd += [ 
+    
+            "&&",
+
+        os.environ["concatenate_dataframes.py"],
+        "-a 1",
+        "--prepend_column_levels MiBIG,VFDB",
+        "-o {}".format(os.path.join(directories["output"], "homology.tsv.gz")),
+        os.path.join(output_directory, "diamond_output.mibig.tsv"),
+        os.path.join(output_directory, "diamond_output.vfdb.tsv"),
 
             "&&",
 
         "rm",
-        os.path.join(directories["tmp"], "features.concatenated.faa"),
-        os.path.join(output_directory, "homology.mibig.no_header.tsv"),
+        os.path.join(directories["tmp"], "components.concatenated.faa"),
+        os.path.join(output_directory, "*.no_header.tsv"),
 
     ]           
 
@@ -248,7 +278,7 @@ def get_novelty_score_cmd(input_filepaths, output_filepaths, output_directory, d
     # Command
     cmd = [
         os.environ["bgc_novelty_scorer.py"],
-        "-i {}".format(input_filepaths[0]),
+        "-c {}".format(input_filepaths[0]),
         "-s {}".format(input_filepaths[1]),
         "-d {}".format(input_filepaths[2]),
         "-o {}".format(output_filepaths[0]),
@@ -280,7 +310,6 @@ def add_executables_to_environment(opts):
                 "antismash",
                 # 2
                 "diamond",
-
                 # Krona
                 "ktImportText",
 
@@ -343,11 +372,12 @@ def create_pipeline(opts, directories, f_cmds):
         opts.input,
         ]
     output_filenames = [
-        "bgc.features.tsv.gz", 
+        "bgc.components.tsv.gz", 
         "bgc.type_counts.tsv.gz",
         "bgc.synopsis.tsv.gz",
-        "features/*.features.faa.gz",
         "krona.html",
+        "fasta/",
+        "genbanks/",
         ]
     output_filepaths = list(map(lambda filename: os.path.join(directories["output"], filename), output_filenames))
 
@@ -385,14 +415,15 @@ def create_pipeline(opts, directories, f_cmds):
     output_directory = directories[("intermediate",  program_label)] = create_directory(os.path.join(directories["intermediate"], program_label))
 
     # Info
-    description = "Diamond [MIBiG]"
+    description = "Diamond [MIBiG, VFDB]"
 
     # i/o
     input_filepaths = [
          directories[("intermediate",  "1__antismash")], 
          os.path.join(opts.veba_database, "Annotate", "MIBiG", "mibig_v3.1.dmnd"),
+         os.path.join(opts.veba_database, "Annotate", "VFDB", "VFDB_setA_pro.dmnd"),
         ]
-    output_filenames = ["homology.mibig.tsv.gz"]
+    output_filenames = ["homology.tsv.gz"]
     output_filepaths = list(map(lambda filename: os.path.join(directories["output"], filename), output_filenames))
 
     params = {
@@ -429,9 +460,9 @@ def create_pipeline(opts, directories, f_cmds):
 
     # i/o
     input_filepaths = [
-        os.path.join(directories["output"], "bgc.features.tsv.gz"),
+        os.path.join(directories["output"], "bgc.components.tsv.gz"),
         os.path.join(directories["output"], "bgc.synopsis.tsv.gz"),
-        os.path.join(directories["output"], "homology.mibig.tsv.gz"),
+        os.path.join(directories["output"], "homology.tsv.gz"),
     ]
 
     output_filenames =  ["bgc.synopsis.tsv.gz"] # Overwriting
@@ -555,11 +586,11 @@ def main(args=None):
     parser_diamond.add_argument("--diamond_options", type=str, default="", help="Diamond | More options (e.g. --arg 1 ) [Default: '']")
 
     # Novelty
-    parser_thresholds = parser.add_argument_group('Optional thresholds arguments')
-    parser.add_argument("--pident", type=float, default=0.0, help = "pident lower bound [float:0 ≤ x < 100] [Default: 0]")
-    parser.add_argument("--qcovhsp", type=float, default=0.0, help = "qcovhsp lower bound [float:0 ≤ x < 100] [Default: 0]")
-    parser.add_argument("--scovhsp", type=float, default=0.0, help = "scovhsp lower bound [float:0 ≤ x < 100] [Default: 0]")
-    parser.add_argument("--evalue", type=float, default=1e-3, help = "e-value lower bound [float:0 < x < 1] [Default: 1e-3]")
+    parser_noveltyscore = parser.add_argument_group('Novelty score threshold arguments')
+    parser_noveltyscore.add_argument("--pident", type=float, default=0.0, help = "pident lower bound [float:0 ≤ x < 100] [Default: 0]")
+    parser_noveltyscore.add_argument("--qcovhsp", type=float, default=0.0, help = "qcovhsp lower bound [float:0 ≤ x < 100] [Default: 0]")
+    parser_noveltyscore.add_argument("--scovhsp", type=float, default=0.0, help = "scovhsp lower bound [float:0 ≤ x < 100] [Default: 0]")
+    parser_noveltyscore.add_argument("--evalue", type=float, default=1e-3, help = "e-value lower bound [float:0 < x < 1] [Default: 1e-3]")
 
 
     # Options
@@ -588,7 +619,7 @@ def main(args=None):
     directories["checkpoints"] = create_directory(os.path.join(directories["project"], "checkpoints"))
     directories["intermediate"] = create_directory(os.path.join(directories["project"], "intermediate"))
     os.environ["TMPDIR"] = directories["tmp"]
-    directories[("output", "features")] = create_directory(os.path.join(directories["output"], "features"))
+    directories[("output", "fasta")] = create_directory(os.path.join(directories["output"], "fasta"))
     directories[("output", "genbanks")] = create_directory(os.path.join(directories["output"], "genbanks"))
 
 

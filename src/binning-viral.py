@@ -13,7 +13,7 @@ from soothsayer_utils import *
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.7.7"
+__version__ = "2023.7.10"
 
 # geNomad
 def get_genomad_cmd(input_filepaths, output_filepaths, output_directory, directories, opts):
@@ -383,6 +383,23 @@ def get_output_cmd(input_filepaths, output_filepaths, output_directory, director
         """python -c 'import sys, pandas as pd; df = pd.read_csv(sys.stdin, sep="\t", index_col=0); df.index = df.index.map(lambda x: x[:-3]); df.to_csv(sys.stdout, sep="\t")'"""
         ">",
         os.path.join(output_directory,"genome_statistics.tsv"),
+
+            "&&", 
+
+        # CDS
+        os.environ["seqkit"],
+        "stats",
+        "-a",
+        "-b",
+        "-T",
+        "-j {}".format(opts.n_jobs),
+        os.path.join(output_directory, "genomes", "*.ffn"),
+
+        "|",
+
+        """python -c 'import sys, pandas as pd; df = pd.read_csv(sys.stdin, sep="\t", index_col=0); df.index = df.index.map(lambda x: x[:-4]); df.to_csv(sys.stdout, sep="\t")'"""
+        ">",
+        os.path.join(output_directory,"gene_statistics.cds.tsv"),
 
         "&&",
         "rm -rf {}".format(os.path.join(directories["tmp"], "*")),

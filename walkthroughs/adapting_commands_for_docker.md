@@ -24,7 +24,7 @@ Refer to the [Docker documentation](https://docs.docker.com/engine/install/).
 Let's say you wanted to use the `preprocess` module.  Download the Docker image as so: 
 
 ```
-VERSION=1.1.2
+VERSION=1.2.0
 docker image pull jolespin/veba_preprocess:${VERSION}
 ``` 
 
@@ -36,7 +36,7 @@ For example, here's how we would run the `preprocess.py` module.  First let's ju
 
 ```bash
 # Version
-VERSION=1.1.2
+VERSION=1.2.0
 
 # Image
 DOCKER_IMAGE="jolespin/veba_preprocess:${VERSION}"
@@ -66,12 +66,12 @@ LOCAL_WORKING_DIRECTORY=$(pwd)
 LOCAL_WORKING_DIRECTORY=$(realpath -m ${LOCAL_WORKING_DIRECTORY})
 LOCAL_OUTPUT_PARENT_DIRECTORY=../
 LOCAL_OUTPUT_PARENT_DIRECTORY=$(realpath -m ${LOCAL_OUTPUT_PARENT_DIRECTORY})
-#LOCAL_DATABASE_DIRECTORY=~/VDB-test/
-#LOCAL_DATABASE_DIRECTORY=$(realpath -m ${LOCAL_DATABASE_DIRECTORY})
+LOCAL_DATABASE_DIRECTORY=${VEBA_DATABASE}
+LOCAL_DATABASE_DIRECTORY=$(realpath -m ${LOCAL_DATABASE_DIRECTORY})
 
 CONTAINER_INPUT_DIRECTORY=/volumes/input/
 CONTAINER_OUTPUT_DIRECTORY=/volumes/output/
-#CONTAINER_DATABASE_DIRECTORY=/volumes/database/
+CONTAINER_DATABASE_DIRECTORY=/volumes/database/
 
 # Parameters
 ID=S1
@@ -84,13 +84,19 @@ RELATIVE_OUTPUT_DIRECTORY=veba_output/preprocess/
 CMD="preprocess.py -1 ${CONTAINER_INPUT_DIRECTORY}/${R1} -2 ${CONTAINER_INPUT_DIRECTORY}/${R2} -n ${ID} -o ${CONTAINER_OUTPUT_DIRECTORY}/${RELATIVE_OUTPUT_DIRECTORY} -x ${CONTAINER_DATABASE_DIRECTORY}/Contamination/chm13v2.0/chm13v2.0"
 
 # Docker
-DOCKER_IMAGE="jolespin/veba_preprocess:1.1.2"
+# Version
+VERSION=1.2.0
+
+# Image
+DOCKER_IMAGE="jolespin/veba_preprocess:${VERSION}"
+
+# Run
 docker run \
     --name ${NAME} \
     --rm \
     --volume ${LOCAL_WORKING_DIRECTORY}:${CONTAINER_INPUT_DIRECTORY}:ro \
     --volume ${LOCAL_OUTPUT_PARENT_DIRECTORY}:${CONTAINER_OUTPUT_DIRECTORY}:rw \
-    #--volume ${LOCAL_DATABASE_DIRECTORY}:${CONTAINER_DATABASE_DIRECTORY}:ro \
+    --volume ${LOCAL_DATABASE_DIRECTORY}:${CONTAINER_DATABASE_DIRECTORY}:ro \
     ${DOCKER_IMAGE} \
     -c "${CMD}"
 
@@ -111,8 +117,3 @@ or just the output:
 ```
 ls -lhS ${LOCAL_OUTPUT_PARENT_DIRECTORY}/veba_output/preprocess/${ID}/output
 ```
-
-
-#### Next steps:
-
-Whatever you want to do.

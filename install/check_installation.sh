@@ -1,5 +1,5 @@
 #!/bin/bash
-# __VERSION__ = "2023.3.14"
+# __version__ = "2023.3.14"
 
 eval "$(conda shell.bash hook)"
 

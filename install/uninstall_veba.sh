@@ -1,5 +1,6 @@
 #!/bin/bash
-# __VERSION__ = "2023.5.15"
+# __version__ = "2023.5.15"
+
 CONDA_BASE=$(conda run -n base bash -c "echo \${CONDA_PREFIX}")
 
 for FP in ${CONDA_BASE}/envs/VEBA-*_env; do 

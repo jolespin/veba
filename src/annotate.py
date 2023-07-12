@@ -662,7 +662,7 @@ def main(args=None):
 
     # Databases
     parser_databases = parser.add_argument_group('Database arguments')
-    parser_databases.add_argument("-u", "--uniref", type=str,  default="uniref90", help="UniRef database to use {uniref90, uniref50}.  Use uniref90 better characterized systems and uniref50 in less characterized systems [Default: uniref90]")
+    parser_databases.add_argument("-u", "--uniref", type=str,  default="uniref90", help="UniRef database to use {uniref90, uniref50}.  uniref90 receommended for well-characterized systems and uniref50 for less characterized systems [Default: uniref90]")
     parser_databases.add_argument("--veba_database", type=str,  help=f"VEBA database location.  [Default: $VEBA_DATABASE environment variable]")
     
     # Diamond

@@ -1,5 +1,5 @@
 #!/bin/bash
-# __VERSION__ = "2023.6.14"
+# __version__ = "2023.6.14"
 
 # Create database
 DATABASE_DIRECTORY=${1:-"."}

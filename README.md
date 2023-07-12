@@ -1,112 +1,112 @@
+<a name="readme-top"></a>
+
+![Maintainer](https://img.shields.io/badge/Maintainer-@jolespin-blue) ![License](https://img.shields.io/badge/License-GNU AGPLv3-blue) ![DOI:10.1186/s12859-022-04973-8](https://zenodo.org/badge/DOI/10.1186/s12859-022-04973-8.svg)
+
+[![Forks][forks-shield]][forks-url]
+[![Stargazers][stars-shield]][stars-url]
+[![Issues][issues-shield]][issues-url]
+
+
+
+[forks-shield]: https://img.shields.io/github/forks/jolespin/veba.svg?style=for-the-badge
+[forks-url]: https://github.com/jolespin/veba/members
+[stars-shield]: https://img.shields.io/github/stars/jolespin/veba.svg?style=for-the-badge
+[stars-url]: https://github.com/jolespin/veba/stargazers
+[issues-shield]: https://img.shields.io/github/issues/jolespin/veba.svg?style=for-the-badge
+[issues-url]: https://github.com/jolespin/veba/issues
+
 ```
  _    _ _______ ______  _______
   \  /  |______ |_____] |_____|
    \/   |______ |_____] |     |
 ```
-### Description
-The *Viral Eukaryotic Bacterial Archaeal* (VEBA) is an open-source software suite developed with all domains of microorganisms as the primary objective (not post hoc adjustments) including prokaryotic, eukaryotic, and viral organisms.  VEBA is an end-to-end metagenomics and bioprospecting software suite that can directly recover and analyze eukaryotic and viral genomes in addition to prokaryotic genomes with native support for CPR. VEBA implements a novel iterative binning procedure and an optional hybrid sample-specific/multi-sample framework that recovers more genomes than non-iterative methods.  To optimize the microeukaryotic gene calling and taxonomic classifications, VEBA includes a consensus microeukaryotic database containing protists and fungi compiled from several existing databases. VEBA also provides a unique clustering-based dereplication strategy allowing for sample-specific genomes and proteins to be directly compared across non-overlapping biological samples. 
 
-**VEBA now automates biosynthetic gene cluster identification and novelty scores for bioprospecting.**
+### What is VEBA? 
+The *Viral Eukaryotic Bacterial Archaeal* (VEBA) is an open-source software suite developed with all domains of microorganisms as the primary objective (not post hoc adjustments) including prokaryotic, eukaryotic, and viral organisms.  VEBA is an end-to-end metagenomics and bioprospecting software suite that can directly recover and analyze eukaryotic and viral genomes in addition to prokaryotic genomes with native support for candidate phyla radiation (CPR). VEBA implements a novel iterative binning procedure and an optional hybrid sample-specific/multi-sample framework that recovers more genomes than non-iterative methods.  To optimize the microeukaryotic gene calling and taxonomic classifications, VEBA includes a consensus microeukaryotic database containing protists and fungi compiled from several existing databases. VEBA also provides a unique clustering-based dereplication strategy allowing for sample-specific genomes and proteins to be directly compared across non-overlapping biological samples. VEBA also automates biosynthetic gene cluster identification and novelty scores for bioprospecting.
+
+VEBA's mission is to make robust (meta-)genomics/transcriptomics analysis effortless.  The philosophy of VEBA is that workflows should be modular, generalizable, and easy-to-use with minimal intermediate steps.  The approach implemented in VEBA is to (try and) think 2 steps ahead of what you may need to do and automate the task for you.
+
+<p align="right"><a href="#readme-top">^__^</a></p>
 
 ___________________________________________________________________
+
 ### Citation
 
 Espinoza JL, Dupont CL. VEBA: a modular end-to-end suite for in silico recovery, clustering, and analysis of prokaryotic, microeukaryotic, and viral genomes from metagenomes. BMC Bioinformatics. 2022 Oct 12;23(1):419. [doi: 10.1186/s12859-022-04973-8](https://doi.org/10.1186/s12859-022-04973-8). PMID: 36224545.
 
 Please cite the software dependencies described under the [*Dependency Citation Table*](CITATIONS.md).
 
+<p align="right"><a href="#readme-top">^__^</a></p>
+
 ___________________________________________________________________
 
 ### Announcements
-* `v1.1.2` fixes a fatal error with `featureCounts`
-* Docker images are now available for all modules via [DockerHub](https://hub.docker.com/repositories/jolespin)
+
+* **`VEBA v1.2.0` is now available!**
+
+* **`VEBA` Modules:**
+	* Updated `GTDB-Tk` now uses `Mash` for ANI screening to speed up classification (now provided in `VDB_v5.1` database)
+	* rRNA and tRNA are identified for prokaryotic and eukaryotic genomes via `BARRNAP` and `tRNAscan-SE`
+	* Eukaryotic genes (CDS, rRNA, tRNA) are analyzed separately for nuclear, mitochondrion, and plastid sequences
+	* Genome GFF files include contigs, CDS, rRNA, and tRNA with tags for mitochondrion and plastids when applicable
+	* Clustering automatically generates pangenome protein prevalence tables for each genome cluster
+	* Ratios of singletons in each genome are now calculated
+	* [Virulence factor database](http://www.mgc.ac.cn/VFs/main.htm) (`VFDB`) is now included in annotations
+	* [UniRef50/90](https://www.uniprot.org/help/uniref) is now included in annotations
+	* `Krona` plots are generated for taxonomy classifications and biosynthetic gene cluster detection
+	
+	
+* **`VEBA` Database**:
+	* Added `VFDB`
+	* Updated `GTDB v207_v2 → v214.1`
+	* Changed `NR  → UniRef50/90` 
+	* Deprecated [`RefSeq non-redundant`](https://www.ncbi.nlm.nih.gov/refseq/about/nonredundantproteins/) in place of `UniRef`
+
+Check out the [*VEBA* Change Log](CHANGELOG.md) for insight into what is being implemented in the upcoming version.
+
+<p align="right"><a href="#readme-top">^__^</a></p>
 
 ___________________________________________________________________
 
 
 ### Installation and databases
+
+**Current Stable Version:** [`v1.2.0`](https://github.com/jolespin/veba/releases/tag/v1.2.0)
+
 Please refer to the [*Installation and Database Configuration Guide*](install/README.md) for software installation and database configuration.
 
+Docker containers are now available (starting with `v1.1.2`) for all modules via [DockerHub](https://hub.docker.com/repositories/jolespin)
 
-**Current Stable Version:** [`v1.1.2`](https://github.com/jolespin/veba/releases/tag/v1.1.2)
-
-**Current Developmental Version:** v1.1.3b
-
-Versions `v1.x.x` are installed using preconfigured `conda` environments.  I'm aiming for `bioconda` packages for each module in the `v2.0.0` release.
+<p align="right"><a href="#readme-top">^__^</a></p>
 
 ___________________________________________________________________
 
 ### Getting started with *VEBA*
 
-Please refer to the [*Walkthrough Guides*](walkthroughs/README.md) for tutorials and workflows on how to get started.
+[Usage and resource requirements guide](src/README.md) for parameters and module descriptions
 
- [A synopsis of *VEBA* (PDF)](presentations/VEBA-Overview_2022-10-18.pdf)
+[*Walkthrough Guides*](walkthroughs/README.md) for tutorials and workflows on how to get started
  
-___________________________________________________________________
-
-### Frequently Asked Questions
-
-If perusing the [*Frequently Asked Questions*](FAQ.md) doesn't address your question, feel free to submit a [GitHub issue](https://github.com/jolespin/veba/issues/new) with the `[Question]` prefix in the title.
+<p align="right"><a href="#readme-top">^__^</a></p>
 
 ___________________________________________________________________
 
-### What's next for *VEBA*?
-
-Check out the [*VEBA* Development Log](DEVELOPMENT.md) for insight into what is being implemented in the upcoming version.
-
-___________________________________________________________________
-
-### *VEBA* Modules
+### What does *VEBA* do?
 
 Please refer to the [*Modules*](src/README.md) for a description of all *VEBA* modules and their functionality.
 
+If you wish *VEBA* did something that isn't implemented, please submit a [`[Feature Request Issue]`](https://github.com/jolespin/veba/issues/new/choose).
+
 [![Schematic](images/Schematic.png)](images/Schematic.pdf)
 
-#### Stable:
-
-* **preprocess** – Fastq quality trimming, adapter removal, decontamination, and read statistics calculations
-
-* **assembly** – Assemble reads, align reads to assembly, and count mapped reads
-
-* **biosynthetic** – Identify biosynthetic gene clusters in prokaryotes and fungi
-
-* **coverage** – Align reads to (concatenated) reference and counts mapped reads
-
-* **binning-prokaryotic** – Iterative consensus binning for recovering prokaryotic genomes with lineage-specific quality assessment
-
-* **binning-eukaryotic** – Binning for recovering eukaryotic genomes with exon-aware gene modeling and lineage-specific quality assessment
-
-* **binning-viral** – Detection of viral genomes and quality assessment
-
-* **classify-prokaryotic** – Taxonomic classification and candidate phyla radiation adjusted quality 
-
-* **classify-eukaryotic** – Taxonomic classification of eukaryotic genomes
-
-* **classify-viral** – Taxonomic classification and isolation source of viral genomes
-
-* **cluster** – Species-level clustering of genomes and lineage-specific orthogroup detection
-
-* **annotate** – Annotates translated gene calls against NR, Pfam, and KOFAM
-
-* **phylogeny** – Constructs phylogenetic trees given a marker set
-
-* **index** – Builds local or global index for alignment to genomes
- 
-* **mapping** – Aligns reads to local or global index of genomes
-
-
-#### Developmental and Experimental:
-
-* **assembly-sequential** – Assemble metagenomes sequentially
-
-* **amplicon** - Automated read trim position detection, DADA2 ASV detection, taxonomic classification, and file conversion
+<p align="right"><a href="#readme-top">^__^</a></p>
 
 ___________________________________________________________________
 
 ### Output structure
-*VEBA*'s is built on the [*GenoPype*](https://github.com/jolespin/genopype) archituecture which creates a reproducible and easy-to-navigate directory structure.  *GenoPype*'s philosophy is to use the same names for all files but to have sample names as subdirectories.  This makes it easier to glob files for grepping, concatenating, etc. 
+*VEBA*'s is built on the [*GenoPype*](https://github.com/jolespin/genopype) archituecture which creates a reproducible and easy-to-navigate directory structure.  *GenoPype*'s philosophy is to use the same names for all files but to have sample names as subdirectories.  This makes it easier to glob files for grepping, concatenating, etc. *NextFlow* support is in the works...
 
-Here is an example of *GenoPype*'s layout:
+Example of *GenoPype*'s layout:
 
 ```
 # Project directory
@@ -136,7 +136,11 @@ project_directory/output/
 project_directory/commands.sh
 ```
 
-For *VEBA*, it has all the directories created by `GenoPype` above but is built for having multiple samples under the same project:
+
+
+For *VEBA*, it has all the directories created by `GenoPype` above but is built for having multiple samples under the same project. 
+
+Example of *VEBA*'s default directory layout:
 
 ```
 ID="sample_1"
@@ -161,6 +165,17 @@ veba_output/binning/viral/${ID}/output/
 ```
 
 The above are default output locations but they can be customized.
+
+
+<p align="right"><a href="#readme-top">^__^</a></p>
+
+___________________________________________________________________
+
+### Frequently Asked Questions
+
+If perusing the [*Frequently Asked Questions*](FAQ.md) doesn't address your question, feel free to submit a [[`Question Issue`]](https://github.com/jolespin/veba/issues/new) 
+
+<p align="right"><a href="#readme-top">^__^</a></p>
 
 ___________________________________________________________________
 
