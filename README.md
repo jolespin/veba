@@ -84,7 +84,7 @@ ___________________________________________________________________
 
 ### Getting started with *VEBA*
 
-[Usage and resource requirements guide](src/README.md) for parameters and module descriptions
+[*Usage and Resource Requirements Guide*](src/README.md) for parameters and module descriptions
 
 [*Walkthrough Guides*](walkthroughs/README.md) for tutorials and workflows on how to get started
  
