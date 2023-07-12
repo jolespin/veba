@@ -1,6 +1,6 @@
 <a name="readme-top"></a>
 
-![Maintainer](https://img.shields.io/badge/Maintainer-@jolespin-blue) ![License](https://img.shields.io/badge/License-GNU AGPLv3-blue) ![DOI:10.1186/s12859-022-04973-8](https://zenodo.org/badge/DOI/10.1186/s12859-022-04973-8.svg)
+![Maintainer](https://img.shields.io/badge/Maintainer-@jolespin-blue) ![License](https://img.shields.io/badge/License-AGPLv3-blue) ![DOI:10.1186/s12859-022-04973-8](https://zenodo.org/badge/DOI/10.1186/s12859-022-04973-8.svg)
 
 [![Forks][forks-shield]][forks-url]
 [![Stargazers][stars-shield]][stars-url]
