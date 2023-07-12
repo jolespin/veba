@@ -1,3 +1,4 @@
+<a name="readme-top"></a>
 
 # Modules
 [![Schematic](../images/Schematic.png)](../images/Schematic.pdf)
@@ -10,24 +11,28 @@
 | Stable        | VEBA-binning-prokaryotic_env | binning-prokaryotic.py  | 16GB        | 4                   | Iterative consensus binning for recovering prokaryotic genomes with lineage-specific quality assessment         |
 | Stable        | VEBA-binning-eukaryotic_env  | binning-eukaryotic.py   | 128GB       | 4                   | Binning for recovering eukaryotic genomes with exon-aware gene modeling and lineage-specific quality assessment |
 | Stable        | VEBA-binning-viral_env       | binning-viral.py        | 16GB        | 4                   | Detection of viral genomes and quality assessment                                                               |
-| Stable        | VEBA-classify_env            | classify-prokaryotic.py | 64GB        | 32                  | Taxonomic classification and candidate phyla radiation adjusted quality                                         |
+| Stable        | VEBA-classify_env            | classify-prokaryotic.py | 72GB        | 32                  | Taxonomic classification of prokaryotic genomes                                         |
 | Stable        | VEBA-classify_env            | classify-eukaryotic.py  | 32GB        | 1                   | Taxonomic classification of eukaryotic genomes                                                                  |
-| Stable        | VEBA-classify_env            | classify-viral.py       | 16GB        | 4                   | Taxonomic classification and isolation source of viral genomes                                                  |
+| Stable        | VEBA-classify_env            | classify-viral.py       | 16GB        | 4                   | Taxonomic classification of viral genomes                                                  |
 | Stable        | VEBA-cluster_env             | cluster.py              | 32GB+       | 32                  | Species-level clustering of genomes and lineage-specific orthogroup detection                                   |
-| Stable        | VEBA-annotate_env            | annotate.py             | 64GB        | 32                  | Annotates translated gene calls against NR, Pfam, and KOFAM                                                     |
+| Stable        | VEBA-annotate_env            | annotate.py             | 64GB        | 32                  | Annotates translated gene calls against UniRef, MiBIG, VFDB, Pfam, AntiFam, and KOFAM                                                     |
 | Stable        | VEBA-phylogeny_env           | phylogeny.py            | 16GB+       | 32                  | Constructs phylogenetic trees given a marker set                                                                |
 | Stable        | VEBA-mapping_env             | index.py                | 16GB        | 4                   | Builds local or global index for alignment to genomes                                                           |
 | Stable        | VEBA-mapping_env             | mapping.py              | 16GB        | 4                   | Aligns reads to local or global index of genomes                                                                |
-| Developmental | VEBA-biosynthetic_env        | biosynthetic.py         | 16GB        | 16                  | Identify biosynthetic gene clusters in prokaryotes and fungi                                                    |
+| Stable | VEBA-biosynthetic_env        | biosynthetic.py         | 16GB        | 16                  | Identify biosynthetic gene clusters in prokaryotes and fungi                                                    |
 | Developmental | VEBA-assembly_env            | assembly-sequential.py  | 32GB-128GB+ | 16                  | Assemble metagenomes sequentially                                                                               |
 | Developmental | VEBA-amplicon_env            | amplicon.py             | 96GB        | 16                  | Automated read trim position detection, DADA2 ASV detection, taxonomic classification, and file conversion      |
+
+<p align="right"><a href="#readme-top">^__^</a></p>
 
 ______________________
 
 ### Stable
 
-#### preprocess – Fastq quality trimming, adapter removal, decontamination, and read statistics calculations
-The preprocess module is a wrapper around our [fastq_preprocessor](https://github.com/jolespin/fastq_preprocessor) which is a modernized reimplementation of [KneadData](https://github.com/biobakery/kneaddata) that relies on fastp for ultra-fast automated adapter removal and quality trimming. Pairing of the trimmed reads is assessed and corrected using [BBTools’ repair.sh](https://sourceforge.net/projects/bbmap). If the user provides a contamination database (e.g., the human reference genome), then trimmed reads are aligned using Bowtie2 (Langmead & Salzberg, 2012) and reads that do not map to the contamination database are stored. If the --retain_contaminated_reads flag is used then the contaminated reads are stored as well. Similarly, if a k-mer reference database is provided (e.g., ribosomal k-mers) then the trimmed or decontaminated reads are aligned against the reference database using BBTools’ bbduk.sh with an option for storing. By default, the none of the contaminated or k-mer analyzed reads are stored but regardless of the choice for retaining reads, the read sets are quantified using seqkit (Shen, Le, Li, & Hu, 2016) for accounting purposes (e.g., % contamination or % ribosomal). All sequences included were downloaded using Kingfisher (https://github.com/wwood/kingfisher-download), included in the preprocess environment, which a fast and flexible program for the procurement of sequencing files and their annotations from public data sources including ENA, NCBI SRA, Amazon AWS, and Google Cloud.
+#### *preprocess.py*
+**Fastq quality trimming, adapter removal, decontamination, and read statistics calculations**
+
+The preprocess module is a wrapper around our [`fastq_preprocessor`](https://github.com/jolespin/fastq_preprocessor) which is a modernized reimplementation of [`KneadData`](https://github.com/biobakery/kneaddata) that relies on fastp for ultra-fast automated adapter removal and quality trimming. Pairing of the trimmed reads is assessed and corrected using `BBTools’ repair.sh`. If the user provides a contamination database (e.g., the human reference genome), then trimmed reads are aligned using `Bowtie2` and reads that do not map to the contamination database are stored. If the `--retain_contaminated_reads` flag is used then the contaminated reads are stored as well. Similarly, if a k-mer reference database is provided (e.g., ribosomal k-mers) then the trimmed or decontaminated reads are aligned against the reference database using `BBTools’ bbduk.sh` with an option for storing. By default, the none of the contaminated or k-mer analyzed reads are stored but regardless of the choice for retaining reads, the read sets are quantified using `seqkit` for accounting purposes (e.g., % contamination or % ribosomal). All sequences included were downloaded using `Kingfisher`, included in the preprocess environment, which a fast and flexible program for the procurement of sequencing files and their annotations from public data sources including ENA, NCBI SRA, Amazon AWS, and Google Cloud.
 
 **Conda Environment:** `conda activate VEBA-preprocess_env`
 
@@ -35,7 +40,7 @@ The preprocess module is a wrapper around our [fastq_preprocessor](https://githu
 usage: preprocess.py -1 <reads_1.fq> -2 <reads_2.fq> -n <name> -o <output_directory> |Optional| -x <reference_index> -k <kmer_database>
 
     Wrapper around github.com/jolespin/fastq_preprocessor
-    Running: preprocess.py v2022.01.19 via Python v3.7.11 | /usr/local/devel/ANNOTATION/jespinoz/anaconda3/envs/VEBA-preprocess_env/bin/python
+    Running: preprocess.py v2023.5.8 via Python v3.9.15 | /expanse/projects/jcl110/anaconda3/envs/VEBA-preprocess_env/bin/python
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -71,7 +76,7 @@ Fastp arguments:
 Bowtie2 arguments:
   -x CONTAMINATION_INDEX, --contamination_index CONTAMINATION_INDEX
                         Bowtie2 | path/to/contamination_index
-                        (e.g., Human GRCh38 from ftp://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/000/001/405/GCA_000001405.15_GRCh38/seqs_for_alignment_pipelines.ucsc_ids//GCA_000001405.15_GRCh38_no_alt_analysis_set.fna.bowtie_index.tar.gz)
+                        (e.g., Human T2T CHM13 v2 in $VEBA_DATABASE/Contamination/chm13v2.0/chm13v2.0)
   --retain_trimmed_reads RETAIN_TRIMMED_READS
                         Retain fastp trimmed fastq after decontamination. 0=No, 1=yes [Default: 0]
   --retain_contaminated_reads RETAIN_CONTAMINATED_READS
@@ -83,7 +88,7 @@ Bowtie2 arguments:
 BBDuk arguments:
   -k KMER_DATABASE, --kmer_database KMER_DATABASE
                         BBDuk | path/to/kmer_database
-                        (e.g., ribokmers.fa.gz from https://drive.google.com/file/d/0B3llHR93L14wS2NqRXpXakhFaEk/view?usp=sharing)
+                        (e.g., Ribokmers in $VEBA_DATABASE/Contamination/kmers/ribokmers.fa.gz)
   --kmer_size KMER_SIZE
                         BBDuk | k-mer size [Default: 31]
   --retain_kmer_hits RETAIN_KMER_HITS
@@ -92,6 +97,7 @@ BBDuk arguments:
                         Retain reads that do not map to k-mer database. 0=No, 1=yes [Default: 0]
   --bbduk_options BBDUK_OPTIONS
                         BBDuk | More options (e.g., --arg 1) [Default: '']
+                      
 ```
 
 **Output:**
@@ -100,15 +106,19 @@ BBDuk arguments:
 * cleaned_2.fastq.gz - Cleaned and trimmed fastq file (reverse)
 * seqkit_stats.concatenated.tsv - Concatenated read statistics for all intermediate steps (e.g., fastp, bowtie2 removal of contaminated reads if provided, bbduk.sh removal of contaminated reads if provided)
 
-#### assembly – Assemble reads, align reads to assembly, and count mapped reads
-The assembly module optimizes the output for typical metagenomics workflows. In particular, the module does the following: 1) assembles reads using either metaSPAdes (Nurk, Meleshko, Korobeynikov, & Pevzner, 2017), SPAdes (A et al., 2012), rnaSPAdes (Bushmanova, Antipov, Lapidus, & Prjibelski, 2019), any of the other task-specific assemblers installed with the SPAdes package (Antipov, Raiko, Lapidus, & Pevzner, 2020; Meleshko, Hajirasouliha, & Korobeynikov, 2021), or, as of 2022.11.14, MEGAHIT; 2) builds a Bowtie2 index for the scaffolds.fasta (or transcripts.fasta if rnaSPAdes is used); 3) aligns the reads using Bowtie2 to the assembly; 4) pipes the alignment file into Samtools (Li et al., 2009) to produce a sorted BAM file (necessary for many coverage applications); 5) counts the reads mapping to each scaffold via featureCounts (Liao, Smyth, & Shi, 2014); and 6) seqkit for useful assembly statistics such as N50, number of scaffolds, and total assembly size. This module automates many critical yet overlooked workflows dealing with assemblies. 
+<p align="right"><a href="#readme-top">^__^</a></p>
+
+#### *assembly.py*
+**Assemble reads, align reads to assembly, and count mapped reads**
+
+The assembly module optimizes the output for typical metagenomics workflows. In particular, the module does the following: 1) assembles reads using either `metaSPAdes`, `SPAdes`, `rnaSPAdes`, any of the other task-specific assemblers installed with the `SPAdes` package or `MEGAHIT`; 2) builds a `Bowtie2` index for the scaffolds.fasta (or transcripts.fasta if `rnaSPAdes` is used); 3) aligns the reads using `Bowtie2` to the assembly; 4) pipes the alignment file into `Samtools` to produce a sorted BAM file (necessary for many coverage applications); 5) counts the reads mapping to each scaffold via `featureCounts`; and 6) `seqkit` for useful assembly statistics such as N50, number of scaffolds, and total assembly size. This module automates many critical yet overlooked workflows dealing with assemblies. 
 
 **Conda Environment**: `conda activate VEBA-assembly_env`
 
 ```
 usage: assembly.py -1 <forward_reads.fq> -2 <reverse_reads.fq> -n <name> -o <output_directory>
 
-    Running: assembly.py v2022.11.14 via Python v3.9.7 | /Users/jespinoz/anaconda3/bin/python
+    Running: assembly.py v2023.5.15 via Python v3.9.15 | /expanse/projects/jcl110/anaconda3/envs/VEBA-preprocess_env/bin/python
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -137,6 +147,10 @@ Utility arguments:
 Assembler arguments:
   -P PROGRAM, --program PROGRAM
                         Assembler |  {spades.py, metaspades.py, rnaspades.py, megahit, metaplasmidspades.py, plasmidspades.py, coronaspades.py}} [Default: 'metaspades.py']
+  -s SCAFFOLD_PREFIX, --scaffold_prefix SCAFFOLD_PREFIX
+                        Assembler |  Special options:  Use NAME to use --name.  Use NONE to not include a prefix. [Default: 'NAME__']
+  -m MINIMUM_CONTIG_LENGTH, --minimum_contig_length MINIMUM_CONTIG_LENGTH
+                        Minimum contig length.  Should be lenient here because longer thresholds can be used for binning downstream. Recommended for metagenomes to use 1000 here. [Default: 1]
   --assembler_options ASSEMBLER_OPTIONS
                         Assembler options for SPAdes-based programs and MEGAHIT (e.g. --arg 1 ) [Default: '']
 
@@ -157,9 +171,7 @@ Bowtie2 arguments:
 featureCounts arguments:
   --featurecounts_options FEATURECOUNTS_OPTIONS
                         featureCounts | More options (e.g. --arg 1 ) [Default: ''] | http://bioinf.wehi.edu.au/featureCounts/
-
-Copyright 2021 Josh L. Espinoza (jespinoz@jcvi.org)
-
+                        
 ```
 
 **Output:**
@@ -172,9 +184,12 @@ Copyright 2021 Josh L. Espinoza (jespinoz@jcvi.org)
 * scaffolds.fasta.saf - SAF formatted file for contig-level counts with featureCounts
 * seqkit_stats.tsv.gz - Assembly statistics
 
+<p align="right"><a href="#readme-top">^__^</a></p>
 
-#### coverage – Align reads to (concatenated) reference and counts mapped reads
-The coverage module further optimizes the output for typical metagenomics workflows. In particular, the module does the following: 1) filters contigs based on a size filter (default 1500 bp); 2) builds a Bowtie2 index for the coassembly.fasta; 3) aligns the reads from all provided samples using Bowtie2 to the assembly; 4) pipes the alignment file into Samtools to produce a sorted BAM file; 5) counts the reads mapping to each scaffold via featureCounts; and 6) seqkit for useful assembly statistics such as N50, number of scaffolds, and total assembly size (Shen et al., 2016). The preferred usage for this module is after prokaryotic, eukaryotic, and viral binning has been performed and the unbinned contigs are merged into a single coassembly used as input.  The outputs of this module are expected to be used as a final pass through prokaryotic and eukaryotic binning modules.  
+#### *coverage.py*
+**Align reads to (concatenated) reference and counts mapped reads**
+
+The coverage module further optimizes the output for typical metagenomics workflows. In particular, the module does the following: 1) filters contigs based on a size filter (default 1500 bp); 2) builds a `Bowtie2` index for the reference.fasta; 3) aligns the reads from all provided samples using `Bowtie2` to the assembly; 4) pipes the alignment file into `Samtools` to produce a sorted BAM file; 5) counts the reads mapping to each scaffold via `featureCounts`; and 6) `seqkit` for useful assembly statistics such as N50, number of scaffolds, and total assembly size. The preferred usage for this module is after prokaryotic, eukaryotic, and viral binning has been performed and the unbinned contigs are merged into a single coassembly used as input.  The outputs of this module are expected to be used as a final pass through prokaryotic and eukaryotic binning modules.  
 
 **Conda Environment**: `conda activate VEBA-assembly_env`
 
@@ -182,16 +197,16 @@ The coverage module further optimizes the output for typical metagenomics workfl
 ```
 usage: coverage.py -f <reference.fasta> -r <reads.tsv> -o <output_directory>
 
-    Running: coverage.py v2022.04.12 via Python v3.8.5 | /Users/jespinoz/anaconda3/bin/python
+    Running: coverage.py v2023.5.16 via Python v3.9.15 | /expanse/projects/jcl110/anaconda3/envs/VEBA-preprocess_env/bin/python
 
 optional arguments:
   -h, --help            show this help message and exit
 
 Required I/O arguments:
   -f FASTA, --fasta FASTA
-                        path/to/reference.fasta [Required]
+                        path/to/reference.fasta. Recommended usage is for merging unbinned contigs. [Required]
   -r READS, --reads READS
-                        path/to/reads_table.tsv with the following format: [id_sample]<tab>[path/to/r1.fastq.gz]<tab>[path/to/r2.fastq.gz], No header
+                        path/to/reads_table.tsv with the following format: [id\_sample]<tab>[path/to/r1.fastq.gz]<tab>[path/to/r2.fastq.gz], No header
   -o OUTPUT_DIRECTORY, --output_directory OUTPUT_DIRECTORY
                         path/to/project_directory [Default: veba_output/assembly/multisample]
 
@@ -216,12 +231,14 @@ SeqKit seq arguments:
 Bowtie2 arguments:
   --bowtie2_index_options BOWTIE2_INDEX_OPTIONS
                         bowtie2-build | More options (e.g. --arg 1 ) [Default: '']
+  --one_task_per_cpu    Use GNU parallel to run GNU parallel with 1 task per CPU.  Useful if all samples are roughly the same size but inefficient if depth varies.
   --bowtie2_options BOWTIE2_OPTIONS
                         bowtie2 | More options (e.g. --arg 1 ) [Default: '']
 
 featureCounts arguments:
   --featurecounts_options FEATURECOUNTS_OPTIONS
                         featureCounts | More options (e.g. --arg 1 ) [Default: ''] | http://bioinf.wehi.edu.au/featureCounts/
+                        
 ```
 
 **Output:**
@@ -232,16 +249,17 @@ featureCounts arguments:
 * reference.fasta.saf - SAF formatted file for contig-level counts with featureCounts
 * seqkit_stats.tsv - Assembly statistics
 
-#### binning-prokaryotic – Iterative consensus binning for recovering prokaryotic genomes with lineage-specific quality assessment
-The prokaryotic binning module implements a novel iterative consensus binning procedure that uses CoverM (https://github.com/wwood/CoverM) for fast coverage calculations, multiple binning algorithms (MaxBin2 (marker set = 107); MaxBin2 (marker set = 40) (Wu et al., 2016); MetaBat2 (Kang et al., 2019); and CONCOCT (Alneberg et al., 2014), consensus dereplication and aggregate binning with DAS Tool (Sieber et al., 2018), the consensus domain wrapper for Tiara (Karlicki et al., 2022) for removing eukaryotes at the MAG level, and CheckM   for quality assessment where poor quality MAGs are removed (e.g., completeness < 50% and/or contamination ≥ 10). The novelty of this procedure is that the unbinned contigs are stored and fed back into the input of the binning procedure using a separate random seed state allowing for an exhaustive, yet effective, approach in extracting high quality and difficult to bin genomes; number of iterations specified by --n\_iter option. Gene calls are performed using Prodigal (Hyatt et al., 2010) and the gene models (GFF3 Format) are modified to include gene and contig identifiers for use with downstream feature counting software. Although CheckM can handle CPR it cannot do so with the typical, and recommended, lineage_wf directly in the current version but instead with a separate workflow. The prokaryotic binning module allows for basal bacteria to filter through intermediate genome quality checks, runs GTDB-Tk (Chaumeil et al., 2020) for genome classification, reruns CheckM CPR workflow for said genomes, and then updates the genome set with adjusted completeness and contamination scores.  The input alignment file is utilized using featureCounts to produce counts tables for the gene models and MAGs.  Lastly, genome statistics such as N50, number of scaffolds, and genome size are calculated using seqkit. Utility scripts, installed with VEBA, are run in the backend to modify prodigal gene models, consensus domain classification of MAGs using Tiara contig predictions, along with several fasta and pre/post-processing scripts. The input to this module is a fasta file (typically the scaffolds.fasta from metaSPAdes) and sorted BAM while the output includes the prokaryotic MAGs via Prodigal, gene models, identifier mappings, counts tables, CheckM output, GTDB-Tk output, and unbinned fasta.  MAG naming scheme for prokaryotes follows [SAMPLE]\_\_\[ALGORITHM\]\_\_P.\[ITERATION\]\_\_\[NAME] (e.g., SRR17458623\_\_METABAT2\_\_P.1\_\_bin.1)
+<p align="right"><a href="#readme-top">^__^</a></p>
+
+#### *binning-prokaryotic.py*
+**Iterative consensus binning for recovering prokaryotic genomes with lineage-specific quality assessment**
+
+The prokaryotic binning module implements a novel iterative consensus binning procedure that uses `CoverM`  for fast coverage calculations, multiple binning algorithms (MaxBin2 (marker set = 107); `MaxBin2` (marker set = 40); `MetaBat2`; and `CONCOCT`, consensus dereplication and aggregate binning with `DAS Tool`, the consensus domain wrapper for `Tiara` for removing eukaryotes at the MAG level, and `CheckM2` for quality assessment where poor quality MAGs are removed (e.g., completeness < 50% and/or contamination ≥ 10) which has direct support for candidate phyla radiation (CPR). The novelty of this procedure is that the unbinned contigs are stored and fed back into the input of the binning procedure using a separate random seed state allowing for an exhaustive, yet effective, approach in extracting high quality and difficult to bin genomes; number of iterations specified by `--n_iter` option. Gene calls are performed using `Pyrodigal` and the gene models (GFF3 Format) are modified to include gene and contig identifiers for use with downstream feature counting software. `BARRNAP` and `tRNAscan-SE` are used for rRNA and tRNA detetion, respectively. Lastly, genome assembly a gene statistics such as GC, N50, number of scaffolds, and genome size are calculated using `seqkit`.  MAG naming scheme for prokaryotes follows `[SAMPLE]__[ALGORITHM]__P.[ITERATION]__[NAME]` (e.g., `SRR17458623__METABAT2__P.1__bin.1`)
 
 **⚠️Notes:** 
 
-1) If you have a lot of samples and a lot of contigs then use the `--skip_maxbin2` flag because it takes MUCH longer to run.  For the *Plastisphere* it was going to take 40 hours per `MaxBin2` run (there are 2 `MaxBin2` runs) per iteration.  `Metabat2` and `CONCOCT` can do the heavy lifting much faster and often with better results so it's recommended to skip `MaxBin2` for larger datasets.
+* If you have a lot of samples and a lot of contigs then use the `--skip_maxbin2` flag because it takes MUCH longer to run.  For the *Plastisphere* it was going to take 40 hours per `MaxBin2` run (there are 2 `MaxBin2` runs) per iteration.  `Metabat2` and `CONCOCT` can do the heavy lifting much faster and often with better results so it's recommended to skip `MaxBin2` for larger datasets.
 
-2) The penultimate step `step-number]__cpr_adjustment]` is the most memory intensive stage as this uses `GTDB-Tk` to identify CPR bacteria. Approaches to properly allocate resources are explained in FAQ. 
-
-Please refer to [FAQ](https://github.com/jolespin/veba/blob/main/FAQ.md) for more details.  In particular, refer to items: 15, 18, 20, and 21.
 
 **Conda Environment**: `conda activate VEBA-binning-prokaryotic_env`
 
@@ -249,7 +267,7 @@ Please refer to [FAQ](https://github.com/jolespin/veba/blob/main/FAQ.md) for mor
 ```
 usage: binning-prokaryotic.py -f <scaffolds.fasta> -b <mapped.sorted.bam> -n <name> -o <output_directory>
 
-    Running: binning-prokaryotic.py v2022.7.8 via Python v3.8.5 | /Users/jespinoz/anaconda3/bin/python
+    Running: binning-prokaryotic.py v2023.7.7 via Python v3.9.15 | /expanse/projects/jcl110/anaconda3/envs/VEBA-preprocess_env/bin/python
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -291,6 +309,7 @@ Binning arguments:
   --concoct_overlap_length CONCOCT_OVERLAP_LENGTH
                         CONCOCT | Fragment overlap length [Default: 0]
   --skip_maxbin2        MaxBin2 | Skip MaxBin2. Useful for large datasets
+  --skip_concoct        CONCOCT | Skip CONCOCT. Useful when there's a lot of samples
   --maxbin2_options MAXBIN2_OPTIONS
                         MaxBin2 | More options (e.g. --arg 1 ) [Default: ''] | https://sourceforge.net/projects/maxbin/
   --metabat2_options METABAT2_OPTIONS
@@ -299,63 +318,83 @@ Binning arguments:
                         CONCOCT | More options (e.g. --arg 1 ) [Default: '']
 
 Gene model arguments:
-  --prodigal_genetic_code PRODIGAL_GENETIC_CODE
-                        Prodigal -g translation table [Default: 11]
+  --pyrodigal_minimum_gene_length PYRODIGAL_MINIMUM_GENE_LENGTH
+                        Pyrodigal | Minimum gene length [Default: 90]
+  --pyrodigal_minimum_edge_gene_length PYRODIGAL_MINIMUM_EDGE_GENE_LENGTH
+                        Pyrodigal | Minimum edge gene length [Default: 60]
+  --pyrodigal_maximum_gene_overlap_length PYRODIGAL_MAXIMUM_GENE_OVERLAP_LENGTH
+                        Pyrodigal | Maximum gene overlap length [Default: 60]
+  --pyrodigal_genetic_code PYRODIGAL_GENETIC_CODE
+                        Pyrodigal -g translation table [Default: 11]
 
 Evaluation arguments:
   --dastool_searchengine DASTOOL_SEARCHENGINE
                         DAS_Tool searchengine. [Default: diamond] | https://github.com/cmks/DAS_Tool
+  --dastool_minimum_score DASTOOL_MINIMUM_SCORE
+                        DAS_Tool score_threshold. Score threshold until selection algorithm will keep selecting bins. This is set to a relaxed setting because CheckM2 is run post hoc. [Default: 0.1] | https://github.com/cmks/DAS_Tool
   --dastool_options DASTOOL_OPTIONS
                         DAS_Tool | More options (e.g. --arg 1 ) [Default: ''] | https://github.com/cmks/DAS_Tool
-  --pplacer_threads PPLACER_THREADS
-                        Number of threads used for pplacer. Multithreaded uses a lot memory so don't use unless you have the resources [Default: 1]
-  --checkm_tree CHECKM_TREE
-                        CheckM tree type either 'reduced' or 'full' [Default: reduced]
-  --checkm_completeness CHECKM_COMPLETENESS
-                        CheckM completeness threshold [Default: 50]
-  --checkm_contamination CHECKM_CONTAMINATION
-                        CheckM contamination threshold [Default: 10]
-  --checkm_strain_heterogeneity CHECKM_STRAIN_HETEROGENEITY
-                        CheckM strain hetereogeneity threshold
-  --checkm_options CHECKM_OPTIONS
+  --checkm2_completeness CHECKM2_COMPLETENESS
+                        CheckM2 completeness threshold [Default: 50.0]
+  --checkm2_contamination CHECKM2_CONTAMINATION
+                        CheckM2 contamination threshold [Default: 10.0]
+  --checkm2_options CHECKM2_OPTIONS
                         CheckM lineage_wf | More options (e.g. --arg 1 ) [Default: '']
-  --gtdbtk_options GTDBTK_OPTIONS
-                        GTDB-Tk | classify_wf options (e.g. --arg 1 ) [Default: '']
+
+barrnap arguments:
+  --barrnap_length_cutoff BARRNAP_LENGTH_CUTOFF
+                        barrnap | Proportional length threshold to label as partial [Default: 0.8]
+  --barrnap_reject BARRNAP_REJECT
+                        barrnap | Proportional length threshold to reject prediction [Default: 0.25]
+  --barrnap_evalue BARRNAP_EVALUE
+                        barrnap | Similarity e-value cut-off [Default: 1e-6]
+
+tRNAscan-SE arguments:
+  --trnascan_options TRNASCAN_OPTIONS
+                        tRNAscan-SE | More options (e.g. --arg 1 ) [Default: ''] | https://github.com/UCSC-LoweLab/tRNAscan-SE
 
 featureCounts arguments:
+  --long_reads          featureCounts | Use this if long reads are being used
   --featurecounts_options FEATURECOUNTS_OPTIONS
                         featureCounts | More options (e.g. --arg 1 ) [Default: ''] | http://bioinf.wehi.edu.au/featureCounts/
 
 Domain classification arguments:
   --logit_transform LOGIT_TRANSFORM
-                         Transformation for consensus_domain_classification: {softmax, tss} [Default: softmax
+                         Transformation for consensus_domain_classification: {softmax, tss} [Default: softmax]
   --tiara_minimum_length TIARA_MINIMUM_LENGTH
                         Tiara | Minimum contig length. Anything lower than 3000 is not recommended. [Default: 3000]
   --tiara_options TIARA_OPTIONS
                         Tiara | More options (e.g. --arg 1 ) [Default: ''] | https://github.com/ibe-uw/tiara
-
+                        
 ```
 
 **Output:**
 
 * binned.list - List of binned contigs
 * bins.list - List of MAG identifiers
-* checkm_output.filtered.tsv - Filtered CheckM output
+* checkm2_results.filtered.tsv - Filtered CheckM2 output
 * featurecounts.orfs.tsv.gz - ORF-level counts table
 * genome_statistics.tsv - Genome assembly statistics
+* gene_statistics.cds.tsv - Gene sequence statistics (CDS)
+* gene_statistics.rRNA.tsv - Gene sequence statistics (rRNA)
+* gene_statistics.tRNA.tsv - Gene sequence statistics (tRNA)
 * genomes/ - MAG subdirectory
-* genomes/\*.fa - MAG assembly fasta
-* genomes/\*.faa - MAG protein fasta
-* genomes/\*.ffn - MAG CDS fasta
-* genomes/\*.gff - MAG gene models
-* genomes/identifier_mapping.tsv - Identifier mapping between [id_orf, id_contig, id_mag]
-* gtdbtk_output.filtered.tsv - Filtered GTDBTk output
-* scaffolds_to_bins.tsv - Identifier mapping between [id_contig, id_mag]
+* genomes/[id\_genome].fa - MAG assembly fasta
+* genomes/[id\_genome].faa - MAG protein fasta
+* genomes/[id\_genome].ffn - MAG CDS fasta
+* genomes/[id\_genome].gff - MAG gene models for assembly, CDS, rRNA, and tRNA
+* genomes/[id\_genome].rRNA - MAG rRNA fasta
+* genomes/[id\_genome].tRNA - MAG tRNA fasta
+* genomes/identifier\_mapping.tsv - Identifier mapping between [id\_orf, id\_contig, id_mag]
+* scaffolds\_to\_bins.tsv - Identifier mapping between [id\_contig, id_mag]
 * unbinned.fasta - Fasta of unbinned contigs that have passed length thresholding
 * unbinned.list - List of unbinned contigs
 
-#### binning-eukaryotic – Binning for recovering eukaryotic genomes with exon-aware gene modeling and lineage-specific quality assessment
-The eukaryotic binning module uses several checks and state-of-the-art software to ensure high quality genomes.  In particular, non-prokaryotic-biased binning algorithms MetaBat2 [default] (coverage calculated with CoverM) or CONCOCT (coverage calculated using CONCOCT scripts) is used for binning out genomes followed by a genome size filter (2,000,000 bp is the default). The preliminary bins are run through the consensus domain wrapper for Tiara to predict eukaryotic MAGs. We found Tiara to be much more effective than EukRep (even when using an exhaustive parameter grid for EukRep) that we tested on known microeukaryotic contigs/transcripts from published assemblies and transcriptomes (Karlicki et al., 2022; West, Probst, Grigoriev, Thomas, & Banfield, 2018). Contigs from the eukaryotic MAGs are input into MetaEuk easy-predict workflow (Levy Karin et al., 2020) using our custom consensus eukaryotic database (see Database section in Methods). Although MetaEuk is a high-quality software suite, the identifiers from MetaEuk are very complex, long, and contain characters that are often problematic for downstream applications including parsing, file naming systems, and certain programs with simplified identifier requirements such as Anvi’o (Eren et al., 2015). In addition, the gene model GFF files are not intuitive, compatible with Prodigal GFF files or featureCounts without major modification. Therefore, we developed an essential wrapper for MetaEuk that simplifies identifiers (i.e., [ContigID]\_[GeneStart]:\[GeneEnd]([strand])), ensuring no duplicates are produced, creates a GFF file that can be concatenated with the Prodigal GFF file for use with featureCounts, and several identifier mapping tables to seamless convert between original and modified identifiers. Lineage-specific genome quality estimation is performed using BUSCO (Manni et al., 2021) where poor quality MAGs are removed (e.g., completeness < 50%).  Gene counts are computed using featureCounts at the gene level.  Lastly, genome statistics such as N50, number of scaffolds, and genome size are calculated using seqkit. The input to this module is a fasta file (typically the unbinned.fasta from the prokaryotic binning module) and sorted BAM while the output includes the eukaryotic MAGs, gene models via MetaEuk, identifier mappings, BUSCO output, counts tables, and unbinned fasta.  Iterative binning is not currently available as no consensus binning tool is available therefore iterative binning would result in diminishing returns. MAG naming scheme for eukaryotes follows \[SAMPLE]\_\_\[ALGORITHM]\_\_E.[ITERATION]\_\_\[NAME] (e.g., ERR2002407\_\_METABAT2\_\_E.1\_\_bin.2).
+<p align="right"><a href="#readme-top">^__^</a></p>
+
+#### *binning-eukaryotic.py*
+**Binning for recovering eukaryotic genomes with exon-aware gene modeling and lineage-specific quality assessment**
+The eukaryotic binning module uses several checks and state-of-the-art software to ensure high quality genomes.  In particular, non-prokaryotic-biased binning algorithms `MetaBat2` [default] (coverage calculated with `CoverM`) or `CONCOCT` (coverage calculated using `CONCOCT` scripts) is used for binning out genomes followed by a genome size filter (2,000,000 bp is the default). The preliminary bins are run through the consensus domain wrapper for `Tiara` to predict eukaryotic MAGs. Contigs from the eukaryotic MAGs are input into `MetaEuk` easy-predict workflow using our custom consensus eukaryotic database. Although `MetaEuk` is a high-quality software suite, the identifiers from `MetaEuk` are very complex, long, and contain characters that are often problematic for downstream applications including parsing, file naming systems, and certain programs with simplified identifier requirements such as `Anvi’o`. In addition, the gene model GFF files are not intuitive, compatible with `P(y)rodigal(-gv)` GFF files or `featureCounts` without major modification. Therefore, we developed an essential wrapper for MetaEuk that simplifies identifiers (i.e., `[ContigID]_[GeneStart]:[GeneEnd]([strand])`), ensuring no duplicates are produced, creates a GFF file that can be concatenated with the `Pyrodigal` GFF file for use with `featureCounts`, and several identifier mapping tables to seamless convert between original and modified identifiers. `BARRNAP` and `tRNAscan-SE` are used for rRNA and tRNA detetion, respectively. `Tiara` is used to identfy mitochondrion and plastid contigs to run separate workflows for modeling genes (CDS, rRNA, and tRNA).  Lineage-specific genome quality estimation is performed using `BUSCO` where poor quality MAGs are removed (e.g., completeness < 50%, contamination > 10).  Gene counts are computed using `featureCounts` at the gene level.  Lastly, genome and gene statistics such as N50, number of scaffolds, and genome size are calculated using `seqkit`.  Iterative binning is not currently available as no consensus binning tool is available therefore iterative binning would result in diminishing returns. MAG naming scheme for eukaryotes follows `[SAMPLE]__[ALGORITHM]__E.[ITERATION]__[NAME]` (e.g., `ERR2002407__METABAT2__E.1__bin.2`).
 
 **Conda Environment**: `conda activate VEBA-binning-eukaryotic_env`
 
@@ -363,7 +402,7 @@ The eukaryotic binning module uses several checks and state-of-the-art software 
 ```
 usage: binning-eukaryotic.py -f <scaffolds.fasta> -b <mapped.sorted.bam> -n <name> -o <output_directory>
 
-    Running: binning-eukaryotic.py v2022.7.8 via Python v3.8.5 | /Users/jespinoz/anaconda3/bin/python
+    Running: binning-eukaryotic.py v2023.7.6 via Python v3.9.15 | /expanse/projects/jcl110/anaconda3/envs/VEBA-preprocess_env/bin/python
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -426,6 +465,18 @@ MetaEuk arguments:
   --metaeuk_options METAEUK_OPTIONS
                         MetaEuk | More options (e.g. --arg 1 ) [Default: ''] https://github.com/soedinglab/metaeuk
 
+Pyrodigal arguments (Mitochondria):
+  --pyrodigal_minimum_gene_length PYRODIGAL_MINIMUM_GENE_LENGTH
+                        Pyrodigal | Minimum gene length [Default: 90]
+  --pyrodigal_minimum_edge_gene_length PYRODIGAL_MINIMUM_EDGE_GENE_LENGTH
+                        Pyrodigal | Minimum edge gene length [Default: 60]
+  --pyrodigal_maximum_gene_overlap_length PYRODIGAL_MAXIMUM_GENE_OVERLAP_LENGTH
+                        Pyrodigal | Maximum gene overlap length [Default: 60]
+  --pyrodigal_mitochondrial_genetic_code PYRODIGAL_MITOCHONDRIAL_GENETIC_CODE
+                        Pyrodigal -g translation table (https://www.ncbi.nlm.nih.gov/Taxonomy/Utils/wprintgc.cgi/) [Default: 4] (The Mold, Protozoan, and Coelenterate Mitochondrial Code and the Mycoplasma/Spiroplasma Code))
+  --pyrodigal_plastid_genetic_code PYRODIGAL_PLASTID_GENETIC_CODE
+                        Pyrodigal -g translation table (https://www.ncbi.nlm.nih.gov/Taxonomy/Utils/wprintgc.cgi/) [Default: 11] (The Bacterial, Archaeal and Plant Plastid Code))
+
 BUSCO arguments:
   --busco_completeness BUSCO_COMPLETENESS
                         BUSCO completeness [Default: 50.0]
@@ -434,7 +485,28 @@ BUSCO arguments:
   --busco_evalue BUSCO_EVALUE
                         BUSCO | E-value cutoff for BLAST searches. Allowed formats, 0.001 or 1e-03 [Default: 1e-03]
 
+barrnap arguments:
+  --barrnap_length_cutoff BARRNAP_LENGTH_CUTOFF
+                        barrnap | Proportional length threshold to label as partial [Default: 0.8]
+  --barrnap_reject BARRNAP_REJECT
+                        barrnap | Proportional length threshold to reject prediction [Default: 0.25]
+  --barrnap_evalue BARRNAP_EVALUE
+                        barrnap | Similarity e-value cut-off [Default: 1e-6]
+
+tRNAscan-SE arguments:
+  --trnascan_nuclear_options TRNASCAN_NUCLEAR_OPTIONS
+                        tRNAscan-SE | More options (e.g. --arg 1 ) [Default: ''] | https://github.com/UCSC-LoweLab/tRNAscan-SE
+  --trnascan_mitochondrial_searchmode TRNASCAN_MITOCHONDRIAL_SEARCHMODE
+                        tRNAscan-SE | Search mode [Default: '-O'] | Current best option according to developer: https://github.com/UCSC-LoweLab/tRNAscan-SE/issues/24
+  --trnascan_mitochondrial_options TRNASCAN_MITOCHONDRIAL_OPTIONS
+                        tRNAscan-SE | More options (e.g. --arg 1 ) [Default: ''] | https://github.com/UCSC-LoweLab/tRNAscan-SE
+  --trnascan_plastid_searchmode TRNASCAN_PLASTID_SEARCHMODE
+                        tRNAscan-SE | Search mode [Default: '-O'] | https://github.com/UCSC-LoweLab/tRNAscan-SE
+  --trnascan_plastid_options TRNASCAN_PLASTID_OPTIONS
+                        tRNAscan-SE | More options (e.g. --arg 1 ) [Default: ''] | https://github.com/UCSC-LoweLab/tRNAscan-SE
+
 featureCounts arguments:
+  --long_reads          featureCounts | Use this if long reads are being used
   --featurecounts_options FEATURECOUNTS_OPTIONS
                         featureCounts | More options (e.g. --arg 1 ) [Default: ''] | http://bioinf.wehi.edu.au/featureCounts/
 
@@ -447,26 +519,36 @@ featureCounts arguments:
 * busco_results.filtered.tsv - Filtered BUSCO output
 * featurecounts.orfs.tsv.gz - ORF-level counts table
 * genome_statistics.tsv - Genome assembly statistics
+* gene_statistics.cds.tsv - Gene sequence statistics (CDS)
+* gene_statistics.rRNA.tsv - Gene sequence statistics (rRNA)
+* gene_statistics.tRNA.tsv - Gene sequence statistics (tRNA)
 * genomes/ - MAG subdirectory
-* genomes/\*.fa - MAG assembly fasta
-* genomes/\*.faa - MAG protein fasta
-* genomes/\*.ffn - MAG CDS fasta
-* genomes/\*.gff - MAG gene models
-* genomes/identifier_mapping.tsv - Identifier mapping between [id_orf, id_contig, id_mag]
-* identifier_mapping.metaeuk.tsv - Identifier mapping between original MetaEuk identifiers and modified identifiers.  Includes fully parsed MetaEuk identifiers.
-* scaffolds_to_bins.tsv - Identifier mapping between [id_contig, id_mag]
+* genomes/[id\_genome].fa - MAG assembly fasta
+* genomes/[id\_genome].faa - MAG protein fasta
+* genomes/[id\_genome].ffn - MAG CDS fasta
+* genomes/[id\_genome].gff - MAG gene models for assembly, CDS, rRNA, and tRNA
+* genomes/[id\_genome].rRNA - MAG rRNA fasta
+* genomes/[id\_genome].tRNA - MAG tRNA fasta
+* genomes/[id\_genome].seqtype.tsv - Identifier mapping between [id\_contig, sequence_type] {nuclear, mitochondrion, plastid}
+* genomes/identifier\_mapping.tsv - Identifier mapping between [id\_orf, id\_contig, id_mag]
+* identifier\_mapping.metaeuk.tsv - Identifier mapping between original MetaEuk identifiers and modified identifiers.  Includes fully parsed MetaEuk identifiers.
+* scaffolds\_to\_bins.tsv - Identifier mapping between [id\_contig, id_mag]
 * unbinned.fasta - Fasta of unbinned contigs that have passed length thresholding
 * unbinned.list - List of unbinned contigs
 
-#### binning-viral – Detection of viral genomes and quality assessment
-Viral binning is performed using VirFinder (Ren et al., 2017) to extract potential viral contigs (e.g., P < 0.05). The potential viral contigs are then input into CheckV (Nayfach et al., 2020) where quality assessment removes poor quality or low confidence viral predictions. The filtering scheme is based on author recommendations (Nayfach, 2021) in which a viral contig is considered if it meets the following criteria: 1) number of viral genes ≥ 5 x number of host genes; 2) completeness ≥ 50%; 3) CheckV quality is either medium-quality, high-quality, or complete; and 4) MIUViG quality is either medium-quality, high-quality, or complete (Roux et al., 2018).  Proviruses can be included by using the --include_proviruses flag. After poor quality viral contigs are removed, Prodigal is used for gene modeling and seqkit is used for useful genome statistics.  The input to this module is a fasta file (typically the unbinned.fasta from the eukaryotic binning module) while the output includes the viral MAGs, gene models via Prodigal, identifier mappings, and CheckV output.  Iterative binning is not applicable for viral detection as algorithms are executed on a per-contig basis and all viral genomes will be identified on first pass.  MAG naming scheme for viruses follows [SAMPLE]\_\_\[ALGORITHM]\_\_\[NAME] (e.g., SRR9668957\_\_VIRFINDER\_\_Virus.1).
+<p align="right"><a href="#readme-top">^__^</a></p>
+
+#### *binning-viral.py*
+**Detection of viral genomes and quality assessment**
+
+Viral binning is performed using either `geNomad` [default] or `VirFinder` to extract potential viral contigs (e.g., P < 0.05). The potential viral contigs are then input into `CheckV`  where quality assessment removes poor quality or low confidence viral predictions. The filtering scheme is based on author recommendations in which a viral contig is considered if it meets the following criteria: 1) number of viral genes ≥ 5 x number of host genes; 2) completeness ≥ 50%; 3) `CheckV` quality is either medium-quality, high-quality, or complete; and 4) `MIUViG` quality is either medium-quality, high-quality, or complete.  Proviruses can be included by using the `--include_proviruses` flag. After poor quality viral contigs are removed, `Prodigal-GV` is used for gene modeling and `seqkit` is used for useful genome statistics.  Iterative binning is not applicable for viral detection as algorithms are executed on a per-contig basis and all viral genomes will be identified on first pass.  MAG naming scheme for viruses follows `[SAMPLE]__[ALGORITHM]__[NAME]` (e.g., `SRR9668957__GENOMAD__Virus.1`).
 
 **Conda Environment**: `conda activate VEBA-binning-viral_env`
 
 ```
-usage: binning-viral.py -f <scaffolds.fasta> -l <contig_identifiers> -n <name> -o <output_directory>
+usage: binning-viral.py -f <scaffolds.fasta> -l <contig_identifiers> -n <name> -o <output_directory> [Requires at least 20GB]
 
-    Running: binning-viral.py v2022.7.8 via Python v3.8.5 | /Users/jespinoz/anaconda3/bin/python
+    Running: binning-viral.py v2023.7.7 via Python v3.9.15 | /expanse/projects/jcl110/anaconda3/envs/VEBA-preprocess_env/bin/python
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -475,8 +557,6 @@ Required I/O arguments:
   -f FASTA, --fasta FASTA
                         path/to/scaffolds.fasta
   -n NAME, --name NAME  Name of sample
-  -l CONTIG_IDENTIFIERS, --contig_identifiers CONTIG_IDENTIFIERS
-                        path/to/contigs.list [Optional]
   -o PROJECT_DIRECTORY, --project_directory PROJECT_DIRECTORY
                         path/to/project_directory [Default: veba_output/binning/viral]
   -b BAM [BAM ...], --bam BAM [BAM ...]
@@ -492,27 +572,59 @@ Utility arguments:
   --restart_from_checkpoint RESTART_FROM_CHECKPOINT
                         Restart from a particular checkpoint [Default: None]
   -v, --version         show program's version number and exit
-  --remove_temporary_fasta
-                        If contig identifiers were provided and a fasta is generated, remove this file
 
 Database arguments:
   --veba_database VEBA_DATABASE
                         VEBA database location.  [Default: $VEBA_DATABASE environment variable]
 
 Binning arguments:
+  -a ALGORITHM, --algorithm ALGORITHM
+                        Binning algorithm to use: {genomad, virfinder}  [Default: genomad]
   -m MINIMUM_CONTIG_LENGTH, --minimum_contig_length MINIMUM_CONTIG_LENGTH
                         Minimum contig length.  [Default: 1500]
+  --include_provirus_detection
+                        Include provirus viral detection
 
 Gene model arguments:
   --prodigal_genetic_code PRODIGAL_GENETIC_CODE
-                        Prodigal -g translation table [Default: 11]
+                        Prodigal-GV -g translation table (https://github.com/apcamargo/prodigal-gv) [Default: 11]
 
-Virus arguments:
-  --include_provirus    Include provirus viral detection
+geNomad arguments
+Using --relaxed mode by default.  Adjust settings according to the following table: https://portal.nersc.gov/genomad/post_classification_filtering.html#default-parameters-and-presets:
+  --genomad_qvalue GENOMAD_QVALUE
+                        Maximum accepted false discovery rate. [Default: 1.0; 0.0 < x ≤ 1.0]
+  --sensitivity SENSITIVITY
+                        MMseqs2 marker search sensitivity. Higher values will annotate more proteins, but the search will be slower and consume more memory. [Default: 4.0; x ≥ 0.0]
+  --splits SPLITS       Split the data for the MMseqs2 search. Higher values will reduce memory usage, but will make the search slower. If the MMseqs2 search is failing, try to increase the number of splits. Also used for VirFinder. [Default: 0; x ≥ 0]
+  --composition COMPOSITION
+                        Method for estimating sample composition. (auto|metagenome|virome) [Default: auto]
+  --minimum_score MINIMUM_SCORE
+                        Minimum score to flag a sequence as virus or plasmid. By default, the sequence is classified as virus/plasmid if its virus/plasmid score is higher than its chromosome score, regardless of the value. [Default: 0; 0.0 ≤ x ≤ 1.0]
+  --minimum_plasmid_marker_enrichment MINIMUM_PLASMID_MARKER_ENRICHMENT
+                        Minimum allowed value for the plasmid marker enrichment score, which represents the total enrichment of plasmid markers in the sequence. Sequences with multiple plasmid markers will have higher values than the ones that encode few or no markers.[Default: -100]
+  --minimum_virus_marker_enrichment MINIMUM_VIRUS_MARKER_ENRICHMENT
+                        Minimum allowed value for the virus marker enrichment score, which represents the total enrichment of plasmid markers in the sequence. Sequences with multiple plasmid markers will have higher values than the ones that encode few or no markers. [Default: -100]
+  --minimum_plasmid_hallmarks MINIMUM_PLASMID_HALLMARKS
+                        Minimum number of plasmid hallmarks in the identified plasmids.  [Default: 0; x ≥ 0]
+  --minimum_virus_hallmarks MINIMUM_VIRUS_HALLMARKS
+                        Minimum number of virus hallmarks in the identified viruses.  [Default: 0; x ≥ 0]
+  --maximum_universal_single_copy_genes MAXIMUM_UNIVERSAL_SINGLE_COPY_GENES
+                        Maximum allowed number of universal single copy genes (USCGs) in a virus or a plasmid. Sequences with more than this number of USCGs will not be classified as viruses or plasmids, regardless of their score.  [Default: 100]
+  --genomad_options GENOMAD_OPTIONS
+                        geNomad | More options (e.g. --arg 1 ) [Default: '']
+
+VirFinder arguments:
   --virfinder_pvalue VIRFINDER_PVALUE
-                        VirFinder p-value threshold [Default: 0.05]
+                        VirFinder statistical test threshold [Default: 0.05]
+  --mmseqs2_evalue MMSEQS2_EVALUE
+                        Maximum accepted E-value in the MMseqs2 search. Used by genomad annotate when VirFinder is used as binning algorithm [Default: 1e-3]
+  --use_qvalue          Use qvalue (FDR) instead of pvalue
+  --use_minimal_database_for_taxonomy
+                        Use a smaller marker database to annotate proteins. This will make execution faster but sensitivity will be reduced.
   --virfinder_options VIRFINDER_OPTIONS
                         VirFinder | More options (e.g. --arg 1 ) [Default: '']
+
+CheckV arguments:
   --checkv_options CHECKV_OPTIONS
                         CheckV | More options (e.g. --arg 1 ) [Default: '']
   --multiplier_viral_to_host_genes MULTIPLIER_VIRAL_TO_HOST_GENES
@@ -524,43 +636,54 @@ Virus arguments:
   --miuvig_quality MIUVIG_QUALITY
                         Comma-separated string of acceptable arguments between {High-quality,Medium-quality,Complete} [Default: High-quality,Medium-quality,Complete]
 
+featureCounts arguments:
+  --long_reads          featureCounts | Use this if long reads are being used
+  --featurecounts_options FEATURECOUNTS_OPTIONS
+                        featureCounts | More options (e.g. --arg 1 ) [Default: ''] | http://bioinf.wehi.edu.au/featureCounts/
+
 ```
 
 **Output:**
 
 * binned.list - List of binned contigs
 * bins.list - List of MAG identifiers
-* quality_summary.filtered.tsv - Filtered CheckV output
+* checkv_results.filtered.tsv - Filtered CheckV output
 * featurecounts.orfs.tsv.gz - ORF-level counts table (If --bam file is provided)
 * genome_statistics.tsv - Genome assembly statistics
+* gene_statistics.cds.tsv - Gene sequence statistics (CDS)
 * genomes/ - MAG subdirectory
-* genomes/\*.fa - MAG assembly fasta
-* genomes/\*.faa - MAG protein fasta
-* genomes/\*.ffn - MAG CDS fasta
-* genomes/\*.gff - MAG gene models
-* genomes/identifier_mapping.tsv - Identifier mapping between [id_orf, id_contig, id_mag]
-* scaffolds_to_bins.tsv - Identifier mapping between [id_contig, id_mag]
+* genomes/[id\_genome].fa - MAG assembly fasta
+* genomes/[id\_genome].faa - MAG protein fasta
+* genomes/[id\_genome].ffn - MAG CDS fasta
+* genomes/[id\_genome].gff - MAG gene models
+* genomes/identifier\_mapping.tsv - Identifier mapping between [id\_orf, id\_contig, id_mag]
+* scaffolds\_to\_bins.tsv - Identifier mapping between [id\_contig, id_mag]
 * unbinned.fasta - Fasta of unbinned contigs that have passed length thresholding
 * unbinned.list - List of unbinned contigs
 
+<p align="right"><a href="#readme-top">^__^</a></p>
 
-#### classify-prokaryotic – Taxonomic classification and candidate phyla radiation adjusted quality assessment of prokaryotic genomes
-The prokaryotic classification module is a useful wrapper around GTDB-Tk which either combines the resulting archaea and bacteria summary tables or runs GTDB-Tk lineage_wf from the beginning.  If genome clusters are provided, then it performs consensus lineage classification.
+#### *classify-prokaryotic.py*
+**Taxonomic classification of prokaryotic genomes**
+
+The prokaryotic classification module is a useful wrapper around `GTDB-Tk` which either combines the resulting archaea and bacteria summary tables or runs `GTDB-Tk lineage_wf` from the beginning.  If genome clusters are provided, then it performs consensus lineage classification.  `Krona` plots are generated showing taxonomic levels.
 
 **Conda Environment**: `conda activate VEBA-classify_env`
 
 
 ```
-usage: classify-prokaryotic.py -i <prokaryotic_binning_directory> -o <output_directory>
+usage: classify-prokaryotic.py -i <prokaryotic_binning_directory>|-g <genomes.list> -o <output_directory>
 
-    Running: classify-prokaryotic.py v2022.06.07 via Python v3.8.5 | /Users/jespinoz/anaconda3/bin/python
+    Running: classify-prokaryotic.py v2023.6.16 via Python v3.9.15 | /expanse/projects/jcl110/anaconda3/envs/VEBA-preprocess_env/bin/python
 
 optional arguments:
   -h, --help            show this help message and exit
 
 Required I/O arguments:
   -i PROKARYOTIC_BINNING_DIRECTORY, --prokaryotic_binning_directory PROKARYOTIC_BINNING_DIRECTORY
-                        path/to/prokaryotic_binning_directory
+                        path/to/prokaryotic_binning_directory [Cannot be used with --genomes]
+  -g GENOMES, --genomes GENOMES
+                        path/to/genomes.list [Cannot be ued with --prokaryotic_binning_directory]
   -c CLUSTERS, --clusters CLUSTERS
                         path/to/clusters.tsv, Format: [id_mag]<tab>[id_cluster], No header.
   -o OUTPUT_DIRECTORY, --output_directory OUTPUT_DIRECTORY
@@ -571,7 +694,7 @@ Required I/O arguments:
 Utility arguments:
   --path_config PATH_CONFIG
                         path/to/config.tsv [Default: CONDA_PREFIX]
-  --tmpdir TMPDIR       path/to/TMPDIR [Default: /var/folders/fl/bh6r17mn52d33ycwvk70z2bc0003c0/T/]
+  --tmpdir TMPDIR       path/to/TMPDIR
   -p N_JOBS, --n_jobs N_JOBS
                         Number of threads [Default: 1]
   --random_state RANDOM_STATE
@@ -585,6 +708,7 @@ Database arguments:
                         VEBA database location.  [Default: $VEBA_DATABASE environment variable]
 
 GTDB-Tk arguments:
+  --skip_ani_screen     Skip ANI screen [Default: Don't skip ANI screen]
   --gtdbtk_options GTDBTK_OPTIONS
                         GTDB-Tk | classify_wf options (e.g. --arg 1 ) [Default: '']
 
@@ -592,35 +716,44 @@ Consensus genome classification arguments:
   -l LENIENCY, --leniency LENIENCY
                         Leniency parameter. Lower value means more conservative weighting. A value of 1 indiciates no weight bias. A value greater than 1 puts higher weight on higher level taxonomic assignments. A value less than 1 puts lower weights on higher level taxonomic assignments.  [Default: 1.382]
 
-
 ```
 
 
 **Output:**
 
-* prokaryotic_taxonomy.tsv - Prokaryotic genome classification based on GTDBTk
-* prokaryotic_taxonomy.clusters.tsv - Prokaryotic cluster classification (If --clusters are provided)
-                        
-#### classify-eukaryotic – Taxonomic classification of eukaryotic genomes
-The eukaryotic classification module utilizes the target field of MetaEuk gene identifiers and the taxonomic lineage associated with each source genome.  The default marker set is eukaryote_odb10 from BUSCO but custom marker sets are support along with the inclusion of all genes not just marker genes.  An option to include marker-specific noise cutoff scores is also available using the --scores_cutoff parameter which is default behavior with BUSCO’s eukaryote_odb10 provided noise thresholds.  For each MAG, bitscores are accumulated for each taxonomic level and taxonomy is assigned with leniency specified by the leniency parameter with high leniency resulting higher order taxonomic assignments.  If genome clusters are provided, then it performs consensus lineage classification. EUKulele (Krinos, Hu, Cohen, & Alexander, 2021) was attempted for this stage but a custom database could not be created with the software, likely due to the dependency of supergroup and division fields that were missing for certain taxa.  However, future implementations of VEBA may use this if such issues are resolved.  
+* taxonomy.tsv - Prokaryotic genome classification based on GTDBTk
+* taxonomy.clusters.tsv - Prokaryotic cluster classification (If --clusters are provided)
+* krona.html - Krona plot for various taxonomic levels
+
+<p align="right"><a href="#readme-top">^__^</a></p>
+ 
+                
+#### *classify-eukaryotic.py*
+**Taxonomic classification of eukaryotic genomes**
+
+The eukaryotic classification module can be performed on de novo genomes or utilize the target field of `MetaEuk` gene identifiers and the taxonomic lineage associated with each source genome.  The default marker set is `eukaryote_odb10` from `BUSCO` but custom marker sets are support along with the inclusion of all genes not just marker genes.  An option to include marker-specific noise cutoff scores is also available using the `--scores_cutoff` parameter which is default behavior with `BUSCO’s eukaryote_odb10` provided noise thresholds.  For each MAG, bitscores are accumulated for each taxonomic level and taxonomy is assigned with leniency specified by the leniency parameter with high leniency resulting higher order taxonomic assignments.  If genome clusters are provided, then it performs consensus lineage classification. `Krona` plots are generated showing taxonomic levels.
 
 **Conda Environment**: `conda activate VEBA-classify_env` 
 
 ```
-usage: classify-eukaryotic.py -i <eukaryotic_binning_directory> -o <output_directory>
+usage: classify-eukaryotic.py -i <eukaryotic_binning_directory>|-g <genomes.list> -o <output_directory>
 
-    Running: classify-eukaryotic.py v2022.7.8 via Python v3.8.5 | /Users/jespinoz/anaconda3/bin/python
+    Running: classify-eukaryotic.py v2023.6.12 via Python v3.9.15 | /expanse/projects/jcl110/anaconda3/envs/VEBA-preprocess_env/bin/python
 
 optional arguments:
   -h, --help            show this help message and exit
 
 Required I/O arguments:
   -i EUKARYOTIC_BINNING_DIRECTORY, --eukaryotic_binning_directory EUKARYOTIC_BINNING_DIRECTORY
-                        path/to/eukaryotic_binng_directory
+                        path/to/eukaryotic_binning_directory [Cannot be used with --genomes]
+  -g GENOMES, --genomes GENOMES
+                        path/to/genomes.list where each line is a path to a genome.fasta [Cannot be ued with --eukaryotic_binning_directory]
   -c CLUSTERS, --clusters CLUSTERS
                         path/to/clusters.tsv, Format: [id_mag]<tab>[id_cluster], No header.
   -o OUTPUT_DIRECTORY, --output_directory OUTPUT_DIRECTORY
                         path/to/output_directory [Default: veba_output/classify/eukaryotic]
+  -x EXTENSION, --extension EXTENSION
+                        path/to/output_directory.  Does not support gzipped. [Default: fa]
 
 Utility arguments:
   --path_config PATH_CONFIG
@@ -644,7 +777,6 @@ HMMSearch arguments:
 Database arguments:
   --veba_database VEBA_DATABASE
                         VEBA database location.  [Default: $VEBA_DATABASE environment variable]
-  --include_all_genes   Use if you want to include all genes for taxonomy classification instead of only core markers from BUSCO's eukaryota_odb10
 
 Consensus genome arguments:
   -l LENIENCY, --leniency LENIENCY
@@ -662,20 +794,24 @@ Consensus genome arguments:
 
 **Output:**
 
-* eukaryotic_taxonomy.tsv - Eukaryotic genome classification based on microeukaryotic protein database and BUSCO's eukaryota_odb10 marker set
-* eukaryotic_taxonomy.clusters.tsv - Eukaryotic cluster classification (If --clusters are provided)
-* gene-source_lineage.tsv - Gene source lineage and scores for classifying MAGs [id_gene, id_scaffold, id_mag, id_target, id_source, lineage, bitscore]
+* taxonomy.tsv - Eukaryotic genome classification based on microeukaryotic protein database and BUSCO's eukaryota_odb10 marker set
+* taxonomy.clusters.tsv - Eukaryotic cluster classification (If --clusters are provided)
+* gene-source\_lineage.tsv - Gene source lineage and scores for classifying MAGs [id_gene, id_scaffold, id_mag, id_target, id_source, lineage, bitscore]
+* krona.html - Krona plot for various taxonomic levels
 
+<p align="right"><a href="#readme-top">^__^</a></p>
 
-#### classify-viral – Taxonomic classification and isolation source of viral genomes
-The viral classification module utilizes the CheckV database along with the best hit lineage and source habitat information from the CheckV output.  This includes a look up of CheckV identifiers based on direct terminal repeats and GenBank identifiers when applicable. If genome clusters are provided, then it performs consensus lineage classification and consensus habitat annotation. 
+#### *classify-viral.py*
+**Taxonomic classification for viral genomes**
+
+Viral classification uses `geNomad's taxonomy` module. 
 
 **Conda Environment**: `conda activate VEBA-classify_env`
 
 ```
-usage: classify-viral.py -i <viral_binning_directory>  -o <output_directory>
+usage: classify-viral.py -i <viral_binning_directory>|-g <genomes.list>  -o <output_directory>
 
-    Running: classify-viral.py v2022.7.8 via Python v3.8.5 | /Users/jespinoz/anaconda3/bin/python
+    Running: classify-viral.py v2023.5.8 via Python v3.9.15 | /expanse/projects/jcl110/anaconda3/envs/VEBA-preprocess_env/bin/python
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -683,14 +819,20 @@ optional arguments:
 Required I/O arguments:
   -i VIRAL_BINNING_DIRECTORY, --viral_binning_directory VIRAL_BINNING_DIRECTORY
                         Either: path/to/checkv/quality_summary.tsv or directory of veba_output/binning/viral
+  -g GENOMES, --genomes GENOMES
+                        path/to/genomes.list where each line is a path to a genome.fasta [Cannot be ued with --viral_binning_directory]
   -c CLUSTERS, --clusters CLUSTERS
                         path/to/clusters.tsv, Format: [id_mag]<tab>[id_cluster], No header.
   -o OUTPUT_DIRECTORY, --output_directory OUTPUT_DIRECTORY
                         path/to/output_directory [Default: veba_output/classify/viral]
+  -x EXTENSION, --extension EXTENSION
+                        path/to/output_directory.  Does not support gzipped. [Default: fa]
 
 Utility arguments:
   --path_config PATH_CONFIG
                         path/to/config.tsv [Default: CONDA_PREFIX]
+  -p N_JOBS, --n_jobs N_JOBS
+                        Number of threads [Default: 1]
   --restart_from_checkpoint RESTART_FROM_CHECKPOINT
                         Restart from a particular checkpoint [Default: None]
   -v, --version         show program's version number and exit
@@ -699,103 +841,115 @@ Database arguments:
   --veba_database VEBA_DATABASE
                         VEBA database location.  [Default: $VEBA_DATABASE environment variable]
 
-Consensus habitat/isolation source arguments:
-  --similarity_threshold SIMILARITY_THRESHOLD
-                        Threshold for similarity analysis [Default: 0.8]
-  --retain_unannotated RETAIN_UNANNOTATED
-                        Consider unannotations (i.e., blank functions) in the scording system [Default: 1]
-  --unannotated_weight UNANNOTATED_WEIGHT
-                        Weight for unannotations (i.e., blank functions) in the scording system? [Default: 0.382]
-  --representative_threshold REPRESENTATIVE_THRESHOLD
-                        Score to consider as representative [Default: 0.618]
+Consensus genome classification arguments:
+  -t THRESHOLD, --threshold THRESHOLD
+                        Fraction of classifications for consensus [Default: 0.5]
 
 ```
 
 **Output:**
 
-* viral\_taxonomy.tsv - Viral genome classification based on CheckV classifications
-* viral\_taxonomy.clusters.tsv - Viral cluster classification (If --clusters are provided)
-* viral\_isolation\_source.clusters.tsv - Viral isolation source consensus (If --clusters are provided)
+* taxonomy.tsv - Viral genome classification based on geNomad classifications
+* taxonomy.clusters.tsv - Viral cluster classification (If --clusters are provided)
 
-#### cluster – Species-level clustering of genomes and lineage-specific orthogroup detection
-To leverage intra-sample genome analysis in an inter-sample analytical paradigm, genome clustering and lineage-specific orthogroup detection is necessary.  The cluster module first uses FastANI (Jain, Rodriguez-R, Phillippy, Konstantinidis, & Aluru, 2018) to compute pairwise ANI and these are used to construct a NetworkX graph object where nodes are genomes and edges are ANI values (Hagberg, Schult, & Swart, 2008).  This graph is converted into subgraphs of connected components whose edges are connected by a particular threshold such as 95% ANI [default] as recommended by the authors for species-level clustering.  These species-level clusters (SLC) are then partitioned and OrthoFinder (Emms & Kelly, 2019) is then run on each SLC panproteome. The input is a list of genome paths and list of protein fasta paths while the output includes identifier mappings between genomes, SLCs, scaffolds, proteins, and orthogroups.
+<p align="right"><a href="#readme-top">^__^</a></p>
+
+#### *cluster.py*
+**Species-level clustering of genomes and lineage-specific orthogroup detection**
+
+To leverage intra-sample genome analysis in an inter-sample analytical paradigm, genome clustering and lineage-specific orthogroup detection is necessary.  The cluster module utilizes 2 separate wrappers for global (inter-sample) and local (intra-sample) clustering.  `FastANI` is used to compute pairwise ANI and these are used to construct a `NetworkX graph` object where nodes are genomes and edges are ANI values.  This graph is converted into subgraphs of connected components whose edges are connected by a particular threshold such as 95% ANI [default] as recommended by the authors for species-level clustering.  These species-level clusters (SLC) are then partitioned and `MMSEQS2` is then run on each SLC panproteome to SLC-specific Protein Clusters (SSPC) previously referred to as Sample-specific Orthogroups (SSO). Pangenome tables are created for each SLC which includes the number of proteins for a protein-cluster are detected in each genome.  Each domain (i.e., prokaryotic, eukaryotic, viral) are clustered separately.
 
 **Conda Environment**: `conda activate VEBA-cluster_env`
 
 ```
 usage: cluster.py -m <mags> -a <proteins> -o <output_directory> -t 95
 
-    Running: cluster.py v2022.02.24 via Python v3.9.10 | /usr/local/devel/ANNOTATION/jespinoz/anaconda3/envs/VEBA-mapping_env/bin/python
+    Running: cluster.py v2023.6.14 via Python v3.9.15 | /expanse/projects/jcl110/anaconda3/envs/VEBA-preprocess_env/bin/python
 
 optional arguments:
   -h, --help            show this help message and exit
 
 Required I/O arguments:
-  -i SCAFFOLDS_TO_BINS, --scaffolds_to_bins SCAFFOLDS_TO_BINS
-                        path/to/scaffolds_to_bins.tsv, Format: [id_scaffold]<tab>[id_bin], No header
-  -m MAGS, --mags MAGS  Tab-seperated value table of [id_mag]<tab>[path/to/genome.fasta]
-  -a PROTEINS, --proteins PROTEINS
-                        Tab-seperated value table of [id_mag]<tab>[path/to/protein.fasta]
+  -i INPUT, --input INPUT
+                        path/to/input.tsv, Format: Must include the follow columns (No header) [organism_type]<tab>[id\_sample]<tab>[id_mag]<tab>[genome]<tab>[proteins] but can include additional columns to the right (e.g., [cds]<tab>[gene_models]).  Suggested input is from `compile_genomes_table.py` script.
   -o OUTPUT_DIRECTORY, --output_directory OUTPUT_DIRECTORY
                         path/to/project_directory [Default: veba_output/cluster]
-  --mags_extension MAGS_EXTENSION
-                        Fasta file extension for --mags if a list is provided [Default: fa]
-  --proteins_extension PROTEINS_EXTENSION
-                        Fasta file extension for proteins if a list is provided [Default: faa]
+  -e, --no_singletons   Exclude singletons
+  --no_local_clustering
+                        Only do global clustering
 
 Utility arguments:
   --path_config PATH_CONFIG
                         path/to/config.tsv [Default: CONDA_PREFIX]
   -p N_JOBS, --n_jobs N_JOBS
                         Number of threads [Default: 1]
-  --cluster_only        Only run FastANI
-  --random_state RANDOM_STATE
-                        Random state [Default: 0]
   --restart_from_checkpoint RESTART_FROM_CHECKPOINT
                         Restart from a particular checkpoint [Default: None]
   -v, --version         show program's version number and exit
 
 FastANI arguments:
-  -t ANI_THRESHOLD, --ani_threshold ANI_THRESHOLD
-                        FastANI | Species-level clustering threshold [Default: 95.0]
+  -A ANI_THRESHOLD, --ani_threshold ANI_THRESHOLD
+                        FastANI | Species-level cluster (SLC) ANI threshold (Range (0.0, 100.0]) [Default: 95.0]
+  --genome_cluster_prefix GENOME_CLUSTER_PREFIX
+                        Cluster prefix [Default: 'SLC-
+  --genome_cluster_suffix GENOME_CLUSTER_SUFFIX
+                        Cluster suffix [Default: '
+  --genome_cluster_prefix_zfill GENOME_CLUSTER_PREFIX_ZFILL
+                        Cluster prefix zfill. Use 7 to match identifiers from OrthoFinder.  Use 0 to add no zfill. [Default: 0]
   --fastani_options FASTANI_OPTIONS
                         FastANI | More options (e.g. --arg 1 ) [Default: '']
-  --cluster_prefix CLUSTER_PREFIX
-                        Cluster prefix [Default: 'SLC
-  --cluster_suffix CLUSTER_SUFFIX
-                        Cluster suffix [Default: '
-  --copy_proteins       Copy instead of symlink
-  --clone_label CLONE_LABEL
-                        Singleton clone label [Default: '___clone
 
-OrthoFinder arguments:
-  --orthofinder_options ORTHOFINDER_OPTIONS
-                        OrthoFinder | More options (e.g. --arg 1 ) [Default: '']
+MMSEQS2 arguments:
+  -a ALGORITHM, --algorithm ALGORITHM
+                        MMSEQS2 | {easy-cluster, easy-linclust} [Default: easy-cluster]
+  -t MINIMUM_IDENTITY_THRESHOLD, --minimum_identity_threshold MINIMUM_IDENTITY_THRESHOLD
+                        MMSEQS2 | SLC-Specific Protein Cluster (SSPC, previously referred to as SSO) percent identity threshold (Range (0.0, 100.0]) [Default: 50.0]
+  -c MINIMUM_COVERAGE_THRESHOLD, --minimum_coverage_threshold MINIMUM_COVERAGE_THRESHOLD
+                        MMSEQS2 | SSPC coverage threshold (Range (0.0, 1.0]) [Default: 0.8]
+  --protein_cluster_prefix PROTEIN_CLUSTER_PREFIX
+                        Cluster prefix [Default: 'SSPC-
+  --protein_cluster_suffix PROTEIN_CLUSTER_SUFFIX
+                        Cluster suffix [Default: '
+  --protein_cluster_prefix_zfill PROTEIN_CLUSTER_PREFIX_ZFILL
+                        Cluster prefix zfill. Use 7 to match identifiers from OrthoFinder.  Use 0 to add no zfill. [Default: 0]
+  --mmseqs2_options MMSEQS2_OPTIONS
+                        MMSEQS2 | More options (e.g. --arg 1 ) [Default: '']
 
 ```
 **Output:**
 
-* clusters.tsv - Identifier mapping between MAGs and clusters [id_mag, id_cluster]
-* identifier_mapping.orthogroups.tsv - Identifier mapping between ORFs, contigs, orthogroups, and clusters
-* proteins_to_orthogroups.tsv - Identifier mapping between ORFs and orthogroups [id_orf, id_orthogroup]
-* scaffolds_to_clusters.tsv - Identifier mapping between contigs and clusters [id_contig, id_cluster]
+* global/feature\_compression\_ratios.tsv - Feature compression ratios for each domain
+* global/genome\_clusters.tsv - Machine-readable table for genome clusters `[id_genome_cluster, number_of_components, number_of_samples_of_origin, components, samples_of_origin]`
+* global/identifier\_mapping.genomes.tsv - Identifier mapping for genomes `[id_genome, organism_type, sample_of_origin, id_genome_cluster, number_of_proteins, number_of_singleton_protein_clusters, ratio_of_protein_cluster_are_singletons]`
+* global/identifier\_mapping.proteins.tsv - Identifier mapping for proteins `[id_protein, organism_type, id_genome, sample_of_origin, id_genome_cluster, id_protein_cluster]`
+* global/identifier\_mapping.scaffolds.tsv - Identifier mapping for contigs `[id_scaffold,	organism_type, id_genome, sample_of_origin, id_genome_cluster]`
+* global/mags\_to\_slcs.tsv
+* global/protein\_clusters.tsv - Machine-readable table for protein clusters `[id_protein_cluster, number_of_components, number_of_samples_of_origin, components, samples_of_origin]`
+* global/proteins\_to\_orthogroups.tsv - Identifier mapping between proteins and protein clusters `[id_protein, id_protein-cluster]`
+* global/representative\_sequences.faa - Protein sequences for cluster representatives.  Header follows the following format: `id_protein-cluster id_original_protein`
+* global/scaffolds\_to\_mags.tsv - Identifier mapping between contigs and genomes `[id\_contig, id_genome]`
+* global/scaffolds\_to\_slcs.tsv - Identifier mapping between contigs and genome clusters `[id\_contig, id_genome-cluster]`
+* global/pangenome_tables/*.tsv.gz - Pangenome tables for each SLC with prevalence values
+* global/serialization/*.dict.pkl - Python dictionaries for clusters
+* global/serialization/*.networkx_graph.pkl - NetworkX graphs for clusters
+* local/* - If `--no_local_clustering` is not selected then all of the files are generated for local clustering
 
-*Note: This should be run separately for prokaryotes, eukaryotes, and viruses. 
+<p align="right"><a href="#readme-top">^__^</a></p>
 
-Here is the suggested directory structure:
-* veba_output/cluster/prokaryotic
-* veba_output/cluster/eukaryotic
-* veba_output/cluster/viral
 
-#### annotate – Annotates translated gene calls against NR, Pfam, and KOFAM
-Annotation is performed using best hit annotations and profile HMMs.  First proteins are aligned against NCBI non-redundant protein database (other databases are supported) using Diamond (Buchfink, Reuter, & Drost, 2021; Buchfink, Xie, & Huson, 2014). After annotation, protein domains are identified using the Pfam database (Mistry et al., 2021) via HMMER (Mistry, Finn, Eddy, Bateman, & Punta, 2013) and KEGG orthology is characterized via KOFAMSCAN (Aramaki et al., 2020).  Note, the `lineage_predictions.*.tsv` files generated here are experimental.
+#### *annotate.py*
+**Annotates translated gene calls against UniRef, Pfam, KOFAM, VFDB, MiBIG, AMRFinder, and AntiFam**
+
+Annotation is performed using best hit annotations and profile HMMs. Proteins are aligned against `UniRef50/90`, `MiBIG`, and `VFDB` using `Diamond`. Protein domains are identified for `Pfam`, `NCBIfam-AMRFinder`,  and `AntiFam` using `HMMER3` and `KEGG` orthology using `KOFAMSCAN`.  Functionality for annotating all proteins or only protein cluster representatives and propogating annotations across cluster membership.
+
 
 **Conda Environment**: `conda activate VEBA-annotate_env`
 
 ```
-usage: annotate.py -i <identifier_mapping> -a <proteins> -o <output_directory>
+usage: annotate.py -a <proteins> -o <output_directory> |Optional: -i <identifier_mapping or -c <protein_clusters>]
+Warnings:Proteins >100k will cause HMMSearch to crash.  Please prefilter using `seqkit seq -M 100000`
 
-    Running: annotate.py v2021.7.8 via Python v3.8.5 | /Users/jespinoz/anaconda3/bin/python
+    Running: annotate.py v2023.6.20 via Python v3.9.15 | /expanse/projects/jcl110/anaconda3/envs/VEBA-preprocess_env/bin/python
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -803,10 +957,12 @@ optional arguments:
 Required I/O arguments:
   -a PROTEINS, --proteins PROTEINS
                         Either path/to/proteins.faa or a directory of fasta files using [-x]
-  -i IDENTIFIER_MAPPING, --identifier_mapping IDENTIFIER_MAPPING
-                        Tab-seperated value table of [id_orf]<tab>[id_contig]<tab>[id_mag]
   -o OUTPUT_DIRECTORY, --output_directory OUTPUT_DIRECTORY
                         path/to/project_directory [Default: veba_output/annotation]
+  -i IDENTIFIER_MAPPING, --identifier_mapping IDENTIFIER_MAPPING
+                        Tab-seperated value table of [id_protein]<tab>[id\_contig]<tab>[id\_genome], No header.  Cannot be used with --protein_clusters
+  -c PROTEIN_CLUSTERS, --protein_clusters PROTEIN_CLUSTERS
+                        Tab-seperated value table of [id_protein]<tab>[id_protein_cluster].  Use this if the --proteins are representative sequences.  Cannot be used with --identifier_mapping
   -x EXTENSION, --extension EXTENSION
                         Fasta file extension for proteins if a directory is provided for --proteins [Default: faa]
 
@@ -824,6 +980,8 @@ Utility arguments:
   -v, --version         show program's version number and exit
 
 Database arguments:
+  -u UNIREF, --uniref UNIREF
+                        UniRef database to use {uniref90, uniref50}.  uniref90 receommended for well-characterized systems and uniref50 for less characterized systems [Default: uniref90]
   --veba_database VEBA_DATABASE
                         VEBA database location.  [Default: $VEBA_DATABASE environment variable]
 
@@ -836,8 +994,6 @@ Diamond arguments:
                         Diamond | More options (e.g. --arg 1 ) [Default: '']
 
 HMMSearch arguments:
-  --hmmsearch_threshold HMMSEARCH_THRESHOLD
-                        HMMSearch | Threshold {cut_ga, cut_nc, gut_tc} [Default:  cut_ga]
   --hmmsearch_options HMMSEARCH_OPTIONS
                         Diamond | More options (e.g. --arg 1 ) [Default: '']
 
@@ -849,14 +1005,15 @@ KOFAMSCAN arguments:
 
 **Output:**
 
-* annotations.orfs.tsv.gz - Concatenated annotations from Diamond (NR), HMMSearch (Pfam), and KOFAMSCAN (KOFAM)
-* lineage_predictions.contigs.tsv.gz - [Experimental] Lineage predictions for contigs based on NR annotations.  This should be used only for experimentation as many lineages aren't defined properly. Contig-level classifications.
-* lineage_predictions.mags.tsv.gz - [Experimental] Lineage predictions for contigs based on NR annotations.  This should be used only for experimentation as many lineages aren't defined properly. MAG-level classifications.
+* annotations.tsv.gz - Concatenated annotations from Diamond (UniRef, MiBIG, VFDB), HMMSearch (Pfam, AntiFam), and KOFAMSCAN (KEGG)
+* annotations.proteins.tsv.gz - Propogated annotations if clusters are provided
 
+<p align="right"><a href="#readme-top">^__^</a></p>
 
+#### *phylogeny.py*
+**Constructs phylogenetic trees given a marker set**
 
-#### phylogeny – Constructs phylogenetic trees given a marker set
-The phylogeny module is a tool used for phylogenetic inference and constructing phylogenetic trees for genomes given a reference marker set (see Databases section of Methods). This is performed by the following method: 1) identifying marker proteins using HMMSearch from the HMMER3 suite; 2) creating protein alignments for each marker identified MUSCLE (Edgar, 2004); 3) trimming the alignments using ClipKIT (Steenwyk, Buida, Li, Shen, & Rokas, 2020); 4) concatenating the alignments; 5) approximately-maximum-likelihood phylogenetic inference using FastTree2 (Price, Dehal, & Arkin, 2010); and 6) optional maximum likelihood phylogenetic inference using IQ-TREE2 (Minh et al., 2020).  An option to include marker-specific noise cutoff scores is also available using the --scores_cutoff parameter.  Poor-quality genomes that do not meet a threshold in the proportion of markers in the reference are removed using the --minimum_markers_aligned_ratio parameter.  Similarly, non-informative markers that are not prevalent in the query genomes are removed using the --minimum_genomes_aligned_ratio parameter.
+The phylogeny module is a tool used for phylogenetic inference and constructing phylogenetic trees for genomes given a reference marker set. This is performed by the following method: 1) identifying marker proteins using `HMMSearch` from the `HMMER3` suite; 2) creating protein alignments for each marker identified `MUSCLE`; 3) trimming the alignments using `ClipKIT`; 4) concatenating the alignments; 5) approximately-maximum-likelihood phylogenetic inference using `FastTree2` ; and 6) optional maximum likelihood phylogenetic inference using `IQ-TREE2`.  An option to include marker-specific noise cutoff scores is also available using the `--scores_cutoff` parameter.  Poor-quality genomes that do not meet a threshold in the proportion of markers in the reference are removed using the `--minimum_markers_aligned_ratio` parameter.  Similarly, non-informative markers that are not prevalent in the query genomes are removed using the `--minimum_genomes_aligned_ratio` parameter.
 
 **Conda Environment**: `conda activate VEBA-phylogeny_env`
 
@@ -864,16 +1021,16 @@ The phylogeny module is a tool used for phylogenetic inference and constructing 
 ```
 usage: phylogeny.py -d <database_hmms> -a <proteins> -o <output_directory>
 
-    Running: phylogeny.py v2022.06.22 via Python v3.8.5 | /Users/jespinoz/anaconda3/bin/python
+    Running: phylogeny.py v2023.6.12 via Python v3.11.0 | /expanse/projects/jcl110/anaconda3/envs/VEBA-phylogeny_env/bin/python
 
-optional arguments:
+options:
   -h, --help            show this help message and exit
 
 Required I/O arguments:
   -d DATABASE_HMM, --database_hmm DATABASE_HMM
                         path/to/HMM database of markers
   -a PROTEINS, --proteins PROTEINS
-                        Can be the following format: 1) Tab-seperated value table of [id_mag]<tab>[path/to/protein.fasta]; 2) List of filepaths [path/to/protein.fasta]; or 3) Directory of protein fasta using --protein_extension
+                        Can be the following format: 1) Tab-seperated value table of [id_mag]<tab>[path/to/protein.fasta] (No header); 2) Files with list of filepaths [path/to/protein.fasta] (uses --extension); or 3) Directory of protein fasta  (uses --extension)
   -o OUTPUT_DIRECTORY, --output_directory OUTPUT_DIRECTORY
                         path/to/project_directory [Default: veba_output/phylogeny]
   -x EXTENSION, --extension EXTENSION
@@ -892,17 +1049,19 @@ Utility arguments:
 
 HMMSearch arguments:
   --hmmsearch_threshold HMMSEARCH_THRESHOLD
-                        HMMSearch | Threshold {cut_ga, cut_nc, gut_tc, e} [Default:  e]
+                        HMMER | Threshold {cut_ga, cut_nc, gut_tc, e} [Default:  e]
   --hmmsearch_evalue HMMSEARCH_EVALUE
-                        Diamond | E-Value [Default: 10.0]
+                        HMMER | E-Value [Default: 10.0]
   --hmmsearch_options HMMSEARCH_OPTIONS
-                        Diamond | More options (e.g. --arg 1 ) [Default: '']
+                        HMMER | More options (e.g. --arg 1 ) [Default: '']
   -f HMM_MARKER_FIELD, --hmm_marker_field HMM_MARKER_FIELD
                         HMM reference type (accession, name) [Default: accession
   -s SCORES_CUTOFF, --scores_cutoff SCORES_CUTOFF
                         path/to/scores_cutoff.tsv. No header. [id_hmm]<tab>[score]
 
 Alignment arguments:
+  -A ALIGNMENT_ALGORITHM, --alignment_algorithm ALIGNMENT_ALGORITHM
+                        Muscle alignment algorithm.  Align large input using Super5 algorithm if -align is too expensive. {align,super5} [Default: align]
   -g MINIMUM_GENOMES_ALIGNED_RATIO, --minimum_genomes_aligned_ratio MINIMUM_GENOMES_ALIGNED_RATIO
                         Minimum ratio of genomes include in alignment. This removes markers that are under represented. [Default: 0.95]
   -m MINIMUM_MARKERS_ALIGNED_RATIO, --minimum_markers_aligned_ratio MINIMUM_MARKERS_ALIGNED_RATIO
@@ -937,26 +1096,28 @@ Tree arguments:
 * prefiltered_alignment_table.tsv.gz - Prefiltered alignment table of (n = genomes, m = markers, ij=fasta alignment)
 * output.treefile - IQTREE2 newick format based on concatenated alignment (if --no_iqtree is not selected)
 
+<p align="right"><a href="#readme-top">^__^</a></p>
 
+#### *index.py*
+**Builds local or global index for alignment to genomes**
 
-#### index – Builds local or global index for alignment to genomes
-The index module creates reference indices for alignments in both local or global paradigms. In the local paradigm, an index is created for all the assembled genomes concatenated together for each sample. This is useful in situations where perfectly paired metagenomics and metatranscriptomics are available where the metatranscriptomics can be mapped directly to the de novo reference generated from the metagenomics.  However, this is not applicable in all cases such as when there is not a perfect overlap between metagenomics and metatranscriptomics.  In this global paradigm, assembled genomes are concatenated across all samples and an alignment index is created for this concatenated reference.  Currently, Bowtie2 (Langmead & Salzberg, 2012)  is the only alignment software packages supported. 
+The index module creates reference indices for alignments in both local or global paradigms. In the local paradigm, an index is created for all the assembled genomes concatenated together for each sample. This is useful in situations where perfectly paired metagenomics and metatranscriptomics are available where the metatranscriptomics can be mapped directly to the de novo reference generated from the metagenomics.  However, this is not applicable in all cases such as when there is not a perfect overlap between metagenomics and metatranscriptomics.  In this global paradigm, assembled genomes are concatenated across all samples and an alignment index is created for this concatenated reference.  Currently, `Bowtie2`  is the only alignment software packages supported. 
 
-**Conda Environment**: `conda activate VEBA-index_env`
+**Conda Environment**: `conda activate VEBA-mapping_env`
 
 ```
 usage: index.py -i <mags> -o <output> --heatmap_output <pdf>
 
-    Running: index.py v2022.02.17 via Python v3.9.10 | /usr/local/devel/ANNOTATION/jespinoz/anaconda3/envs/VEBA-mapping_env/bin/python
+    Running: index.py v2023.5.8 via Python v3.11.0 | /expanse/projects/jcl110/anaconda3/envs/VEBA-phylogeny_env/bin/python
 
-optional arguments:
+options:
   -h, --help            show this help message and exit
 
 Required I/O arguments:
   -r REFERENCES, --references REFERENCES
-                        local mode: [id_sample]<tab>[path/to/reference.fa] and global mode: [path/to/reference.fa]
+                        local mode: [id\_sample]<tab>[path/to/reference.fa] and global mode: [path/to/reference.fa]
   -g GENE_MODELS, --gene_models GENE_MODELS
-                        local mode: [id_sample]<tab>[path/to/reference.gff] and global mode: [path/to/reference.gff]
+                        local mode: [id\_sample]<tab>[path/to/reference.gff] and global mode: [path/to/reference.gff]
   -o OUTPUT_DIRECTORY, --output_directory OUTPUT_DIRECTORY
                         path/to/project_directory [Default: veba_output/index]
   -m MINIMUM_CONTIG_LENGTH, --minimum_contig_length MINIMUM_CONTIG_LENGTH
@@ -989,22 +1150,26 @@ Bowtie2 Index arguments:
 
 **Output (local):**
 
-* [id_sample]/reference.fa.gz - Concatenated reference fasta
-* [id_sample]/reference.fa.gz.\*.bt2 - Bowtie2 index of reference fasta
-* [id_sample]/reference.gff - Concatenated gene models
-* [id_sample]/reference.saf - SAF format for reference
+* [id\_sample]/reference.fa.gz - Concatenated reference fasta
+* [id\_sample]/reference.fa.gz.\*.bt2 - Bowtie2 index of reference fasta
+* [id\_sample]/reference.gff - Concatenated gene models
+* [id\_sample]/reference.saf - SAF format for reference
 
-#### mapping – Aligns reads to local or global index of genomes
-The mapping module uses local or global reference indices generated by the index module and aligns reads using Bowtie2.  The alignment files are sorted to produce sorted BAM files using Samtools which are then indexed. Coverage is calculated for contigs via Samtools and genome spatial coverage (i.e., ratio of bases covered in genome) is provided.  Reads from the sorted BAM files are then fed into featureCounts to produce gene-level counts, orthogroup-level counts, MAG-level counts, and SLC-level counts. 
+<p align="right"><a href="#readme-top">^__^</a></p>
+
+#### *mapping.py*
+**Aligns reads to local or global index of genomes**
+
+The mapping module uses local or global reference indices generated by the index module and aligns reads using `Bowtie2`.  The alignment files are sorted to produce sorted BAM files using `Samtools` which are then indexed. Coverage is calculated for contigs via `Samtools` and genome spatial coverage (i.e., ratio of bases covered in genome) is provided.  Reads from the sorted BAM files are then fed into featureCounts to produce gene-level counts, orthogroup-level counts, MAG-level counts, and SLC-level counts. 
 
 **Conda Environment**: `conda activate VEBA-mapping_env`
 
 ```
 usage: mapping.py -1 <reads_1.fq> -2 <reads_2.fq> -n <name> -o <output_directory> -x <reference_directory>
 
-    Running: mapping.py v2022.8.17 via Python v3.9.7 | /Users/jespinoz/anaconda3/bin/python
+    Running: mapping.py v2023.5.15 via Python v3.11.0 | /expanse/projects/jcl110/anaconda3/envs/VEBA-phylogeny_env/bin/python
 
-optional arguments:
+options:
   -h, --help            show this help message and exit
 
 Required I/O arguments:
@@ -1055,14 +1220,12 @@ featureCounts arguments:
                         featureCounts | More options (e.g. --arg 1 ) [Default: ''] | http://bioinf.wehi.edu.au/featureCounts/
 
 Identifier arguments:
-  --orfs_to_orthogroups ORFS_TO_ORTHOGROUPS
-                        path/to/orf_to_orthogroup.tsv, [id_orf]<tab>[id_orthogroup], No header
+  --proteins_to_orthogroups PROTEINS_TO_ORTHOGROUPS
+                        path/to/protein_to_orthogroup.tsv, [id\_orf]<tab>[id_orthogroup], No header
   --scaffolds_to_bins SCAFFOLDS_TO_BINS
                         path/to/scaffold_to_bins.tsv, [id_scaffold]<tab>[id_bin], No header
   --scaffolds_to_clusters SCAFFOLDS_TO_CLUSTERS
                         path/to/scaffold_to_cluster.tsv, [id_scaffold]<tab>[id_cluster], No header
-
-Copyright 2022 Josh L. Espinoza (jespinoz@jcvi.org)
 
 ```
 
@@ -1081,33 +1244,27 @@ Copyright 2022 Josh L. Espinoza (jespinoz@jcvi.org)
 * unmapped_1.fastq.gz - Unmapped reads (forward)
 * unmapped_2.fastq.gz - Unmapped reads (reverse)
 
+<p align="right"><a href="#readme-top">^__^</a></p>
 
-___________________________________________________________________
-## Developmental
+#### *biosynthetic.py*
+**Identify biosynthetic gene clusters in prokaryotes and fungi**
 
-#### biosynthetic – Identify biosynthetic gene clusters in prokaryotes and fungi
-
-The biosynthetic module is a wrapper around antiSMASH.  It produces a tabular output that is machie-readale and easier to parse than the GBK and JSON files produced by antiSMASH.
+The biosynthetic module is a wrapper around `antiSMASH`.  It produces a tabular output that is machine-readale and easier to parse than the GBK and JSON files produced by antiSMASH.  Novelty scores are calculated using the ratio of proteins that align to `MiBIG`. 
 
 ```
 
-usage: biosynthetic.py -m <mags> -g <gene_models> -o <output_directory> -t bacteria
+usage: biosynthetic.py -i <genomes_gene-models.tsv> -o <output_directory> -t bacteria | Suggested input is from `compile_genomes_table.py` script. Use cut -f3,4,7
 
-    Running: biosynthetic.py v2022.10.16 via Python v3.9.7 | /Users/jespinoz/anaconda3/bin/python
+    Running: biosynthetic.py v2023.7.10 via Python v3.9.9 | /Users/jespinoz/anaconda3/bin/python
 
 optional arguments:
   -h, --help            show this help message and exit
 
 Required I/O arguments:
-  -m MAGS, --mags MAGS  Tab-seperated value table of [id_mag]<tab>[path/to/genome.fasta]
-  -g GENE_MODELS, --gene_models GENE_MODELS
-                        Tab-seperated value table of [id_mag]<tab>[path/to/gene_models.gff]. Must be gff3.
+  -i INPUT, --input INPUT
+                        path/to/input.tsv, Format: Must include the follow columns (No header) [id_mag]<tab>[genome]<tab>[gene_models].  Suggested input is from `compile_genomes_table.py` script. Use cut -f3,4,7
   -o OUTPUT_DIRECTORY, --output_directory OUTPUT_DIRECTORY
-                        path/to/project_directory [Default: veba_output/cluster]
-  --mags_extension MAGS_EXTENSION
-                        Fasta file extension for --mags if a list is provided [Default: fa]
-  --gene_models_extension GENE_MODELS_EXTENSION
-                        File extension for gene models if a list is provided [Default: gff]
+                        path/to/project_directory [Default: veba_output/biosynthetic]
 
 Utility arguments:
   --path_config PATH_CONFIG
@@ -1119,6 +1276,10 @@ Utility arguments:
   --restart_from_checkpoint RESTART_FROM_CHECKPOINT
                         Restart from a particular checkpoint [Default: None]
   -v, --version         show program's version number and exit
+
+Database arguments:
+  --veba_database VEBA_DATABASE
+                        VEBA database location.  [Default: $VEBA_DATABASE environment variable]
 
 antiSMASH arguments:
   -t TAXON, --taxon TAXON
@@ -1134,90 +1295,40 @@ antiSMASH arguments:
   --antismash_options ANTISMASH_OPTIONS
                         antiSMASH | More options (e.g. --arg 1 ) [Default: '']
 
-Copyright 2022 Josh L. Espinoza (jespinoz@jcvi.org)
+Diamond arguments:
+  --diamond_sensitivity DIAMOND_SENSITIVITY
+                        Diamond | Sensitivity [Default:  '']
+  --diamond_evalue DIAMOND_EVALUE
+                        Diamond | E-Value [Default: 0.001]
+  --diamond_options DIAMOND_OPTIONS
+                        Diamond | More options (e.g. --arg 1 ) [Default: '']
+
+Novelty score threshold arguments:
+  --pident PIDENT       pident lower bound [float:0 ≤ x < 100] [Default: 0]
+  --qcovhsp QCOVHSP     qcovhsp lower bound [float:0 ≤ x < 100] [Default: 0]
+  --scovhsp SCOVHSP     scovhsp lower bound [float:0 ≤ x < 100] [Default: 0]
+  --evalue EVALUE       e-value lower bound [float:0 < x < 1] [Default: 1e-3]
+
 ```
 
 **Output:**
 
-* biosynthetic\_gene\_clusters.features.tsv - All of the BGC features in tabular format organized by genome, contig, region, and gene.
-* biosynthetic\_gene\_clusters.type_counts.tsv - Summary of BGCs detected organized by type.  Also includes summary of BGCs that are NOT on contig edge.
+* bgc.components.tsv - All of the BGC components (i.e., genes in BGC) in tabular format organized by genome, contig, region, and gene.
+* bgc.synopsis.tsv - All of the BGCs in tabular format organized by genome, contig, region, and gene.
+* bgc.type_counts.tsv - Summary of BGCs detected organized by type.  Also includes summary of BGCs that are NOT on contig edge.
+* components/*.faa.gz - BGC components in fasta format
+* genbanks/[id\_genome]/*.gbk - Genbank formatted antiSMASH results
 
-#### assembly-sequential – Assemble metagenomes sequentially
-
-This method first uses biosyntheticSPAdes followed by either 1) [default] metaSPAdes; or 2) metaplasmidSPAdes and metaSPAdes.  The reads that are not mapped to the scaffolds in step N are used for assembly in step N+1. The contigs/scaffolds are concatenated for the finally assembly. The purpose of this module is to properly handle biosynthetic gene clusters in addition to metagenomes.
-
-```
-usage: assembly-sequential.py -1 <forward_reads.fq> -2 <reverse_reads.fq> -n <name> -o <output_directory>
-
-    Running: assembly-sequential.py v2022.11.14 via Python v3.9.7 | /Users/jespinoz/anaconda3/bin/python
-
-optional arguments:
-  -h, --help            show this help message and exit
-
-Required I/O arguments:
-  -1 FORWARD_READS, --forward_reads FORWARD_READS
-                        path/to/forward_reads.fq
-  -2 REVERSE_READS, --reverse_reads REVERSE_READS
-                        path/to/reverse_reads.fq
-  -n NAME, --name NAME  Name of sample
-  -o PROJECT_DIRECTORY, --project_directory PROJECT_DIRECTORY
-                        path/to/project_directory [Default: veba_output/assembly_sequential]
-
-Utility arguments:
-  --path_config PATH_CONFIG
-                        path/to/config.tsv [Default: CONDA_PREFIX]
-  -p N_JOBS, --n_jobs N_JOBS
-                        Number of threads [Default: 1]
-  --random_state RANDOM_STATE
-                        Random state [Default: 0]
-  --restart_from_checkpoint RESTART_FROM_CHECKPOINT
-                        Restart from a particular checkpoint [Default: None]
-  -v, --version         show program's version number and exit
-  --tmpdir TMPDIR       Set temporary directory
-  -S, --remove_intermediate_scaffolds
-                        Remove intermediate scaffolds.fasta.*. If this option is chosen, output files are not validated [Default is to keep]
-  -B, --remove_intermediate_bam
-                        Remove intermediate mapped.sorted.bam.*. If this option is chosen, output files are not validated [Default is to keep]
-
-SPAdes arguments:
-  --run_metaplasmidspades
-                        SPAdes | Run metaplasmidSPAdes.  This may sacrifice MAG completeness for plasmid completeness.
-  -m MEMORY, --memory MEMORY
-                        SPAdes | RAM limit in Gb (terminates if exceeded). [Default: 250]
-  --spades_options SPADES_OPTIONS
-                        SPAdes | More options (e.g. --arg 1 ) [Default: '']
-                        http://cab.spbu.ru/files/release3.11.1/manual.html
-
-Bowtie2 arguments:
-  --bowtie2_index_options BOWTIE2_INDEX_OPTIONS
-                        bowtie2-build | More options (e.g. --arg 1 ) [Default: '']
-  --bowtie2_options BOWTIE2_OPTIONS
-                        bowtie2 | More options (e.g. --arg 1 ) [Default: '']
-
-featureCounts arguments:
-  --featurecounts_options FEATURECOUNTS_OPTIONS
-                        featureCounts | More options (e.g. --arg 1 ) [Default: ''] | http://bioinf.wehi.edu.au/featureCounts/
-
-Copyright 2021 Josh L. Espinoza (jespinoz@jcvi.org)
-```
-
-**Output:**
-
-* featurecounts.tsv.gz - featureCounts output for contig-level counts
-* mapped.sorted.bam - Sorted BAM
-* mapped.sorted.bam.bai - Sorted BAM index
-* scaffolds.fasta - Assembly scaffolds (preferred over contigs by SPAdes documentation)
-* scaffolds.fasta.\*.bt2 - Bowtie2 index of scaffolds
-* scaffolds.fasta.saf - SAF formatted file for contig-level counts with featureCounts
-* seqkit_stats.tsv.gz - Assembly statistics
+<p align="right"><a href="#readme-top">^__^</a></p>
 
 ___________________________________________________________________
+## Developmental
 
-### ⚠️EXPERIMENTAL
 
-####  **amplicon** - Automated read trim position detection, DADA2 ASV detection, taxonomic classification, and file conversion
+#### *amplicon.py*
+**Automated read trim position detection, DADA2 ASV detection, taxonomic classification, and file conversion** 
 
-The amplicon module is a wrapper around QIIME2's implementation of the DADA2 ASV pipeline which has been fairly standardized.  This works exclusively on paired-end short reads and is not designed for single-end reads nor long reads (the latter may be adapted later).  The experimental portion of this module is the automatic detection of forward and reverse trim.  This module first imports reads into a QIIME2 Artifact object, summarizes reads, and gets position-specific fastq statistics.  The amplicon module uses the position-specific fastq statistics to suggest forward and reverse trim positions (this part is experimental, please use --inspect_trim_regions to manually check the quality plots to ensure it is where you would cut). Next ASVs are detected via DADA2 and denoising statistics are calculated.  After ASVs are detected, taxonomy is classified using classification modules provided by user (e.g., [silva-138-99-nb-classifier.qza](https://data.qiime2.org/2022.8/common/silva-138-99-nb-classifier.qza) followed by phylogenetic inference.  Finally, QIIME2 and BIOM formatted files are converted into tab-separated value tables and fasta files.
+The amplicon module is a wrapper around `QIIME2`'s implementation of the `DADA2` ASV pipeline which has been fairly standardized.  This works exclusively on paired-end short reads and is not designed for single-end reads nor long reads (the latter may be adapted later).  The experimental portion of this module is the automatic detection of forward and reverse trim.  This module first imports reads into a `QIIME2 Artifact` object, summarizes reads, and gets position-specific fastq statistics.  The amplicon module uses the position-specific fastq statistics to suggest forward and reverse trim positions (this part is experimental, please use `--inspect_trim_regions` to manually check the quality plots to ensure it is where you would cut). Next ASVs are detected via `DADA2` and denoising statistics are calculated.  After ASVs are detected, taxonomy is classified using classification modules provided by user (e.g., [silva-138-99-nb-classifier.qza](https://data.qiime2.org/2022.8/common/silva-138-99-nb-classifier.qza) followed by phylogenetic inference.  Finally, `QIIME2` and `BIOM` formatted files are converted into tab-separated value tables and fasta files.
 
 ```
 usage: amplicon.py -i <reads_table.tsv> -c <classifier.qza> -o <output_directory>
@@ -1288,4 +1399,77 @@ Copyright 2021 Josh L. Espinoza (jespinoz@jcvi.org)
 * taxonomy.tsv - Taxonomy table [ASV]<tab>[Lineage]<tab>[Confidence]
 * tree.nwk - Newick formatted tree
 
+<p align="right"><a href="#readme-top">^__^</a></p>
+
+#### *assembly-sequential.py*
+**Assemble metagenomes sequentially**
+
+This method first uses biosyntheticSPAdes followed by either 1) [default] metaSPAdes; or 2) metaplasmidSPAdes and metaSPAdes.  The reads that are not mapped to the scaffolds in step N are used for assembly in step N+1. The contigs/scaffolds are concatenated for the finally assembly. The purpose of this module is to properly handle biosynthetic gene clusters in addition to metagenomes.
+
+```
+usage: assembly-sequential.py -1 <forward_reads.fq> -2 <reverse_reads.fq> -n <name> -o <output_directory>
+
+    Running: assembly-sequential.py v2022.11.14 via Python v3.9.7 | /Users/jespinoz/anaconda3/bin/python
+
+optional arguments:
+  -h, --help            show this help message and exit
+
+Required I/O arguments:
+  -1 FORWARD_READS, --forward_reads FORWARD_READS
+                        path/to/forward_reads.fq
+  -2 REVERSE_READS, --reverse_reads REVERSE_READS
+                        path/to/reverse_reads.fq
+  -n NAME, --name NAME  Name of sample
+  -o PROJECT_DIRECTORY, --project_directory PROJECT_DIRECTORY
+                        path/to/project_directory [Default: veba_output/assembly_sequential]
+
+Utility arguments:
+  --path_config PATH_CONFIG
+                        path/to/config.tsv [Default: CONDA_PREFIX]
+  -p N_JOBS, --n_jobs N_JOBS
+                        Number of threads [Default: 1]
+  --random_state RANDOM_STATE
+                        Random state [Default: 0]
+  --restart_from_checkpoint RESTART_FROM_CHECKPOINT
+                        Restart from a particular checkpoint [Default: None]
+  -v, --version         show program's version number and exit
+  --tmpdir TMPDIR       Set temporary directory
+  -S, --remove_intermediate_scaffolds
+                        Remove intermediate scaffolds.fasta.*. If this option is chosen, output files are not validated [Default is to keep]
+  -B, --remove_intermediate_bam
+                        Remove intermediate mapped.sorted.bam.*. If this option is chosen, output files are not validated [Default is to keep]
+
+SPAdes arguments:
+  --run_metaplasmidspades
+                        SPAdes | Run metaplasmidSPAdes.  This may sacrifice MAG completeness for plasmid completeness.
+  -m MEMORY, --memory MEMORY
+                        SPAdes | RAM limit in Gb (terminates if exceeded). [Default: 250]
+  --spades_options SPADES_OPTIONS
+                        SPAdes | More options (e.g. --arg 1 ) [Default: '']
+                        http://cab.spbu.ru/files/release3.11.1/manual.html
+
+Bowtie2 arguments:
+  --bowtie2_index_options BOWTIE2_INDEX_OPTIONS
+                        bowtie2-build | More options (e.g. --arg 1 ) [Default: '']
+  --bowtie2_options BOWTIE2_OPTIONS
+                        bowtie2 | More options (e.g. --arg 1 ) [Default: '']
+
+featureCounts arguments:
+  --featurecounts_options FEATURECOUNTS_OPTIONS
+                        featureCounts | More options (e.g. --arg 1 ) [Default: ''] | http://bioinf.wehi.edu.au/featureCounts/
+
+Copyright 2021 Josh L. Espinoza (jespinoz@jcvi.org)
+```
+
+**Output:**
+
+* featurecounts.tsv.gz - featureCounts output for contig-level counts
+* mapped.sorted.bam - Sorted BAM
+* mapped.sorted.bam.bai - Sorted BAM index
+* scaffolds.fasta - Assembly scaffolds (preferred over contigs by SPAdes documentation)
+* scaffolds.fasta.\*.bt2 - Bowtie2 index of scaffolds
+* scaffolds.fasta.saf - SAF formatted file for contig-level counts with featureCounts
+* seqkit_stats.tsv.gz - Assembly statistics
+
+<p align="right"><a href="#readme-top">^__^</a></p>
 

@@ -1,11 +1,12 @@
 #!/usr/bin/env python
 import sys, os, argparse 
 from collections import OrderedDict
+import numpy as np
 import pandas as pd
 from tqdm import tqdm
 
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2022.4.12"
+__version__ = "2022.5.23"
 
 def main(args=None):
     # Path info
@@ -29,6 +30,7 @@ def main(args=None):
     parser.add_argument("-i", "--sample_index", type=int,default=-3, help = "Sample index in filepath (e.g., veba_output/mapping/global/[ID]/output/counts.tsv it would be -3) [Default: -3]")
     parser.add_argument("-a", "--allow_missing_values", action="store_true", help = "Allow missing values instead of filling with zeros")
     parser.add_argument("-e", "--remove_empty_features", action="store_true", help = "Remove empty features")
+    parser.add_argument("--pickle", type=str, help = "path/to/pandas.pkl output")
 
     # Options
     opts = parser.parse_args()
@@ -47,15 +49,23 @@ def main(args=None):
             counts = counts[counts > 0]
         output[id_sample] = counts
     X = pd.DataFrame(output).T
+
     if not opts.allow_missing_values:
-        X = X.fillna(0).astype(int)
+        X = X.fillna(0)
+
+    if np.allclose(X, X.astype(int), rtol=1e-05, atol=1e-08, equal_nan=True):
+        X = X.astype(int)
         
     X.index.name = opts.sample_column_label
     X.columns.name = opts.feature_row_label
     X.to_csv(opts.output, sep=opts.sep)
 
-    print("There are n={} samples and m={} features in the concatenated output table.".format(*X.shape), file=sys.stderr)
+    if opts.pickle:
+        X.to_pickle(opts.pickle)
 
+    sparsity = (X.values == 0).ravel().mean() * 100
+    print("There are n={} samples and m={} features in the concatenated output table ({}% sparse).".format(*X.shape, sparsity), file=sys.stderr)
+    
 if __name__ == "__main__":
     main()
     

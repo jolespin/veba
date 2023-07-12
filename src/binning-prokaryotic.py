@@ -12,7 +12,7 @@ from soothsayer_utils import *
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.5.15"
+__version__ = "2023.7.7"
 
 # Assembly
 def get_coverage_cmd( input_filepaths, output_filepaths, output_directory, directories, opts):
@@ -63,8 +63,8 @@ def get_coverage_cmd( input_filepaths, output_filepaths, output_directory, direc
     return cmd
 
 
-# Prodigal
-def get_prodigal_cmd(input_filepaths, output_filepaths, output_directory, directories, opts):
+# Pyrodigal
+def get_pyrodigal_cmd(input_filepaths, output_filepaths, output_directory, directories, opts):
 
     cmd = [
         "cat",
@@ -73,18 +73,39 @@ def get_prodigal_cmd(input_filepaths, output_filepaths, output_directory, direct
         os.environ["seqkit"],
         "seq",
         "-m {}".format(opts.minimum_contig_length),
-        "|",
-        os.environ["prodigal"],
+        ">",
+        os.path.join(directories["tmp"], "tmp.fasta"),
+
+            "&&",
+        
+        os.environ["pyrodigal"],
         "-p meta",
-        "-g {}".format(opts.prodigal_genetic_code),
+        "-i {}".format(os.path.join(directories["tmp"], "tmp.fasta")),
+        "-g {}".format(opts.pyrodigal_genetic_code),
         "-f gff",
         "-d {}".format(os.path.join(output_directory, "gene_models.ffn")),
         "-a {}".format(os.path.join(output_directory, "gene_models.faa")),
+        "--min-gene {}".format(opts.pyrodigal_minimum_gene_length),
+        "--min-edge-gene {}".format(opts.pyrodigal_minimum_edge_gene_length),
+        "--max-overlap {}".format(opts.pyrodigal_maximum_gene_overlap_length),
+        # "-j {}".format(opts.n_jobs),
+        ">",
+        os.path.join(directories["tmp"], "tmp.gff"),
+
+            "&&",
+
+        "cat",
+        os.path.join(directories["tmp"], "tmp.gff"),
         "|",
         os.environ["append_geneid_to_prodigal_gff.py"],
         "-a gene_id",
         ">",
         os.path.join(output_directory, "gene_models.gff"),
+
+            "&&",
+
+        "rm",
+        os.path.join(directories["tmp"], "tmp.*")
 
     ]
     return cmd
@@ -208,9 +229,11 @@ def get_dastool_cmd(input_filepaths, output_filepaths, output_directory, directo
             input_filepaths[2],
             input_filepaths[3],
            ),
-           "&&",
+                "&&",
+
            'IFS=" " read -r -a S2B_ARRAY <<< "$S2B"',
-           "&&",
+
+                "&&",
 
         # "echo ${S2B_ARRAY[0]} ${S2B_ARRAY[1]}",
         os.environ["DAS_Tool"],
@@ -223,7 +246,7 @@ def get_dastool_cmd(input_filepaths, output_filepaths, output_directory, directo
         "--write_bins 1",
         "--create_plots 0",
         "--threads {}".format(opts.n_jobs),
-        "--proteins {}".format(os.path.join(directories[("intermediate",  "2__prodigal")], "gene_models.faa")),
+        "--proteins {}".format(os.path.join(directories[("intermediate",  "2__pyrodigal")], "gene_models.faa")),
         "--debug",
         opts.dastool_options,
         # Eukaryotic
@@ -300,9 +323,9 @@ def get_dastool_cmd(input_filepaths, output_filepaths, output_directory, directo
         "&&",
         os.environ["partition_gene_models.py"],
         "-i {}".format(os.path.join(output_directory, "__DASTool_scaffolds2bin.no_eukaryota.txt")),
-        "-g {}".format(os.path.join(directories[("intermediate",  "2__prodigal")], "gene_models.gff")),
-        "-d {}".format(os.path.join(directories[("intermediate",  "2__prodigal")], "gene_models.ffn")),
-        "-a {}".format(os.path.join(directories[("intermediate",  "2__prodigal")], "gene_models.faa")),
+        "-g {}".format(os.path.join(directories[("intermediate",  "2__pyrodigal")], "gene_models.gff")),
+        "-d {}".format(os.path.join(directories[("intermediate",  "2__pyrodigal")], "gene_models.ffn")),
+        "-a {}".format(os.path.join(directories[("intermediate",  "2__pyrodigal")], "gene_models.faa")),
         "-o {}".format(os.path.join(output_directory, "__DASTool_bins")),
         "--use_mag_as_description",
 
@@ -335,7 +358,7 @@ def get_checkm2_cmd(input_filepaths, output_filepaths, output_directory, directo
         "-x faa",
         # "--tmpdir {}".format(os.environ["TMPDIR"] if "TMPDIR" in os.environ else directories["tmp"]), # Hack around: OSError: AF_UNIX path too long
         "--tmpdir {}".format(os.path.join(directories["tmp"], "checkm2")),
-        "--database_path {}".format(os.path.join(os.environ["VEBA_DATABASE"], "Classify", "CheckM2", "uniref100.KO.1.dmnd")),
+        "--database_path {}".format(os.path.join(opts.veba_database, "Classify", "CheckM2", "uniref100.KO.1.dmnd")),
         opts.checkm2_options,
             "&&",
 
@@ -381,6 +404,93 @@ def get_checkm2_cmd(input_filepaths, output_filepaths, output_directory, directo
     ]
     return cmd
 
+# barrnap
+def get_barrnap_cmd(input_filepaths, output_filepaths, output_directory, directories, opts):
+    cmd = [
+        "cat",
+        input_filepaths[0],
+        ">",
+        os.path.join(directories["tmp"], "genomes_to_domain.tsv"),
+
+"""
+OUTPUT_DIRECTORY={}
+FP={} 
+for DOMAIN in $(cut -f2 $FP | sort -u); 
+do 
+    DOMAIN_ABBREVIATION=$(echo $DOMAIN | python -c 'import sys; print(sys.stdin.read().lower()[:3])')
+    
+    # Get MAGs for each domain (not all will have passed QC)
+    for ID in $(cat $FP | grep $DOMAIN | cut -f1)
+    do 
+        GENOME_FASTA=$(ls {}) || GENOME_FASTA=""
+        if [ -e "$GENOME_FASTA" ]; then
+            >$OUTPUT_DIRECTORY/$ID.rRNA
+            >$OUTPUT_DIRECTORY/$ID.rRNA.gff
+            {} --kingdom $DOMAIN_ABBREVIATION --threads {} --lencutoff {} --reject {} --evalue {} --outseq $OUTPUT_DIRECTORY/$ID.rRNA $GENOME_FASTA  | {} > $OUTPUT_DIRECTORY/$ID.rRNA.gff
+            rm $GENOME_FASTA.fai
+        fi
+    done
+done
+
+rm -f {}
+""".format(
+        output_directory,
+        os.path.join(directories["tmp"], "genomes_to_domain.tsv"),
+        os.path.join(os.path.split(input_filepaths[1])[0],"$ID.fa"),
+        os.environ["barrnap"],
+        opts.n_jobs,
+        opts.barrnap_length_cutoff, 
+        opts.barrnap_reject, 
+        opts.barrnap_evalue,
+        os.environ["append_geneid_to_barrnap_gff.py"],
+        os.path.join(directories["tmp"], "genomes_to_domain.tsv"),
+    ),
+    ]
+    return cmd
+
+# tRNAscan-SE
+def get_trnascan_cmd(input_filepaths, output_filepaths, output_directory, directories, opts):
+    cmd = [
+        "cat",
+        input_filepaths[0],
+        ">",
+        os.path.join(directories["tmp"], "genomes_to_domain.tsv"),
+
+
+"""
+OUTPUT_DIRECTORY={}
+FP={} 
+for DOMAIN in $(cut -f2 $FP | sort -u); 
+do 
+    DOMAIN_ABBREVIATION=$(echo $DOMAIN | python -c 'import sys; print(sys.stdin.read().upper()[:1])')
+    
+    # Get MAGs for each domain (not all will have passed QC)
+    for ID in $(cat $FP | grep $DOMAIN | cut -f1)
+    do 
+        GENOME_FASTA=$(ls {}) || GENOME_FASTA=""
+        if [ -e "$GENOME_FASTA" ]; then
+            >$OUTPUT_DIRECTORY/$ID.tRNA
+            >$OUTPUT_DIRECTORY/$ID.tRNA.gff
+            >$OUTPUT_DIRECTORY/$ID.tRNA.struct
+            >$OUTPUT_DIRECTORY/$ID.tRNA.txt
+            {} -$DOMAIN_ABBREVIATION --forceow --progress --threads {} --fasta $OUTPUT_DIRECTORY/$ID.tRNA --gff $OUTPUT_DIRECTORY/$ID.tRNA.gff --struct $OUTPUT_DIRECTORY/$ID.tRNA.struct {} $GENOME_FASTA > $OUTPUT_DIRECTORY/$ID.tRNA.txt
+        fi
+    done
+done
+
+rm -f {}
+""".format(
+        output_directory,
+        os.path.join(directories["tmp"], "genomes_to_domain.tsv"),
+        os.path.join(os.path.split(input_filepaths[1])[0],"$ID.fa"),
+        os.environ["tRNAscan-SE"],
+        opts.n_jobs,
+        opts.trnascan_options,
+        os.path.join(directories["tmp"], "genomes_to_domain.tsv"),
+    )
+    ]
+    return cmd
+
 
 def get_featurecounts_cmd(input_filepaths, output_filepaths, output_directory, directories, opts):
     # ORF-Level Counts
@@ -405,32 +515,31 @@ def get_featurecounts_cmd(input_filepaths, output_filepaths, output_directory, d
     return cmd
 
 
-def get_consolidate_cmd(input_filepaths, output_filepaths, output_directory, directories, opts):
-        # os.path.join(directories["intermediate"], "*__checkm2",  "filtered", "scaffolds_to_bins.tsv"),
-        # os.path.join(directories["intermediate"], "*__checkm2",  "filtered", "bins.list"),
-        # os.path.join(directories["intermediate"], "*__checkm2",  "filtered", "binned.list"),
-        # os.path.join(directories["intermediate"], "*__checkm2",  "filtered", "checkm2_results.filtered.tsv"),
-        # os.path.join(directories["intermediate"], "*__checkm2", "filtered", "genomes"),
-        # os.path.join(directories[("intermediate", "{}__featurecounts".format(step-1))], "featurecounts.orfs.tsv.gz"),
+def get_consolidate_cmd(input_filepaths, output_filepaths, output_directory, directories, opts, step):
+
+
     cmd = [
         "rm -rf {}".format(os.path.join(output_directory, "*")),
     ]
 
-    cmd = [ 
+    cmd += [ 
+            "&&",
+            
         "mkdir -p {}".format(os.path.join(output_directory, "genomes")),
 
             "&&",   
 
         # scaffolds_to_bins.tsv
         "cat",
-        input_filepaths[0],
+        os.path.join(directories["intermediate"], "*__checkm2",  "filtered", "scaffolds_to_bins.tsv"), 
         ">",
         os.path.join(output_directory, "scaffolds_to_bins.tsv"),
 
             "&&",
+
         # bins.list
         "cat",
-        input_filepaths[1],
+        os.path.join(directories["intermediate"], "*__checkm2",  "filtered", "bins.list"), 
         ">",
         os.path.join(output_directory, "bins.list"),
 
@@ -438,44 +547,100 @@ def get_consolidate_cmd(input_filepaths, output_filepaths, output_directory, dir
 
         # binned.list
         "cat",
-        input_filepaths[2],
+        os.path.join(directories["intermediate"], "*__checkm2",  "filtered", "binned.list"), 
         ">",
         os.path.join(output_directory, "binned.list"),
 
             "&&",
 
-        # checkm2_results.filtered.tsv
+        # checkm2_results.filtered.tsv 
         os.environ["concatenate_dataframes.py"],
         "-a 0",
         # "-e",
-        input_filepaths[3],
+        os.path.join(directories["intermediate"], "*__checkm2",  "filtered", "checkm2_results.filtered.tsv"), 
         ">",
         os.path.join(output_directory, "checkm2_results.filtered.tsv"),
     ]
 
-        # Genomes
+    # Genomes (.fa, .ffn, .faa, .gff)
 
     cmd += [ 
             "&&",
-        "SRC={}; DST={}; SRC=$(realpath --relative-to $DST $SRC); ln -sf $SRC $DST".format(
-        input_filepaths[4],
+
+        "DST={}; for SRC in {}; do SRC=$(realpath --relative-to $DST $SRC); ln -sf $SRC $DST; done".format(
         os.path.join(output_directory,"genomes"),
+        os.path.join(directories["intermediate"], "*__checkm2", "filtered", "genomes", "*"),
     ),
     ]
+
+    # GFF
+    cmd += [ 
+"""
+
+DIR_RRNA={}
+DIR_TRNA={}
+OUTPUT_DIRECTORY={}
+mkdir -p $OUTPUT_DIRECTORY
+
+for GENOME_FASTA in {};
+do
+    ID=$(basename $GENOME_FASTA .fa)
+    DIR_GENOME=$(dirname $GENOME_FASTA)
+    GFF_CDS=$DIR_GENOME/$ID.gff
+    GFF_RRNA=$DIR_RRNA/$ID.rRNA.gff
+    GFF_TRNA=$DIR_TRNA/$ID.tRNA.gff
+    GFF_OUTPUT=$OUTPUT_DIRECTORY/$ID.gff
+    >$GFF_OUTPUT.tmp
+    {} -f $GENOME_FASTA -o $GFF_OUTPUT.tmp -n $ID -c $GFF_CDS -r $GFF_RRNA -t $GFF_TRNA -d Prokaryotic
+    mv $GFF_OUTPUT.tmp $GFF_OUTPUT
+done
+
+""".format(
+    directories[("intermediate", "{}__barrnap".format(step-3))],
+    directories[("intermediate", "{}__trnascan-se".format(step-2))],
+    os.path.join(output_directory,"genomes"),
+    os.path.join(directories["intermediate"], "*__checkm2", "filtered", "genomes", "*.fa"),
+    os.environ["compile_gff.py"],
+    )
+    ]
+
+    # rRNA
+
+    cmd += [ 
+
+        "DST={}; for SRC in {}; do SRC=$(realpath --relative-to $DST $SRC); ln -sf $SRC $DST; done".format(
+        os.path.join(output_directory,"genomes"),
+        os.path.join(directories[("intermediate", "{}__barrnap".format(step-3))], "*.rRNA"),
+    ),
+    ]
+
+    # tRNA
+
+    cmd += [ 
+            "&&",
+
+        "DST={}; for SRC in {}; do SRC=$(realpath --relative-to $DST $SRC); ln -sf $SRC $DST; done".format(
+        os.path.join(output_directory,"genomes"),
+        os.path.join(directories[("intermediate", "{}__trnascan-se".format(step-2))], "*.tRNA"),
+    ),
+    ]
+
+
     
     # Featurecounts
     cmd += [
             "&&",
         "SRC={}; DST={}; SRC=$(realpath --relative-to $DST $SRC); ln -sf $SRC $DST".format(
-            input_filepaths[5],
+            os.path.join(directories[("intermediate", "{}__featurecounts".format(step-1))], "featurecounts.orfs.tsv.gz"),
             output_directory,
-        )
+        ),
         ]
         
     # SeqKit
     cmd += [ 
             "&&",
         # Statistics
+        # Assembly
         os.environ["seqkit"],
         "stats",
         "-a",
@@ -492,7 +657,58 @@ def get_consolidate_cmd(input_filepaths, output_filepaths, output_directory, dir
 
             "&&",
 
-        # Statistics
+        # CDS
+        os.environ["seqkit"],
+        "stats",
+        "-a",
+        "-b",
+        "-T",
+        "-j {}".format(opts.n_jobs),
+        os.path.join(output_directory, "genomes", "*.ffn"),
+
+        "|",
+
+        """python -c 'import sys, pandas as pd; df = pd.read_csv(sys.stdin, sep="\t", index_col=0); df.index = df.index.map(lambda x: x[:-4]); df.to_csv(sys.stdout, sep="\t")'"""
+        ">",
+        os.path.join(output_directory,"gene_statistics.cds.tsv"),
+
+            "&&",
+            
+        # rRNA
+        os.environ["seqkit"],
+        "stats",
+        "-a",
+        "-b",
+        "-T",
+        "-j {}".format(opts.n_jobs),
+        os.path.join(output_directory, "genomes", "*.rRNA"),
+
+        "|",
+
+        """python -c 'import sys, pandas as pd; df = pd.read_csv(sys.stdin, sep="\t", index_col=0); df.index = df.index.map(lambda x: x[:-5]); df.to_csv(sys.stdout, sep="\t")'"""
+        ">",
+        os.path.join(output_directory,"gene_statistics.rRNA.tsv"),
+
+                "&&",
+            
+        # tRNA
+        os.environ["seqkit"],
+        "stats",
+        "-a",
+        "-b",
+        "-T",
+        "-j {}".format(opts.n_jobs),
+        os.path.join(output_directory, "genomes", "*.tRNA"),
+
+        "|",
+
+        """python -c 'import sys, pandas as pd; df = pd.read_csv(sys.stdin, sep="\t", index_col=0); df.index = df.index.map(lambda x: x[:-5]); df.to_csv(sys.stdout, sep="\t")'"""
+        ">",
+        os.path.join(output_directory,"gene_statistics.tRNA.tsv"),
+
+        # Binned/Unbinned
+                    "&&",
+
         "cat",
         opts.fasta,
         "|",
@@ -509,10 +725,9 @@ def get_consolidate_cmd(input_filepaths, output_filepaths, output_directory, dir
         ">",
         os.path.join(output_directory,"unbinned.fasta"),
     
+            "&&",
 
-        # "&&",
-        # "rm -rf {}".format(os.path.join(directories["tmp"],"*")),
-
+        "rm -rf {}".format(os.path.join(directories["tmp"],"*")),
     ]
 
 
@@ -576,18 +791,18 @@ def create_pipeline(opts, directories, f_cmds):
     )
 
     # ==========
-    # Prodigal
+    # Pyrodigal
     # ==========
     step = 2
 
-    program = "prodigal"
+    program = "pyrodigal"
     program_label = "{}__{}".format(step, program)
     # Add to directories
     output_directory = directories[("intermediate",  program_label)] = create_directory(os.path.join(directories["intermediate"], program_label))
 
 
     # Info
-    description = "Gene calls via Prodigal"
+    description = "Gene calls via Pyrodigal"
     # i/o
     input_filepaths = [
         opts.fasta,
@@ -608,7 +823,7 @@ def create_pipeline(opts, directories, f_cmds):
         "directories":directories,
     }
 
-    cmd = get_prodigal_cmd(**params)
+    cmd = get_pyrodigal_cmd(**params)
     pipeline.add_step(
                 id=program_label,
                 description = description,
@@ -894,7 +1109,7 @@ def create_pipeline(opts, directories, f_cmds):
             os.path.join(directories[("intermediate",  "{}__binning_maxbin2-40".format(steps["binning_maxbin2-40"]))], "scaffolds_to_bins.tsv"),
             os.path.join(directories[("intermediate",  "{}__binning_concoct".format(steps["binning_concoct"]))], "scaffolds_to_bins.tsv"),
             input_fasta,
-            # os.path.join(directories[("intermediate",  "2__prodigal")], "gene_models.faa"),
+            # os.path.join(directories[("intermediate",  "2__pyrodigal")], "gene_models.faa"),
         ]
 
         output_filenames = [
@@ -990,6 +1205,114 @@ def create_pipeline(opts, directories, f_cmds):
         # Reset input_fasta
         input_fasta = os.path.join(directories["tmp"], "unbinned_{}.fasta".format(iteration))
 
+    # ==========
+    # barrnap
+    # ==========
+    step  += 1
+
+    program = "barrnap"
+    program_label = "{}__{}".format(step, program)
+    # Add to directories
+    output_directory = directories[("intermediate",  program_label)] = create_directory(os.path.join(directories["intermediate"], program_label))
+
+
+    # Info
+    description = "Detecting rRNA genes"
+    # i/o
+    input_filepaths = [
+        os.path.join(directories["intermediate"], "*__dastool",  "consensus_domain_classification", "predictions.tsv"),
+        os.path.join(directories["intermediate"], "*__checkm2", "filtered", "genomes", "*"),
+    ]
+
+    output_filenames = [
+        "*.rRNA",
+        "*.rRNA.gff",
+    ]
+    output_filepaths = list(map(lambda filename: os.path.join(output_directory, filename), output_filenames))
+
+    params = {
+        "input_filepaths":input_filepaths,
+        "output_filepaths":output_filepaths,
+        "output_directory":output_directory,
+        "opts":opts,
+        "directories":directories,
+    } 
+
+    cmd = get_barrnap_cmd(**params)
+    pipeline.add_step(
+                id=program_label,
+                description = description,
+                step=step,
+                cmd=cmd,
+                input_filepaths = input_filepaths,
+                output_filepaths = output_filepaths,
+                validate_inputs=False,
+                validate_outputs=False,
+                errors_ok=False,
+                acceptable_returncodes={0},                    
+                log_prefix=program_label,
+                # acceptable_returncodes= {0,1},
+
+    )
+
+
+    steps[program] = step
+
+    # ==========
+    # tRNASCAN-se
+    # ==========
+    step  += 1
+
+    program = "trnascan-se"
+    program_label = "{}__{}".format(step, program)
+    # Add to directories
+    output_directory = directories[("intermediate",  program_label)] = create_directory(os.path.join(directories["intermediate"], program_label))
+
+
+    # Info
+    description = "Detecting tRNA genes"
+    # i/o
+    input_filepaths = [
+        os.path.join(directories["intermediate"], "*__dastool",  "consensus_domain_classification", "predictions.tsv"),
+        os.path.join(directories["intermediate"], "*__checkm2", "filtered", "genomes", "*"),
+    ]
+
+    output_filenames = [
+        "*.tRNA",
+        "*.tRNA.gff",
+        "*.tRNA.struct",
+
+    ]
+    output_filepaths = list(map(lambda filename: os.path.join(output_directory, filename), output_filenames))
+
+    params = {
+        "input_filepaths":input_filepaths,
+        "output_filepaths":output_filepaths,
+        "output_directory":output_directory,
+        "opts":opts,
+        "directories":directories,
+    } 
+
+    cmd = get_trnascan_cmd(**params)
+    pipeline.add_step(
+                id=program_label,
+                description = description,
+                step=step,
+                cmd=cmd,
+                input_filepaths = input_filepaths,
+                output_filepaths = output_filepaths,
+                validate_inputs=False,
+                validate_outputs=False,
+                errors_ok=False,
+                acceptable_returncodes={0},                    
+                log_prefix=program_label,
+                # acceptable_returncodes= {0,1},
+
+    )
+
+
+    steps[program] = step
+
 
     # ==========
     # featureCounts
@@ -1007,7 +1330,7 @@ def create_pipeline(opts, directories, f_cmds):
     # i/o
     input_filepaths = [ 
         opts.fasta,
-        os.path.join(directories[("intermediate",  "2__prodigal")], "gene_models.gff"),
+        os.path.join(directories[("intermediate",  "2__pyrodigal")], "gene_models.gff"),
         *opts.bam,
     ]
 
@@ -1060,7 +1383,10 @@ def create_pipeline(opts, directories, f_cmds):
         os.path.join(directories["intermediate"], "*__checkm2",  "filtered", "binned.list"),
         os.path.join(directories["intermediate"], "*__checkm2",  "filtered", "checkm2_results.filtered.tsv"),
         os.path.join(directories["intermediate"], "*__checkm2", "filtered", "genomes", "*"),
+        os.path.join(directories[("intermediate", "{}__trnascan-se".format(step-2))], "*.tRNA"),
+        os.path.join(directories[("intermediate", "{}__barrnap".format(step-3))], "*.rRNA"),
         os.path.join(directories[("intermediate", "{}__featurecounts".format(step-1))], "featurecounts.orfs.tsv.gz"),
+
     ]
 
     output_filenames =  [
@@ -1072,6 +1398,9 @@ def create_pipeline(opts, directories, f_cmds):
         "checkm2_results.filtered.tsv",
         "featurecounts.orfs.tsv.gz",
         "genome_statistics.tsv",
+        "gene_statistics.cds.tsv",
+        "gene_statistics.rRNA.tsv",
+        "gene_statistics.tRNA.tsv",
     ]
 
     output_filepaths = list(map(lambda fn:os.path.join(directories["output"], fn), output_filenames))
@@ -1083,6 +1412,7 @@ def create_pipeline(opts, directories, f_cmds):
     "output_directory":output_directory,
     "opts":opts,
     "directories":directories,
+    "step":step,
     }
 
     cmd = get_consolidate_cmd(**params)
@@ -1096,9 +1426,7 @@ def create_pipeline(opts, directories, f_cmds):
             validate_inputs=False,
             validate_outputs=True,
             log_prefix=program_label,
-
     )
-
 
     return pipeline
 
@@ -1113,10 +1441,12 @@ def add_executables_to_environment(opts):
                 "check_scaffolds_to_bins.py",
                 "partition_gene_models.py",
                 "append_geneid_to_prodigal_gff.py",
+                "append_geneid_to_barrnap_gff.py",
                 "filter_checkm2_results.py",
                 "consensus_domain_classification.py",
                 "concatenate_dataframes.py",
                 "subset_table.py",
+                "compile_gff.py",
                 }
 
     required_executables={
@@ -1128,7 +1458,7 @@ def add_executables_to_environment(opts):
                 # 6
                 "DAS_Tool",
                 # 7
-                "prodigal",
+                "pyrodigal",
                 # 8
                 "checkm2",
                 # 9 
@@ -1137,6 +1467,10 @@ def add_executables_to_environment(opts):
                 "featureCounts",
                 # 11
                 "tiara",
+                # 12
+                "barrnap",
+                # 13
+                "tRNAscan-SE",
  
      } | accessory_scripts
 
@@ -1240,7 +1574,10 @@ def main(args=None):
     # parser_binning.add_argument("--metacoag_options", type=str, default="", help="metacoag | More options (e.g. --arg 1 ) [Default: '']")
 
     parser_genemodels = parser.add_argument_group('Gene model arguments')
-    parser_genemodels.add_argument("--prodigal_genetic_code", type=str, default=11, help="Prodigal -g translation table [Default: 11]")
+    parser_genemodels.add_argument("--pyrodigal_minimum_gene_length", type=int, default=90, help="Pyrodigal | Minimum gene length [Default: 90]")
+    parser_genemodels.add_argument("--pyrodigal_minimum_edge_gene_length", type=int, default=60, help="Pyrodigal | Minimum edge gene length [Default: 60]")
+    parser_genemodels.add_argument("--pyrodigal_maximum_gene_overlap_length", type=int, default=60, help="Pyrodigal | Maximum gene overlap length [Default: 60]")
+    parser_genemodels.add_argument("--pyrodigal_genetic_code", type=int, default=11, help="Pyrodigal -g translation table [Default: 11]")
 
     parser_evaluation = parser.add_argument_group('Evaluation arguments')
     parser_evaluation.add_argument("--dastool_searchengine", type=str, default="diamond", help="DAS_Tool searchengine. [Default: diamond] | https://github.com/cmks/DAS_Tool")
@@ -1250,6 +1587,16 @@ def main(args=None):
     parser_evaluation.add_argument("--checkm2_contamination", type=float, default=10.0, help="CheckM2 contamination threshold [Default: 10.0]")
     parser_evaluation.add_argument("--checkm2_options", type=str, default="", help="CheckM lineage_wf | More options (e.g. --arg 1 ) [Default: '']")
 
+    # rRNA
+    parser_barrnap = parser.add_argument_group('barrnap arguments')
+    parser_barrnap.add_argument("--barrnap_length_cutoff", type=float, default=0.8,  help="barrnap | Proportional length threshold to label as partial [Default: 0.8]")
+    parser_barrnap.add_argument("--barrnap_reject", type=float, default=0.25,  help="barrnap | Proportional length threshold to reject prediction [Default: 0.25]")
+    parser_barrnap.add_argument("--barrnap_evalue", type=float, default=1e-6,  help="barrnap | Similarity e-value cut-off [Default: 1e-6]")
+
+    # tRNA
+    parser_trnascan = parser.add_argument_group('tRNAscan-SE arguments')
+    parser_trnascan.add_argument("--trnascan_options", type=str, default="", help="tRNAscan-SE | More options (e.g. --arg 1 ) [Default: ''] | https://github.com/UCSC-LoweLab/tRNAscan-SE")
+
     # featureCounts
     parser_featurecounts = parser.add_argument_group('featureCounts arguments')
     parser_featurecounts.add_argument("--long_reads", action="store_true", help="featureCounts | Use this if long reads are being used")
@@ -1257,7 +1604,7 @@ def main(args=None):
 
     # Tiara
     parser_domain = parser.add_argument_group('Domain classification arguments')
-    parser_domain.add_argument("--logit_transform", type=str, default="softmax", help = " Transformation for consensus_domain_classification: {softmax, tss} [Default: softmax")
+    parser_domain.add_argument("--logit_transform", type=str, default="softmax", help = " Transformation for consensus_domain_classification: {softmax, tss} [Default: softmax]")
     parser_domain.add_argument("--tiara_minimum_length", type=int, default=3000, help="Tiara | Minimum contig length. Anything lower than 3000 is not recommended. [Default: 3000]")
     parser_domain.add_argument("--tiara_options", type=str, default="", help="Tiara | More options (e.g. --arg 1 ) [Default: ''] | https://github.com/ibe-uw/tiara")
 

@@ -9,7 +9,7 @@ import numpy as np
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.2.13"
+__version__ = "2023.6.12"
 
 # RANK_TO_PREFIX="superkingdom:d__,phylum:p__,class:c__,order:o__,family:f__,genus:g__,species:s__"
 
@@ -87,7 +87,7 @@ def get_consensus_classification(
     slc_taxa_scores = defaultdict(lambda: defaultdict(float))
     
     # Iterate through MAG, classification, and score
-    df = pd.concat([genome_to_slc.to_frame("id_genome_cluster"), classification.to_frame("classification"), classification_weights.to_frame("weight")], axis=1)
+    df = pd.concat([genome_to_slc.to_frame("id"), classification.to_frame("classification"), classification_weights.to_frame("weight")], axis=1)
     slc_to_mags = defaultdict(list)
     for id_mag, (id_slc, classification, w) in df.iterrows():
         slc_to_mags[id_slc].append(id_mag)
@@ -107,11 +107,11 @@ def get_consensus_classification(
     df_consensus_classification = pd.DataFrame(slc_taxa_scores.map(lambda taxa_scores: sorted(taxa_scores.items(), key=lambda x:(x[1], len(x[0])), reverse=True)[0]).to_dict(), index=["consensus_classification", "score"]).T
     df_consensus_classification["consensus_classification"] = df_consensus_classification["consensus_classification"].map(";".join)
     df_consensus_classification["number_of_unique_classifications"] = df["classification"].groupby(genome_to_slc).apply(lambda x: len(set(x)))
-    df_consensus_classification["number_of_genomes"] = slc_to_mags.map(len) #df["classification"].groupby(genome_to_slc).apply(len)
-    df_consensus_classification["genomes"] = slc_to_mags
+    df_consensus_classification["number_of_components"] = slc_to_mags.map(len) #df["classification"].groupby(genome_to_slc).apply(len)
+    df_consensus_classification["components"] = slc_to_mags
     df_consensus_classification["classifications"] = df["classification"].groupby(genome_to_slc).apply(lambda x: list(x))
     df_consensus_classification["weights"] = df["weight"].groupby(genome_to_slc).apply(lambda x: list(x))
-    df_consensus_classification.index.name = "id_genome_cluster"
+    df_consensus_classification.index.name = "id"
     
     # Homogeneity
     slc_taxa_homogeneity = defaultdict(lambda: defaultdict(float))
@@ -124,8 +124,8 @@ def get_consensus_classification(
         "consensus_classification", 
         "homogeneity", 
         "number_of_unique_classifications",
-        "number_of_genomes",
-        "genomes",
+        "number_of_components",
+        "components",
         "classifications", 
         "weights", 
         "score",
@@ -154,6 +154,9 @@ def main(args=None):
     parser.add_argument("-d", "--delimiter", type=str, default=";", help = "Taxonomic delimiter [Default: ; ]")
     parser.add_argument("-s", "--simple", action="store_true", help = "Simple classification that does not use lineage information from --rank_prefixes")
     parser.add_argument("--remove_missing_classifications", action="store_true", help = "Remove all classifications and weights that are  null.  For viruses this could cause an error if this isn't selected.")
+    parser.add_argument("-u", "--unclassified_label", default="Unclassified", type=str, help = "Unclassified label [Default: Unclassified]")
+    parser.add_argument("-w", "--unclassified_weight", default=100.0,type=float, help = "Unclassified label weight [Default: 100.0]")
+
 
     # Options
     opts = parser.parse_args()
@@ -175,11 +178,16 @@ def main(args=None):
     # Classifications
     df_input = pd.read_csv(opts.input, sep="\t", index_col=0, header=None)
     mag_to_slc = df_input.iloc[:,0]
-    mag_to_classification = df_input.iloc[:,1]
-    mag_to_weights = df_input.iloc[:,2]
-    if  opts.remove_missing_classifications:
-        mag_to_classification = mag_to_classification.dropna()
-        mag_to_weights = mag_to_weights[mag_to_classification.index]
+    mag_to_classification = df_input.iloc[:,1].reindex(mag_to_slc.index)
+    mag_to_weights = df_input.iloc[:,2].reindex(mag_to_slc.index)
+    if opts.remove_missing_classifications:
+        mag_to_weights = mag_to_weights.dropna()
+        mag_to_classification = mag_to_classification[mag_to_weights.index]
+    else:
+        mask = mag_to_weights.isnull()
+        mag_to_classification[mask] = ";".join(map(lambda x: f"{x}__{opts.unclassified_label}", opts.rank_prefixes))
+        mag_to_weights[mask] = opts.unclassified_weight
+        
         
     # Consensus classification
     df_consensus_classification = get_consensus_classification(

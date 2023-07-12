@@ -9,13 +9,14 @@ from Bio.SeqIO.QualityIO import FastqGeneralIterator
 
 pd.options.display.max_colwidth = 100
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2022.10.24"
+__version__ = "2023.5.23"
 
-def statistics(fp, phred):
+def statistics(fp, phred, length_mode):
     # Build table
     quality_table = list()
     failed_reads = list()
     
+    lengths = list()
     # for id,seq,quality in tqdm(pyfastx.Fastq(fp, build_index=False), desc="Reading fastq filepath: {}".format(fp), unit=" read"):
     file_open_function = {True:gzip.open, False:open}[fp.endswith(".gz")]
     with file_open_function(fp, "rt") as f:
@@ -23,18 +24,33 @@ def statistics(fp, phred):
             try:
                 quality = np.asarray(list(map(lambda q: ord(q) - phred, quality)))#.astype(int)
                 quality_table.append(quality)
+                lengths.append(len(seq))
             except UnicodeDecodeError as e:
                 failed_reads.append(id)
 
+    n = len(quality_table)
+    if length_mode == "longest":
+        m = max(lengths)
+        A = np.empty((n, m))
+        A[:] = np.nan
 
-    quality_table = np.stack(quality_table)
+        for i, row in enumerate(quality_table):
+            A[i,:len(row)] = row
+
+    if length_mode == "shortest":
+        m =  min(lengths)
+        A = np.empty((n,m))
+        A[:] = np.nan
+
+        for i, row in enumerate(quality_table):
+            A[i,:m] = row[:m]
 
     df_minmeanmax = pd.DataFrame([
-        pd.Series(np.min(quality_table, axis=0), name="min"),
-        pd.Series(np.mean(quality_table, axis=0), name="mean"),
-        pd.Series(np.max(quality_table, axis=0), name="max"),
+        pd.Series(np.nanmin(A, axis=0), name="min"),
+        pd.Series(np.nanmean(A, axis=0), name="mean"),
+        pd.Series(np.nanmax(A, axis=0), name="max"),
     ]).T
-    df_quantiles = pd.DataFrame(np.quantile(quality_table, q=[0.25,0.5,0.75], axis=0).T, columns = ["q=0.25", "q=0.5", "q=0.75"])
+    df_quantiles = pd.DataFrame(np.quantile(A, q=[0.25,0.5,0.75], axis=0).T, columns = ["q=0.25", "q=0.5", "q=0.75"])
     df_output = pd.concat([df_minmeanmax, df_quantiles], axis=1)
     df_output.index = df_output.index.values + 1
     df_output.index.name = "position"
@@ -62,7 +78,8 @@ def main(args=None):
     parser.add_argument("-o","--output", default="stdout", type=str, help = "Output filepath [Default: stdout]")
     parser.add_argument("-f","--field",  type=str, help = "Field when batch [min, mean, max, q=0.25, q=0.5, q=0.75]")
     parser.add_argument("-b","--basename",  action="store_true", help = "Output basename for multiple fastq files")
-    parser.add_argument("--phred",  type=int, default=33, help = "Phred offset [Default: 33]")
+    parser.add_argument("--length_mode", default="longest", type=str, help = "{shortest, longest} [Default: longest]")
+    parser.add_argument("-p", "--phred",  type=int, default=33, help = "Phred offset [Default: 33]")
 
     # parser.add_argument("-r","--retain_index",  action="store_true", help = "Keep fastq index created by `pyfastx`")
 
@@ -73,7 +90,7 @@ def main(args=None):
 
     # Checks 
     assert opts.phred in {33,64}, "--phred must be either 33 or 64. The following is invalid: {}".format(opts.phred)
-
+    assert opts.length_mode in {"longest", "shortest"}, "--length_mode must be either longest or shortest"
     # Build stats table for single fastq file
     if len(opts.fastq_filepath) == 1:
         df_output = statistics(opts.fastq_filepath[0], phred=opts.phred)
@@ -86,7 +103,7 @@ def main(args=None):
                 name = fp
                 if opts.basename:
                     name = fp.split("/")[-1]
-                field_table[name] = statistics(fp, phred=opts.phred)[opts.field]
+                field_table[name] = statistics(fp, phred=opts.phred, length_mode=opts.length_mode)[opts.field]
             df_output = pd.DataFrame(field_table)
 
         # Build stats table for multiple fastq files but include all columns (results in multiindex)
@@ -96,7 +113,7 @@ def main(args=None):
                 name = fp
                 if opts.basename:
                     name = fp.split("/")[-1]
-                df = statistics(fp, phred=opts.phred)
+                df = statistics(fp, phred=opts.phred, length_mode=opts.length_mode)
                 df.columns = df.columns.map(lambda x: (name, x))
                 dataframes.append(df)
             df_output = pd.concat(dataframes, axis=1)

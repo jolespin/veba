@@ -3,7 +3,14 @@ import sys, os, glob, argparse
 import pandas as pd
 
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2022.03.10"
+__version__ = "2023.7.5"
+
+def read_busco_json(path):
+    json_data = pd.read_json(path, typ="series")[["results", "lineage_dataset"]]
+    results = pd.Series(json_data["results"]).loc[["one_line_summary", "Complete", "Single copy", "Multi copy", "Fragmented", "Missing", "n_markers"]]
+    lineage_dataset = pd.Series(json_data["lineage_dataset"]).loc[["name", "creation_date", "number_of_buscos", "number_of_species"]]
+    lineage_dataset.index = ["dataset_name", "creation_date", "number_of_busco_markers", "number_of_species"] 
+    return pd.concat([results, lineage_dataset])
 
 def main(argv=None):
     # Path info
@@ -31,14 +38,11 @@ def main(argv=None):
     if opts.output == "stdout":
         opts.output = sys.stdout 
 
-
     # Get generic json files
     generic_output = dict()
     for fp in glob.glob(os.path.join(opts.busco_directory, "*", "short_summary.generic.*.json")):
         id_genome = fp.split("/")[-2]
-        data = pd.read_json(fp, typ="series")
-        data["dataset_name"] = data["dataset"].split("/")[-1]
-        generic_output[id_genome] = data
+        generic_output[id_genome] = read_busco_json(fp)
     df_generic = pd.DataFrame(generic_output).T
     df_generic.columns = df_generic.columns.map(lambda x: ("generic", x))
 
@@ -46,9 +50,7 @@ def main(argv=None):
     specific_output = dict()
     for fp in glob.glob(os.path.join(opts.busco_directory, "*", "short_summary.specific.*.json")):
         id_genome = fp.split("/")[-2]
-        data = pd.read_json(fp, typ="series")
-        data["dataset_name"] = data["dataset"].split("/")[-1]
-        specific_output[id_genome] = data
+        specific_output[id_genome] = read_busco_json(fp)
     df_specific = pd.DataFrame(specific_output).T
     df_specific.columns = df_specific.columns.map(lambda x: ("specific", x))
 
@@ -71,25 +73,9 @@ def main(argv=None):
     
     # Output 
     if opts.json_output:
-        df_output.to_json(opts.json_output)
+        df_output.T.to_json(opts.json_output)
 
     df_output.to_csv(opts.output, sep="\t")
-
-    # Run Info
-    # runinfo_columns = ["input_file", "mode"]
-
-    # df_info = pd.DataFrame()
-    # if not df_generic.empty:
-    #     df_info = df_generic[runinfo_columns]
-
-    # df_info.columns = df_info.columns.map(lambda x: ("run_info", x))
-
-
-    # Remove run info from generic
-    # if not df_generic.empty:
-        # df_generic = df_generic.drop(runinfo_columns, axis=1)
-
-        # Add multiindex to generic
 
 
 

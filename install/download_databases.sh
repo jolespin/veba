@@ -1,6 +1,6 @@
 #!/bin/bash
-# __VERSION__ = "2023.5.15"
-# VEBA_DATABASE_VERSION = "VDB_v5"
+# __version__ = "2023.6.20"
+# VEBA_DATABASE_VERSION = "VDB_v5.1"
 # MICROEUKAYROTIC_DATABASE_VERSION = "VDB-Microeukaryotic_v2.1"
 
 # Create database
@@ -39,11 +39,21 @@ echo ". .. ... ..... ........ ............."
 echo "ii * Processing GTDB-Tk"
 echo ". .. ... ..... ........ ............."
 
-# For GTDBTk v2
-wget -v -P ${DATABASE_DIRECTORY} https://data.gtdb.ecogenomic.org/releases/release207/207.0/auxillary_files/gtdbtk_r207_v2_data.tar.gz
-tar xvzf ${DATABASE_DIRECTORY}/gtdbtk_r207_v2_data.tar.gz -C ${DATABASE_DIRECTORY}
-mv ${DATABASE_DIRECTORY}/release207_v2 ${DATABASE_DIRECTORY}/Classify/GTDBTk
-rm -rf ${DATABASE_DIRECTORY}/gtdbtk_r207_v2_data.tar.gz
+# # GTDB r207_v2
+# wget -v -P ${DATABASE_DIRECTORY} https://data.gtdb.ecogenomic.org/releases/release207/207.0/auxillary_files/gtdbtk_r207_v2_data.tar.gz
+# tar xvzf ${DATABASE_DIRECTORY}/gtdbtk_r207_v2_data.tar.gz -C ${DATABASE_DIRECTORY}
+# mv ${DATABASE_DIRECTORY}/release207_v2 ${DATABASE_DIRECTORY}/Classify/GTDBTk
+# rm -rf ${DATABASE_DIRECTORY}/gtdbtk_r207_v2_data.tar.gz
+
+# GTDB r214.1
+wget -v -P ${DATABASE_DIRECTORY} https://data.gtdb.ecogenomic.org/releases/release214/214.1/auxillary_files/gtdbtk_r214_data.tar.gz
+tar xvzf ${DATABASE_DIRECTORY}/gtdbtk_r214_data.tar.gz -C ${DATABASE_DIRECTORY}
+mv ${DATABASE_DIRECTORY}/release214 ${DATABASE_DIRECTORY}/Classify/GTDB
+rm -rf ${DATABASE_DIRECTORY}/gtdbtk_r214_data.tar.gz
+
+# GTDB r214.1 mash sketch
+wget -v -O ${DATABASE_DIRECTORY}/gtdb_r214.msh https://zenodo.org/record/8048187/files/gtdb_r214.msh?download=1
+mv ${DATABASE_DIRECTORY}/gtdb_r214.msh ${DATABASE_DIRECTORY}/Classify/GTDB/mash/
 
 # CheckV
 echo ". .. ... ..... ........ ............."
@@ -166,6 +176,12 @@ rm -rf ${DATABASE_DIRECTORY}/mibig_prot_seqs_3.1.rmdup.fasta
 # wget -v -P ${DATABASE_DIRECTORY} https://github.com/medema-group/bigslice/releases/download/v1.0.0/bigslice-models.2020-04-27.tar.gz
 # tar xzfv ${DATABASE_DIRECTORY}/bigslice-models.2020-04-27.tar.gz -C ${DATABASE_DIRECTORY}/Annotate/BiG-SLiCE
 # rm -rf ${DATABASE_DIRECTORY}/bigslice-models.2020-04-27.tar.gz
+
+# VFDB
+mkdir -v -p ${DATABASE_DIRECTORY}/Annotate/VFDB
+wget -v -P ${DATABASE_DIRECTORY} http://www.mgc.ac.cn/VFs/Down/VFDB_setA_pro.fas.gz
+diamond makedb --in ${DATABASE_DIRECTORY}/VFDB_setA_pro.fas.gz --db ${DATABASE_DIRECTORY}/Annotate/VFDB/VFDB_setA_pro.dmnd
+rm -rf ${DATABASE_DIRECTORY}/VFDB_setA_pro.fas.gz
 
 # Contamination
 echo ". .. ... ..... ........ ............."

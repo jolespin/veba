@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+
 from __future__ import print_function, division
 import sys, os, argparse, glob
 from collections import OrderedDict, defaultdict
@@ -12,7 +13,7 @@ from soothsayer_utils import *
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.5.8"
+__version__ = "2023.5.23"
 
 # Reads archive
 def get_reads_cmd( input_filepaths, output_filepaths, output_directory, directories, opts):
@@ -37,6 +38,7 @@ def get_reads_cmd( input_filepaths, output_filepaths, output_directory, director
         os.environ["fastq_position_statistics.py"],
         "-f q=0.25",
         "-o {}".format(os.path.join(output_directory, "forward_reads.position-specific_statistics.tsv")),
+        "--length_mode {}".format(opts.length_mode),
         "${FORWARD_READS}",
         "&&",
         "REVERSE_READS=$(tail -n +2 {} | cut -f3 )".format(opts.reads_table),
@@ -44,6 +46,7 @@ def get_reads_cmd( input_filepaths, output_filepaths, output_directory, director
         os.environ["fastq_position_statistics.py"],
         "-f q=0.25",
         "-o {}".format(os.path.join(output_directory, "reverse_reads.position-specific_statistics.tsv")),
+        "--length_mode {}".format(opts.length_mode),
         "${REVERSE_READS}",
         
         ]
@@ -59,6 +62,7 @@ def get_trim_cmd( input_filepaths, output_filepaths, output_directory, directori
         "mkdir -p {}".format(os.path.join(output_directory, "forward_reads_trimming_suggestion")),
         "&&",
         "echo {} > {}".format(opts.forward_trim, os.path.join(output_directory, "forward_reads_trimming_suggestion", "position_to_trim.txt")),
+        "&&",
         ]
     else:
         cmd += [
@@ -72,6 +76,7 @@ def get_trim_cmd( input_filepaths, output_filepaths, output_directory, directori
         ]
         if opts.maximum_average_loss is not None:
             cmd += ["--maximum_average_loss {}".format(opts.maximum_average_loss)]
+        cmd += ["&&"]
 
     if opts.reverse_trim is not None:
         cmd += [
@@ -81,7 +86,6 @@ def get_trim_cmd( input_filepaths, output_filepaths, output_directory, directori
         ]
     else:
         cmd += [
-        "&&",
         os.environ["determine_trim_position.py"],
         "-i {}".format(input_filepaths[1]),
         "-o {}".format(os.path.join(output_directory, "reverse_reads_trimming_suggestion")),
@@ -111,10 +115,10 @@ def get_dada2_cmd( input_filepaths, output_filepaths, output_directory, director
         "--p-trunc-len-r ${REVERSE_TRIM_POSITION}",
         "--o-table {}".format(output_filepaths[0]),
         "--o-representative-sequences {}".format(output_filepaths[1]),
-       "--o-denoising-stats {}".format(output_filepaths[2]),
-       "--p-n-threads {}".format(opts.n_jobs),
-       "--p-min-overlap {}".format(opts.minimum_overlap),
-       opts.dada2_options,
+        "--o-denoising-stats {}".format(output_filepaths[2]),
+        "--p-n-threads {}".format(opts.n_jobs),
+        "--p-min-overlap {}".format(opts.minimum_overlap),
+        opts.dada2_options,
     ]
     return cmd
 
@@ -566,6 +570,7 @@ def main(args=None):
     parser_trimming.add_argument("-m","--minimum_length",  default=100,type=int, help = "Minimum length.  If minimum quality value makes length shorter than this then an error will yield with which samples are responsible [Default: 100]")
     parser_trimming.add_argument("-w", "--window_size",  default=4,type=int, help = "Window size [Default: 4]")
     parser_trimming.add_argument("-l", "--maximum_average_loss",  type=float, help = "Maximum average loss for window size [Default: --window_size]")
+    parser_trimming.add_argument("--length_mode",  type=str, default="longest", help = "{longest, shortest} [Default: longest]")
 
    # DADA2
     parser_dada2 = parser.add_argument_group('DADA2 arguments')

@@ -89,7 +89,7 @@ def get_consensus_genome_cmd( input_filepaths, output_filepaths, output_director
         os.environ["consensus_genome_classification_unranked.py"],
         "-o {}".format(output_filepaths[0]),
         "-t {}".format(opts.threshold),
-        "--unclassified_label Unclassified",
+        "--unclassified_label 'Unclassified virus'",
         "--unclassified_taxonid -1",
         "--veba_database {}".format(opts.veba_database),
         "--verbose",

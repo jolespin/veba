@@ -1,4 +1,4 @@
-name: VEBA-binning-prokaryotic_env__v2023.5.15
+name: VEBA-binning-prokaryotic_env__v2023.7.7
 channels:
   - conda-forge
   - bioconda
@@ -18,11 +18,13 @@ dependencies:
   - attrs=22.2.0=pyh71513ae_0
   - backports=1.1=pyhd3eb1b0_0
   - backports.zoneinfo=0.2.1=py38h497a2fe_4
+  - barrnap=0.9=hdfd78af_4
+  - bedtools=2.30.0=h468198e_3
   - binutils_impl_linux-64=2.36.1=h193b22a_2
   - binutils_linux-64=2.36=hf3e587d_7
   - biopython=1.79=py38h497a2fe_1
   - blas=1.0=mkl
-  - blast=2.11.0=pl526he19e7b1_0
+  - blast=2.14.0=h7d5a4b4_1
   - blinker=1.5=pyhd8ed1ab_0
   - boost=1.70.0=py38h9de70de_1
   - boost-cpp=1.70.0=h7b93d67_3
@@ -35,17 +37,17 @@ dependencies:
   - bz2file=0.98=py_0
   - bzip2=1.0.8=h7f98852_4
   - c-ares=1.18.1=h7f98852_0
-  - ca-certificates=2022.12.7=ha878542_0
+  - ca-certificates=2023.5.7=hbcca054_0
   - cachetools=4.2.4=pyhd8ed1ab_0
   - cairo=1.16.0=h9f066cc_1006
   - capnproto=0.9.1=h780b84a_5
-  - certifi=2022.12.7=pyhd8ed1ab_0
+  - certifi=2023.5.7=pyhd8ed1ab_0
   - cffi=1.15.0=py38h3931269_0
   - charset-normalizer=2.0.12=pyhd8ed1ab_0
   - click=8.1.3=unix_pyhd8ed1ab_2
   - colorama=0.4.4=pyh9f0ad1d_0
-  - coreutils=9.3=h0b41bf4_0
   - concoct=1.1.0=py38h7be5676_2
+  - coreutils=9.3=h0b41bf4_0
   - coverm=0.4.0=hc216eb9_2
   - cryptography=36.0.0=py38h9ce1e76_0
   - curl=7.76.1=h979ede3_1
@@ -99,6 +101,7 @@ dependencies:
   - idba=1.1.3=1
   - idna=3.3=pyhd8ed1ab_0
   - importlib-metadata=6.0.0=pyha770c72_0
+  - infernal=1.1.4=pl5321h031d066_4
   - intel-openmp=2019.4=243
   - joblib=0.17.0=py_0
   - jpeg=9e=h7f98852_0
@@ -157,7 +160,7 @@ dependencies:
   - markupsafe=2.1.2=py38h1de0b5d_0
   - mash=2.3=he348c14_1
   - matplotlib-base=3.5.1=py38hf4fb855_0
-  - maxbin2=2.2.7=h87f3376_4
+  - maxbin2=2.2.7=he1b5a44_1
   - metabat2=2.15=h986a166_1
   - minimap2=2.17=h5bf99c6_4
   - mkl=2020.2=256
@@ -170,7 +173,7 @@ dependencies:
   - oauthlib=3.2.2=pyhd8ed1ab_0
   - openblas=0.3.21=pthreads_h320a7e8_3
   - openmp=8.0.1=0
-  - openssl=1.1.1t=h0b41bf4_0
+  - openssl=1.1.1u=hd590300_0
   - opt_einsum=3.3.0=pyhd8ed1ab_1
   - packaging=21.3=pyhd8ed1ab_0
   - pandas=1.4.1=py38h43a58ef_0
@@ -178,29 +181,60 @@ dependencies:
   - pathlib2=2.3.7.post1=py38h578d9bd_0
   - pcre=8.45=h9c3ff4c_0
   - pcre2=10.36=h032f7d1_1
-  - perl=5.26.2=h36c2ea0_1008
-  - perl-archive-tar=2.32=pl526_0
-  - perl-carp=1.38=pl526_3
-  - perl-common-sense=3.74=pl526_2
-  - perl-compress-raw-bzip2=2.087=pl526he1b5a44_0
-  - perl-compress-raw-zlib=2.087=pl526hc9558a2_0
-  - perl-encode=2.88=pl526_1
-  - perl-encode-locale=1.05=pl526_6
-  - perl-exporter=5.72=pl526_1
-  - perl-exporter-tiny=1.002001=pl526_0
-  - perl-extutils-makemaker=7.36=pl526_1
-  - perl-io-compress=2.087=pl526he1b5a44_0
-  - perl-io-zlib=1.10=pl526_2
-  - perl-json=4.02=pl526_0
-  - perl-json-xs=2.34=pl526h6bb024c_3
-  - perl-list-moreutils=0.428=pl526_1
-  - perl-list-moreutils-xs=0.428=pl526_0
-  - perl-lwp-simple=6.15=pl526h470a237_4
-  - perl-parent=0.236=pl526_1
-  - perl-pathtools=3.75=pl526h14c3975_1
-  - perl-scalar-list-utils=1.52=pl526h516909a_0
-  - perl-types-serialiser=1.0=pl526_2
-  - perl-xsloader=0.24=pl526_0
+  - perl=5.32.1=2_h7f98852_perl5
+  - perl-archive-tar=2.40=pl5321hdfd78af_0
+  - perl-base=2.23=pl5321hdfd78af_2
+  - perl-business-isbn=3.007=pl5321hdfd78af_0
+  - perl-business-isbn-data=20210112.006=pl5321hdfd78af_0
+  - perl-carp=1.38=pl5321hdfd78af_4
+  - perl-common-sense=3.75=pl5321hdfd78af_0
+  - perl-compress-raw-bzip2=2.201=pl5321h87f3376_1
+  - perl-compress-raw-zlib=2.105=pl5321h87f3376_0
+  - perl-constant=1.33=pl5321hdfd78af_2
+  - perl-data-dumper=2.183=pl5321hec16e2b_1
+  - perl-digest-hmac=1.04=pl5321hdfd78af_0
+  - perl-digest-md5=2.58=pl5321hec16e2b_1
+  - perl-encode=3.19=pl5321hec16e2b_1
+  - perl-encode-locale=1.05=pl5321hdfd78af_7
+  - perl-exporter=5.72=pl5321hdfd78af_2
+  - perl-exporter-tiny=1.002002=pl5321hdfd78af_0
+  - perl-extutils-makemaker=7.70=pl5321hd8ed1ab_0
+  - perl-file-listing=6.15=pl5321hdfd78af_0
+  - perl-file-spec=3.48_01=pl5321hdfd78af_2
+  - perl-html-parser=3.81=pl5321h4ac6f70_1
+  - perl-html-tagset=3.20=pl5321hdfd78af_4
+  - perl-http-cookies=6.10=pl5321hdfd78af_0
+  - perl-http-daemon=6.16=pl5321hdfd78af_0
+  - perl-http-date=6.05=pl5321hdfd78af_0
+  - perl-http-message=6.36=pl5321hdfd78af_0
+  - perl-http-negotiate=6.01=pl5321hdfd78af_4
+  - perl-io-compress=2.201=pl5321hdbdd923_2
+  - perl-io-html=1.004=pl5321hdfd78af_0
+  - perl-io-socket-ssl=2.074=pl5321hdfd78af_0
+  - perl-io-zlib=1.14=pl5321hdfd78af_0
+  - perl-json=4.10=pl5321hdfd78af_0
+  - perl-json-xs=2.34=pl5321h4ac6f70_6
+  - perl-libwww-perl=6.39=pl5321hdfd78af_1
+  - perl-list-moreutils=0.430=pl5321hdfd78af_0
+  - perl-list-moreutils-xs=0.430=pl5321h031d066_2
+  - perl-lwp-mediatypes=6.04=pl5321hdfd78af_1
+  - perl-lwp-simple=6.39=pl5321h9ee0642_5
+  - perl-mime-base64=3.16=pl5321hec16e2b_2
+  - perl-net-http=6.22=pl5321hdfd78af_0
+  - perl-net-ssleay=1.92=pl5321h0e0aaa8_1
+  - perl-ntlm=1.09=pl5321hdfd78af_5
+  - perl-parent=0.236=pl5321hdfd78af_2
+  - perl-pathtools=3.75=pl5321hec16e2b_3
+  - perl-scalar-list-utils=1.62=pl5321hec16e2b_1
+  - perl-socket=2.027=pl5321h031d066_4
+  - perl-time-local=1.35=pl5321hdfd78af_0
+  - perl-timedate=2.33=pl5321hdfd78af_2
+  - perl-try-tiny=0.31=pl5321hdfd78af_1
+  - perl-types-serialiser=1.01=pl5321hdfd78af_0
+  - perl-uri=5.12=pl5321hdfd78af_0
+  - perl-url-encode=0.03=pl5321h9ee0642_0
+  - perl-www-robotrules=6.02=pl5321hdfd78af_4
+  - perl-xsloader=0.24=pl5321hd8ed1ab_0
   - pillow=9.0.1=py38h22f2fdc_0
   - pip=22.0.4=pyhd8ed1ab_0
   - pixman=0.40.0=h36c2ea0_0
@@ -214,6 +248,7 @@ dependencies:
   - pyjwt=2.6.0=pyhd8ed1ab_0
   - pyopenssl=22.0.0=pyhd8ed1ab_0
   - pyparsing=3.0.7=pyhd8ed1ab_0
+  - pyrodigal=2.1.0=py38he5da3d1_3
   - pysam=0.16.0.1=py38hbdc2ae9_1
   - pysocks=1.7.1=py38h578d9bd_4
   - python=3.8.12=hb7a2778_2_cpython
@@ -296,7 +331,7 @@ dependencies:
   - scikit-learn=0.23.2=py38h5d63f67_3
   - scipy=1.8.0=py38h56a6a73_1
   - sed=4.8=he412f7d_0
-  - seqkit=2.1.0=h9ee0642_0
+  - seqkit=2.4.0=h9ee0642_0
   - setuptools=60.9.3=py38h578d9bd_0
   - skorch=0.9.0=pyh7b7c402_0
   - snappy=1.1.9=hbd366e4_2
@@ -316,6 +351,7 @@ dependencies:
   - tk=8.6.12=h27826a3_0
   - tktable=2.10=hb7b940f_3
   - tqdm=4.54.1=pyhd8ed1ab_1
+  - trnascan-se=2.0.12=pl5321h031d066_0
   - tzdata=2021e=he74cb21_0
   - tzlocal=4.1=py38h578d9bd_1
   - unicodedata2=14.0.0=py38h497a2fe_0

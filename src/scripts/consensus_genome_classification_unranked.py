@@ -9,7 +9,7 @@ import taxopy
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.2.28"
+__version__ = "2023.6.7"
 
 def main(args=None):
     # Path info
@@ -47,7 +47,8 @@ def main(args=None):
     if opts.output == "stdout":
         opts.output = sys.stdout
 
-    if not opts.veba_database:
+    if opts.veba_database is None:
+        assert "VEBA_DATABASE" in os.environ, "Please set the following environment variable 'export VEBA_DATABASE=/path/to/veba_database' or provide path to --veba_database"
         opts.veba_database = os.environ["VEBA_DATABASE"]
 
     # Blacklist labels

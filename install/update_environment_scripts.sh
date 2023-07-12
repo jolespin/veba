@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# __version__ = 2023.01.05
+# __version__ = "2023.01.05"
 
 # Usage: git clone https://github.com/jolespin/veba && update_environment_scripts.sh /path/to/veba_repository
 echo "-----------------------------------------------------------------------------------------------------"

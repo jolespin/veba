@@ -14,7 +14,7 @@ from soothsayer_utils import *
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.5.15"
+__version__ = "2023.6.16"
 
 # GTDB-Tk
 def get_gtdbtk_cmd( input_filepaths, output_filepaths, output_directory, directories, opts):
@@ -51,6 +51,7 @@ def get_gtdbtk_cmd( input_filepaths, output_filepaths, output_directory, directo
             os.path.join(directories["tmp"], "genomes.list"),
         ]
 
+    # GTDB-Tk
     cmd += [
 
             "&&",
@@ -69,8 +70,22 @@ def get_gtdbtk_cmd( input_filepaths, output_filepaths, output_directory, directo
         "-x {}".format(opts.extension),
         "--cpus {}".format(opts.n_jobs),
         "--tmpdir {}".format(os.path.join(directories["tmp"], "gtdbtk")),
-        "--skip_ani_screen",
         opts.gtdbtk_options,
+    ]
+
+    if opts.skip_ani_screen:
+        cmd += [
+        "--skip_ani_screen",
+        ]
+
+    else:
+        cmd += [
+        "--mash_db {}".format(os.path.join(opts.gtdbtk_database, "mash","gtdb_r214.msh")),
+        ]
+        
+
+    # Concatenation
+    cmd += [
 
             "&&",
 
@@ -136,6 +151,7 @@ def get_consensus_cluster_classification_cmd( input_filepaths, output_filepaths,
         os.environ["consensus_genome_classification.py"],
         "--leniency {}".format(opts.leniency),
         "-o {}".format(output_filepaths[0]),
+        "-u 'Unclassified prokaryote'",
     ]
     return cmd
 
@@ -377,11 +393,10 @@ def main(args=None):
     # Databases
     parser_databases = parser.add_argument_group('Database arguments')
     parser_databases.add_argument("--veba_database", type=str,  help=f"VEBA database location.  [Default: $VEBA_DATABASE environment variable]")
-    # parser_databases.add_argument("--mash_database", type=str,  help=f"Default is to create a MASH database")
 
     # GTDB-Tk
     parser_gtdbtk = parser.add_argument_group('GTDB-Tk arguments')
-    # parser_gtdbtk.add_argument("--skip_ani_screen", action="store_true", help = "Skip ANI screen [Default: Don't skip ANI screen]")
+    parser_gtdbtk.add_argument("--skip_ani_screen", action="store_true", help = "Skip ANI screen [Default: Don't skip ANI screen]")
     parser_gtdbtk.add_argument("--gtdbtk_options", type=str, default="", help="GTDB-Tk | classify_wf options (e.g. --arg 1 ) [Default: '']")
 
 
@@ -421,7 +436,7 @@ def main(args=None):
         assert "VEBA_DATABASE" in os.environ, "Please set the following environment variable 'export VEBA_DATABASE=/path/to/veba_database' or provide path to --veba_database"
         opts.veba_database = os.environ["VEBA_DATABASE"]
 
-    opts.gtdbtk_database = os.path.join(opts.veba_database, "Classify", "GTDBTk")
+    opts.gtdbtk_database = os.path.join(opts.veba_database, "Classify", "GTDB")
 
     # if opts.mash_database is None:
     #     opts.mash_database = os.path.join(directories["tmp"], "gtdbtk.msh")

@@ -78,7 +78,7 @@ The main one we need is `transcripts.fasta`  which we will use for binning.
 
 `NODE_1_length_117535_cov_30.642667_g0_i0`
 
-Where `g0` refers to the predicted gene and `i0` refers to the isoform transcript for `g0`. Node, length, and coverage refer to the backend node in the assembly graph, transcript length, and transcript coverage, respectively.  This can be useful for tools like [*TransDecoder*](https://github.com/TransDecoder/TransDecoder) that take a `--gene_trans_map` argument (TransDecoder.LongOrfs) and a `--single_best_only` (TransDecoder.Predict) as we implemented when investigating [coral holobiomes](https://www.science.org/doi/10.1126/sciadv.abg3088).  Although,  *VEBA* has [a wrapper script for *TransDecoder* and automated homology searches](https://github.com/jolespin/veba/blob/main/src/scripts/transdecoder_wrapper.py), this tutorial will use *Prodigal* instead.
+Where `g0` refers to the predicted gene and `i0` refers to the isoform transcript for `g0`. Node, length, and coverage refer to the backend node in the assembly graph, transcript length, and transcript coverage, respectively.  This can be useful for tools like [*TransDecoder*](https://github.com/TransDecoder/TransDecoder) that take a `--gene_trans_map` argument (TransDecoder.LongOrfs) and a `--single_best_only` (TransDecoder.Predict) as we implemented when investigating [coral holobiomes](https://www.science.org/doi/10.1126/sciadv.abg3088).  Although,  *VEBA* has [a wrapper script for *TransDecoder* and automated homology searches](https://github.com/jolespin/veba/blob/main/src/scripts/transdecoder_wrapper.py), this tutorial will use *Prodigal-GV* instead.
 
 #### 3. Recover viruses from metatranscriptomic assemblies
 We use a similar approach to the metagenomics with *geNomad* and *CheckV* but using the assembled transcripts instead.  Again, the criteria for high-quality viral genomes are described by the [*CheckV* author](https://scholar.google.com/citations?user=gmKnjNQAAAAJ&hl=en) [here in this Bitbucket Issue (#38)](https://bitbucket.org/berkeleylab/checkv/issues/38/recommended-cutoffs-for-analyzing-checkv).
@@ -103,20 +103,21 @@ for ID in $(cat identifiers.list);
 
 **The following output files will produced for each sample:** 
 
-* binned.list - List of binned transcripts
+* binned.list - List of binned contigs
 * bins.list - List of MAG identifiers
-* quality_summary.filtered.tsv - Filtered CheckV output
+* checkv_results.filtered.tsv - Filtered CheckV output
 * featurecounts.orfs.tsv.gz - ORF-level counts table (If --bam file is provided)
 * genome_statistics.tsv - Genome assembly statistics
+* gene_statistics.cds.tsv - Gene sequence statistics (CDS)
 * genomes/ - MAG subdirectory
-* genomes/\*.fa - MAG assembly fasta
-* genomes/\*.faa - MAG protein fasta
-* genomes/\*.ffn - MAG CDS fasta
-* genomes/\*.gff - MAG gene models
-* genomes/identifier_mapping.tsv - Identifier mapping between [id_orf, id_transcript, id_mag]
-* scaffolds\_to\_bins.tsv - Identifier mapping between [id_transcript, id_mag]
-* unbinned.fasta - Fasta of unbinned transcripts that have passed length thresholding
-* unbinned.list - List of unbinned transcripts
+* genomes/[id_genome].fa - MAG assembly fasta
+* genomes/[id_genome].faa - MAG protein fasta
+* genomes/[id_genome].ffn - MAG CDS fasta
+* genomes/[id_genome].gff - MAG gene models
+* genomes/identifier_mapping.tsv - Identifier mapping between [id_orf, id_contig, id_mag]
+* scaffolds\_to\_bins.tsv - Identifier mapping between [id_contig, id_mag]
+* unbinned.fasta - Fasta of unbinned contigs that have passed length thresholding
+* unbinned.list - List of unbinned contigs
 
 
 #### 4. Cluster genomes and proteins
@@ -151,15 +152,21 @@ CMD="source activate VEBA-cluster_env && cluster.py -i veba_output/misc/genomes_
 
 `veba_output/cluster/local`
 
-* genome\_clusters.tsv - Table with genome cluster, number of components, number of samples of origin, component identifiers, and sample identifiers of origin.
-* identifier\_mapping.genomes.tsv - Identifier mapping between genome, organism-type, sample of origin, id\_genome\_cluster, and number of proteins
-* identifier\_mapping.proteins.tsv - Identifier mapping between id\_protein, organism-type, id\_genome, sample of origin, id\_genome\_cluster, and id\_protein\_cluster
-* identifier\_mapping.scaffolds.tsv - Identifier mapping between id_scaffold, organism-type, id\_genome, sample of origin, and id\_genome\_cluster
-* mags\_to\_slcs.tsv - Identifier mapping between MAGs and genome clusters [id\_genome, id\_genome\_cluster]
-* feature\_compression\_ratios.tsv - Genomic and functional feature compression ratios (FCR) for each domain
-* protein\_clusters.tsv - Table with protein cluster, number of components, number of samples of origin, component identifiers, and sample identifiers of origin.
-* proteins\_to\_orthogroups.tsv - Identifier mapping between id\_protein and id\_protein\_cluster
-* scaffolds\_to\_slcs.tsv - Identifier mapping between id_scaffold and id\_genome\_cluster
+* global/feature\_compression\_ratios.tsv - Feature compression ratios for each domain
+* global/genome\_clusters.tsv - Machine-readable table for genome clusters `[id_genome_cluster, number_of_components, number_of_samples_of_origin, components, samples_of_origin]`
+* global/identifier\_mapping.genomes.tsv - Identifier mapping for genomes `[id_genome, organism_type, sample_of_origin, id_genome_cluster, number_of_proteins, number_of_singleton_protein_clusters, ratio_of_protein_cluster_are_singletons]`
+* global/identifier\_mapping.proteins.tsv - Identifier mapping for proteins `[id_protein, organism_type, id_genome, sample_of_origin, id_genome_cluster, id_protein_cluster]`
+* global/identifier\_mapping.scaffolds.tsv - Identifier mapping for contigs `[id_scaffold,	organism_type, id_genome, sample_of_origin, id_genome_cluster]`
+* global/mags\_to\_slcs.tsv
+* global/protein\_clusters.tsv - Machine-readable table for protein clusters `[id_protein_cluster, number_of_components, number_of_samples_of_origin, components, samples_of_origin]`
+* global/proteins\_to\_orthogroups.tsv - Identifier mapping between proteins and protein clusters `[id_protein, id_protein-cluster]`
+* global/representative\_sequences.faa - Protein sequences for cluster representatives.  Header follows the following format: `id_protein-cluster id_original_protein`
+* global/scaffolds\_to\_mags.tsv - Identifier mapping between contigs and genomes `[id_contig, id_genome]`
+* global/scaffolds\_to\_slcs.tsv - Identifier mapping between contigs and genome clusters `[id_contig, id_genome-cluster]`
+* global/pangenome_tables/*.tsv.gz - Pangenome tables for each SLC with prevalence values
+* global/serialization/*.dict.pkl - Python dictionaries for clusters
+* global/serialization/*.networkx_graph.pkl - NetworkX graphs for clusters
+* local/* - If `--no_local_clustering` is not selected then all of the files are generated for local clustering
 
 
 
