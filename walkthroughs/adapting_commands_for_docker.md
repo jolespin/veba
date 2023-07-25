@@ -58,7 +58,12 @@ For the output directory, it requires an additional step.  We first need to spec
 
 We link these with the `--volume` argument so any file in the `LOCAL_WORKING_DIRECTORY` will be mirrored in the `CONTAINER_INPUT_DIRECTORY` and any files created in the `CONTAINER_OUTPUT_DIRECTORY` (i.e., the `RELATIVE_OUTPUT_DIRECTORY`) will be mirrored in the `LOCAL_OUTPUT_PARENT_DIRECTORY`. 
 
-Note: If we don't link the local and container output directories then the output files will be stranded in the container.
+For some modules, you will need the VEBA Database.  To set the `LOCAL_DATABASE_DIRECTORY` to the `${VEBA_DATABASE}` environment variable or alternatively the path to the VEBA Database (refer to the [*VEBA Database Documentation*](https://github.com/jolespin/veba/blob/main/install/DATABASE.md#database-structure)). We mount this to `CONTAINER_DATABASE_DIRECTORY` which is `/volumes/database/` volume in the container. 
+
+
+**Note:**
+
+If we don't link the local and container output directories then the output files will be stranded in the container.
 
 ```bash
 # Directories
@@ -66,7 +71,7 @@ LOCAL_WORKING_DIRECTORY=$(pwd)
 LOCAL_WORKING_DIRECTORY=$(realpath -m ${LOCAL_WORKING_DIRECTORY})
 LOCAL_OUTPUT_PARENT_DIRECTORY=../
 LOCAL_OUTPUT_PARENT_DIRECTORY=$(realpath -m ${LOCAL_OUTPUT_PARENT_DIRECTORY})
-LOCAL_DATABASE_DIRECTORY=${VEBA_DATABASE}
+LOCAL_DATABASE_DIRECTORY=${VEBA_DATABASE} # /path/to/VEBA_DATABASE/
 LOCAL_DATABASE_DIRECTORY=$(realpath -m ${LOCAL_DATABASE_DIRECTORY})
 
 CONTAINER_INPUT_DIRECTORY=/volumes/input/
@@ -101,6 +106,7 @@ docker run \
     -c "${CMD}"
 
 ```
+
 
 #### 4. Get the results
 
