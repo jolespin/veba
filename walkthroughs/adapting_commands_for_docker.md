@@ -41,13 +41,13 @@ VERSION=1.2.0
 # Image
 DOCKER_IMAGE="jolespin/veba_preprocess:${VERSION}"
 
-docker run --name VEBA-preprocess --rm -it ${DOCKER_IMAGE}  -c "preprocess.py -h"
+docker run --name VEBA-preprocess --rm -it ${DOCKER_IMAGE}  preprocess.py -h
 ```
 
 If we wanted to run it interactively, start the container with `bash` (it automatically loads the appropriate `conda` environment):
 
 ```
-docker run --name VEBA-preprocess --rm -it ${DOCKER_IMAGE}  -c "bash"
+docker run --name VEBA-preprocess --rm -it ${DOCKER_IMAGE}  bash
 ```
 
 Though, it's the `preprocess.py` module so it you're running anything other than a toy dataset, then you probably want to run it on the grid so you can go to do something else. 
@@ -58,7 +58,12 @@ For the output directory, it requires an additional step.  We first need to spec
 
 We link these with the `--volume` argument so any file in the `LOCAL_WORKING_DIRECTORY` will be mirrored in the `CONTAINER_INPUT_DIRECTORY` and any files created in the `CONTAINER_OUTPUT_DIRECTORY` (i.e., the `RELATIVE_OUTPUT_DIRECTORY`) will be mirrored in the `LOCAL_OUTPUT_PARENT_DIRECTORY`. 
 
-Note: If we don't link the local and container output directories then the output files will be stranded in the container.
+For some modules, you will need the VEBA Database.  To set the `LOCAL_DATABASE_DIRECTORY` to the `${VEBA_DATABASE}` environment variable or alternatively the path to the VEBA Database (refer to the [*VEBA Database Documentation*](https://github.com/jolespin/veba/blob/main/install/DATABASE.md#database-structure)). We mount this to `CONTAINER_DATABASE_DIRECTORY` which is `/volumes/database/` volume in the container. 
+
+
+**Note:**
+
+If we don't link the local and container output directories then the output files will be stranded in the container.
 
 ```bash
 # Directories
@@ -66,7 +71,7 @@ LOCAL_WORKING_DIRECTORY=$(pwd)
 LOCAL_WORKING_DIRECTORY=$(realpath -m ${LOCAL_WORKING_DIRECTORY})
 LOCAL_OUTPUT_PARENT_DIRECTORY=../
 LOCAL_OUTPUT_PARENT_DIRECTORY=$(realpath -m ${LOCAL_OUTPUT_PARENT_DIRECTORY})
-LOCAL_DATABASE_DIRECTORY=${VEBA_DATABASE}
+LOCAL_DATABASE_DIRECTORY=${VEBA_DATABASE} # /path/to/VEBA_DATABASE/
 LOCAL_DATABASE_DIRECTORY=$(realpath -m ${LOCAL_DATABASE_DIRECTORY})
 
 CONTAINER_INPUT_DIRECTORY=/volumes/input/
@@ -98,9 +103,10 @@ docker run \
     --volume ${LOCAL_OUTPUT_PARENT_DIRECTORY}:${CONTAINER_OUTPUT_DIRECTORY}:rw \
     --volume ${LOCAL_DATABASE_DIRECTORY}:${CONTAINER_DATABASE_DIRECTORY}:ro \
     ${DOCKER_IMAGE} \
-    -c "${CMD}"
+    ${CMD}
 
 ```
+
 
 #### 4. Get the results
 

@@ -237,8 +237,13 @@ ________________________________________________________________
 
 #### Path to `v2.0.0`:
 
+**Critical:**
+
+
 **Definitely:**
 
+* Script that gets marker genes from clustering results
+* Split `download_databases.sh`  into `download_databases.sh` (low memory, high threads) and `configure_databases.sh` (high memory, low-to-mid threads).  Use `aria2` in parallel instead of `wget`.
 * `NextFlow` support
 * Consistent usage of the following terms: 1) dataframe vs. table; 2) protein-cluster vs. orthogroup.
 * Add support for `FAMSA` in `phylogeny.py`
@@ -252,6 +257,8 @@ ________________________________________________________________
 
 **Probably (Yes)?:**
 
+* Run `cmsearch` before `tRNAscan-SE`
+* DN/DS from pangeome analysis
 * Add [iPHoP](https://bitbucket.org/srouxjgi/iphop/src/main/) to `binning-viral.py`.
 * Add a `metabolic.py` module	
 * Swap [`TransDecoder`](https://github.com/TransDecoder/TransDecoder) for [`TransSuite`](https://github.com/anonconda/TranSuite)
@@ -270,7 +277,18 @@ ________________________________________________________________
 <details>
 	<summary> **Daily Change Log:** </summary>
 	
-	
+* [2023.9.11] - Added presets for `MEGAHIT` using the `--megahit_preset` option.
+* [2023.9.11] - The change for using `--mash_db` with `GTDB-Tk` violated the assumption that all prokaryotic classifications had a `msa_percent` field which caused the cluster-level taxonomy to fail.  `compile_prokaryotic_genome_cluster_classification_scores_table.py` fixes this by uses `fastani_ani` as the weight when genomes were classified using ANI and `msa_percent` for everything else.  Initial error caused unclassified prokaryotic for all cluster-level classifications.
+* [2023.9.8] - Fixed small error where empty gff files with an asterisk in the name were created for samples that didn't have any prokaryotic MAGs.
+* [2023.9.8] - Fixed critical error where descriptions in header were not being removed in ``eukaryota.scaffolds.list` and did not remove eukaryotic scaffolds in `seqkit grep` so `DAS_Tool` output eukaryotic MAGs in `identifier_mapping.tsv` and `__DASTool_scaffolds2bin.no_eukaryota.txt`
+* [2023.9.5] - Fixed `krona.html` in `biosynthetic.py` which was being created incorrectly from `compile_krona.py` script.
+* [2023.8.30] - Create `pangenome_core_sequences` in `global_clustering.py` and `local_clustering.py` which writes both protein and CDS sequences for each SLC.  Also made default in `cluster.py` to NOT do local clustering switching `--no_local_clustering` to `--local_clustering`.
+* [2023.8.30] - `pandas.errors.InvalidIndexError: Reindexing only valid with uniquely valued Index objects` in `biosynthetic.py` when `Diamond` finds multiple regions in one hit that matches.  Added `--sort_by` and `--ascending` to `concatenate_dataframes.py` along with automatic detection and removal of duplicate indices.  Also added `--sort_by bitscore` in `biosynthetic.py`.
+* [2023.8.28] - Added core pangenome and singleton hits to clustering output
+* [2023.8.25] - Updated `--megahit_memory` default from 0.9 to 0.99
+* [2023.8.16] - Fixed error in `genomad_taxonomy_wrapper.py` where `viral_taxonomy.tsv` should have been `taxonomy.tsv`.	#! NEED TO TEST
+* [2023.7.26] - Fixed minor error in `assembly.py` that was preventing users from using `SPAdes` programs that were not `spades.py`, `metaspades.py`, or `rnaspades.py` that was the result of using an incorrect string formatting.
+* [2023.7.25] - Updated `bowtie2` in preprocess, assembly, and mapping modules.  Updated `fastp` and `fastq_preprocessor` in preprocess module.
 * [2023.7.7] - Added `compile_gff.py` to merge CDS, rRNA, and tRNA GFF files.  Used in `binning-prokaryotic.py` and `binning-viral.py`.  `binning-eukaryotic.py` uses the source of this in the backend of `filter_busco_results.py`. Includes GC content for contigs and various tags. 
 * [2023.7.6] - Updated `BUSCO v5.3.2 -> v5.4.3` which changes the json output structure and made the appropriate changes in `filter_busco_results.py`.
 * [2023.7.3] - Added `eukaryotic_gene_modeling_wrapper.py` which 1) splits nuclear, mitochondrial, and plastid genomes; 2) performs gene modeling via `MetaEuk` and `Pyrodigal`; 3) performs rRNA detection via `BARRNAP`; 4) performs tRNA detection via `tRNAscan-SE`; 5) merges processed GFF files; and 5) calculates sequences statistics. 

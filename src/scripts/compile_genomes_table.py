@@ -9,7 +9,7 @@ from tqdm import tqdm
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.2.9"
+__version__ = "2023.8.28"
 
 
 def main(args=None):
@@ -34,6 +34,7 @@ def main(args=None):
     # parser_io.add_argument("--protein_fasta_extension", default="faa", type=str, help = "File extension. Include the period/fullstop/. [Default: faa]")
     parser_io.add_argument("-a", "--absolute", action="store_true", help = "Use absolute paths instead of relative paths")
     parser_io.add_argument("-e", "--allow_missing_files", action="store_true", help = "Allow missing files")
+    parser_io.add_argument("--volume_prefix", type=str, help = "Docker container prefix to volume path")
     parser_io.add_argument("--header", action="store_true", help = "Write header")
 
     # Options
@@ -69,6 +70,10 @@ def main(args=None):
     # Absolute paths
     if opts.absolute:
         df_output = df_output.applymap(lambda fp: os.path.abspath(fp))
+
+    # Docker volume prefix
+    if opts.volume_prefix:
+        df_output = df_output.applymap(lambda fp: os.path.join(opts.volume_prefix, fp) if pd.notnull(fp) else fp)
 
     if opts.output == "stdout":
         opts.output = sys.stdout 

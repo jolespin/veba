@@ -7,7 +7,7 @@ import pandas as pd
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.6.12"
+__version__ = "2023.9.5"
 
 
 def main(args=None):
@@ -100,8 +100,8 @@ def main(args=None):
         # if opts.remove_genome_column:
         #     df_output = df_output.drop("genome_id", axis=1)
 
-        df_output = df_input.reset_index().loc[:,["id_genome", "bgc_type", "number_of_bgcs"]]
-        df_output.columns = ["id_genome", "bgc_type", "count"]
+        df_output = df_input.reset_index().loc[:,["number_of_bgcs", "bgc_type","id_genome"]]
+        df_output.columns = [ "count", "bgc_type","id_genome"]
 
     if opts.mode == "biosynthetic-local":
         # if opts.remove_incomplete:
@@ -112,8 +112,8 @@ def main(args=None):
         # if opts.remove_genome_column:
         #     df_output = df_output.drop("genome_id", axis=1)
 
-        df_output = df_input.reset_index().loc[:,["bgc_type", "number_of_bgcs"]]
-        df_output.columns = ["bgc_type", "count"]
+        df_output = df_input.reset_index().loc[:,[ "number_of_bgcs", "bgc_type"]]
+        df_output.columns = ["count", "bgc_type"]
 
     df_output.sort_values("count", ascending=False).to_csv(opts.output, sep="\t", header=None, index=None)
 

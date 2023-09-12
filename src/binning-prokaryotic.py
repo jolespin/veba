@@ -12,7 +12,7 @@ from soothsayer_utils import *
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.7.7"
+__version__ = "2023.9.10"
 
 # Assembly
 def get_coverage_cmd( input_filepaths, output_filepaths, output_directory, directories, opts):
@@ -298,7 +298,10 @@ def get_dastool_cmd(input_filepaths, output_filepaths, output_directory, directo
         "grep",
         '"^>"',
         "|",
+        'cut -f1 -d " "',
+        "|",
         "cut -c2-",
+
         ">",
         os.path.join(output_directory, "__DASTool_bins", "eukaryota", "eukaryota.scaffolds.list"),
 
@@ -519,17 +522,20 @@ def get_consolidate_cmd(input_filepaths, output_filepaths, output_directory, dir
 
 
     cmd = [
-        "rm -rf {}".format(os.path.join(output_directory, "*")),
+        """
+rm -rf {}
+mkdir -p {}
+S2B=$(ls {}) || (echo 'No genomes have been detected' && exit 1)
+
+""".format(
+    os.path.join(output_directory, "*"),
+    os.path.join(output_directory, "genomes"),
+    os.path.join(directories["intermediate"], "*__checkm2",  "filtered", "scaffolds_to_bins.tsv"),
+    ),
     ]
 
     cmd += [ 
-            "&&",
-            
-        "mkdir -p {}".format(os.path.join(output_directory, "genomes")),
 
-            "&&",   
-
-        # scaffolds_to_bins.tsv
         "cat",
         os.path.join(directories["intermediate"], "*__checkm2",  "filtered", "scaffolds_to_bins.tsv"), 
         ">",
@@ -1378,15 +1384,16 @@ def create_pipeline(opts, directories, f_cmds):
 
     # i/o
     input_filepaths = [
-        os.path.join(directories["intermediate"], "*__checkm2",  "filtered", "scaffolds_to_bins.tsv"),
-        os.path.join(directories["intermediate"], "*__checkm2",  "filtered", "bins.list"),
-        os.path.join(directories["intermediate"], "*__checkm2",  "filtered", "binned.list"),
+        # os.path.join(directories["intermediate"], "*__checkm2",  "filtered", "scaffolds_to_bins.tsv"),
+        # os.path.join(directories["intermediate"], "*__checkm2",  "filtered", "bins.list"),
+        # os.path.join(directories["intermediate"], "*__checkm2",  "filtered", "binned.list"),
         os.path.join(directories["intermediate"], "*__checkm2",  "filtered", "checkm2_results.filtered.tsv"),
         os.path.join(directories["intermediate"], "*__checkm2", "filtered", "genomes", "*"),
-        os.path.join(directories[("intermediate", "{}__trnascan-se".format(step-2))], "*.tRNA"),
-        os.path.join(directories[("intermediate", "{}__barrnap".format(step-3))], "*.rRNA"),
         os.path.join(directories[("intermediate", "{}__featurecounts".format(step-1))], "featurecounts.orfs.tsv.gz"),
 
+        # Can't assume these are not empty
+        # os.path.join(directories[("intermediate", "{}__trnascan-se".format(step-2))], "*.tRNA"), 
+        # os.path.join(directories[("intermediate", "{}__barrnap".format(step-3))], "*.rRNA"),
     ]
 
     output_filenames =  [
@@ -1423,7 +1430,7 @@ def create_pipeline(opts, directories, f_cmds):
             cmd=cmd,
             input_filepaths = input_filepaths,
             output_filepaths = output_filepaths,
-            validate_inputs=False,
+            validate_inputs=True,
             validate_outputs=True,
             log_prefix=program_label,
     )

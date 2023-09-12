@@ -3,7 +3,7 @@ import sys, os, glob, argparse, warnings
 import pandas as pd
 
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2022.5.10"
+__version__ = "2023.8.30"
 
 def main(argv=None):
     # Path info
@@ -28,6 +28,8 @@ def main(argv=None):
     parser.add_argument("-e", "--allow_empty_or_missing_files", action="store_true", help = "Allow empty or missing files")
     parser.add_argument("--prepend_index_levels", type=str,  help = "Comma-separeted list to prepend to index of each dataframe.")
     parser.add_argument("--prepend_column_levels", type=str,  help = "Comma-separeted list to prepend to header of each dataframe.  Must match the number of dataframes exactly.")
+    parser.add_argument("--sort_by", type=str,  help = "Sort by values.  This happens before (to remove duplicates) and after concatenation.")
+    parser.add_argument("--ascending", action="store_true", help = "Ascending order instead of descending")
 
     # Options
     opts = parser.parse_args(argv)
@@ -66,6 +68,15 @@ def main(argv=None):
             df = None
             try:
                 df = pd.read_csv(fp, sep=opts.delimiter, index_col=opts.index_column, header=opts.header)
+
+                # Handle duplicates
+                if opts.sort_by:
+                    df = df.sort_values(by=opts.sort_by, ascending=bool(opts.ascending))
+                number_of_duplicates = len(df.index.value_counts()[lambda x: x > 1].index)
+                if number_of_duplicates > 0:
+                    warnings.warn(f"{fp} contains {number_of_duplicates} duplicates.  Removing them now and keeping first instance.")
+                    df = df[~df.index.duplicated(keep='first')]
+
                 if opts.prepend_column_levels is not None:
                     df.columns = df.columns.map(lambda x: (opts.prepend_column_levels[i], x))
                 if opts.prepend_index_levels is not None:
@@ -78,6 +89,15 @@ def main(argv=None):
         dataframes = list()
         for i, fp in enumerate(opts.dataframes):
             df = pd.read_csv(fp, sep=opts.delimiter, index_col=opts.index_column, header=opts.header)
+
+            # Handle duplicates
+            if opts.sort_by:
+                df = df.sort_values(by=opts.sort_by, ascending=bool(opts.ascending))
+            number_of_duplicates = len(df.index.value_counts()[lambda x: x > 1].index)
+            if number_of_duplicates > 0:
+                warnings.warn(f"{fp} contains {number_of_duplicates} duplicates.  Removing them now and keeping first instance.")
+                df = df[~df.index.duplicated(keep='first')]
+
             if opts.prepend_column_levels is not None:
                 df.columns = df.columns.map(lambda x: (opts.prepend_column_levels[i], x))
             if opts.prepend_index_levels is not None:

@@ -40,7 +40,7 @@ sbatch -J ${N} -N 1 -c ${N_JOBS} --ntasks-per-node=1 -o logs/${N}.o -e logs/${N}
 * **[Bioprospecting for biosynthetic gene clusters](bioprospecting_for_biosynthetic_gene_clusters.md)** - Detecting biosynthetic gene clusters (BGC) with and scoring novelty of BGCs.
 * **[Converting counts tables](converting_counts_tables.md)** - Convert your counts table (with or without metadata) to [anndata](https://anndata.readthedocs.io/en/latest/index.html) or [biom](https://biom-format.org/) format.  Also supports [Pandas pickle](https://pandas.pydata.org/docs/reference/api/pandas.read_pickle.html) format.
 * **[Adapting commands for Docker](adapting_commands_for_docker.md)** - Explains how to download and use Docker for running VEBA.
-
+* **[Adapting commands for AWS](adapting_commands_for_aws.md)** - Explains how to download and use Docker for running VEBA specifically on AWS.
 
 
 ___________________________________________

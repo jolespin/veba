@@ -1,6 +1,6 @@
 <a name="readme-top"></a>
 
-![Maintainer](https://img.shields.io/badge/Maintainer-@jolespin-blue) ![License](https://img.shields.io/badge/License-GNU AGPLv3-blue) ![DOI:10.1186/s12859-022-04973-8](https://zenodo.org/badge/DOI/10.1186/s12859-022-04973-8.svg)
+![Maintainer](https://img.shields.io/badge/Maintainer-@jolespin-blue) ![License](https://img.shields.io/badge/License-AGPLv3-blue) ![DOI:10.1186/s12859-022-04973-8](https://zenodo.org/badge/DOI/10.1186/s12859-022-04973-8.svg)
 
 [![Forks][forks-shield]][forks-url]
 [![Stargazers][stars-shield]][stars-url]
@@ -54,6 +54,7 @@ ___________________________________________________________________
 	* [Virulence factor database](http://www.mgc.ac.cn/VFs/main.htm) (`VFDB`) is now included in annotations
 	* [UniRef50/90](https://www.uniprot.org/help/uniref) is now included in annotations
 	* `Krona` plots are generated for taxonomy classifications and biosynthetic gene cluster detection
+	* Fixed a minor issue in `biosynthetic.py` where the fasta and genbank files were not properly symlinked.  Also added virulence factor results to synopsis.
 	
 	
 * **`VEBA` Database**:
@@ -83,7 +84,7 @@ ___________________________________________________________________
 
 ### Getting started with *VEBA*
 
-[Usage and resource requirements guide](src/README.md) for parameters and module descriptions
+[*Usage and Resource Requirements Guide*](src/README.md) for parameters and module descriptions
 
 [*Walkthrough Guides*](walkthroughs/README.md) for tutorials and workflows on how to get started
  

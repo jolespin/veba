@@ -14,7 +14,7 @@ from soothsayer_utils import *
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.6.16"
+__version__ = "2023.9.11"
 
 # GTDB-Tk
 def get_gtdbtk_cmd( input_filepaths, output_filepaths, output_directory, directories, opts):
@@ -133,20 +133,9 @@ def get_consensus_cluster_classification_cmd( input_filepaths, output_filepaths,
 
     # Command
     cmd = [ 
-
-        # cat gtdbtk.summary.tsv | cut -f1,3,18 | tail -n +2 |
-        "cat",
-        input_filepaths[0], #[id_mag]<tab>[id_genome_cluster]<tab>[classification]<tab>[weight]
-        "|",
-        os.environ["cut_table_by_column_labels.py"],
-        "-f classification,msa_percent"
-        "|",
-        "tail -n +2",
-        "|",
-        os.environ["insert_column_to_table.py"],
-        "-c {}".format(opts.clusters),
-        "-n id_genome_cluster",
-        "-i 0",
+        os.environ["compile_prokaryotic_genome_cluster_classification_scores_table.py"],
+        "-i {}".format(input_filepaths[0]),
+        "-c {}".format(input_filepaths[1]),
         "|",
         os.environ["consensus_genome_classification.py"],
         "--leniency {}".format(opts.leniency),
@@ -165,10 +154,11 @@ def add_executables_to_environment(opts):
     Adapted from Soothsayer: https://github.com/jolespin/soothsayer
     """
     accessory_scripts = set([ 
-        "cut_table_by_column_labels.py",
+        "compile_prokaryotic_genome_cluster_classification_scores_table.py",
+        # "cut_table_by_column_labels.py",
         "concatenate_dataframes.py",
         "consensus_genome_classification.py",
-        "insert_column_to_table.py",
+        # "insert_column_to_table.py",
         "compile_krona.py",
 
     ])

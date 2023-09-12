@@ -38,7 +38,7 @@ Currently, **Conda environments for VEBA are ONLY configured for Linux** and, du
 The `VEBA` installation is going to configure some `conda` environments for you and some of them have quite a bit of packages.  To minimize the likelihood of [weird errors](https://forum.qiime2.org/t/valueerror-unsupported-format-character-t-0x54-at-index-3312-when-creating-environment-from-environment-file/25237), it's recommended to do the following:
 
 
-* Use this as your [`~/.condarc`](https://conda.io/projects/conda/en/latest/user-guide/configuration/use-condarc.html).  If you're not familiar with the `.condarc` file, then you probably don't have one configured.  You can use an editor like [nano](https://anaconda.org/conda-forge/nano) (which is what I use), [vim](https://anaconda.org/conda-forge/vim), or [emacs](https://anaconda.org/conda-forge/emacs) to copy/paste the following into `~/.condarc`.
+* Use this as your [`~/.condarc`](https://conda.io/projects/conda/en/latest/user-guide/configuration/use-condarc.html).  If you're not familiar with the `.condarc` file, then you probably don't have one configured.  You can use an editor like [nano](https://anaconda.org/conda-forge/nano) (which is what I use), [vim](https://anaconda.org/conda-forge/vim), or [emacs](https://anaconda.org/conda-forge/emacs) to copy/paste the following into [`~/.condarc`](condarc).
 	
 	```
 	channel_priority: flexible

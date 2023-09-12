@@ -12,7 +12,7 @@ from soothsayer_utils import *
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.7.11"
+__version__ = "2023.8.30"
 
 # antiSMASH
 def get_antismash_cmd( input_filepaths, output_filepaths, output_directory, directories, opts):
@@ -258,6 +258,7 @@ def get_diamond_cmd( input_filepaths, output_filepaths, output_directory, direct
         os.environ["concatenate_dataframes.py"],
         "-a 1",
         "--prepend_column_levels MiBIG,VFDB",
+        "--sort_by bitscore",
         "-o {}".format(os.path.join(directories["output"], "homology.tsv.gz")),
         os.path.join(output_directory, "diamond_output.mibig.tsv"),
         os.path.join(output_directory, "diamond_output.vfdb.tsv"),
