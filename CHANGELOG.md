@@ -24,7 +24,7 @@ ________________________________________________________________
 
 
 <details>
-	<summary> **Release v1.1.2:** </summary>
+	<summary>**Release v1.1.2:**</summary>
 	
 * Created Docker images for all modules
 * Replaced all absolute path symlinks with relative symlinks
@@ -48,7 +48,7 @@ ________________________________________________________________
 </details>
 
 <details>
-	<summary> **Release v1.1.1:** </summary>
+	<summary>**Release v1.1.1:**</summary>
 
 * Most important update includes fixing a broken VEBA-`binning-viral.yml` install recipe which had package conflicts for `aria2` 30e8b0a.
 * Fixes on conda-related environment variables in the install scripts.
@@ -62,7 +62,7 @@ ________________________________________________________________
 </details>
 
 <details>
-	<summary> **Release v1.1.0:** </summary>
+	<summary>**Release v1.1.0:**</summary>
 	
 * **Modules**:
 	* `annotate.py`
@@ -172,7 +172,7 @@ ________________________________________________________________
 </details>
 
 <details>
-	<summary> **Release v1.0.4:** </summary>
+	<summary>**Release v1.0.4:**</summary>
 	
 * Added `biopython` to `VEBA-assembly_env` which is needed when running `MEGAHIT` as the scaffolds are rewritten and [an error](https://github.com/jolespin/veba/issues/17) was raised. [aea51c3](https://github.com/jolespin/veba/commit/aea51c3e0b775aec90f7343f01cad6911f526f0a)
 * Updated Microeukaryotic protein database to exclude a few higher eukaryotes that were present in database, changed naming scheme to hash identifiers (from `cat reference.faa | seqkit fx2tab -s -n > id_to_hash.tsv`).  Switching database from [FigShare](https://figshare.com/articles/dataset/Microeukaryotic_Protein_Database/19668855) to [Zenodo](https://zenodo.org/record/7485114#.Y6vZO-zMKDU).  Uses database version `VDB_v3` which has the updated microeukaryotic protein database (`VDB-Microeukaryotic_v2`) [0845ba6](https://github.com/jolespin/veba/commit/0845ba6be65f3486d61fe7ae21a2937efeb42ee9)
@@ -180,7 +180,7 @@ ________________________________________________________________
 </details>
 
 <details>
-	<summary> **Release v1.0.3e:** </summary>
+	<summary>**Release v1.0.3e:**</summary>
 	
 * Patch fix for `install_veba.sh` where `install/environments/VEBA-assembly_env.yml` raised [a compatibilty error](https://github.com/jolespin/veba/issues/15) when creating the `VEBA-assembly_env` environment. [c2ab957](https://github.com/jolespin/veba/commit/c2ab957be132d34e6b99d6dea394be4572b83066)
 * Patch fix for `VirFinder_wrapper.R` where `__version__ = ` variable was throwing [an R error](https://github.com/jolespin/veba/issues/13) when running `binning-viral.py` module. [19e8f38](https://github.com/jolespin/veba/commit/19e8f38a5050328b7ba88b2271f0221073748cbb)
@@ -201,7 +201,7 @@ ________________________________________________________________
 </details>
 
 <details>
-	<summary> **Release v1.0.2a:** </summary>
+	<summary>**Release v1.0.2a:**</summary>
 
 * Updated *GTDB-Tk* in `VEBA-binning-prokaryotic_env` from `1.x` to `2.x` (this version uses much less memory): [f3507dd](https://github.com/jolespin/veba/commit/f3507dd13a42960e3671c9f8a106c9974fbfce21)
 * Updated the *GTDB-Tk* database from `R202` to `R207_v2` to be compatible with *GTDB-Tk v2.x*: [f3507dd](https://github.com/jolespin/veba/commit/f3507dd13a42960e3671c9f8a106c9974fbfce21)
@@ -217,7 +217,7 @@ ________________________________________________________________
 
 
 <details>
-	<summary> **Release v1.0.1:** </summary>
+	<summary>**Release v1.0.1:**</summary>
 
 * Fixed the fatal binning-eukaryotic.py error: [7c5addf](https://github.com/jolespin/veba/commit/7c5addf9ed6e8e45502274dd353f20b211838a41)
 * Fixed the minor file naming in cluster.py: [5803845](https://github.com/jolespin/veba/commit/58038451dac0791899aa7fca3f9d79454cb9ed46)
@@ -227,7 +227,7 @@ ________________________________________________________________
 
 
 <details>
-	<summary> **Release v1.0.0:** </summary>
+	<summary>**Release v1.0.0:**</summary>
 	
 * Released with *BMC Bionformatics* publication (doi:10.1186/s12859-022-04973-8).
 
@@ -275,7 +275,7 @@ ________________________________________________________________
 
 
 <details>
-	<summary> **Daily Change Log:** </summary>
+	<summary>**Daily Change Log:**</summary>
 	
 * [2023.9.11] - Added presets for `MEGAHIT` using the `--megahit_preset` option.
 * [2023.9.11] - The change for using `--mash_db` with `GTDB-Tk` violated the assumption that all prokaryotic classifications had a `msa_percent` field which caused the cluster-level taxonomy to fail.  `compile_prokaryotic_genome_cluster_classification_scores_table.py` fixes this by uses `fastani_ani` as the weight when genomes were classified using ANI and `msa_percent` for everything else.  Initial error caused unclassified prokaryotic for all cluster-level classifications.
@@ -286,7 +286,7 @@ ________________________________________________________________
 * [2023.8.30] - `pandas.errors.InvalidIndexError: Reindexing only valid with uniquely valued Index objects` in `biosynthetic.py` when `Diamond` finds multiple regions in one hit that matches.  Added `--sort_by` and `--ascending` to `concatenate_dataframes.py` along with automatic detection and removal of duplicate indices.  Also added `--sort_by bitscore` in `biosynthetic.py`.
 * [2023.8.28] - Added core pangenome and singleton hits to clustering output
 * [2023.8.25] - Updated `--megahit_memory` default from 0.9 to 0.99
-* [2023.8.16] - Fixed error in `genomad_taxonomy_wrapper.py` where `viral_taxonomy.tsv` should have been `taxonomy.tsv`.	#! NEED TO TEST
+* [2023.8.16] - Fixed error in `genomad_taxonomy_wrapper.py` where `viral_taxonomy.tsv` should have been `taxonomy.tsv`.	
 * [2023.7.26] - Fixed minor error in `assembly.py` that was preventing users from using `SPAdes` programs that were not `spades.py`, `metaspades.py`, or `rnaspades.py` that was the result of using an incorrect string formatting.
 * [2023.7.25] - Updated `bowtie2` in preprocess, assembly, and mapping modules.  Updated `fastp` and `fastq_preprocessor` in preprocess module.
 * [2023.7.7] - Added `compile_gff.py` to merge CDS, rRNA, and tRNA GFF files.  Used in `binning-prokaryotic.py` and `binning-viral.py`.  `binning-eukaryotic.py` uses the source of this in the backend of `filter_busco_results.py`. Includes GC content for contigs and various tags. 
