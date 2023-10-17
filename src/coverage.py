@@ -7,12 +7,13 @@ import pandas as pd
 
 # Soothsayer Ecosystem
 from genopype import *
+from genopype import __version__ as genopype_version
 from soothsayer_utils import *
 
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.5.16"
+__version__ = "2023.10.16"
 
 # .............................................................................
 # Notes
@@ -144,9 +145,15 @@ do echo $LINE
     # Create subdirectory
     mkdir -p %s
 
-    # Bowtie2
-    %s -x %s -1 $R1 -2 $R2 --threads %d --seed %d --no-unal %s | %s sort --threads %d --reference %s -T %s > %s && %s index -@ %d %s
+    OUTPUT_BAM="%s"
 
+    # Bowtie2
+    if [[ -e "$OUTPUT_BAM" && -s "$OUTPUT_BAM" ]]; then
+        echo "[Skipping (Exists)] [Bowtie2] [$ID_SAMPLE]"
+    else
+        echo "[Running] [Bowtie2] [$ID_SAMPLE]"
+        %s -x %s -1 $R1 -2 $R2 --threads %d --seed %d --no-unal %s | %s sort --threads %d --reference %s -T %s > $OUTPUT_BAM && %s index -@ %d $OUTPUT_BAM
+    fi
 done < $READ_TABLE
 
 """%( 
@@ -158,6 +165,10 @@ done < $READ_TABLE
 
     # Make directory
     os.path.join(output_directory, "${ID_SAMPLE}"),
+
+    # Output BAM
+    os.path.join(output_directory, "${ID_SAMPLE}", "mapped.sorted.bam"),
+
 
     # Bowtie2
     os.environ["bowtie2"],
@@ -171,12 +182,12 @@ done < $READ_TABLE
     opts.n_jobs,
     input_filepaths[0],
     os.path.join(directories["tmp"], "samtools_sort_${ID_SAMPLE}"),
-    os.path.join(output_directory, "${ID_SAMPLE}", "mapped.sorted.bam"),
+    # os.path.join(output_directory, "${ID_SAMPLE}", "mapped.sorted.bam"),
 
     # Samtools index
     os.environ["samtools"],
     opts.n_jobs,
-    os.path.join(output_directory, "${ID_SAMPLE}", "mapped.sorted.bam"),
+    # os.path.join(output_directory, "${ID_SAMPLE}", "mapped.sorted.bam"),
     ),
 
     ]
@@ -557,6 +568,7 @@ def main(args=None):
     print(format_header("Configuration:", "-"), file=sys.stdout)
     print("Python version:", sys.version.replace("\n"," "), file=sys.stdout)
     print("Python path:", sys.executable, file=sys.stdout) #sys.path[2]
+    print("GenoPype version:", genopype_version, file=sys.stdout) #sys.path[2]
     print("Script version:", __version__, file=sys.stdout)
     print("Moment:", get_timestamp(), file=sys.stdout)
     print("Directory:", os.getcwd(), file=sys.stdout)

@@ -1,4 +1,4 @@
-name: VEBA-biosynthetic_env__v2023.6.23
+name: VEBA-biosynthetic_env__v2023.9.15
 channels:
   - conda-forge
   - bioconda
@@ -10,6 +10,7 @@ dependencies:
   - alsa-lib=1.2.6.1=h7f98852_0
   - antismash=6.1.1=pyhdfd78af_0
   - appdirs=1.4.4=pyh9f0ad1d_0
+  - aria2=1.36.0=h1e4e653_3
   - arrow-cpp=11.0.0=ha770c72_13_cpu
   - attrs=22.2.0=pyh71513ae_0
   - aws-c-auth=0.6.26=hdca2abe_0
@@ -38,9 +39,9 @@ dependencies:
   - bz2file=0.98=py_0
   - bzip2=1.0.8=h7f98852_4
   - c-ares=1.18.1=h7f98852_0
-  - ca-certificates=2023.5.7=hbcca054_0
+  - ca-certificates=2023.7.22=hbcca054_0
   - cairo=1.16.0=h18b612c_1001
-  - certifi=2023.5.7=pyhd8ed1ab_0
+  - certifi=2023.7.22=pyhd8ed1ab_0
   - cffi=1.15.1=py38h4a40e3a_3
   - charset-normalizer=2.1.1=pyhd8ed1ab_0
   - colorama=0.4.6=pyhd8ed1ab_0
@@ -62,6 +63,7 @@ dependencies:
   - fonts-conda-forge=1=0
   - fonttools=4.38.0=py38h0a891b7_1
   - freetype=2.12.1=hca18f0e_1
+  - gawk=5.1.0=h7f98852_0
   - genopype=2023.5.15=py_0
   - gettext=0.21.1=h27087fc_0
   - gflags=2.2.2=he1b5a44_1004
@@ -143,13 +145,15 @@ dependencies:
   - markupsafe=2.1.1=py38h0a891b7_2
   - matplotlib-base=3.6.2=py38hb021067_0
   - meme=4.11.2=py38pl5321h88f601c_8
+  - mmseqs2=14.7e284=pl5321h6a68c12_2
   - munkres=1.1.4=pyh9f0ad1d_0
   - muscle=3.8.1551=h7d875b9_6
   - ncurses=6.3=h27087fc_1
+  - networkx=3.1=pyhd8ed1ab_0
   - numpy=1.23.5=py38h7042d01_0
   - openjdk=11.0.15=hc6918da_0
   - openjpeg=2.5.0=hfec8fc6_2
-  - openssl=3.1.0=hd590300_3
+  - openssl=3.1.2=hd590300_0
   - orc=1.8.3=hfdbbad2_0
   - packaging=22.0=pyhd8ed1ab_0
   - pandas=1.5.2=py38h8f669ce_0

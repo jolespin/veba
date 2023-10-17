@@ -5,7 +5,7 @@ import pandas as pd
 from tqdm import tqdm
 
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2021.5.12"
+__version__ = "2021.10.11"
 
 def main(args=None):
     # Path info
@@ -22,6 +22,9 @@ def main(args=None):
     # Pipeline
     parser.add_argument("-i","--classify_directory", type=str, default="veba_output/classify", help = "path/to/classify_directory.  Assumes directory structure is [classification_directory]/[domain]/output/taxonomy.tsv/[taxonomy.clusters.tsv] [Default: veba_output/classify]")
     parser.add_argument("-o","--output_directory", type=str, help = "path/to/output_directory [Default: veba_output/classify]", default="veba_output/classify")
+    parser.add_argument("-d","--no_domain", action="store_true", help = "Don't domain in output")
+    parser.add_argument("--no_header", action="store_true", help = "Don't write header")
+
 
     # Options
     opts = parser.parse_args()
@@ -39,12 +42,13 @@ def main(args=None):
         for fp in cluster_taxonomy:
             id_domain = fp.split("/")[-3]
             df = pd.read_csv(fp, sep="\t", index_col=0)
-            df.insert(loc=0, column="domain", value=id_domain)
+            if not opts.no_domain:
+                df.insert(loc=0, column="domain", value=id_domain)
             cluster_dataframes.append(df)
         df_taxonomy_clusters = pd.concat(cluster_dataframes, axis=0)
         df_taxonomy_clusters.index.name = "id_genome_cluster"
         print("\tWriting genome cluster taxonomy output for {} clusters: {}".format(df_taxonomy_clusters.shape[0], os.path.join(opts.output_directory, "taxonomy_classifications.clusters.tsv")), file=sys.stdout)
-        df_taxonomy_clusters.to_csv(os.path.join(opts.output_directory, "taxonomy_classifications.clusters.tsv"), sep="\t")
+        df_taxonomy_clusters.to_csv(os.path.join(opts.output_directory, "taxonomy_classifications.clusters.tsv"), sep="\t",  header=not bool(opts.no_header))
 
     else:
         print("Could not find any cluster taxonomy tables in the following directory: {}".format(opts.classify_directory), file=sys.stdout)
@@ -69,6 +73,10 @@ def main(args=None):
                     genome_to_data[id_genome] = {"domain":id_domain, "taxonomy_classification":taxonomy}
         df_taxonomy_genomes = pd.DataFrame(genome_to_data).T
         df_taxonomy_genomes = df_taxonomy_genomes.loc[:,["domain", "taxonomy_classification"]]
+        if opts.no_domain:
+            df_taxonomy_genomes = df_taxonomy_genomes.drop(["domain"], axis=1)
+
+
         df_taxonomy_genomes.index.name = "id_genome"
         # if df_taxonomy_clusters is not None:
         #     mag_to_slc = dict()
@@ -79,7 +87,7 @@ def main(args=None):
         #     mag_to_slc = pd.Series(mag_to_slc)
         #     df_taxonomy_genomes.insert(loc=1, column="id_genome_cluster", value=mag_to_slc)
         print("\tWriting genome taxonomy output for {} genomes: {}".format(df_taxonomy_genomes.shape[0], os.path.join(opts.output_directory, "taxonomy_classifications.tsv")), file=sys.stdout)
-        df_taxonomy_genomes.to_csv(os.path.join(opts.output_directory, "taxonomy_classifications.tsv"), sep="\t")
+        df_taxonomy_genomes.to_csv(os.path.join(opts.output_directory, "taxonomy_classifications.tsv"), sep="\t",  header=not bool(opts.no_header))
 
     else:
         print("Could not find any taxonomy tables in the following directory: {}".format(opts.classify_directory), file=sys.stdout)

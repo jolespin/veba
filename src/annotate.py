@@ -7,13 +7,14 @@ import pandas as pd
 
 # Soothsayer Ecosystem
 from genopype import *
+from genopype import __version__ as genopype_version
 from soothsayer_utils import *
 from soothsayer_utils.soothsayer_utils import assert_acceptable_arguments
 
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.6.20"
+__version__ = "2023.10.16"
 
 def get_diamond_cmd( input_filepaths, output_filepaths, output_directory, directories, opts, program):
     tmp = os.path.join(directories["tmp"], program)
@@ -679,6 +680,7 @@ def main(args=None):
 
     # KOFAMSCAN
     parser_kofamscan = parser.add_argument_group('KOFAMSCAN arguments')
+    
     parser_kofamscan.add_argument("--kofamscan_options", type=str, default="", help="Diamond | More options (e.g. --arg 1 ) [Default: '']")
 
     # Options
@@ -712,6 +714,7 @@ def main(args=None):
     print(format_header("Configuration:", "-"), file=sys.stdout)
     print("Python version:", sys.version.replace("\n"," "), file=sys.stdout)
     print("Python path:", sys.executable, file=sys.stdout) #sys.path[2]
+    print("GenoPype version:", genopype_version, file=sys.stdout) #sys.path[2]
     print("Script version:", __version__, file=sys.stdout)
     print("VEBA Database:", opts.veba_database, file=sys.stdout)
     print("Moment:", get_timestamp(), file=sys.stdout)

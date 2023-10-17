@@ -14,7 +14,7 @@ from soothsayer_utils import *
 
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.8.30"
+__version__ = "2023.10.5"
 
 def get_basename(x):
     _, fn = os.path.split(x)
@@ -95,6 +95,7 @@ def add_executables_to_environment(opts):
 # Configure parameters
 def configure_parameters(opts, directories):
     assert_acceptable_arguments(opts.algorithm, {"easy-cluster", "easy-linclust"})
+    assert 0 < opts.minimum_core_prevalence <= 1.0, "--minimum_core_prevalence must be a float between (0.0,1.0])"
 
     # Set environment variables
     add_executables_to_environment(opts=opts)
@@ -114,10 +115,10 @@ def main(args=None):
     parser = argparse.ArgumentParser(description=description, usage=usage, epilog=epilog, formatter_class=argparse.RawTextHelpFormatter)
     # Pipeline
     parser_io = parser.add_argument_group('Required I/O arguments')
-    parser_io.add_argument("-i", "--input", type=str, default="stdin",  help = "path/to/input.tsv, Format: Must include the follow columns (No header) [organism_type]<tab>[id_sample]<tab>[id_mag]<tab>[genome]<tab>[proteins]<tab>[cds] but can include additional columns to the right (e.g., [gene_models]).  Suggested input is from `compile_genomes_table.py` script. [Default: stdin]")
+    parser_io.add_argument("-i", "--genomes_table", type=str, default="stdin",  help = "path/to/genomes_table.tsv, Format: Must include the following columns (No header) [organism_type]<tab>[id_sample]<tab>[id_mag]<tab>[genome]<tab>[proteins]<tab>[cds] but can include additional columns to the right (e.g., [gene_models]).  Suggested input is from `compile_genomes_table.py` script. [Default: stdin]")
     parser_io.add_argument("-o","--output_directory", type=str, default="local_clustering_output", help = "path/to/project_directory [Default: local_clustering_output]")
     parser_io.add_argument("-e", "--no_singletons", action="store_true", help="Exclude singletons") #isPSLC-1_SSPC-3345__SRR178126
-    parser_io.add_argument("-r", "--no_representative_sequences", action="store_true", help="Exclude representative sequences") #isPSLC-1_SSPC-3345__SRR178126
+    parser_io.add_argument("-R", "--no_representative_sequences", action="store_true", help="Exclude representative sequences") #isPSLC-1_SSPC-3345__SRR178126
     parser_io.add_argument("-C", "--no_core_sequences", action="store_true", help="Do not write core pagenome sequences to fasta") #isPSLC-1_SSPC-3345__SRR178126
 
     # Utility
@@ -145,6 +146,10 @@ def main(args=None):
     parser_mmseqs2.add_argument("--protein_cluster_suffix", type=str, default="", help="Cluster suffix [Default: '")
     parser_mmseqs2.add_argument("--protein_cluster_prefix_zfill", type=int, default=0, help="Cluster prefix zfill. Use 7 to match identifiers from OrthoFinder.  Use 0 to add no zfill. [Default: 0]") #7
     parser_mmseqs2.add_argument("--mmseqs2_options", type=str, default="", help="MMSEQS2 | More options (e.g. --arg 1 ) [Default: '']")
+
+    # Pangenome
+    parser_pangenome = parser.add_argument_group('Pangenome arguments')
+    parser_pangenome.add_argument("--minimum_core_prevalence", type=float, default=1.0, help="Minimum ratio of genomes detected in a SLC for a SSPC to be considered core (Range (0.0, 1.0]) [Default: 1.0]")
 
     # Options
     opts = parser.parse_args()
@@ -184,19 +189,21 @@ def main(args=None):
     configure_parameters(opts, directories)
     sys.stdout.flush()
 
-    # Load input
+    # Make directories
     t0 = time.time()
-    if opts.input == "stdin":
-        opts.input = sys.stdin
-    df_genomes = pd.read_csv(opts.input, sep="\t", header=None)
+    print(format_header(" " .join(["* ({}) Creating directories:".format(format_duration(t0)), directories["intermediate"]])), file=sys.stdout)
+    os.makedirs(opts.output_directory, exist_ok=True)
+
+    # Load input
+    if opts.genomes_table == "stdin":
+        opts.genomes_table = sys.stdin
+    df_genomes = pd.read_csv(opts.genomes_table, sep="\t", header=None)
     assert df_genomes.shape[1] >= 6, "Must include the follow columns (No header) [organism_type]<tab>[id_sample]<tab>[id_mag]<tab>[genome]<tab>[proteins]<tab>[cds] but can include additional columns to the right (e.g., [gene_models]).  Suggested input is from `compile_genomes_table.py` script.  You have provided a table with {} columns.".format(df_genomes.shape[1])
     df_genomes = df_genomes.iloc[:,:6]
     df_genomes.columns = ["organism_type", "id_sample", "id_mag", "genome", "proteins", "cds"]
-    assert not np.any(df_genomes.isnull()), "Input has missing values.  Please correct this.\n{}".format(df_genomes.loc[df_genomes.isnull().sum(axis=1)[lambda x: x > 0].index].to_string())
+    assert not np.any(df_genomes.isnull()), "--genomes_table has missing values.  Please correct this.\n{}".format(df_genomes.loc[df_genomes.isnull().sum(axis=1)[lambda x: x > 0].index].to_string())
 
-    # Make directories
-    print(format_header(" " .join(["* ({}) Creating directories:".format(format_duration(t0)), directories["intermediate"]])), file=sys.stdout)
-    os.makedirs(opts.output_directory, exist_ok=True)
+
 
     for organism_type, df_1 in df_genomes.groupby("organism_type"):
         # Organism directories
@@ -375,6 +382,7 @@ def main(args=None):
                 "--basename protein_clusters",
                 "--identifiers {}".format(os.path.join(genomecluster_directory, "protein_identifiers.list")),
                 "--no_sequences_and_header",
+                "--representative_output_format table",
 
                     "&&",
 
@@ -559,7 +567,7 @@ def main(args=None):
     # Add detection number and ratios
     df_proteinclusters["number_of_genomes_detected"] = pd.Series(protein_to_number_of_genomes_detected)
     df_proteinclusters["ratio_of_genomes_detected"] = pd.Series(protein_to_ratio_of_genomes_detected)
-    df_proteinclusters["core_pangenome"] = df_proteinclusters["ratio_of_genomes_detected"] == 1
+    df_proteinclusters["core_pangenome"] = df_proteinclusters["ratio_of_genomes_detected"] >= opts.minimum_core_prevalence
     df_proteinclusters["singleton"] = df_proteinclusters["number_of_genomes_detected"] == 1
 
 
@@ -567,6 +575,10 @@ def main(args=None):
     df_genomeclusters["core_pangenome"] = genomecluster_to_corepangenome
     df_genomeclusters["number_of_singleton_proteins"] = genomecluster_to_singletons.map(len)
     df_genomeclusters["singletons"] = genomecluster_to_singletons
+
+    # Number of copies of SSPC per genome
+    number_of_gene_copies_per_sspc_per_genome  = df_proteins.groupby(["id_genome", "id_protein_cluster"]).size()
+    df_proteinclusters["average_number_of_copies_per_genome"] = number_of_gene_copies_per_sspc_per_genome.groupby(lambda x: x[1]).mean()
 
     # Writing output files
     print(format_header(" * ({}) Writing Output Tables:".format(format_duration(t0))), file=sys.stdout)

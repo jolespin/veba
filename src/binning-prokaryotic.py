@@ -7,12 +7,13 @@ import pandas as pd
 
 # Soothsayer Ecosystem
 from genopype import *
+from genopype import __version__ as genopype_version
 from soothsayer_utils import *
 
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.9.10"
+__version__ = "2023.10.16"
 
 # Assembly
 def get_coverage_cmd( input_filepaths, output_filepaths, output_directory, directories, opts):
@@ -453,6 +454,20 @@ rm -f {}
 
 # tRNAscan-SE
 def get_trnascan_cmd(input_filepaths, output_filepaths, output_directory, directories, opts):
+
+
+            # os.environ["cmsearch"],
+            # "-o {}".format(os.path.join(output_directory, "{}.out".format(id_model))),
+            # "-A {}".format(os.path.join(output_directory, "{}.aln".format(id_model))),
+            # "--tblout {}".format(os.path.join(output_directory, "{}.tblout".format(id_model))),
+            # "--cpu {}".format(opts.n_jobs),
+            # "-g",
+            # "--notrunc",
+            # "--mid",
+            # opts.cmsearch_options,
+            # filepath,
+            # input_filepaths[0],
+
     cmd = [
         "cat",
         input_filepaths[0],
@@ -1654,6 +1669,7 @@ def main(args=None):
     print(format_header("Name: {}".format(opts.name), "."), file=sys.stdout)
     print("Python version:", sys.version.replace("\n"," "), file=sys.stdout)
     print("Python path:", sys.executable, file=sys.stdout) #sys.path[2]
+    print("GenoPype version:", genopype_version, file=sys.stdout) #sys.path[2]
     print("Script version:", __version__, file=sys.stdout)
     print("VEBA Database:", opts.veba_database, file=sys.stdout)
     print("Moment:", get_timestamp(), file=sys.stdout)

@@ -7,7 +7,7 @@ from tqdm import tqdm
 
 pd.options.display.max_colwidth = 100
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.5.18"
+__version__ = "2023.9.15"
 
 
 def main(args=None):
@@ -34,11 +34,16 @@ def main(args=None):
     parser.add_argument("-i","--input",  type=str, default="stdin", help = "path/to/input.tsv [id_genome]<tab>[id_protein]<tab>[id_protein-cluster](No header) [Default: stdin]")
     parser.add_argument("-o","--output", type=str, default="stdout", help = "path/to/output.tsv [Default: stdout]")
     parser.add_argument("-b","--boolean", action="store_true", help = "Return True/False instead of integer counts")
+    parser.add_argument("--dtype", type=str, default="bool", help = "Dtype for boolean output {bool, int} [Default: bool]")
+    parser.add_argument("-c", "--columns_name", type=str, default="id_protein-cluster", help = "Columns name [Default: id_protein-cluster]")
+    parser.add_argument("-r", "--rows_name", type=str, default="id_genome", help = "Rows name [Default: id_genome]")
 
     # Options
     opts = parser.parse_args()
     opts.script_directory  = script_directory
     opts.script_filename = script_filename
+
+    assert opts.dtype in {"bool", "int"}, "--bool must be either {bool, int}"
 
     # I/O
     if opts.input == "stdin":
@@ -61,11 +66,13 @@ def main(args=None):
 
     # Create output
     df_output = pd.DataFrame(A, index=genomes, columns=clusters)
-    df_output.index.name = "id_genome"
-    df_output.columns.name = "id_protein-cluster"
+    df_output.index.name = opts.rows_name
+    df_output.columns.name = opts.columns_name
 
     if opts.boolean:
         df_output = df_output > 0
+        if opts.dtype == "int":
+            df_output = df_output.astype(int)
 
     df_output.to_csv(opts.output, sep="\t")
 

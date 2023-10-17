@@ -4,7 +4,7 @@ from collections import OrderedDict
 import pandas as pd
 
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.9.11"
+__version__ = "2023.9.27"
 
 def main(argv=None):
     # Path info
@@ -54,7 +54,8 @@ def main(argv=None):
     B = set(genome_to_genomecluster.index)
     C = A & B
     D = (A | B) - C
-    assert A == B, "Not all genomes overlap between --gtdbtk_results and --clusters.\n * Genomes only in --gtdbtk_results: {}\n * Genomes only in clusters: {}".format(A - B, B - A)
+    assert A <= B, "Not all genomes from --gtdbtk_results are in --clusters.\n * Genomes only in --gtdbtk_results: {}\n".format(A - B)
+    genome_to_genomecluster = genome_to_genomecluster.loc[df_gtdbtk_results.index]
 
     # Get classifications and weight for genomes
     genome_to_weight = dict()

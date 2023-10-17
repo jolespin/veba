@@ -12,7 +12,7 @@ from soothsayer_utils import *
 
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.6.13"
+__version__ = "2023.9.15"
 
 # Check
 def get_check_cmd( input_filepaths, output_filepaths, output_directory, directories, opts):
@@ -77,9 +77,10 @@ def get_compile_cmd(input_filepaths, output_filepaths, output_directory, directo
             os.environ["reformat_representative_sequences.py"],
             "-c {}".format(os.path.join(output_directory, "{}.tsv".format(opts.basename))),
             "-i {}".format(input_filepaths[1]),
-            "-f table",
-            "-o {}".format(os.path.join(output_directory, "representative_sequences.tsv.gz")),
+            "-f {}".format(opts.representative_output_format),
+            "-o {}".format(output_filepaths[1]),
     ]
+
     if opts.no_sequences_and_header:
         cmd += [ 
             "--no_sequences",
@@ -241,10 +242,11 @@ def create_pipeline(opts, directories, f_cmds):
     input_filepaths = output_filepaths
     output_filenames = [
         "{}.tsv".format(opts.basename),
-        # "{}.networkx_graph.pkl".format(opts.basename),
-        # "{}.dict.pkl".format(opts.basename),
-        "representative_sequences.tsv.gz",
     ]
+    if opts.representative_output_format == "table":
+        output_filenames += ["representative_sequences.tsv.gz"]
+    if opts.representative_output_format == "fasta":
+        output_filenames += ["representative_sequences.fasta.gz"]
     output_filepaths = list(map(lambda filename: os.path.join(output_directory, filename), output_filenames))
 
     params = {
@@ -274,7 +276,7 @@ def create_pipeline(opts, directories, f_cmds):
 def configure_parameters(opts, directories):
 
     assert_acceptable_arguments(opts.algorithm, {"easy-cluster", "easy-linclust"})
-
+    assert_acceptable_arguments(opts.representative_output_format, {"table", "fasta"})
     # Set environment variables
     add_executables_to_environment(opts=opts)
 
@@ -317,6 +319,7 @@ def main(args=None):
     parser_mmseqs2.add_argument("--mmseqs2_options", type=str, default="", help="MMSEQS2 | More options (e.g. --arg 1 ) [Default: '']")
     parser_mmseqs2.add_argument("--identifiers", type=str, help = "Identifiers to include for `edgelist_to_clusters.py`.  If missing identifiers and singletons are allowed, then they will be included as singleton clusters with weight of np.inf")
     parser_mmseqs2.add_argument("--no_sequences_and_header", action="store_true", help = "Don't include sequences or header in table.  Useful for concatenation and reduced redundancy of sequences")
+    parser_mmseqs2.add_argument("-f","--representative_output_format", type=str, default="fasta", help = "Format of output for representative sequences: {table, fasta} [Default: fasta]") # Should fasta be the new default?
 
     # Options
     opts = parser.parse_args()

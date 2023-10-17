@@ -6,7 +6,7 @@ import numpy as np
 from soothsayer_utils import read_hmmer, pv, get_file_object, assert_acceptable_arguments, format_header
 
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.6.20"
+__version__ = "2023.10.10"
 
 # disclaimer = format_header("DISCLAIMER: Lineage predictions are NOT robust and DO NOT USE CORE MARKERS.  Please only use for exploratory suggestions.")
 
@@ -202,7 +202,14 @@ def main(args=None):
         print(" *!* HMMSearch table [AntiFam] is empty", file=sys.stderr)
 
     print(" * Reading KOFAMSCAN table [KEGG]: {}".format(opts.kofam), file=sys.stderr)
-    df_kofamscan = pd.read_csv(opts.kofam, sep="\t", index_col=None, header=None)
+    columns =  ["significance", "id_protein", "id_hmm", "score","score2", "evalue", "name_hmm"]
+    try:
+        df_kofamscan = pd.read_csv(opts.kofam, sep="\t", index_col=None, header=None)
+        df_kofamscan.columns = columns
+    except pd.errors.EmptyDataError:
+        df_kofamscan = pd.DataFrame(columns=columns)
+
+
     if not df_kofamscan.empty:
         proteins = proteins | set(df_kofamscan.iloc[:,1])
     else:

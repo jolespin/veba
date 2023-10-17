@@ -7,12 +7,14 @@ import pandas as pd
 
 # Soothsayer Ecosystem
 from genopype import *
+from genopype import __version__ as genopype_version
+
 from soothsayer_utils import *
 import fastq_preprocessor
 
 
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.5.8"
+__version__ = "2023.10.16"
 
 # ============
 # Run Pipeline

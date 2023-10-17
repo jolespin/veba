@@ -3,11 +3,12 @@ from __future__ import print_function, division
 import sys, os, argparse, glob
 import pandas as pd
 from genopype import * 
-from genopype import __version__ as genopype_version
 from soothsayer_utils import *
 
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.10.16"
+__version__ = "2022.05.10"
+# This version is build STAR index. The limiting factor here is getting an analog to exon in the prodigal generated GTF for this option -sjdbGTFfeatureExon
+
 
 # ==============
 # Agostic commands
@@ -80,6 +81,38 @@ def get_bowtie2_global_cmd(input_filepaths, output_filepaths, output_directory, 
         "--threads {}".format(opts.n_jobs),
         "--seed {}".format(opts.random_state),
         opts.bowtie2_build_options,
+        input_filepaths[0],
+        input_filepaths[0],
+    ]
+    return cmd
+
+def get_star_global_cmd(input_filepaths, output_filepaths, output_directory, directories, opts):
+    # STAR --runThreadN 4 --runMode genomeGenerate --genomeSAindexNbases 12 --genomeDir . --genomeFastaFiles  {} --sjdbOverhang 150 --sjdbGTFfile ${GTF}
+    os.environ["TMPDIR"] = directories["tmp"]
+    # Command 
+    cmd = [ 
+        "NUMBER_OF_CONTIGS=$(grep -c '^>' {})".format(input_filepaths[0]),
+        "&&",
+        "GENOME_SIZE=$(grep -v '^>' {} | wc -m)".format(input_filepaths[0]),
+        "&&",
+        'AVERAGE_CONTIG_LENGTH=$(echo "${GENOME_SIZE} ${NUMBER_OF_CONTIGS}" | python -c "import sys; from math import log2; a, b = map(float, sys.stdin.read().split()); print(log2(a/b))")',
+        "&&",
+        'echo "Number of contigs: ${NUMBER_OF_CONTIGS}"',
+        "&&",
+        'echo "Metagenome size: ${GENOME_SIZE}"',
+        "&&",
+        'echo "Average contig length: ${AVERAGE_CONTIG_LENGTH}" [Setting --genomeChrBinNbits to average contig length]',
+        "&&",
+
+        os.environ["STAR"],
+        "--runMode genomeGenerate",
+        "--runThreadN {}".format(opts.n_jobs),
+        "--genomeChrBinNbits ${AVERAGE_CONTIG_LENGTH}",
+        "--sjdbOverhang {}".format(opts.read_length - 1),
+        "--genomeFastaFiles {}".format(input_filepaths[0]),
+        "--sjdbGTFfile {}".format( input_filepaths[1]),
+
+        opts.star_index_options,
         input_filepaths[0],
         input_filepaths[0],
     ]
@@ -418,6 +451,7 @@ def add_executables_to_environment(opts):
     
     required_executables = set([ 
          "bowtie2-build",
+         "STAR",
     ])| accessory_scripts
 
     if opts.path_config == "CONDA_PREFIX":
@@ -439,7 +473,7 @@ def add_executables_to_environment(opts):
 
     # Display
     for name in sorted(accessory_scripts):
-        executables[name] = "'{}'".format(os.path.join(opts.script_directory, "scripts", name)) # Can handle spaces in path
+        executables[name] = "python " + os.path.join(opts.script_directory, "scripts", name)
     print(format_header( "Adding executables to path from the following source: {}".format(opts.path_config), "-"), file=sys.stdout)
     for name, executable in executables.items():
         if name in required_executables:
@@ -449,27 +483,6 @@ def add_executables_to_environment(opts):
 
 # Configure parameters
 def configure_parameters(opts, directories):
-
-
-    print("Checking input files:", file=sys.stdout)
-    if opts.references.endswith((".fasta",".fa",".fna")):
-        fp = os.path.join(directories["tmp"], "references.list")
-        print(" * --references inferred as fasta format file", file=sys.stdout)
-        with open(fp, "w") as f:
-            print(opts.references, file=f)
-        print(" * * Setting --references to {}".format(fp), file=sys.stdout)
-        opts.references = fp
-
-
-    if opts.gene_models.endswith((".gff",".gff3",".gtf")):
-        fp = os.path.join(directories["tmp"], "gene_models.gff")
-        print(" * --gene_models inferred as fasta format file", file=sys.stdout)
-        with open(fp, "w") as f:
-            print(opts.gene_models, file=f)
-        print(" * * Setting --gene_models to {}".format(fp), file=sys.stdout)
-        opts.gene_models = fp
-
-
     df_references = pd.read_csv(opts.references, sep="\t", header=None)
     df_gene_models = pd.read_csv(opts.gene_models, sep="\t", header=None)
 
@@ -488,7 +501,9 @@ def configure_parameters(opts, directories):
     if opts.mode == "local":
         opts.samples = sorted(set(df_references.iloc[:,0]))
 
-    # Set enviroment variables
+
+
+    # Set environment variables
     add_executables_to_environment(opts=opts)
 
 def main(args=None):
@@ -526,20 +541,14 @@ def main(args=None):
     parser_bowtie2 = parser.add_argument_group('Bowtie2 Index arguments')
     parser_bowtie2.add_argument("--bowtie2_build_options", type=str, default="", help="bowtie2-build | More options (e.g. --arg 1 ) [Default: '']")
 
-    # parser_star = parser.add_argument_group('STAR arguments')
-    # parser_star.add_argument("--read_length", type=int, default=151, help = "Read length [Default: 151]")
-    # parser_star.add_argument("--star_index_options", type=str, default="", help="bowtie2-build | More options (e.g. --arg 1 ) [Default: '']")
+    parser_star = parser.add_argument_group('STAR arguments')
+    parser_star.add_argument("--read_length", type=int, default=151, help = "Read length [Default: 151]")
+    parser_star.add_argument("--star_index_options", type=str, default="", help="bowtie2-build | More options (e.g. --arg 1 ) [Default: '']")
 
     # Options
     opts = parser.parse_args()
     opts.script_directory  = script_directory
     opts.script_filename = script_filename
-
-    # Threads
-    if opts.n_jobs == -1:
-        from multiprocessing import cpu_count 
-        opts.n_jobs = cpu_count()
-    assert opts.n_jobs >= 1, "--n_jobs must be ≥ 1.  To select all available threads, use -1."
 
     # Directories
     directories = dict()
@@ -555,7 +564,6 @@ def main(args=None):
     print(format_header("Configuration:", "-"), file=sys.stdout)
     print("Python version:", sys.version.replace("\n"," "), file=sys.stdout)
     print("Python path:", sys.executable, file=sys.stdout) #sys.path[2]
-    print("GenoPype version:", genopype_version, file=sys.stdout) #sys.path[2]
     print("Script version:", __version__, file=sys.stdout)
     print("Moment:", get_timestamp(), file=sys.stdout)
     print("Directory:", os.getcwd(), file=sys.stdout)
