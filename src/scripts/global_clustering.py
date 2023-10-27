@@ -10,11 +10,12 @@ from Bio.SeqIO.FastaIO import SimpleFastaParser
 
 # Soothsayer Ecosystem
 from genopype import *
+from genopype import __version__ as genopype_version
 from soothsayer_utils import *
 
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.6.15"
+__version__ = "2023.10.24"
 
 def get_basename(x):
     _, fn = os.path.split(x)
@@ -38,7 +39,7 @@ def get_protein_cluster_prevalence(df_input:pd.DataFrame):
     # Create output
     df_output = pd.DataFrame(A, index=genomes, columns=clusters)
     df_output.index.name = "id_genome"
-    df_output.columns.name = "id_protein-cluster"
+    df_output.columns.name = "id_protein_cluster"
 
     return df_output
 
@@ -97,7 +98,7 @@ def add_executables_to_environment(opts):
 def configure_parameters(opts, directories):
     
     assert_acceptable_arguments(opts.algorithm, {"easy-cluster", "easy-linclust"})
-
+    assert 0 < opts.minimum_core_prevalence <= 1.0, "--minimum_core_prevalence must be a float between (0.0,1.0])"
     # Set environment variables
     add_executables_to_environment(opts=opts)
 
@@ -108,7 +109,7 @@ def main(args=None):
     # Path info
     description = """
     Running: {} v{} via Python v{} | {}""".format(__program__, __version__, sys.version.split(" ")[0], sys.executable)
-    usage = "{} -f <scaffolds.fasta> -d <metaeuk_database> -i <scaffolds_to_bins.tsv>  -o <output_directory>".format(__program__)
+    usage = "{} -i <genomes_table.tsv> -o <output_directory> -A 95 -a easy-cluster".format(__program__)
 
     epilog = "Copyright 2021 Josh L. Espinoza (jespinoz@jcvi.org)"
 
@@ -116,10 +117,12 @@ def main(args=None):
     parser = argparse.ArgumentParser(description=description, usage=usage, epilog=epilog, formatter_class=argparse.RawTextHelpFormatter)
     # Pipeline
     parser_io = parser.add_argument_group('Required I/O arguments')
-    parser_io.add_argument("-i", "--input", type=str, default="stdin",  help = "path/to/input.tsv, Format: Must include the follow columns (No header) [organism_type]<tab>[id_sample]<tab>[id_mag]<tab>[genome]<tab>[proteins] but can include additional columns to the right (e.g., [cds]<tab>[gene_models]).  Suggested input is from `compile_genomes_table.py` script. [Default: stdin]")
+    parser_io.add_argument("-i", "--genomes_table", type=str, default="stdin",  help = "path/to/genomes_table.tsv, Format: Must include the following columns (No header) [organism_type]<tab>[id_sample]<tab>[id_mag]<tab>[genome]<tab>[proteins]<tab>[cds] but can include additional columns to the right (e.g., [gene_models]).  Suggested input is from `compile_genomes_table.py` script. [Default: stdin]")
     parser_io.add_argument("-o","--output_directory", type=str, default="global_clustering_output", help = "path/to/project_directory [Default: global_clustering_output]")
     parser_io.add_argument("-e", "--no_singletons", action="store_true", help="Exclude singletons") #isPSLC-1_SSPC-3345__SRR178126
-    parser_io.add_argument("-r", "--no_representative_sequences", action="store_true", help="Exclude representative sequences") #isPSLC-1_SSPC-3345__SRR178126
+    parser_io.add_argument("-R", "--no_representative_sequences", action="store_true", help="Do not write representative sequences to fasta") #isPSLC-1_SSPC-3345__SRR178126
+    parser_io.add_argument("-C", "--no_core_sequences", action="store_true", help="Do not write core pagenome sequences to fasta") #isPSLC-1_SSPC-3345__SRR178126
+    # parser_io.add_argument("-M", "--no_marker_sequences", action="store_true", help="Do not write core pagenome sequences to fasta") #isPSLC-1_SSPC-3345__SRR178126
 
     # Utility
     parser_utility = parser.add_argument_group('Utility arguments')
@@ -147,6 +150,11 @@ def main(args=None):
     parser_mmseqs2.add_argument("--protein_cluster_prefix_zfill", type=int, default=0, help="Cluster prefix zfill. Use 7 to match identifiers from OrthoFinder.  Use 0 to add no zfill. [Default: 0]") #7
     parser_mmseqs2.add_argument("--mmseqs2_options", type=str, default="", help="MMSEQS2 | More options (e.g. --arg 1 ) [Default: '']")
 
+    # Pangenome
+    parser_pangenome = parser.add_argument_group('Pangenome arguments')
+    parser_pangenome.add_argument("--minimum_core_prevalence", type=float, default=1.0, help="Minimum ratio of genomes detected in a SLC for a SSPC to be considered core (Range (0.0, 1.0]) [Default: 1.0]")
+
+
     # Options
     opts = parser.parse_args()
 
@@ -163,6 +171,8 @@ def main(args=None):
     directories["project"] = create_directory(opts.output_directory)
     directories["output"] = create_directory(os.path.join(directories["project"], "output"))
     directories["pangenome_tables"] = create_directory(os.path.join(directories["output"], "pangenome_tables"))
+    if not opts.no_representative_sequences:
+        directories["pangenome_core_sequences"] = create_directory(os.path.join(directories["output"], "pangenome_core_sequences"))
     directories["serialization"] = create_directory(os.path.join(directories["output"], "serialization"))
 
     # directories[("misc", "pangenomes", "networkx_graphs")] = create_directory(os.path.join(directories[("misc", "pangenomes")], "networkx_graphs"))
@@ -178,6 +188,7 @@ def main(args=None):
     print(format_header("Configuration:", "-"), file=sys.stdout)
     print("Python version:", sys.version.replace("\n"," "), file=sys.stdout)
     print("Python path:", sys.executable, file=sys.stdout) #sys.path[2]
+    print("GenoPype version:", genopype_version, file=sys.stdout) #sys.path[2]
     print("Script version:", __version__, file=sys.stdout)
     print("Moment:", get_timestamp(), file=sys.stdout)
     print("Directory:", os.getcwd(), file=sys.stdout)
@@ -185,19 +196,21 @@ def main(args=None):
     configure_parameters(opts, directories)
     sys.stdout.flush()
 
-    # Load input
-    t0 = time.time()
-    if opts.input == "stdin":
-        opts.input = sys.stdin
-    df_genomes = pd.read_csv(opts.input, sep="\t", header=None)
-    assert df_genomes.shape[1] >= 5, "Must include the follow columns (No header) [organism_type]<tab>[id_sample]<tab>[id_mag]<tab>[genome]<tab>[proteins] but can include additional columns to the right (e.g., [cds]<tab>[gene_models]).  Suggested input is from `compile_genomes_table.py` script.  You have provided a table with {} columns.".format(df_genomes.shape[1])
-    df_genomes = df_genomes.iloc[:,:5]
-    df_genomes.columns = ["organism_type", "id_sample", "id_mag", "genome", "proteins"]
-    assert not np.any(df_genomes.isnull()), "Input has missing values.  Please correct this.\n{}".format(df_genomes.loc[df_genomes.isnull().sum(axis=1)[lambda x: x > 0].index].to_string())
 
     # Make directories
+    t0 = time.time()
     print(format_header(" " .join(["* ({}) Creating directories:".format(format_duration(t0)), directories["intermediate"]])), file=sys.stdout)
     os.makedirs(opts.output_directory, exist_ok=True)
+    
+    # Load input
+    if opts.genomes_table == "stdin":
+        opts.genomes_table = sys.stdin
+    df_genomes = pd.read_csv(opts.genomes_table, sep="\t", header=None)
+    assert df_genomes.shape[1] >= 6, "Must include the follow columns (No header) [organism_type]<tab>[id_sample]<tab>[id_mag]<tab>[genome]<tab>[proteins]<tab>[cds] but can include additional columns to the right (e.g., [gene_models]).  Suggested input is from `compile_genomes_table.py` script.  You have provided a table with {} columns.".format(df_genomes.shape[1])
+    df_genomes = df_genomes.iloc[:,:6]
+    df_genomes.columns = ["organism_type", "id_sample", "id_mag", "genome", "proteins", "cds"]
+    assert not np.any(df_genomes.isnull()), "--genomes_table has missing values.  Please correct this.\n{}".format(df_genomes.loc[df_genomes.isnull().sum(axis=1)[lambda x: x > 0].index].to_string())
+
 
     for organism_type, df_1 in df_genomes.groupby("organism_type"):
         # Organism directories
@@ -223,6 +236,7 @@ def main(args=None):
     protein_to_mag = dict()
     protein_to_sample = dict()
     protein_to_sequence = dict()
+    protein_to_cds = dict()
 
     for i, row in pv(df_genomes.iterrows(), "Organizing identifiers"):
         id_mag = row["id_mag"]
@@ -245,6 +259,12 @@ def main(args=None):
                 protein_to_sequence[id_protein] = seq
                 mag_to_numberofproteins[id_mag] += 1
 
+        with get_file_object(row["cds"], "read", verbose=False) as f:
+            for header, seq in SimpleFastaParser(f):
+                id_protein = header.split(" ")[0]
+                assert id_protein in protein_to_sequence, "CDS sequence identifier must be in protein fasta: {} from {}".format(id_protein, row["cds"])
+                protein_to_cds[id_protein] = seq
+
     mag_to_numberofscaffolds = pd.Series(mag_to_numberofscaffolds)
     mag_to_numberofproteins = pd.Series(mag_to_numberofproteins)
     mag_to_sample = pd.Series(mag_to_sample)
@@ -254,6 +274,7 @@ def main(args=None):
     protein_to_mag = pd.Series(protein_to_mag)
     protein_to_sample = pd.Series(protein_to_sample)
     protein_to_sequence = pd.Series(protein_to_sequence)
+    protein_to_cds = pd.Series(protein_to_cds)
 
     # Commands
     f_cmds = open(os.path.join(opts.output_directory, "commands.sh"), "w")
@@ -362,6 +383,7 @@ def main(args=None):
                 "--basename protein_clusters",
                 "--identifiers {}".format(os.path.join(genomecluster_directory, "protein_identifiers.list")),
                 "--no_sequences_and_header",
+                "--representative_output_format table",
 
                     "&&",
 
@@ -475,6 +497,9 @@ def main(args=None):
             a = pd.read_csv(fp, sep="\t", index_col=0, header=None).iloc[:,0]
             proteincluster_to_representative.append(a)
         proteincluster_to_representative = pd.concat(proteincluster_to_representative)
+        representatives = set(proteincluster_to_representative.values)
+
+        df_proteins["protein_cluster_representative"] = df_proteins.index.map(lambda x: x in representatives)
 
         with open(os.path.join(directories["output"], "representative_sequences.faa"), "w") as f_representatives:
             for id_proteincluster, id_representative in pv(proteincluster_to_representative.items(), description=" * ({}) Writing protein cluster representative sequences".format(format_duration(t0)), unit="sequence", total=proteincluster_to_representative.size):
@@ -486,15 +511,45 @@ def main(args=None):
     # print(format_header(" * ({}) Compiling pangenome protein cluster prevalence tables:".format(format_duration(t0))), file=sys.stdout)
     genome_to_number_of_singletons = list()
     genome_to_ratio_of_singletons = list()
-    for id_genomecluster, df in pv(df_proteins.groupby("id_genome_cluster"), description=" * ({}) Writing protein prevalence pangenome tables and counting singletons".format(format_duration(t0)), unit="genome cluster", total=df_proteins["id_genome_cluster"].nunique()):
+    protein_to_number_of_genomes_detected = dict()
+    protein_to_ratio_of_genomes_detected = dict()
+    genomecluster_to_corepangenome = dict()
+    genomecluster_to_singletons = dict()
+
+    for id_genomecluster, df in pv(df_proteins.groupby("id_genome_cluster"), description=" * ({}) Writing protein prevalence pangenome tables, counting singletons, and core pangenome sequences".format(format_duration(t0)), unit="genome cluster", total=df_proteins["id_genome_cluster"].nunique()):
         # Prevalence
         df = df.reset_index().loc[:,["id_genome", "id_protein", "id_protein_cluster"]]
         df_prevalence = get_protein_cluster_prevalence(df)
         df_prevalence.to_csv(os.path.join(directories["pangenome_tables"], f"{id_genomecluster}.tsv.gz"), sep="\t")
 
+        # Detected/Not-detected
+        df_prevalence = df_prevalence > 0
+        number_of_genomes_detected = df_prevalence.sum(axis=0)
+        ratio_of_genomes_detected = df_prevalence.mean(axis=0)
+        protein_to_number_of_genomes_detected.update(number_of_genomes_detected.to_dict())
+        protein_to_ratio_of_genomes_detected.update(ratio_of_genomes_detected.to_dict())
+
+        # Core
+        core_proteinclusters = ratio_of_genomes_detected[lambda x: x == 1].index
+        genomecluster_to_corepangenome[id_genomecluster] = set(core_proteinclusters)
+        if not opts.no_core_sequences:
+            with open(os.path.join(directories["pangenome_core_sequences"], f"{id_genomecluster}.faa"), "w") as f_core:
+                for id_proteincluster, id_representative in proteincluster_to_representative[core_proteinclusters].items():
+                    seq = protein_to_sequence[id_representative]
+                    header = f"{id_proteincluster} {id_representative}"
+                    print(f">{header}\n{seq}", file=f_core)
+
+            with open(os.path.join(directories["pangenome_core_sequences"], f"{id_genomecluster}.ffn"), "w") as f_core:
+                for id_proteincluster, id_representative in proteincluster_to_representative[core_proteinclusters].items():
+                    seq = protein_to_cds[id_representative]
+                    header = f"{id_proteincluster} {id_representative}"
+                    print(f">{header}\n{seq}", file=f_core)
+
+
         # Singletons
+        genomecluster_to_singletons[id_genomecluster] = set(number_of_genomes_detected[lambda x: x == 1].index)
+
         if df_prevalence.shape[0] > 1:  
-            df_prevalence = df_prevalence > 0
             number_of_singletons = df_prevalence.loc[:,df_prevalence.sum(axis=0)[lambda x: x == 1].index].sum(axis=1)
             ratio_of_singletons = number_of_singletons/df_prevalence.sum(axis=1)
             genome_to_number_of_singletons.append(number_of_singletons)
@@ -505,6 +560,27 @@ def main(args=None):
         df_mags["ratio_of_protein_cluster_are_singletons"] = pd.concat(genome_to_ratio_of_singletons)
     else:
         warnings.warn("No clusters with more than 1 genome so singleton analysis does not apply")
+
+    genomecluster_to_corepangenome = pd.Series(genomecluster_to_corepangenome)
+    genomecluster_to_singletons = pd.Series(genomecluster_to_singletons)
+
+
+    # Add detection number and ratios
+    df_proteinclusters["number_of_genomes_detected"] = pd.Series(protein_to_number_of_genomes_detected)
+    df_proteinclusters["ratio_of_genomes_detected"] = pd.Series(protein_to_ratio_of_genomes_detected)
+    df_proteinclusters["core_pangenome"] = df_proteinclusters["ratio_of_genomes_detected"] >= opts.minimum_core_prevalence
+    df_proteinclusters["singleton"] = df_proteinclusters["number_of_genomes_detected"] == 1
+
+
+    df_genomeclusters["number_of_proteins_in_core_pangenome"] = genomecluster_to_corepangenome.map(len)
+    df_genomeclusters["core_pangenome"] = genomecluster_to_corepangenome
+    df_genomeclusters["number_of_singleton_proteins"] = genomecluster_to_singletons.map(len)
+    df_genomeclusters["singletons"] = genomecluster_to_singletons
+
+    # Number of copies of SSPC per genome
+    number_of_gene_copies_per_sspc_per_genome  = df_proteins.groupby(["id_genome", "id_protein_cluster"]).size()
+    df_proteinclusters["average_number_of_copies_per_genome"] = number_of_gene_copies_per_sspc_per_genome.groupby(lambda x: x[1]).mean()
+
 
     # # Symlink pangenome graphs
     # print(format_header(" * ({}) Symlinking pangenome protein cluster NetworkX Graphs:".format(format_duration(t0))), file=sys.stdout)
@@ -519,12 +595,12 @@ def main(args=None):
           
     # Writing output files
     print(format_header(" * ({}) Writing Output Tables:".format(format_duration(t0))), file=sys.stdout)
-    df_mags.to_csv(os.path.join(directories["output"], "identifier_mapping.genomes.tsv"), sep="\t")
-    df_scaffolds.to_csv(os.path.join(directories["output"], "identifier_mapping.scaffolds.tsv"), sep="\t")
-    df_proteins.to_csv(os.path.join(directories["output"], "identifier_mapping.proteins.tsv"), sep="\t")
-    df_genomeclusters.to_csv(os.path.join(directories["output"], "genome_clusters.tsv"), sep="\t")
-    df_proteinclusters.to_csv(os.path.join(directories["output"], "protein_clusters.tsv"), sep="\t")
-    df_fcr.to_csv(os.path.join(directories["output"], "feature_compression_ratios.tsv"), sep="\t")
+    df_mags.to_csv(os.path.join(directories["output"], "identifier_mapping.genomes.tsv.gz"), sep="\t")
+    df_scaffolds.to_csv(os.path.join(directories["output"], "identifier_mapping.scaffolds.tsv.gz"), sep="\t")
+    df_proteins.to_csv(os.path.join(directories["output"], "identifier_mapping.proteins.tsv.gz"), sep="\t")
+    df_genomeclusters.to_csv(os.path.join(directories["output"], "genome_clusters.tsv.gz"), sep="\t")
+    df_proteinclusters.to_csv(os.path.join(directories["output"], "protein_clusters.tsv.gz"), sep="\t")
+    df_fcr.to_csv(os.path.join(directories["output"], "feature_compression_ratios.tsv.gz"), sep="\t")
     df_mags["id_genome_cluster"].to_frame().dropna(how="any", axis=0).to_csv(os.path.join(directories["output"], "mags_to_slcs.tsv"), sep="\t", header=None)
     df_scaffolds["id_genome"].to_frame().dropna(how="any", axis=0).to_csv(os.path.join(directories["output"], "scaffolds_to_mags.tsv"), sep="\t", header=None)
     df_scaffolds["id_genome_cluster"].to_frame().dropna(how="any", axis=0).to_csv(os.path.join(directories["output"], "scaffolds_to_slcs.tsv"), sep="\t", header=None)

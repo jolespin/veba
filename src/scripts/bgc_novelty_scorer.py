@@ -3,7 +3,7 @@ import sys, os, argparse
 import pandas as pd
 
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.7.11"
+__version__ = "2023.9.15"
 
 def main(args=None):
     # Path info
@@ -20,8 +20,8 @@ def main(args=None):
     # Pipeline
     parser_io = parser.add_argument_group('Required I/O arguments')
     parser_io.add_argument("-d","--diamond", type=str, required=True, help = "path/to/homology.tsv.gz")
-    parser_io.add_argument("-c","--components", type=str, required=True, help = "path/to/bgc.components.tsv.gz")
-    parser_io.add_argument("-s","--synopsis", type=str, required=True, help = "path/to/bgc.synopsis.tsv.gz")
+    parser_io.add_argument("-c","--components", type=str, required=True, help = "path/to/identifier_mapping.components.tsv.gz")
+    parser_io.add_argument("-b","--bgcs", type=str, required=True, help = "path/to/identifier_mapping.bgcs.tsv.gz")
     parser_io.add_argument("-o","--output", type=str, default="stdout", help = "path/to/output.tsv [Default: stdout]")
 
     parser_thresholds = parser.add_argument_group('Novelty score threshold arguments')
@@ -41,12 +41,12 @@ def main(args=None):
 
     # Load tables
     df_components = pd.read_csv(opts.components, sep="\t", index_col=None)
-    df_synopsis = pd.read_csv(opts.synopsis, sep="\t", index_col=0)
+    df_bgcs = pd.read_csv(opts.bgcs, sep="\t", index_col=0)
     df_diamond = pd.read_csv(opts.diamond, sep="\t", index_col=0, header=[0,1])
 
 
     # Gene -> BGC
-    gene_to_bgc = dict(zip(df_components["gene_id"], df_components["bgc_id"]))
+    component_to_bgc = dict(zip(df_components["component_id"], df_components["bgc_id"]))
 
     # MiBIG
     df_mibig = df_diamond["MiBIG"].dropna(how="all", axis=0)
@@ -55,10 +55,10 @@ def main(args=None):
     df_mibig = df_mibig.query("scovhsp >= {}".format(opts.scovhsp))
     df_mibig = df_mibig.query("evalue <= {}".format(opts.evalue))
 
-    bgc_to_mibignhits = pd.Series([0]*df_synopsis.shape[0], df_synopsis.index)
-    bgc_to_mibignhits.update(df_mibig.index.map(lambda x: gene_to_bgc[x]).value_counts())
-    df_synopsis["number_of_mibig_hits"] = bgc_to_mibignhits
-    df_synopsis["novelty_score"] = 1 - df_synopsis["number_of_mibig_hits"]/df_synopsis["number_of_genes"]
+    bgc_to_mibignhits = pd.Series([0]*df_bgcs.shape[0], df_bgcs.index)
+    bgc_to_mibignhits.update(df_mibig.index.map(lambda x: component_to_bgc[x]).value_counts())
+    df_bgcs["number_of_mibig_hits"] = bgc_to_mibignhits
+    df_bgcs["novelty_score"] = 1 - df_bgcs["number_of_mibig_hits"]/df_bgcs["number_of_genes"]
 
     # VFDB
     df_vfdb = df_diamond["VFDB"].dropna(how="all", axis=0)
@@ -67,13 +67,13 @@ def main(args=None):
     df_vfdb = df_vfdb.query("scovhsp >= {}".format(opts.scovhsp))
     df_vfdb = df_vfdb.query("evalue <= {}".format(opts.evalue))
 
-    bgc_to_vfdbnhits = pd.Series([0]*df_synopsis.shape[0], df_synopsis.index)
-    bgc_to_vfdbnhits.update(df_vfdb.index.map(lambda x: gene_to_bgc[x]).value_counts())
-    df_synopsis["number_of_vfdb_hits"] = bgc_to_mibignhits
-    df_synopsis["virulence_ratio"] = df_synopsis["number_of_vfdb_hits"]/df_synopsis["number_of_genes"]
+    bgc_to_vfdbnhits = pd.Series([0]*df_bgcs.shape[0], df_bgcs.index)
+    bgc_to_vfdbnhits.update(df_vfdb.index.map(lambda x: component_to_bgc[x]).value_counts())
+    df_bgcs["number_of_vfdb_hits"] = bgc_to_mibignhits
+    df_bgcs["virulence_ratio"] = df_bgcs["number_of_vfdb_hits"]/df_bgcs["number_of_genes"]
 
     # Output
-    df_synopsis.to_csv(opts.output, sep="\t")
+    df_bgcs.to_csv(opts.output, sep="\t")
 
 if __name__ == "__main__":
     main()

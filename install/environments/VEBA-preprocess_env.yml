@@ -1,4 +1,4 @@
-name: VEBA-preprocess_env__v2023.5.15
+name: VEBA-preprocess_env__v2023.8.21
 channels:
   - conda-forge
   - bioconda
@@ -28,14 +28,14 @@ dependencies:
   - bbmap=39.01=h5c4e2a8_0
   - bird_tool_utils_python=0.4.1=pyhdfd78af_0
   - botocore=1.29.23=pyhd8ed1ab_0
-  - bowtie2=2.5.0=py39h3321a2d_0
+  - bowtie2=2.5.1=py39h3321a2d_0
   - brotlipy=0.7.0=py39hb9d737c_1005
   - bz2file=0.98=py_0
   - bzip2=1.0.8=h7f98852_4
   - c-ares=1.18.1=h7f98852_0
-  - ca-certificates=2023.5.7=hbcca054_0
+  - ca-certificates=2023.7.22=hbcca054_0
   - cairo=1.16.0=ha61ee94_1014
-  - certifi=2023.5.7=pyhd8ed1ab_0
+  - certifi=2023.7.22=pyhd8ed1ab_0
   - cffi=1.15.1=py39he91dace_2
   - charset-normalizer=2.1.1=pyhd8ed1ab_0
   - colorama=0.4.4=pyh9f0ad1d_0
@@ -45,8 +45,8 @@ dependencies:
   - docutils=0.16=py39hf3d152e_3
   - expat=2.5.0=h27087fc_0
   - extern=0.4.1=py_0
-  - fastp=0.23.2=h5f740d0_3
-  - fastq_preprocessor=2023.5.17=py_0
+  - fastp=0.23.4=h5f740d0_0
+  - fastq_preprocessor=2023.7.24=py_0
   - font-ttf-dejavu-sans-mono=2.37=hab24e00_0
   - font-ttf-inconsolata=3.000=h77eed37_0
   - font-ttf-source-code-pro=2.038=h77eed37_0
@@ -121,7 +121,7 @@ dependencies:
   - ncurses=6.3=h27087fc_1
   - numpy=1.23.5=py39h3d75532_0
   - openjdk=17.0.3=hafdced1_4
-  - openssl=1.1.1t=h0b41bf4_0
+  - openssl=1.1.1u=hd590300_0
   - orc=1.8.0=h09e0d61_0
   - ossuuid=1.6.2=hf484d3e_1000
   - pandas=1.5.2=py39h4661b88_0

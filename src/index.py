@@ -3,10 +3,11 @@ from __future__ import print_function, division
 import sys, os, argparse, glob
 import pandas as pd
 from genopype import * 
+from genopype import __version__ as genopype_version
 from soothsayer_utils import *
 
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.5.8"
+__version__ = "2023.10.16"
 
 # ==============
 # Agostic commands
@@ -554,6 +555,7 @@ def main(args=None):
     print(format_header("Configuration:", "-"), file=sys.stdout)
     print("Python version:", sys.version.replace("\n"," "), file=sys.stdout)
     print("Python path:", sys.executable, file=sys.stdout) #sys.path[2]
+    print("GenoPype version:", genopype_version, file=sys.stdout) #sys.path[2]
     print("Script version:", __version__, file=sys.stdout)
     print("Moment:", get_timestamp(), file=sys.stdout)
     print("Directory:", os.getcwd(), file=sys.stdout)

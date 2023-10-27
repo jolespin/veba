@@ -7,12 +7,13 @@ import pandas as pd
 
 # Soothsayer Ecosystem
 from genopype import *
+from genopype import __version__ as genopype_version
 from soothsayer_utils import *
 
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.7.7"
+__version__ = "2023.10.16"
 
 # Assembly
 def get_coverage_cmd( input_filepaths, output_filepaths, output_directory, directories, opts):
@@ -298,7 +299,10 @@ def get_dastool_cmd(input_filepaths, output_filepaths, output_directory, directo
         "grep",
         '"^>"',
         "|",
+        'cut -f1 -d " "',
+        "|",
         "cut -c2-",
+
         ">",
         os.path.join(output_directory, "__DASTool_bins", "eukaryota", "eukaryota.scaffolds.list"),
 
@@ -450,6 +454,20 @@ rm -f {}
 
 # tRNAscan-SE
 def get_trnascan_cmd(input_filepaths, output_filepaths, output_directory, directories, opts):
+
+
+            # os.environ["cmsearch"],
+            # "-o {}".format(os.path.join(output_directory, "{}.out".format(id_model))),
+            # "-A {}".format(os.path.join(output_directory, "{}.aln".format(id_model))),
+            # "--tblout {}".format(os.path.join(output_directory, "{}.tblout".format(id_model))),
+            # "--cpu {}".format(opts.n_jobs),
+            # "-g",
+            # "--notrunc",
+            # "--mid",
+            # opts.cmsearch_options,
+            # filepath,
+            # input_filepaths[0],
+
     cmd = [
         "cat",
         input_filepaths[0],
@@ -473,8 +491,17 @@ do
             >$OUTPUT_DIRECTORY/$ID.tRNA.gff
             >$OUTPUT_DIRECTORY/$ID.tRNA.struct
             >$OUTPUT_DIRECTORY/$ID.tRNA.txt
-            {} -$DOMAIN_ABBREVIATION --forceow --progress --threads {} --fasta $OUTPUT_DIRECTORY/$ID.tRNA --gff $OUTPUT_DIRECTORY/$ID.tRNA.gff --struct $OUTPUT_DIRECTORY/$ID.tRNA.struct {} $GENOME_FASTA > $OUTPUT_DIRECTORY/$ID.tRNA.txt
-        fi
+            
+            TRNA_FASTA=$OUTPUT_DIRECTORY/$ID.tRNA
+
+            if [[ -s "$TRNA_FASTA" ]]; 
+                then
+                    echo "[Skipping] [tRNAscan-SE] $GENOME_FASTA because tRNA fasta exists and is not empty"
+                else
+                    echo "[Running] [tRNAscan-SE] $GENOME_FASTA"
+                    {} -$DOMAIN_ABBREVIATION --forceow --progress --threads {} --fasta $OUTPUT_DIRECTORY/$ID.tRNA --gff $OUTPUT_DIRECTORY/$ID.tRNA.gff --struct $OUTPUT_DIRECTORY/$ID.tRNA.struct {} $GENOME_FASTA > $OUTPUT_DIRECTORY/$ID.tRNA.txt
+            fi    
+        fi  
     done
 done
 
@@ -519,17 +546,20 @@ def get_consolidate_cmd(input_filepaths, output_filepaths, output_directory, dir
 
 
     cmd = [
-        "rm -rf {}".format(os.path.join(output_directory, "*")),
+        """
+rm -rf {}
+mkdir -p {}
+S2B=$(ls {}) || (echo 'No genomes have been detected' && exit 1)
+
+""".format(
+    os.path.join(output_directory, "*"),
+    os.path.join(output_directory, "genomes"),
+    os.path.join(directories["intermediate"], "*__checkm2",  "filtered", "scaffolds_to_bins.tsv"),
+    ),
     ]
 
     cmd += [ 
-            "&&",
-            
-        "mkdir -p {}".format(os.path.join(output_directory, "genomes")),
 
-            "&&",   
-
-        # scaffolds_to_bins.tsv
         "cat",
         os.path.join(directories["intermediate"], "*__checkm2",  "filtered", "scaffolds_to_bins.tsv"), 
         ">",
@@ -1378,15 +1408,16 @@ def create_pipeline(opts, directories, f_cmds):
 
     # i/o
     input_filepaths = [
-        os.path.join(directories["intermediate"], "*__checkm2",  "filtered", "scaffolds_to_bins.tsv"),
-        os.path.join(directories["intermediate"], "*__checkm2",  "filtered", "bins.list"),
-        os.path.join(directories["intermediate"], "*__checkm2",  "filtered", "binned.list"),
+        # os.path.join(directories["intermediate"], "*__checkm2",  "filtered", "scaffolds_to_bins.tsv"),
+        # os.path.join(directories["intermediate"], "*__checkm2",  "filtered", "bins.list"),
+        # os.path.join(directories["intermediate"], "*__checkm2",  "filtered", "binned.list"),
         os.path.join(directories["intermediate"], "*__checkm2",  "filtered", "checkm2_results.filtered.tsv"),
         os.path.join(directories["intermediate"], "*__checkm2", "filtered", "genomes", "*"),
-        os.path.join(directories[("intermediate", "{}__trnascan-se".format(step-2))], "*.tRNA"),
-        os.path.join(directories[("intermediate", "{}__barrnap".format(step-3))], "*.rRNA"),
         os.path.join(directories[("intermediate", "{}__featurecounts".format(step-1))], "featurecounts.orfs.tsv.gz"),
 
+        # Can't assume these are not empty
+        # os.path.join(directories[("intermediate", "{}__trnascan-se".format(step-2))], "*.tRNA"), 
+        # os.path.join(directories[("intermediate", "{}__barrnap".format(step-3))], "*.rRNA"),
     ]
 
     output_filenames =  [
@@ -1423,7 +1454,7 @@ def create_pipeline(opts, directories, f_cmds):
             cmd=cmd,
             input_filepaths = input_filepaths,
             output_filepaths = output_filepaths,
-            validate_inputs=False,
+            validate_inputs=True,
             validate_outputs=True,
             log_prefix=program_label,
     )
@@ -1647,6 +1678,7 @@ def main(args=None):
     print(format_header("Name: {}".format(opts.name), "."), file=sys.stdout)
     print("Python version:", sys.version.replace("\n"," "), file=sys.stdout)
     print("Python path:", sys.executable, file=sys.stdout) #sys.path[2]
+    print("GenoPype version:", genopype_version, file=sys.stdout) #sys.path[2]
     print("Script version:", __version__, file=sys.stdout)
     print("VEBA Database:", opts.veba_database, file=sys.stdout)
     print("Moment:", get_timestamp(), file=sys.stdout)

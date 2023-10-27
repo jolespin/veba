@@ -6,7 +6,7 @@ import pandas as pd
 from tqdm import tqdm
 
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2022.5.23"
+__version__ = "2023.10.26"
 
 def main(args=None):
     # Path info
@@ -31,6 +31,8 @@ def main(args=None):
     parser.add_argument("-a", "--allow_missing_values", action="store_true", help = "Allow missing values instead of filling with zeros")
     parser.add_argument("-e", "--remove_empty_features", action="store_true", help = "Remove empty features")
     parser.add_argument("--pickle", type=str, help = "path/to/pandas.pkl output")
+    parser.add_argument("--comment", type=str, default="#", help = "Comments prefixed with this character [Default: #]")
+
 
     # Options
     opts = parser.parse_args()
@@ -44,7 +46,7 @@ def main(args=None):
     output = dict()
     for fp in tqdm(opts.files, "Reading processed featureCounts outputs"):
         id_sample = fp.split("/")[opts.sample_index]
-        counts = pd.read_csv(fp, sep="\t", index_col=0, header=None).iloc[:,-1]
+        counts = pd.read_csv(fp, sep="\t", index_col=0, header=None, comment=opts.comment).iloc[:,-1]
         if opts.remove_empty_features:
             counts = counts[counts > 0]
         output[id_sample] = counts

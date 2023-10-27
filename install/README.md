@@ -7,7 +7,7 @@ The basis for these environments is creating a separate environment for each mod
 
 The majority of the time taken to build database is downloading/decompressing large archives, `Diamond` database creation of `UniRef`, and `MMSEQS2` database creation of microeukaryotic protein database.
 
-Total size is `214 GB` but if you have certain databases installed already then you can just symlink them so the `VEBA_DATABASE` path has the correct structure.  Note, the exact size may vary as Pfam and UniRef are updated regularly.
+Total size is `243 GB` but if you have certain databases installed already then you can just symlink them so the `VEBA_DATABASE` path has the correct structure.  Note, the exact size may vary as Pfam and UniRef are updated regularly.
 
 Each major version will be packaged as a [release](https://github.com/jolespin/veba/releases) which will include a log of module and script versions. 
 
@@ -38,7 +38,7 @@ Currently, **Conda environments for VEBA are ONLY configured for Linux** and, du
 The `VEBA` installation is going to configure some `conda` environments for you and some of them have quite a bit of packages.  To minimize the likelihood of [weird errors](https://forum.qiime2.org/t/valueerror-unsupported-format-character-t-0x54-at-index-3312-when-creating-environment-from-environment-file/25237), it's recommended to do the following:
 
 
-* Use this as your [`~/.condarc`](https://conda.io/projects/conda/en/latest/user-guide/configuration/use-condarc.html).  If you're not familiar with the `.condarc` file, then you probably don't have one configured.  You can use an editor like [nano](https://anaconda.org/conda-forge/nano) (which is what I use), [vim](https://anaconda.org/conda-forge/vim), or [emacs](https://anaconda.org/conda-forge/emacs) to copy/paste the following into `~/.condarc`.
+* Use this as your [`~/.condarc`](https://conda.io/projects/conda/en/latest/user-guide/configuration/use-condarc.html).  If you're not familiar with the `.condarc` file, then you probably don't have one configured.  You can use an editor like [nano](https://anaconda.org/conda-forge/nano) (which is what I use), [vim](https://anaconda.org/conda-forge/vim), or [emacs](https://anaconda.org/conda-forge/emacs) to copy/paste the following into [`~/.condarc`](condarc).
 	
 	```
 	channel_priority: flexible
@@ -83,7 +83,7 @@ The `VEBA` installation is going to configure some `conda` environments for you 
 ```
 # For stable version, download and decompress the tarball:
 
-VERSION="1.2.0"
+VERSION="1.3.0"
 wget https://github.com/jolespin/veba/archive/refs/tags/v${VERSION}.tar.gz
 tar -xvf v${VERSION}.tar.gz && mv veba-${VERSION} veba
 
@@ -181,6 +181,7 @@ VEBA-database_env
 VEBA-mapping_env
 VEBA-phylogeny_env
 VEBA-preprocess_env
+VEBA-profile_env
 ```
 All the environments should have the `VEBA_DATABASE` environment variable set. If not, then add it manually to ~/.bash_profile: `export VEBA_DATABASE=/path/to/veba_database`.
 

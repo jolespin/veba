@@ -7,12 +7,13 @@ import pandas as pd
 
 # Soothsayer Ecosystem
 from genopype import *
+from genopype import __version__ as genopype_version
 from soothsayer_utils import *
 
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.6.14"
+__version__ = "2023.10.24"
 
 # Global clustering
 def get_global_clustering_cmd( input_filepaths, output_filepaths, output_directory, directories, opts):
@@ -22,7 +23,7 @@ def get_global_clustering_cmd( input_filepaths, output_filepaths, output_directo
         os.environ["global_clustering.py"],
         "-i {}".format(input_filepaths[0]),
         "-o {}".format(output_directory),
-        "--no_singletons" if bool(opts.no_singletons) else "",
+        # "--no_singletons" if bool(opts.no_singletons) else "",
         "-p {}".format(opts.n_jobs),
 
         "--ani_threshold {}".format(opts.ani_threshold),
@@ -37,6 +38,7 @@ def get_global_clustering_cmd( input_filepaths, output_filepaths, output_directo
         "--protein_cluster_suffix {}".format(opts.protein_cluster_suffix) if bool(opts.protein_cluster_suffix) else "",
         "--protein_cluster_prefix_zfill {}".format(opts.protein_cluster_prefix_zfill) if bool(opts.protein_cluster_prefix_zfill) else "",
         "--mmseqs2_options {}".format(opts.mmseqs2_options) if bool(opts.mmseqs2_options) else "",
+        "--minimum_core_prevalence {}".format(opts.minimum_core_prevalence),
 
             "&&",
 
@@ -56,9 +58,8 @@ def get_local_clustering_cmd( input_filepaths, output_filepaths, output_director
         os.environ["local_clustering.py"],
         "-i {}".format(input_filepaths[0]),
         "-o {}".format(output_directory),
-        "--no_singletons" if bool(opts.no_singletons) else "",
+        # "--no_singletons" if bool(opts.no_singletons) else "",
         "-p {}".format(opts.n_jobs),
-
         "--ani_threshold {}".format(opts.ani_threshold),
         "--genome_cluster_prefix {}".format(opts.genome_cluster_prefix) if bool(opts.genome_cluster_prefix) else "",
         "--genome_cluster_suffix {}".format(opts.genome_cluster_suffix) if bool(opts.genome_cluster_suffix) else "",
@@ -71,7 +72,7 @@ def get_local_clustering_cmd( input_filepaths, output_filepaths, output_director
         "--protein_cluster_suffix {}".format(opts.protein_cluster_suffix) if bool(opts.protein_cluster_suffix) else "",
         "--protein_cluster_prefix_zfill {}".format(opts.protein_cluster_prefix_zfill) if bool(opts.protein_cluster_prefix_zfill) else "",
         "--mmseqs2_options {}".format(opts.mmseqs2_options) if bool(opts.mmseqs2_options) else "",
-
+        "--minimum_core_prevalence {}".format(opts.minimum_core_prevalence),
 
             "&&",
 
@@ -161,10 +162,12 @@ def create_pipeline(opts, directories, f_cmds):
     description = "Global clustering of genomes (FastANI) and proteins (MMSEQS2)"
 
     # i/o
-    input_filepaths = [opts.input]
+    input_filepaths = [opts.genomes_table]
 
     output_filenames = [
+        "output/*.tsv.gz",
         "output/*.tsv",
+
         ]
 
     output_filepaths = list(map(lambda filename: os.path.join(output_directory, filename), output_filenames))
@@ -194,7 +197,7 @@ def create_pipeline(opts, directories, f_cmds):
     # ==========
     # Local clustering
     # ==========
-    if not opts.no_local_clustering:
+    if opts.local_clustering:
         step = 2
 
         program = "local_clustering"
@@ -206,10 +209,12 @@ def create_pipeline(opts, directories, f_cmds):
         description = "Local clustering of genomes (FastANI) and proteins (MMSEQS2)"
 
         # i/o
-        input_filepaths = [opts.input]
+        input_filepaths = [opts.genomes_table]
 
         output_filenames = [
+            "output/*.tsv.gz",
             "output/*.tsv",
+
             ]
 
         output_filepaths = list(map(lambda filename: os.path.join(output_directory, filename), output_filenames))
@@ -236,9 +241,6 @@ def create_pipeline(opts, directories, f_cmds):
                     errors_ok=False,
         )
 
-
-
-
     return pipeline
 
 # Configure parameters
@@ -255,17 +257,17 @@ def main(args=None):
     # Path info
     description = """
     Running: {} v{} via Python v{} | {}""".format(__program__, __version__, sys.version.split(" ")[0], sys.executable)
-    usage = "{} -m <mags> -a <proteins> -o <output_directory> -t 95".format(__program__)
+    usage = "{} -i <genomes_table.tsv> -o <output_directory> -A 95 -a easy-cluster".format(__program__)
     epilog = "Copyright 2021 Josh L. Espinoza (jespinoz@jcvi.org)"
 
     # Parser
     parser = argparse.ArgumentParser(description=description, usage=usage, epilog=epilog, formatter_class=argparse.RawTextHelpFormatter)
     # Pipeline
     parser_io = parser.add_argument_group('Required I/O arguments')
-    parser_io.add_argument("-i", "--input", type=str, required=True,  help = "path/to/input.tsv, Format: Must include the follow columns (No header) [organism_type]<tab>[id_sample]<tab>[id_mag]<tab>[genome]<tab>[proteins] but can include additional columns to the right (e.g., [cds]<tab>[gene_models]).  Suggested input is from `compile_genomes_table.py` script.")
+    parser_io.add_argument("-i", "--genomes_table", type=str, default="stdin",  help = "path/to/genomes_table.tsv, Format: Must include the following columns (No header) [organism_type]<tab>[id_sample]<tab>[id_mag]<tab>[genome]<tab>[proteins]<tab>[cds] but can include additional columns to the right (e.g., [gene_models]).  Suggested input is from `compile_genomes_table.py` script. [Default: stdin]")
     parser_io.add_argument("-o","--output_directory", type=str, default="veba_output/cluster", help = "path/to/project_directory [Default: veba_output/cluster]")
-    parser_io.add_argument("-e", "--no_singletons", action="store_true", help="Exclude singletons") #isPSLC-1_SSO-3345__SRR178126
-    parser_io.add_argument("--no_local_clustering", action="store_true", help = "Only do global clustering")
+    # parser_io.add_argument("-e", "--no_singletons", action="store_true", help="Exclude singletons") #isPSLC-1_SSO-3345__SRR178126
+    parser_io.add_argument("-l", "--local_clustering", action="store_true", help = "Perform local clustering after global clustering")
 
     # Utility
     parser_utility = parser.add_argument_group('Utility arguments')
@@ -293,6 +295,10 @@ def main(args=None):
     parser_mmseqs2.add_argument("--protein_cluster_prefix_zfill", type=int, default=0, help="Cluster prefix zfill. Use 7 to match identifiers from OrthoFinder.  Use 0 to add no zfill. [Default: 0]") #7
     parser_mmseqs2.add_argument("--mmseqs2_options", type=str, default="", help="MMSEQS2 | More options (e.g. --arg 1 ) [Default: '']")
 
+    # Pangenome
+    parser_pangenome = parser.add_argument_group('Pangenome arguments')
+    parser_pangenome.add_argument("--minimum_core_prevalence", type=float, default=1.0, help="Minimum ratio of genomes detected in a SLC for a SSPC to be considered core (Range (0.0, 1.0]) [Default: 1.0]")
+
     # Options
     opts = parser.parse_args()
     opts.script_directory  = script_directory
@@ -319,6 +325,7 @@ def main(args=None):
     print(format_header("Configuration:", "-"), file=sys.stdout)
     print("Python version:", sys.version.replace("\n"," "), file=sys.stdout)
     print("Python path:", sys.executable, file=sys.stdout) #sys.path[2]
+    print("GenoPype version:", genopype_version, file=sys.stdout) #sys.path[2]
     print("Script version:", __version__, file=sys.stdout)
     print("Moment:", get_timestamp(), file=sys.stdout)
     print("Directory:", os.getcwd(), file=sys.stdout)

@@ -8,12 +8,13 @@ import pandas as pd
 
 # Soothsayer Ecosystem
 from genopype import *
+from genopype import __version__ as genopype_version
 from soothsayer_utils import *
 
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.6.12"
+__version__ = "2023.10.27"
 
 # Assembly
 def preprocess( input_filepaths, output_filepaths, output_directory, directories, opts):
@@ -156,7 +157,22 @@ def get_fasttree_cmd(input_filepaths, output_filepaths, output_directory, direct
         input_filepaths[0],
         ">",
         output_filepaths[0],
+
+            "&&",
+
+        os.environ["ete3"],
+        "view",
+        "-t",
+        output_filepaths[0],
+        "-i",
+        output_filepaths[1],
     ]
+
+    if not opts.no_show_support:
+        cmd += ["--ss"]
+    if not opts.no_show_branch_length:
+        cmd += ["--sbl"]
+
     return cmd
 
 
@@ -175,7 +191,22 @@ def get_iqtree_cmd(input_filepaths, output_filepaths, output_directory, director
         "-bb {}".format(opts.iqtree_bootstraps),
         "-pre {}".format(os.path.join(output_directory, "output")),
         "--seed {}".format(opts.random_state), 
+
+            "&&",
+
+        os.environ["ete3"],
+        "view",
+        "-t",
+        output_filepaths[0],
+        "-i",
+        output_filepaths[1],
     ]
+
+    if not opts.no_show_support:
+        cmd += ["--ss"]
+    if not opts.no_show_branch_length:
+        cmd += ["--sbl"]
+        
     return cmd
 
 
@@ -213,6 +244,7 @@ def add_executables_to_environment(opts):
                 "parallel",
                 "fasttree",
                 "iqtree",
+                "ete3",
 
      } | accessory_scripts
 
@@ -398,7 +430,7 @@ def create_pipeline(opts, directories, f_cmds):
     input_filepaths = [
         os.path.join(directories[("intermediate", "2__msa")], "concatenated_alignment.fasta"),
         ]
-    output_filenames = ["concatenated_alignment.fasttree.nw"]
+    output_filenames = ["concatenated_alignment.fasttree.nw", "concatenated_alignment.fasttree.nw.pdf"]
     output_filepaths = list(map(lambda filename: os.path.join(output_directory, filename), output_filenames))
 
     params = {
@@ -441,7 +473,7 @@ def create_pipeline(opts, directories, f_cmds):
         input_filepaths = [
             os.path.join(directories[("intermediate", "2__msa")], "concatenated_alignment.fasta"),
             ]
-        output_filenames = ["output.treefile"]
+        output_filenames = ["output.treefile", "output.treefile.pdf"]
         output_filepaths = list(map(lambda filename: os.path.join(output_directory, filename), output_filenames))
 
         params = {
@@ -482,9 +514,15 @@ def create_pipeline(opts, directories, f_cmds):
         os.path.join(directories[("intermediate", "2__msa")], "alignment_table.boolean.tsv.gz"), 
         os.path.join(directories[("intermediate", "2__msa")], "concatenated_alignment.fasta"),
         os.path.join(directories[("intermediate", "3__fasttree")], "concatenated_alignment.fasttree.nw"),
+        os.path.join(directories[("intermediate", "3__fasttree")], "concatenated_alignment.fasttree.nw.pdf"),
+
     ]
     if not opts.no_iqtree:
-        input_filepaths += [os.path.join(directories[("intermediate", "4__iqtree")], "output.treefile")]
+        input_filepaths += [
+            os.path.join(directories[("intermediate", "4__iqtree")], "output.treefile"),
+            os.path.join(directories[("intermediate", "4__iqtree")], "output.treefile.pdf"),
+
+            ]
 
 
     output_filenames =  map(lambda fp: fp.split("/")[-1], input_filepaths)
@@ -576,6 +614,8 @@ def main(args=None):
     parser_tree.add_argument("--iqtree_mset", type=str, default="WAG,LG", help="IQTree | Model set to choose from [Default: WAG,LG]")
     parser_tree.add_argument("--iqtree_bootstraps", type=int, default=1000, help="IQTree | Bootstraps [Default: 1000]")
     parser_tree.add_argument("--iqtree_options", type=str, default="", help="IQTree | More options (e.g. --arg 1 ) [Default: '']")
+    parser_tree.add_argument("--no_show_support", action="store_true", help="ETE3 | Don't show branch bootstrap/support values")
+    parser_tree.add_argument("--no_show_branch_length", action="store_true", help="ETE3 | Don't show branch lengths")
 
     # Options
     opts = parser.parse_args()
@@ -598,12 +638,15 @@ def main(args=None):
     directories["checkpoints"] = create_directory(os.path.join(directories["project"], "checkpoints"))
     directories["intermediate"] = create_directory(os.path.join(directories["project"], "intermediate"))
     os.environ["TMPDIR"] = directories["tmp"]
+    os.environ["QT_QPA_PLATFORM"] = "offscreen"
+    # export QT_QPA_PLATFORM=offscreen;
 
     # Info
     print(format_header(__program__, "="), file=sys.stdout)
     print(format_header("Configuration:", "-"), file=sys.stdout)
     print("Python version:", sys.version.replace("\n"," "), file=sys.stdout)
     print("Python path:", sys.executable, file=sys.stdout) #sys.path[2]
+    print("GenoPype version:", genopype_version, file=sys.stdout) #sys.path[2]
     print("Script version:", __version__, file=sys.stdout)
     print("Moment:", get_timestamp(), file=sys.stdout)
     print("Directory:", os.getcwd(), file=sys.stdout)

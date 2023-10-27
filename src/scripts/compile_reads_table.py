@@ -7,7 +7,7 @@ import pandas as pd
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.1.26"
+__version__ = "2023.8.28"
 
 def parse_basename(query: str, naming_scheme: str):
     """
@@ -56,6 +56,7 @@ def main(args=None):
     parser_output.add_argument("-1", "--forward_label", default="forward-absolute-filepath", type=str, help = "Forward filepath column label [Default: forward-absolute-filepath]")
     parser_output.add_argument("-2", "--reverse_label", default="reverse-absolute-filepath", type=str, help = "Reverse filepath column label [Default: reverse-absolute-filepath]")
     parser_output.add_argument("--header", action="store_true", help = "Write header")
+    parser_output.add_argument("--volume_prefix", type=str, help = "Docker container prefix to volume path")
 
     # Options
     opts = parser.parse_args()
@@ -101,8 +102,13 @@ def main(args=None):
             if "absolute" in opts.reverse_label.lower():
                 print("You've selected --relative and may want to either not use a header or remove 'absolute' from the --reverse_label: {}".format(opts.reverse_label), file=sys.stderr)
 
+    # Docker volume prefix
+    if opts.volume_prefix:
+        df_output = df_output.applymap(lambda fp: os.path.join(opts.volume_prefix, fp) if pd.notnull(fp) else fp)
+
     if opts.output == "stdout":
         opts.output = sys.stdout 
+        
     df_output.to_csv(opts.output, sep="\t", header=bool(opts.header))
 
 if __name__ == "__main__":

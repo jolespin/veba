@@ -34,7 +34,170 @@ A protein database is required not only for eukaryotic gene calls using MetaEuk 
 #### Database Structure:
 
 **Current:**
-*VEBA Database* version: `VDB_v5.1`
+*VEBA Database* version: `VDB_v5.2` (243 GB)
+
+*  Added `MicrobeAnnotator-KEGG` [Zenodo: 10020074](https://zenodo.org/records/10020074) which includes KEGG module pathway information from [`MicrobeAnnotator`](https://doi.org/10.1186/s12859-020-03940-5).
+*  Added `CAZy` protein sequences from [`dbCAN2`](https://academic.oup.com/nar/article/46/W1/W95/4996582)
+
+```
+tree -L 3 .
+.
+├── ACCESS_DATE
+├── Annotate
+│   ├── CAZy
+│   │   └── CAZyDB.07262023.dmnd
+│   ├── KOFAM
+│   │   ├── ko_list
+│   │   └── profiles
+│   ├── MIBiG
+│   │   └── mibig_v3.1.dmnd
+│   ├── MicrobeAnnotator-KEGG
+│   │   ├── KEGG_Bifurcating_Module_Information.pkl
+│   │   ├── KEGG_Bifurcating_Module_Information.pkl.md5
+│   │   ├── KEGG_Module_Information.txt
+│   │   ├── KEGG_Module_Information.txt.md5
+│   │   ├── KEGG_Regular_Module_Information.pkl
+│   │   ├── KEGG_Regular_Module_Information.pkl.md5
+│   │   ├── KEGG_Structural_Module_Information.pkl
+│   │   └── KEGG_Structural_Module_Information.pkl.md5
+│   ├── MicrobeAnnotator-KEGG.tar.gz
+│   ├── NCBIfam-AMRFinder
+│   │   ├── NCBIfam-AMRFinder.changelog.txt
+│   │   ├── NCBIfam-AMRFinder.hmm.gz
+│   │   └── NCBIfam-AMRFinder.tsv
+│   ├── Pfam
+│   │   ├── Pfam-A.hmm.gz
+│   │   └── relnotes.txt
+│   ├── UniRef
+│   │   ├── uniref50.dmnd
+│   │   ├── uniref50.release_note
+│   │   ├── uniref90.dmnd
+│   │   └── uniref90.release_note
+│   └── VFDB
+│       └── VFDB_setA_pro.dmnd
+├── Classify
+│   ├── CheckM2
+│   │   └── uniref100.KO.1.dmnd
+│   ├── CheckV
+│   │   ├── genome_db
+│   │   ├── hmm_db
+│   │   └── README.txt
+│   ├── geNomad
+│   │   ├── genomad_db
+│   │   ├── genomad_db.dbtype
+│   │   ├── genomad_db_h
+│   │   ├── genomad_db_h.dbtype
+│   │   ├── genomad_db_h.index
+│   │   ├── genomad_db.index
+│   │   ├── genomad_db.lookup
+│   │   ├── genomad_db_mapping
+│   │   ├── genomad_db.source
+│   │   ├── genomad_db_taxonomy
+│   │   ├── genomad_integrase_db
+│   │   ├── genomad_integrase_db.dbtype
+│   │   ├── genomad_integrase_db_h
+│   │   ├── genomad_integrase_db_h.dbtype
+│   │   ├── genomad_integrase_db_h.index
+│   │   ├── genomad_integrase_db.index
+│   │   ├── genomad_integrase_db.lookup
+│   │   ├── genomad_integrase_db.source
+│   │   ├── genomad_marker_metadata.tsv
+│   │   ├── genomad_mini_db -> genomad_db
+│   │   ├── genomad_mini_db.dbtype
+│   │   ├── genomad_mini_db_h -> genomad_db_h
+│   │   ├── genomad_mini_db_h.dbtype -> genomad_db_h.dbtype
+│   │   ├── genomad_mini_db_h.index -> genomad_db_h.index
+│   │   ├── genomad_mini_db.index
+│   │   ├── genomad_mini_db.lookup -> genomad_db.lookup
+│   │   ├── genomad_mini_db_mapping -> genomad_db_mapping
+│   │   ├── genomad_mini_db.source -> genomad_db.source
+│   │   ├── genomad_mini_db_taxonomy -> genomad_db_taxonomy
+│   │   ├── mini_set_ids
+│   │   ├── names.dmp
+│   │   ├── nodes.dmp
+│   │   ├── plasmid_hallmark_annotation.txt
+│   │   ├── version.txt
+│   │   └── virus_hallmark_annotation.txt
+│   ├── GTDB
+│   │   ├── fastani
+│   │   ├── markers
+│   │   ├── mash
+│   │   ├── masks
+│   │   ├── metadata
+│   │   ├── mrca_red
+│   │   ├── msa
+│   │   ├── pplacer
+│   │   ├── radii
+│   │   ├── split
+│   │   ├── taxonomy
+│   │   └── temp
+│   ├── Microeukaryotic
+│   │   ├── clean_ftp.sh
+│   │   ├── humann_uniref50_annotations.tsv.gz
+│   │   ├── md5_checksums
+│   │   ├── microeukaryotic
+│   │   ├── microeukaryotic.dbtype
+│   │   ├── microeukaryotic.eukaryota_odb10
+│   │   ├── microeukaryotic.eukaryota_odb10.dbtype
+│   │   ├── microeukaryotic.eukaryota_odb10_h
+│   │   ├── microeukaryotic.eukaryota_odb10_h.dbtype
+│   │   ├── microeukaryotic.eukaryota_odb10_h.index
+│   │   ├── microeukaryotic.eukaryota_odb10.index
+│   │   ├── microeukaryotic.eukaryota_odb10.lookup
+│   │   ├── microeukaryotic.eukaryota_odb10.source
+│   │   ├── microeukaryotic_h
+│   │   ├── microeukaryotic_h.dbtype
+│   │   ├── microeukaryotic_h.index
+│   │   ├── microeukaryotic.index
+│   │   ├── microeukaryotic.lookup
+│   │   ├── microeukaryotic.source
+│   │   ├── reference.eukaryota_odb10.list
+│   │   ├── RELEASE_NOTES
+│   │   ├── source_taxonomy.tsv.gz
+│   │   ├── source_to_lineage.dict.pkl.gz
+│   │   └── target_to_source.dict.pkl.gz
+│   └── NCBITaxonomy
+│       ├── citations.dmp
+│       ├── delnodes.dmp
+│       ├── division.dmp
+│       ├── gc.prt
+│       ├── gencode.dmp
+│       ├── merged.dmp
+│       ├── names.dmp
+│       ├── nodes.dmp
+│       ├── prot.accession2taxid.FULL.gz
+│       └── readme.txt
+├── Contamination
+│   ├── AntiFam
+│   │   ├── AntiFam.hmm.gz
+│   │   ├── relnotes
+│   │   └── version
+│   ├── chm13v2.0
+│   │   ├── chm13v2.0.1.bt2
+│   │   ├── chm13v2.0.2.bt2
+│   │   ├── chm13v2.0.3.bt2
+│   │   ├── chm13v2.0.4.bt2
+│   │   ├── chm13v2.0.rev.1.bt2
+│   │   └── chm13v2.0.rev.2.bt2
+│   └── kmers
+│       └── ribokmers.fa.gz
+└── MarkerSets
+    ├── Archaea_76.hmm.gz
+    ├── Bacteria_71.hmm.gz
+    ├── CPR_43.hmm.gz
+    ├── eukaryota_odb10.hmm.gz
+    ├── eukaryota_odb10.scores_cutoff.tsv.gz
+    ├── Fungi_593.hmm.gz
+    ├── Protista_83.hmm.gz
+    └── README
+
+37 directories, 112 files
+```
+
+**Deprecated:**
+
+<details>
+	<summary> *VEBA Database* version: `VDB_v5.1` </summary>
 
 * `VDB_v5` → `VDB_v5.1` updates `GTDB` database from `r207_v2` → `r214`.  
 * Changes `${VEBA_DATABASE}/Classify/GTDBTk` → `${VEBA_DATABASE}/Classify/GTDB`.
@@ -177,8 +340,7 @@ tree -L 3 .
     ├── Protista_83.hmm.gz
     └── README
 ```
-
-**Deprecated:**
+</details>
 
 <details>
 	<summary> *VEBA Database* version: `VDB_v5` </summary>
@@ -464,7 +626,7 @@ tree -L 3 .
 
 
 <details>
-	<summary>*VEBA Database* version: VDB_v3.1</summary>
+	<summary>*VEBA Database* version: `VDB_v3.1`</summary>
 	
 The same as `VDB_v3` but updates `VDB-Microeukaryotic_v2` to `VDB-Microeukaryotic_v2.1` which has a `reference.eukaryota_odb10.list` containing only the subset of identifiers that core eukaryotic markers (useful for classification).
 	
@@ -573,7 +735,7 @@ tree -L 3 .
 
 
 <details>
-	<summary>*VEBA Database* version: VDB_v3</summary>
+	<summary>*VEBA Database* version: `VDB_v3`</summary>
 
 ```
 tree -L 3 .
@@ -671,7 +833,7 @@ tree -L 3 .
 
 
 <details>
-	<summary>*VEBA Database* version: VDB_v2</summary>
+	<summary>*VEBA Database* version: `VDB_v2`</summary>
 	
 * Compatible with *VEBA* version: `v1.0.2a+`
 	
@@ -769,7 +931,7 @@ tree -L 3 .
 
 
 <details>
-	<summary>*VEBA Database* version: VDB_v1</summary>
+	<summary>*VEBA Database* version: `VDB_v1`</summary>
 	
 
 * Compatible with *VEBA* version: `v1.0.0`, `v1.0.1`

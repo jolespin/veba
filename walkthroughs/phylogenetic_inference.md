@@ -270,8 +270,10 @@ The following output files will produced:
 * alignment_table.boolean.tsv.gz - Alignment table of (n = genomes, m = markers, ij=fasta pass qc)
 * concatenated_alignment.fasta - Concatenated protein alignment of all marker hits
 * concatenated_alignment.fasttree.nw - FastTree newick format based on concatenated alignment
+* concatenated_alignment.fasttree.nw.pdf - PDF visualization of newick tree by ETE3
 * prefiltered_alignment_table.tsv.gz - Prefiltered alignment table of (n = genomes, m = markers, ij=fasta alignment)
 * output.treefile - IQTREE2 newick format based on concatenated alignment (if --no_iqtree is not selected)
+* output.treefile.pdf - PDF visualization of newick tree by ETE3
 
 #### Next steps:
 

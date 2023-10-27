@@ -1313,11 +1313,21 @@ Novelty score threshold arguments:
 
 **Output:**
 
-* bgc.components.tsv - All of the BGC components (i.e., genes in BGC) in tabular format organized by genome, contig, region, and gene.
-* bgc.synopsis.tsv - All of the BGCs in tabular format organized by genome, contig, region, and gene.
-* bgc.type_counts.tsv - Summary of BGCs detected organized by type.  Also includes summary of BGCs that are NOT on contig edge.
-* components/*.faa.gz - BGC components in fasta format
+* bgc\_clusters.tsv - BGC to BGC nucleotide cluster
+* bgc\_protocluster-types.tsv.gz - Summary of BGCs detected organized by type.  Also includes summary of BGCs that are NOT on contig edge.
+* bgcs.representative\_sequences.fasta.gz - Full length BGC nucleotide cluster representatives
+* component\_clusters.tsv - BGC protein to BGC protein cluster
+* components.representative\_sequences.faa.gz - BGC protein cluster representatives
+* fasta/[id/_genome].faa/fasta.gz - BGC sequences in protein and nucleotide space
 * genbanks/[id\_genome]/*.gbk - Genbank formatted antiSMASH results
+* homology.tsv.gz - Diamond results for MIBiG and VFDB
+* identifier\_mapping.bgcs.tsv.gz - All of the BGCs in tabular format organized by genome, contig, region, and gene.
+* identifier\_mapping.components.tsv.gz - All of the BGC components (i.e., genes in BGC) in tabular format organized by genome, contig, region, and gene.
+* krona.html - HTML showing Krona plot for number of BGCs per protocluster-type.
+* krona.tsv - Data to produce Krona plot
+* prevalence\_tables/bgcs.tsv.gz - Genome vs. BGC nucleotide cluster prevalence table
+* prevalence\_tables/components.tsv.gz - Genome vs. BGC protein cluster prevalence table
+
 
 <p align="right"><a href="#readme-top">^__^</a></p>
 

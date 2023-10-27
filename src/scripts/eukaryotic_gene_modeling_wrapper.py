@@ -8,11 +8,12 @@ import numpy as np
 
 # Soothsayer Ecosystem
 from genopype import *
+from genopype import __version__ as genopype_version
 from soothsayer_utils import *
 
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.7.4"
+__version__ = "2023.10.16"
 
 # Tiara
 def get_tiara_cmd(input_filepaths, output_filepaths, output_directory, directories, opts):
@@ -312,7 +313,14 @@ done
 for GENOME_FASTA in {}
 do  
     ID=$(basename $GENOME_FASTA .fa)
-    {} {} --forceow --progress --thread {} --fasta $OUTPUT_DIRECTORY/$ID.tRNA --gff $OUTPUT_DIRECTORY/$ID.tRNA.gff --struct $OUTPUT_DIRECTORY/$ID.tRNA.struct {} $GENOME_FASTA > $OUTPUT_DIRECTORY/$ID.tRNA.txt
+    TRNA_FASTA=$OUTPUT_DIRECTORY/$ID.tRNA
+    if [[ -s "$TRNA_FASTA" ]]; 
+        then
+            echo "[Skipping] [tRNAscan-SE] $GENOME_FASTA because tRNA fasta exists and is not empty"
+        else
+            echo "[Running] [tRNAscan-SE] $GENOME_FASTA"
+            {} {} --forceow --progress --thread {} --fasta $OUTPUT_DIRECTORY/$ID.tRNA --gff $OUTPUT_DIRECTORY/$ID.tRNA.gff --struct $OUTPUT_DIRECTORY/$ID.tRNA.struct {} $GENOME_FASTA > $OUTPUT_DIRECTORY/$ID.tRNA.txt
+    fi
 done
 """.format(
         output_directory,
@@ -1429,6 +1437,7 @@ def main(args=None):
     print(format_header("Configuration:", "-"), file=sys.stdout)
     print("Python version:", sys.version.replace("\n"," "), file=sys.stdout)
     print("Python path:", sys.executable, file=sys.stdout) #sys.path[2]
+    print("GenoPype version:", genopype_version, file=sys.stdout) #sys.path[2]
     print("Script version:", __version__, file=sys.stdout)
     print("Moment:", get_timestamp(), file=sys.stdout)
     print("Directory:", os.getcwd(), file=sys.stdout)

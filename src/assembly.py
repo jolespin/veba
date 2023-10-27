@@ -7,16 +7,16 @@ import pandas as pd
 
 # Soothsayer Ecosystem
 from genopype import *
+from genopype import __version__ as genopype_version
 from soothsayer_utils import *
 
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.5.15"
+__version__ = "2023.10.16"
 
 # Assembly
 def get_assembly_cmd( input_filepaths, output_filepaths, output_directory, directories, opts):
-
     # Command
     # MEGAHIT
     if opts.program == "megahit":
@@ -38,6 +38,7 @@ def get_assembly_cmd( input_filepaths, output_filepaths, output_directory, direc
         "--tmp-dir {}".format(directories["tmp"]),
         "--num-cpu-threads {}".format(opts.n_jobs),
         "--memory {}".format(opts.megahit_memory),
+        "--presets {}".format(opts.megahit_preset) if bool(opts.megahit_preset) else "",
         opts.assembler_options,
         ")",
         "&&",
@@ -370,6 +371,7 @@ def add_executables_to_environment(opts):
             os.environ[name] = executable.strip()
     print("", file=sys.stdout)
 
+
 # Pipeline
 def create_pipeline(opts, directories, f_cmds):
 
@@ -650,9 +652,12 @@ def configure_parameters(opts, directories):
     assert opts.forward_reads != opts.reverse_reads, "You probably mislabeled the input files because `forward_reads` should not be the same as `reverse_reads`: {}".format(opts.forward_reads)
 
     assert_acceptable_arguments(opts.program, {"spades.py", "metaspades.py", "rnaspades.py", "megahit", "metaplasmidspades.py", "plasmidspades.py", "coronaspades.py"}) 
-    if opts.program in {"metaplasmidspades.py", "plasmidspades.py", "coronaspades.py"}:
-        print("UserWarning: {} has not been thoroughly tested with VEBA.  If any issues arise, please use one of the following instead: {spades.py, metaspades.py, rnaspades.py, megahit}".format(opts.program), file=sys.stdout)
 
+    if opts.program in {"metaplasmidspades.py", "plasmidspades.py", "coronaspades.py"}:
+        print("UserWarning: {} has not been thoroughly tested with VEBA.  If any issues arise, please use one of the following instead: [spades.py, metaspades.py, rnaspades.py, megahit]".format(opts.program), file=sys.stdout)
+    if opts.megahit_preset:
+        assert_acceptable_arguments(opts.megahit_preset, {"meta-sensitive", "meta-large"})
+        assert "--presets" not in opts.assembler_options, "Cannot have --presets in --assembler_options and set it using --megahit_preset"
     # Scaffold prefix
     if opts.scaffold_prefix == "NONE":
         opts.scaffold_prefix = ""
@@ -660,6 +665,7 @@ def configure_parameters(opts, directories):
         if "NAME" in opts.scaffold_prefix:
             opts.scaffold_prefix = opts.scaffold_prefix.replace("NAME", opts.name)
         print("Using the following prefix for all {} scaffolds: {}".format(opts.program, opts.scaffold_prefix), file=sys.stdout)
+    
     # Set environment variables
     add_executables_to_environment(opts=opts)
 
@@ -704,7 +710,8 @@ def main(args=None):
 
     # MEGAHIT
     parser_megahit = parser.add_argument_group('MEGAHIT arguments')
-    parser_megahit.add_argument("--megahit_memory", type=float, default=0.9, help="MEGAHIT | RAM limit in Gb (terminates if exceeded). [Default: 0.9]")
+    parser_megahit.add_argument("--megahit_memory", type=float, default=0.99, help="MEGAHIT | Max memory in byte to be used in SdBG construction. If set between 0-1, fraction of the machine's total memory. [Default: 0.99]")
+    parser_megahit.add_argument("--megahit_preset", type=str,  help="MEGAHIT | meta-sensitive: '--min-count 1 --k-list 21,29,39,49,...,129,141' meta-large: '--k-min 27 --k-max 127 --k-step 10' (large & complex metagenomes, like soil)")
 
     # Aligner
     parser_aligner = parser.add_argument_group('Bowtie2 arguments')
@@ -747,6 +754,7 @@ def main(args=None):
     print(format_header("Name: {}".format(opts.name), "."), file=sys.stdout)
     print("Python version:", sys.version.replace("\n"," "), file=sys.stdout)
     print("Python path:", sys.executable, file=sys.stdout) #sys.path[2]
+    print("GenoPype version:", genopype_version, file=sys.stdout) #sys.path[2]
     print("Script version:", __version__, file=sys.stdout)
     print("Moment:", get_timestamp(), file=sys.stdout)
     print("Directory:", os.getcwd(), file=sys.stdout)

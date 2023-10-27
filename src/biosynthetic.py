@@ -7,12 +7,13 @@ import pandas as pd
 
 # Soothsayer Ecosystem
 from genopype import *
+from genopype import __version__ as genopype_version
 from soothsayer_utils import *
 
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.7.11"
+__version__ = "2023.10.16"
 
 # antiSMASH
 def get_antismash_cmd( input_filepaths, output_filepaths, output_directory, directories, opts):
@@ -21,6 +22,7 @@ def get_antismash_cmd( input_filepaths, output_filepaths, output_directory, dire
 """
 OUTPUT_DIRECTORY=%s
 INTERMEDIATE_DIRECTORY=%s
+TMP=%s
 mkdir -p ${INTERMEDIATE_DIRECTORY}
 n=1
 while IFS= read -r LINE
@@ -42,28 +44,44 @@ do read -r -a ARRAY <<< $LINE
 
         START_TIME=${SECONDS}
 
+        # Extract CDS records (or else antiSMASH will fail)
+        GENE_MODELS_CDS_ONLY=${TMP}/gene_models.cds.gff
+        grep "CDS" ${GENE_MODELS} > ${GENE_MODELS_CDS_ONLY}
+
         # Run antiSMASH
-        %s --allow-long-headers --verbose --skip-zip-file -c %d --output-dir ${INTERMEDIATE_DIRECTORY}/${ID} --html-title ${ID} --taxon %s --minlength %d --databases %s --hmmdetection-strictness %s --logfile ${INTERMEDIATE_DIRECTORY}/${ID}/log.txt --genefinding-gff3 ${GENE_MODELS} ${GENOME}
+        %s --allow-long-headers --verbose --skip-zip-file -c %d --output-dir ${INTERMEDIATE_DIRECTORY}/${ID} --html-title ${ID} --taxon %s --minlength %d --databases %s --hmmdetection-strictness %s --logfile ${INTERMEDIATE_DIRECTORY}/${ID}/log.txt --genefinding-gff3 ${GENE_MODELS_CDS_ONLY} ${GENOME} || (echo "antiSMASH for ${ID} failed" && exit 1)
+        rm ${GENE_MODELS_CDS_ONLY}
 
         # Genbanks to table
-        %s -i ${INTERMEDIATE_DIRECTORY}/${ID} -o ${INTERMEDIATE_DIRECTORY}/${ID}/antismash_components.tsv.gz -s ${INTERMEDIATE_DIRECTORY}/${ID}/synopsis.tsv.gz -t ${INTERMEDIATE_DIRECTORY}/${ID}/type_counts.tsv.gz --fasta_output ${INTERMEDIATE_DIRECTORY}/${ID}/bgc.components.faa.gz
+        %s -i ${INTERMEDIATE_DIRECTORY}/${ID} -o ${INTERMEDIATE_DIRECTORY}/${ID}/veba_formatted_output
 
         # Compile table for Krona graph
-        %s -i ${INTERMEDIATE_DIRECTORY}/${ID}/type_counts.tsv.gz -m biosynthetic-local -o ${INTERMEDIATE_DIRECTORY}/${ID}/krona.tsv
+        %s -i ${INTERMEDIATE_DIRECTORY}/${ID}/veba_formatted_output/bgc_protocluster-types.tsv.gz -m biosynthetic-local -o ${INTERMEDIATE_DIRECTORY}/${ID}/veba_formatted_output/krona.tsv
 
         # Create Krona graph
-        %s -o ${INTERMEDIATE_DIRECTORY}/${ID}/krona.html -n ${ID} ${INTERMEDIATE_DIRECTORY}/${ID}/krona.tsv
+        %s -o ${INTERMEDIATE_DIRECTORY}/${ID}/veba_formatted_output/krona.html -n ${ID} ${INTERMEDIATE_DIRECTORY}/${ID}/veba_formatted_output/krona.tsv
 
-        # Symlink proteins
+        # Symlink sequences
         FASTA_DIRECTORY=${OUTPUT_DIRECTORY}/fasta/
-        SRC_FILES=${INTERMEDIATE_DIRECTORY}/${ID}/bgc.components.faa.gz
         DST=${FASTA_DIRECTORY}/
 
+        # Proteins
+        SRC_FILES=${INTERMEDIATE_DIRECTORY}/${ID}/veba_formatted_output/fasta/components.faa.gz
         for SRC in $(ls ${SRC_FILES})
         do
             if [ -f "${SRC}" ]; then
                 SRC=$(realpath --relative-to ${DST} ${SRC})
                 ln -sf ${SRC} ${DST}/${ID}.faa.gz
+            fi
+        done
+
+        # DNA
+        SRC_FILES=${INTERMEDIATE_DIRECTORY}/${ID}/veba_formatted_output/fasta/bgcs.fasta.gz
+        for SRC in $(ls ${SRC_FILES})
+        do
+            if [ -f "${SRC}" ]; then
+                SRC=$(realpath --relative-to ${DST} ${SRC})
+                ln -sf ${SRC} ${DST}/${ID}.fasta.gz
             fi
         done
 
@@ -98,13 +116,13 @@ do read -r -a ARRAY <<< $LINE
 done < %s
 
 # Concatenate tables
-%s -a 0 -e ${INTERMEDIATE_DIRECTORY}/*/antismash_components.tsv.gz | gzip > ${OUTPUT_DIRECTORY}/bgc.components.tsv.gz
-%s -a 0 -e ${INTERMEDIATE_DIRECTORY}/*/type_counts.tsv.gz | gzip > ${OUTPUT_DIRECTORY}/bgc.type_counts.tsv.gz
-%s -a 0 -e ${INTERMEDIATE_DIRECTORY}/*/synopsis.tsv.gz | gzip > ${OUTPUT_DIRECTORY}/bgc.synopsis.tsv.gz
+%s -a 0 -e ${INTERMEDIATE_DIRECTORY}/*/veba_formatted_output/identifier_mapping.components.tsv.gz | gzip > ${OUTPUT_DIRECTORY}/identifier_mapping.components.tsv.gz
+%s -a 0 -e ${INTERMEDIATE_DIRECTORY}/*/veba_formatted_output/bgc_protocluster-types.tsv.gz | gzip > ${OUTPUT_DIRECTORY}/bgc_protocluster-types.tsv.gz
+%s -a 0 -e ${INTERMEDIATE_DIRECTORY}/*/veba_formatted_output/identifier_mapping.bgcs.tsv.gz | gzip > ${OUTPUT_DIRECTORY}/identifier_mapping.bgcs.tsv.gz
 
 # Krona
 # Compile table for Krona graph
-%s -i ${OUTPUT_DIRECTORY}/bgc.type_counts.tsv.gz -m biosynthetic-global -o ${OUTPUT_DIRECTORY}/krona.tsv
+%s -i ${OUTPUT_DIRECTORY}/bgc_protocluster-types.tsv.gz -m biosynthetic-global -o ${OUTPUT_DIRECTORY}/krona.tsv
 
 # Create Krona graph
 %s ${OUTPUT_DIRECTORY}/krona.tsv -o ${OUTPUT_DIRECTORY}/krona.html -n 'antiSMASH'
@@ -112,6 +130,7 @@ done < %s
     # Args
     directories["output"],
     output_directory,
+    directories["tmp"],
 
     # antiSMASH
     os.environ["antismash"],
@@ -167,7 +186,7 @@ def get_diamond_cmd( input_filepaths, output_filepaths, output_directory, direct
             "&&",
         
         "cat",
-        os.path.join(input_filepaths[0], "*", "bgc.components.faa.gz"),
+        os.path.join(input_filepaths[0], "*","veba_formatted_output", "fasta", "components.faa.gz"),
         "|",
         "gzip -d",
         ">",
@@ -258,6 +277,7 @@ def get_diamond_cmd( input_filepaths, output_filepaths, output_directory, direct
         os.environ["concatenate_dataframes.py"],
         "-a 1",
         "--prepend_column_levels MiBIG,VFDB",
+        "--sort_by bitscore",
         "-o {}".format(os.path.join(directories["output"], "homology.tsv.gz")),
         os.path.join(output_directory, "diamond_output.mibig.tsv"),
         os.path.join(output_directory, "diamond_output.vfdb.tsv"),
@@ -265,6 +285,7 @@ def get_diamond_cmd( input_filepaths, output_filepaths, output_directory, direct
             "&&",
 
         "rm",
+        "-rf",
         os.path.join(directories["tmp"], "components.concatenated.faa"),
         os.path.join(output_directory, "*.no_header.tsv"),
 
@@ -279,13 +300,172 @@ def get_novelty_score_cmd(input_filepaths, output_filepaths, output_directory, d
     cmd = [
         os.environ["bgc_novelty_scorer.py"],
         "-c {}".format(input_filepaths[0]),
-        "-s {}".format(input_filepaths[1]),
+        "-b {}".format(input_filepaths[1]),
         "-d {}".format(input_filepaths[2]),
         "-o {}".format(output_filepaths[0]),
         "--pident {}".format(opts.pident),
         "--qcovhsp {}".format(opts.qcovhsp),
         "--scovhsp {}".format(opts.scovhsp),
         "--evalue {}".format(opts.evalue),
+    ]
+    return cmd
+
+# MMSEQS2
+def get_mmseqs2_protein_cmd(input_filepaths, output_filepaths, output_directory, directories, opts):
+    cmd = [
+        "cat",
+        os.path.join(input_filepaths[0],"*","veba_formatted_output", "fasta", "components.faa.gz"),
+        "|",
+        "gzip",
+        "-d",
+        ">",
+        os.path.join(directories["tmp"], "components.concatenated.faa"),
+
+            "&&",
+
+        "cat",
+        os.path.join(directories["tmp"], "components.concatenated.faa"),
+        "|",
+        'grep "^>"',
+        "|",
+        "cut -c2-",
+        "|",
+        'cut -f1 -d " "', # Should the original gene names be used or the new component id?
+        ">",
+        os.path.join(directories["tmp"], "components.concatenated.faa.list"),
+
+            "&&",
+
+        os.environ["mmseqs2_wrapper.py"],
+        "--fasta {}".format(os.path.join(directories["tmp"], "components.concatenated.faa")),
+        "--output_directory {}".format(output_directory),
+        "--no_singletons" if bool(opts.no_singletons) else "",
+        "--algorithm {}".format(opts.algorithm),
+        "--n_jobs {}".format(opts.n_jobs),
+        "--minimum_identity_threshold {}".format(opts.protein_minimum_identity_threshold),
+        "--minimum_coverage_threshold {}".format(opts.protein_minimum_coverage_threshold),
+        "--mmseqs2_options='{}'" if bool(opts.mmseqs2_options) else "",
+        "--cluster_prefix {}".format(opts.protein_cluster_prefix),
+        "--cluster_suffix {}".format(opts.protein_cluster_suffix) if bool(opts.protein_cluster_suffix) else "",
+        "--cluster_prefix_zfill {}".format(opts.protein_cluster_prefix_zfill),
+        "--basename clusters",
+        "--identifiers {}".format(os.path.join(directories["tmp"], "components.concatenated.faa.list")),
+        "--no_sequences_and_header",
+        "--representative_output_format fasta",
+
+            "&&",
+
+        "DST={}; SRC={}; SRC=$(realpath --relative-to $DST $SRC); ln -sf $SRC $DST/component_clusters.tsv".format(
+            directories["output"],
+            os.path.join(output_directory, "output/clusters.tsv"),
+        ),
+
+            "&&",
+
+        "SRC={}; SRC=$(realpath --relative-to $DST $SRC); ln -sf $SRC $DST/components.representative_sequences.faa.gz".format(
+            os.path.join(output_directory, "output/representative_sequences.fasta.gz"),
+        ),
+
+            "&&",
+
+        "cat",
+        os.path.join(output_directory, "output/clusters.tsv"),
+        "|",
+        """python -c 'import sys, pandas as pd; df = pd.read_csv(sys.stdin, sep="\t", header=None); df.insert(0, -1, df[0].map(lambda x: "_".join(x.split("_")[:-1]))); df.to_csv(sys.stdout, sep="\t", index=None, header=None)'""",
+        "|",
+        os.environ["compile_protein_cluster_prevalence_table.py"],
+        "--dtype bool",
+        "--rows_name id_bgc",
+        "-b",
+        "|",
+        "gzip",
+        ">",
+        os.path.join(directories[("output", "prevalence_tables")], "components.tsv.gz"),
+    
+            "&&",
+
+        "rm -rf",
+        os.path.join(directories["tmp"], "components.*"),
+  
+    ]
+    return cmd
+
+def get_mmseqs2_nucleotide_cmd(input_filepaths, output_filepaths, output_directory, directories, opts):
+    cmd = [
+        "cat",
+        os.path.join(input_filepaths[0],"*","veba_formatted_output", "fasta", "bgcs.fasta.gz"),
+        "|"
+        "gzip",
+        "-d",
+        ">",
+        os.path.join(directories["tmp"], "bgcs.concatenated.fasta"),
+
+            "&&",
+
+        "cat",
+        os.path.join(directories["tmp"], "bgcs.concatenated.fasta"),
+        "|",
+        'grep "^>"',
+        "|",
+        "cut -c2-",
+        "|",
+        'cut -f1 -d " "', # Should the original gene names be used or the new component id?
+        ">",
+        os.path.join(directories["tmp"], "bgcs.concatenated.fasta.list"),
+
+            "&&",
+
+        os.environ["mmseqs2_wrapper.py"],
+        "--fasta {}".format(os.path.join(directories["tmp"], "bgcs.concatenated.fasta")),
+        "--output_directory {}".format(output_directory),
+        "--no_singletons" if bool(opts.no_singletons) else "",
+        "--algorithm {}".format(opts.algorithm),
+        "--n_jobs {}".format(opts.n_jobs),
+        "--minimum_identity_threshold {}".format(opts.nucleotide_minimum_identity_threshold),
+        "--minimum_coverage_threshold {}".format(opts.nucleotide_minimum_coverage_threshold),
+        "--mmseqs2_options='{}'" if bool(opts.mmseqs2_options) else "",
+        "--cluster_prefix {}".format(opts.nucleotide_cluster_prefix),
+        "--cluster_suffix {}".format(opts.nucleotide_cluster_suffix) if bool(opts.nucleotide_cluster_suffix) else "",
+        "--cluster_prefix_zfill {}".format(opts.nucleotide_cluster_prefix_zfill),
+        "--basename clusters",
+        "--identifiers {}".format(os.path.join(directories["tmp"], "bgcs.concatenated.fasta.list")),
+        "--no_sequences_and_header",
+        "--representative_output_format fasta",
+
+            "&&",
+
+        "DST={}; SRC={}; SRC=$(realpath --relative-to $DST $SRC); ln -sf $SRC $DST/bgc_clusters.tsv".format(
+            directories["output"],
+            os.path.join(output_directory, "output/clusters.tsv"),
+        ),
+
+            "&&",
+
+        "SRC={}; SRC=$(realpath --relative-to $DST $SRC); ln -sf $SRC $DST/bgcs.representative_sequences.fasta.gz".format(
+            os.path.join(output_directory, "output/representative_sequences.fasta.gz"),
+        ),
+
+            "&&",
+
+        "cat",
+        os.path.join(output_directory, "output/clusters.tsv"),
+        "|",
+        """python -c 'import sys, pandas as pd; df = pd.read_csv(sys.stdin, sep="\t", header=None); df.insert(0, -1, df[0].map(lambda x: x.split("|")[0])); df.to_csv(sys.stdout, sep="\t", index=None, header=None)'""",
+        "|",
+        os.environ["compile_protein_cluster_prevalence_table.py"],
+        "--dtype bool",
+        "--columns_name id_bgc-cluster",
+        "-b",
+        "|",
+        "gzip",
+        ">",
+        os.path.join(directories[("output", "prevalence_tables")], "bgcs.tsv.gz"),
+
+            "&&",
+
+        "rm -rf",
+        os.path.join(directories["tmp"], "bgcs.*"),
+  
     ]
     return cmd
 
@@ -303,6 +483,8 @@ def add_executables_to_environment(opts):
         "concatenate_dataframes.py",
         "bgc_novelty_scorer.py",
         "compile_krona.py",
+        "mmseqs2_wrapper.py",
+        "compile_protein_cluster_prevalence_table.py",
         }
 
     required_executables={
@@ -312,6 +494,8 @@ def add_executables_to_environment(opts):
                 "diamond",
                 # Krona
                 "ktImportText",
+                # 
+                "mmseqs",
 
      } | accessory_scripts
 
@@ -371,10 +555,11 @@ def create_pipeline(opts, directories, f_cmds):
     input_filepaths = [
         opts.input,
         ]
+
     output_filenames = [
-        "bgc.components.tsv.gz", 
-        "bgc.type_counts.tsv.gz",
-        "bgc.synopsis.tsv.gz",
+        "identifier_mapping.components.tsv.gz", 
+        "bgc_protocluster-types.tsv.gz",
+        "identifier_mapping.bgcs.tsv.gz",
         "krona.html",
         "fasta/",
         "genbanks/",
@@ -460,12 +645,12 @@ def create_pipeline(opts, directories, f_cmds):
 
     # i/o
     input_filepaths = [
-        os.path.join(directories["output"], "bgc.components.tsv.gz"),
-        os.path.join(directories["output"], "bgc.synopsis.tsv.gz"),
+        os.path.join(directories["output"], "identifier_mapping.components.tsv.gz"),
+        os.path.join(directories["output"], "identifier_mapping.bgcs.tsv.gz"),
         os.path.join(directories["output"], "homology.tsv.gz"),
     ]
 
-    output_filenames =  ["bgc.synopsis.tsv.gz"] # Overwriting
+    output_filenames =  ["identifier_mapping.bgcs.tsv.gz"] # Overwriting
     output_filepaths = list(map(lambda fn:os.path.join(directories["output"], fn), output_filenames))
 
 
@@ -488,6 +673,108 @@ def create_pipeline(opts, directories, f_cmds):
             validate_inputs=True,
             validate_outputs=True,
     )
+
+    # ==========
+    # MMSEQS2 (Proteins)
+    # ==========
+    if not opts.no_protein_clustering:
+        step += 1
+
+        program = "mmseqs2_protein"
+        program_label = "{}__{}".format(step, program)
+        # Add to directories
+        output_directory = directories[("intermediate",  program_label)] = create_directory(os.path.join(directories["intermediate"], program_label))
+
+        # Info
+        description = "MMSEQS2 clustering of biosynthetic gene clusters (proteins)"
+
+
+        # i/o
+        input_filepaths = [
+            directories[("intermediate",  "1__antismash")],
+            ]
+        output_filenames = [
+            "output/clusters.tsv",
+        ]
+        if opts.representative_output_format == "table":
+            output_filenames += ["output/representative_sequences.tsv.gz"]
+        if opts.representative_output_format == "fasta":
+            output_filenames += ["output/representative_sequences.fasta.gz"]
+        output_filepaths = list(map(lambda filename: os.path.join(output_directory, filename), output_filenames))
+
+        params = {
+            "input_filepaths":input_filepaths,
+            "output_filepaths":output_filepaths,
+            "output_directory":output_directory,
+            "opts":opts,
+            "directories":directories,
+        }
+
+        cmd = get_mmseqs2_protein_cmd(**params)
+
+
+        pipeline.add_step(
+                    id=program,
+                    description = description,
+                    step=step,
+                    cmd=cmd,
+                    input_filepaths = input_filepaths,
+                    output_filepaths = output_filepaths,
+                    validate_inputs=True,
+                    validate_outputs=True,
+                    errors_ok=True,
+        )
+
+    # ==========
+    # MMSEQS2 (Nucleotide)
+    # ==========
+    if not opts.no_nucleotide_clustering:
+        step += 1
+
+        program = "mmseqs2_nucleotide"
+        program_label = "{}__{}".format(step, program)
+        # Add to directories
+        output_directory = directories[("intermediate",  program_label)] = create_directory(os.path.join(directories["intermediate"], program_label))
+
+        # Info
+        description = "MMSEQS2 clustering of biosynthetic gene clusters (nucleotides)"
+
+
+        # i/o
+        input_filepaths = [
+            directories[("intermediate",  "1__antismash")],
+            ]
+        output_filenames = [
+            "output/clusters.tsv",
+        ]
+        if opts.representative_output_format == "table":
+            output_filenames += ["output/representative_sequences.tsv.gz"]
+        if opts.representative_output_format == "fasta":
+            output_filenames += ["output/representative_sequences.fasta.gz"]
+        output_filepaths = list(map(lambda filename: os.path.join(output_directory, filename), output_filenames))
+
+        params = {
+            "input_filepaths":input_filepaths,
+            "output_filepaths":output_filepaths,
+            "output_directory":output_directory,
+            "opts":opts,
+            "directories":directories,
+        }
+
+        cmd = get_mmseqs2_nucleotide_cmd(**params)
+
+
+        pipeline.add_step(
+                    id=program,
+                    description = description,
+                    step=step,
+                    cmd=cmd,
+                    input_filepaths = input_filepaths,
+                    output_filepaths = output_filepaths,
+                    validate_inputs=True,
+                    validate_outputs=True,
+                    errors_ok=True,
+        )
 
     # # =============
     # # Symlink
@@ -592,6 +879,29 @@ def main(args=None):
     parser_noveltyscore.add_argument("--scovhsp", type=float, default=0.0, help = "scovhsp lower bound [float:0 ≤ x < 100] [Default: 0]")
     parser_noveltyscore.add_argument("--evalue", type=float, default=1e-3, help = "e-value lower bound [float:0 < x < 1] [Default: 1e-3]")
 
+    # MMSEQS2
+    parser_mmseqs2 = parser.add_argument_group('MMSEQS2 arguments')
+    parser_mmseqs2.add_argument("-a", "--algorithm", type=str, default="easy-cluster", help="MMSEQS2 | {easy-cluster, easy-linclust} [Default: easy-cluster]")
+    parser_mmseqs2.add_argument("-f","--representative_output_format", type=str, default="fasta", help = "Format of output for representative sequences: {table, fasta} [Default: fasta]") # Should fasta be the new default?
+
+
+    parser_mmseqs2.add_argument("--protein_minimum_identity_threshold", type=float, default=50.0, help="MMSEQS2 | Protein cluster percent identity threshold (Range (0.0, 100.0]) [Default: 50.0]")
+    parser_mmseqs2.add_argument("--protein_minimum_coverage_threshold", type=float, default=0.8, help="MMSEQS2 | Protein coverage threshold (Range (0.0, 1.0]) [Default: 0.8]")
+    parser_mmseqs2.add_argument("--protein_cluster_prefix", type=str, default="BGCPC-", help="Protein cluster prefix [Default: 'BGCPC-")
+    parser_mmseqs2.add_argument("--protein_cluster_suffix", type=str, default="", help="Protein cluster suffix [Default: '")
+    parser_mmseqs2.add_argument("--protein_cluster_prefix_zfill", type=int, default=0, help="Protein cluster prefix zfill. Use 7 to match identifiers from OrthoFinder.  Use 0 to add no zfill. [Default: 0]") #7
+    parser_mmseqs2.add_argument("--no_protein_clustering", action="store_true", help="No protein clustering") 
+
+    parser_mmseqs2.add_argument("--nucleotide_minimum_identity_threshold", type=float, default=90.0, help="MMSEQS2 | Nucleotide cluster percent identity threshold (Range (0.0, 100.0]) [Default: 90.0]")
+    parser_mmseqs2.add_argument("--nucleotide_minimum_coverage_threshold", type=float, default=0.8, help="MMSEQS2 | Nucleotide coverage threshold (Range (0.0, 1.0]) [Default: 0.8]")
+    parser_mmseqs2.add_argument("--nucleotide_cluster_prefix", type=str, default="BGCNC-", help="Nucleotide cluster prefix [Default: 'BGCNC-")
+    parser_mmseqs2.add_argument("--nucleotide_cluster_suffix", type=str, default="", help="Nucleotide cluster suffix [Default: '")
+    parser_mmseqs2.add_argument("--nucleotide_cluster_prefix_zfill", type=int, default=0, help="Nucleotide cluster prefix zfill. Use 0 to add no zfill. [Default: 0]") #7
+    parser_mmseqs2.add_argument("--no_nucleotide_clustering", action="store_true", help="No nucleotide clustering") 
+
+    parser_mmseqs2.add_argument("--no_singletons", action="store_true", help="Exclude singletons (not recommended)") 
+    parser_mmseqs2.add_argument("--mmseqs2_options", type=str, default="", help="MMSEQS2 | More options (e.g. --arg 1 ) [Default: '']")
+
 
     # Options
     opts = parser.parse_args()
@@ -621,6 +931,7 @@ def main(args=None):
     os.environ["TMPDIR"] = directories["tmp"]
     directories[("output", "fasta")] = create_directory(os.path.join(directories["output"], "fasta"))
     directories[("output", "genbanks")] = create_directory(os.path.join(directories["output"], "genbanks"))
+    directories[("output", "prevalence_tables")] = create_directory(os.path.join(directories["output"], "prevalence_tables"))
 
 
     # Info
@@ -628,6 +939,7 @@ def main(args=None):
     print(format_header("Configuration:", "-"), file=sys.stdout)
     print("Python version:", sys.version.replace("\n"," "), file=sys.stdout)
     print("Python path:", sys.executable, file=sys.stdout) #sys.path[2]
+    print("GenoPype version:", genopype_version, file=sys.stdout) #sys.path[2]
     print("Script version:", __version__, file=sys.stdout)
     print("Moment:", get_timestamp(), file=sys.stdout)
     print("Directory:", os.getcwd(), file=sys.stdout)

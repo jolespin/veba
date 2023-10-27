@@ -41,13 +41,13 @@ VERSION=1.2.0
 # Image
 DOCKER_IMAGE="jolespin/veba_preprocess:${VERSION}"
 
-docker run --name VEBA-preprocess --rm -it ${DOCKER_IMAGE}  -c "preprocess.py -h"
+docker run --name VEBA-preprocess --rm -it ${DOCKER_IMAGE}  preprocess.py -h
 ```
 
 If we wanted to run it interactively, start the container with `bash` (it automatically loads the appropriate `conda` environment):
 
 ```
-docker run --name VEBA-preprocess --rm -it ${DOCKER_IMAGE}  -c "bash"
+docker run --name VEBA-preprocess --rm -it ${DOCKER_IMAGE}  bash
 ```
 
 Though, it's the `preprocess.py` module so it you're running anything other than a toy dataset, then you probably want to run it on the grid so you can go to do something else. 
@@ -103,7 +103,7 @@ docker run \
     --volume ${LOCAL_OUTPUT_PARENT_DIRECTORY}:${CONTAINER_OUTPUT_DIRECTORY}:rw \
     --volume ${LOCAL_DATABASE_DIRECTORY}:${CONTAINER_DATABASE_DIRECTORY}:ro \
     ${DOCKER_IMAGE} \
-    -c "${CMD}"
+    ${CMD}
 
 ```
 

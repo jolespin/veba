@@ -3,10 +3,10 @@ import sys, os, argparse, re
 from collections import defaultdict, OrderedDict
 import pandas as pd
 import numpy as np
-from soothsayer_utils import read_hmmer, pv, get_file_object, assert_acceptable_arguments, format_header
+from soothsayer_utils import read_hmmer, pv, get_file_object, assert_acceptable_arguments, format_header, flatten
 
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.6.20"
+__version__ = "2023.10.26"
 
 # disclaimer = format_header("DISCLAIMER: Lineage predictions are NOT robust and DO NOT USE CORE MARKERS.  Please only use for exploratory suggestions.")
 
@@ -66,6 +66,81 @@ def parse_uniref(stitle):
     # Print the four fields
     return [field1, field2, field3, field4]
 
+def compile_identifiers(df, id_protein_cluster):
+    # Organism type
+    organism_types = set(df["organism_type"])
+    if len(organism_types) == 1:
+        organism_types = list(organism_types)[0]
+
+    # Genomes
+    genomes = set(df["id_genome"])
+
+    # Samples
+    samples = set(df["sample_of_origin"])
+
+    # Genome clusters
+    genome_clusters = set(df["id_genome_cluster"])
+    if len(genome_clusters) == 1:
+        genome_clusters = list(genome_clusters)[0]
+
+    data = OrderedDict([
+        ("id_genome_cluster", genome_clusters),
+        ("organism_type", organism_types),
+        ("genomes", genomes),
+        ("samples_of_origin", samples),
+    ],
+    )
+    data = pd.Series(data, name=id_protein_cluster)
+    data.index = data.index.map(lambda x: ("Identifiers", x))
+    return data
+
+def compile_uniref(df, id_protein_cluster):
+    df = df.dropna(how="all", axis=0)
+    unique_identifiers = set(df["sseqid"].unique())
+    data = OrderedDict([
+        ("number_of_proteins", df.shape[0]),
+        ("number_of_unique_hits", len(unique_identifiers)),
+        ("ids", unique_identifiers),
+        ("names", set(df["product"].unique())),
+    ],
+    )
+    data = pd.Series(data, name=id_protein_cluster)
+    data.index = data.index.map(lambda x: ("UniRef", x))
+    return data
+
+def compile_nonuniref_diamond(df, id_protein_cluster, label):
+    df = df.dropna(how="all", axis=0)
+    unique_identifiers = set(df["sseqid"].unique())
+    data = OrderedDict(
+        [
+        ("number_of_proteins", df.shape[0]),
+        ("number_of_unique_hits", len(unique_identifiers)),
+        ("ids", unique_identifiers),
+        ("names", np.nan),
+        ],
+    )
+    data = pd.Series(data, name=id_protein_cluster)
+    data.index = data.index.map(lambda x: (label, x))
+    return data
+
+def compile_hmmsearch(df, id_protein_cluster, label):
+    df = df.dropna(how="all", axis=0).query("number_of_hits > 0")
+    unique_identifiers = flatten(df["ids"], into=set)
+    unique_names = flatten(df["names"], into=set)
+    
+    data = OrderedDict(
+        [
+        ("number_of_proteins", df.shape[0]),
+        ("number_of_unique_hits", len(unique_identifiers)),
+        ("ids", unique_identifiers),
+        ("names", unique_names),
+        ],
+    )
+    data = pd.Series(data, name=id_protein_cluster)
+    data.index = data.index.map(lambda x: (label, x))
+    return data
+
+
 def main(args=None):
     # Path info
     script_directory  =  os.path.dirname(os.path.abspath( __file__ ))
@@ -81,16 +156,22 @@ def main(args=None):
     # Pipeline
     parser_required = parser.add_argument_group('Required I/O arguments')
     parser_required.add_argument("-o","--output_directory", type=str, default="annotation_output",  help = "Output directory for annotations [Default: annotation_output]")
-    parser_required.add_argument("-d","--diamond_uniref", type=str, required=True,  help = "path/to/diamond_uniref.blast6 in blast6 format (No header, cannot be empty) with the following fields: \nqseqid sseqid stitle pident length mismatch qlen qstart qend slen sstart send evalue bitscore qcovhsp scovhsp")
+    parser_required.add_argument("-u","--diamond_uniref", type=str, required=True,  help = "path/to/diamond_uniref.blast6 in blast6 format (No header, cannot be empty) with the following fields: \nqseqid sseqid stitle pident length mismatch qlen qstart qend slen sstart send evalue bitscore qcovhsp scovhsp")
     parser_required.add_argument("-m","--diamond_mibig", type=str, required=True,  help = "path/to/diamond_mibig.blast6 in blast6 format (No header) with the following fields: \nqseqid sseqid stitle pident length mismatch qlen qstart qend slen sstart send evalue bitscore qcovhsp scovhsp")
     parser_required.add_argument("-b","--diamond_vfdb", type=str, required=True,  help = "path/to/diamond_vfdb.blast6 in blast6 format (No header) with the following fields: \nqseqid sseqid stitle pident length mismatch qlen qstart qend slen sstart send evalue bitscore qcovhsp scovhsp")
+    parser_required.add_argument("-c","--diamond_cazy", type=str, required=True,  help = "path/to/diamond_cazy.blast6 in blast6 format (No header) with the following fields: \nqseqid sseqid stitle pident length mismatch qlen qstart qend slen sstart send evalue bitscore qcovhsp scovhsp")
     parser_required.add_argument("-k","--kofam", type=str, required=True,  help = "path/to/kofamscan.tblout hmmsearch results in tblout format")
     parser_required.add_argument("-p", "--hmmsearch_pfam", type=str, required=True,  help = "path/to/hmmsearch.tblout hmmsearch results in tblout format")
     parser_required.add_argument("-n", "--hmmsearch_amr", type=str, required=True,  help = "path/to/hmmsearch.tblout hmmsearch results in tblout format")
     parser_required.add_argument("-a", "--hmmsearch_antifam", type=str, required=True,  help = "path/to/hmmsearch.tblout hmmsearch results in tblout format")
 
     parser_optional = parser.add_argument_group('Optional arguments')
-    parser_optional.add_argument("-i","--identifier_mapping", type=str, required=False,  help = "path/to/identifier_mapping.tsv, Format: [id_protein]<tab>[id_contig]<tab>[id_genome], No header [Optional]")
+    parser_optional.add_argument("-i","--identifier_mapping", type=str, required=False,  help = "Tab-seperated value table (identifier_mapping.proteins.tsv created by cluster.py)  Requirements: 1) contain headers; 2) first column must be protein identifiers; and 3) contains these columns to the right in any order. Format: [id_protein]<tab>[organism_type]<tab>[id_genome]<tab>[sample_of_origin]<tab>[id_genome_cluster]<tab>[id_protein_cluster] with headers [Optional]")
+    # parser_optional.add_argument("--genome_cluster_column_label", type=str, default="id_genome_cluster", help = "--genome_cluster_column_label must be in --identifier_mapping header [Default: id_genome_cluster]")
+    # parser_optional.add_argument("--protein_cluster_column_label", type=str,  help = "--protein_cluster_column_label must be in --identifier_mapping header")
+    parser_optional.add_argument("-j", "--composite_name_joiner", type=str, required=False,  default=";", help = "Composite label separator [Default: ; ]")
+    # parser_optional.add_argument("--no_merge_composite_labels", action="store_true", help = "Do not merge composite labels")
+
     parser_optional.add_argument("-f","--fasta", type=str, required=False,  help = "path/to/gene_models.faa|ffn of ORFs [Optional]")
     # parser_optional.add_argument("-t","--threshold", default=0.5, type=float, help = "taxopy fraction of classifications for consensus for weighted majority vote [Default: 0.5]")
     # parser_optional.add_argument("-V", "--veba_database", type=str, required=False, help = "path/to/VEBA_DATABASE")
@@ -125,9 +206,14 @@ def main(args=None):
     # Read identifier mapping table
     if opts.identifier_mapping:
         print(" * Reading identifier mapping table: {}".format(opts.identifier_mapping), file=sys.stderr)
-        df_identifier_mapping = pd.read_csv(opts.identifier_mapping, header=None, sep="\t")
-        df_identifier_mapping.columns = ["id_protein", "id_contig", "id_genome"]
-        df_identifier_mapping = df_identifier_mapping.set_index("id_protein")
+        df_identifier_mapping = pd.read_csv(opts.identifier_mapping, sep="\t", index_col=0)
+        fields_required = set(["organism_type", "id_genome", "sample_of_origin", "id_genome_cluster", "id_protein_cluster"])
+        columns = set(df_identifier_mapping.columns)
+        assert fields_required <= columns, "--identifier_mapping is missing the following columns: {}".format(fields_required - columns)
+        df_identifier_mapping.columns = df_identifier_mapping.columns.map(lambda x: ("Identifiers", x))
+
+        # df_identifier_mapping.columns = ["id_protein", "id_contig", "id_genome"]
+        # df_identifier_mapping = df_identifier_mapping.set_index("id_protein")
         proteins = proteins | set(df_identifier_mapping.index)
 
     print(" * Reading Diamond table [UniRef]: {}".format(opts.diamond_uniref), file=sys.stderr)
@@ -177,6 +263,17 @@ def main(args=None):
     df_diamond_vfdb = df_diamond_vfdb.drop(["stitle"], axis=1)
     proteins = proteins | set(df_diamond_vfdb.index)
 
+    print(" * Reading Diamond table [CAZy]: {}".format(opts.diamond_cazy), file=sys.stderr)
+    columns = ["qseqid","sseqid", "stitle", "pident","length","mismatch","qlen","qstart","qend", "slen", "sstart","send", "evalue","bitscore","qcovhsp","scovhsp"]
+    try:
+        df_diamond_cazy = pd.read_csv(opts.diamond_cazy, sep="\t", index_col=None, header=None)
+    except pd.errors.EmptyDataError:
+        df_diamond_cazy = pd.DataFrame(columns=columns)
+    df_diamond_cazy.columns = columns
+    df_diamond_cazy = df_diamond_cazy.set_index("qseqid")
+    df_diamond_cazy = df_diamond_cazy.drop(["stitle"], axis=1)
+    proteins = proteins | set(df_diamond_cazy.index)
+
     print(" * Reading HMMSearch table [Pfam]: {}".format(opts.hmmsearch_pfam), file=sys.stderr)
     df_hmmsearch_pfam = read_hmmer(opts.hmmsearch_pfam, program="hmmsearch", format="tblout", verbose=False)
     if not df_hmmsearch_pfam.empty:
@@ -202,7 +299,14 @@ def main(args=None):
         print(" *!* HMMSearch table [AntiFam] is empty", file=sys.stderr)
 
     print(" * Reading KOFAMSCAN table [KEGG]: {}".format(opts.kofam), file=sys.stderr)
-    df_kofamscan = pd.read_csv(opts.kofam, sep="\t", index_col=None, header=None)
+    columns =  ["significance", "id_protein", "id_hmm", "score","score2", "evalue", "name_hmm"]
+    try:
+        df_kofamscan = pd.read_csv(opts.kofam, sep="\t", index_col=None, header=None)
+        df_kofamscan.columns = columns
+    except pd.errors.EmptyDataError:
+        df_kofamscan = pd.DataFrame(columns=columns)
+
+
     if not df_kofamscan.empty:
         proteins = proteins | set(df_kofamscan.iloc[:,1])
     else:
@@ -245,7 +349,7 @@ def main(args=None):
 
     df_hmms_pfam = df_hmms_pfam.applymap(lambda x: x if isinstance(x,list) else [])
     df_hmms_pfam.insert(loc=0, column="number_of_hits", value=df_hmms_pfam["ids"].map(len))
-    df_hmms_pfam.index.name = "id_protein-representative"
+    df_hmms_pfam.index.name = "id_protein"
 
     # AMR
     if not df_hmmsearch_amr.empty:
@@ -273,7 +377,7 @@ def main(args=None):
     else:
         df_hmms_amr = pd.DataFrame(index=proteins, columns=["hit", "ids", "names", "evalues", "scores"])
     df_hmms_amr = df_hmms_amr.applymap(lambda x: x if isinstance(x,list) else [])
-    df_hmms_amr.index.name = "id_protein-representative"
+    df_hmms_amr.index.name = "id_protein"
     df_hmms_amr.insert(loc=0, column="number_of_hits", value=df_hmms_amr["ids"].map(len))
 
 
@@ -305,7 +409,7 @@ def main(args=None):
         df_hmms_antifam = pd.DataFrame(index=proteins, columns=["hit", "ids", "names", "evalues", "scores"])
     df_hmms_antifam["hit"] = df_hmms_antifam["hit"].fillna(False)
     df_hmms_antifam = df_hmms_antifam.applymap(lambda x: x if isinstance(x,list) else [])
-    df_hmms_antifam.index.name = "id_protein-representative"
+    df_hmms_antifam.index.name = "id_protein"
     df_hmms_antifam.insert(loc=0, column="number_of_hits", value=df_hmms_antifam["ids"].map(len))
 
     # KOFAMSCAN
@@ -340,12 +444,12 @@ def main(args=None):
 
     # Output table
     dataframes = list()
-    for (name, df) in zip([ "UniRef", "MIBiG", "VFDB", "Pfam", "NCBIfam-AMR", "AntiFam", "KOFAM"],[df_diamond_uniref, df_diamond_mibig, df_diamond_vfdb, df_hmms_pfam, df_hmms_amr, df_hmms_antifam, df_hmms_kofam]):
+    for (name, df) in zip([ "UniRef", "MIBiG", "VFDB", "CAZy", "Pfam", "NCBIfam-AMR", "AntiFam", "KOFAM"],[df_diamond_uniref, df_diamond_mibig, df_diamond_vfdb, df_diamond_cazy, df_hmms_pfam, df_hmms_amr, df_hmms_antifam, df_hmms_kofam]):
         df = df.copy()
         df.columns = df.columns.map(lambda x: (name,x))
         dataframes.append(df)
     df_annotations = pd.concat(dataframes, axis=1)
-    df_annotations.index.name = "id_protein-representative"
+    df_annotations.index.name = "id_protein"
 
     # Composite label
     protein_to_labels = dict()
@@ -353,28 +457,93 @@ def main(args=None):
         labels = list()
 
         name = row["UniRef"]["product"]
-        labels.append(name)
+        if name not in labels:
+            labels.append(name)
 
         kofam_names = row["KOFAM"]["names"]
         for name in kofam_names:
-            labels.append(name)
-
+            if name not in labels:
+                labels.append(name)
+        
         pfam_names = row["Pfam"]["names"]
         for name in pfam_names:
-            labels.append(name)
+            if name not in labels:
+                labels.append(name)
 
-
-        protein_to_labels[id_protein] = "|".join(filter(lambda x: isinstance(x,str), labels))
+        composite_name = sorted(filter(lambda x: isinstance(x,str), labels))
+        protein_to_labels[id_protein] =  opts.composite_name_joiner.join(composite_name)
     protein_to_labels = pd.Series(protein_to_labels)
+
+    # if not opts.no_merge_composite_labels:
+    # protein_to_labels = protein_to_labels.map(lambda x: opts.composite_name_joiner.join(x))
+    
     df_annotations.insert(loc=0, column=("Consensus", "composite_name"), value=protein_to_labels)
 
     if opts.identifier_mapping:
-        df = df_identifier_mapping.copy()
-        df.columns = df.columns.map(lambda x: ("Identifiers", x))
-        df_annotations = pd.concat([df, df_annotations], axis=1)
+        # df = df_identifier_mapping.copy()
+        # df.columns = df.columns.map(lambda x: ("Identifiers", x))
+        df_annotations = pd.concat([df_identifier_mapping, df_annotations], axis=1)
 
-    df_annotations.to_csv(os.path.join(opts.output_directory, "annotations.tsv.gz"), sep="\t")
+    df_annotations.to_csv(os.path.join(opts.output_directory, "annotations.proteins.tsv.gz"), sep="\t")
 
+    if opts.identifier_mapping:
+        # Protein clusters
+        protein_to_proteincluster = df_annotations[("Identifiers", "id_protein_cluster")]
+        protein_cluster_annotations = list()
+        for id_protein_cluster, df in pv(df_annotations.groupby(protein_to_proteincluster), description="Compiling consensus annotations for protein clusters", total=protein_to_proteincluster.nunique(), unit=" Protein Clusters"):
+            # Identifiers
+            data_identifiers = compile_identifiers(df["Identifiers"], id_protein_cluster)
+            
+            # UniRef
+            data_uniref = compile_uniref(df["UniRef"], id_protein_cluster)
+            
+            # MIBiG
+            data_mibig = compile_nonuniref_diamond(df["MIBiG"], id_protein_cluster, "MIBiG")
+
+            # VFDB
+            data_vfdb = compile_nonuniref_diamond(df["VFDB"], id_protein_cluster, "VFDB")
+
+            # CAZy
+            data_cazy = compile_nonuniref_diamond(df["CAZy"], id_protein_cluster, "CAZy")
+
+            # Pfam
+            data_pfam = compile_hmmsearch(df["Pfam"], id_protein_cluster, "Pfam")
+
+            # NCBIfam-AMR
+            data_amr = compile_hmmsearch(df["NCBIfam-AMR"], id_protein_cluster, "NCBIfam-AMR")
+
+            # KOFAM
+            data_kofam = compile_hmmsearch(df["KOFAM"], id_protein_cluster, "KOFAM")
+            
+            # AntiFam
+            data_antifam = compile_hmmsearch(df["AntiFam"], id_protein_cluster, "AntiFam")
+
+            # Composite name
+            composite_name = list()
+            composite_name += list(data_uniref[("UniRef","names")]) 
+            composite_name += list(data_kofam[("KOFAM", "names")]) 
+            composite_name += list(data_pfam[("Pfam","names")]) 
+            composite_name = opts.composite_name_joiner.join(composite_name)
+            data_consensus = pd.Series(composite_name, index=[("Consensus", "composite_name")])
+
+            # Concatenate
+            data_concatenated = pd.concat([
+                data_identifiers, 
+                data_consensus,
+                data_uniref,
+                data_mibig,
+                data_vfdb,
+                data_cazy,
+                data_pfam,
+                data_amr,
+                data_kofam,
+                data_antifam,
+            ])
+            data_concatenated.name = id_protein_cluster
+            protein_cluster_annotations.append(data_concatenated)
+
+        df_annotations_proteinclusters = pd.DataFrame(protein_cluster_annotations)
+        df_annotations_proteinclusters.to_csv(os.path.join(opts.output_directory, "annotations.protein_clusters.tsv.gz"), sep="\t")
 
 
 

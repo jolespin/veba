@@ -12,7 +12,7 @@ from soothsayer_utils import *
 
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.5.8"
+__version__ = "2023.8.16"
 
 
 # MetaEuk
@@ -53,7 +53,7 @@ def get_genomad_taxonomy_cmd(input_filepaths, output_filepaths, output_directory
 
         "cp -rf", 
         os.path.join(output_directory, "intermediate", "input_annotate", "input_taxonomy.tsv"), 
-        os.path.join(output_directory, "viral_taxonomy.tsv"), 
+        os.path.join(output_directory, "taxonomy.tsv"), 
 
             "&&",
 
@@ -103,7 +103,7 @@ def create_pipeline(opts, directories, f_cmds):
 
     output_directory = directories["output"]
     output_filepaths = [ 
-        os.path.join(output_directory, "viral_taxonomy.tsv"),
+        os.path.join(output_directory, "taxonomy.tsv"),
     ]
 
     params = {
@@ -289,7 +289,7 @@ def main(args=None):
     # shutil.rmtree(directories["intermediate"])
 
     update_table = False
-    df_genomad_taxonomy = pd.read_csv(os.path.join(directories["output"], "viral_taxonomy.tsv"), sep="\t", index_col=0)
+    df_genomad_taxonomy = pd.read_csv(os.path.join(directories["output"], "taxonomy.tsv"), sep="\t", index_col=0)
 
     if not opts.remove_unclassified:
 
@@ -323,12 +323,12 @@ def main(args=None):
         update_table = True
 
     if update_table:
-        df_genomad_taxonomy.to_csv(os.path.join(directories["output"], "viral_taxonomy.tsv"), sep="\t")
+        df_genomad_taxonomy.to_csv(os.path.join(directories["output"], "taxonomy.tsv"), sep="\t")
 
 
 
     # if (not opts.remove_unclassified) or (opts.scaffolds_to_bins):
-    #     validate_file_existence([os.path.join(directories["output"], "viral_taxonomy.tsv")], prologue="Validating the following updated files:")
+    #     validate_file_existence([os.path.join(directories["output"], "taxonomy.tsv")], prologue="Validating the following updated files:")
 
    
 
