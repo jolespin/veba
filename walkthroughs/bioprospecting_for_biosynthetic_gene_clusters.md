@@ -62,11 +62,18 @@ CMD="source activate VEBA-biosynthetic_env && biosynthetic.py -i ${GENOMES} -o $
 
 The following output files will produced: 
 
-* bgc.features.tsv.gz - `antiSMASH` genbank files for BGCs compiled into a table format which includes all information included in the genbank files in addition to identifiers for BGC, component, genome, contig, region, gene, and BGC-type.  BGC identifiers are formatted as the following: `[id_genome]|[id_contig]|[id_region]` and component identifiers follow the format: `[id_genome]|[id_contig]|[id_region]_[position_of_gene_in_BGC]|[start_on_contig]-[end_on_contig]([strand])`. One-to-one mapping for component id and gene id called via `Prodigal` and augmented with `VEBA`.  Rows are with respect to gene/component.
-* bgc.synopsis.tsv.gz - Synopsis for BGCs with identifiers, bgc_type, whether or not cluster is on contig edge, number of genes, number of hits to MIBiG, and novety score.
-* homology.mibig.tsv.gz - Diamond alignment results (with header) using `MIBiG` as database.
-* features/[id_genome].bgc\_features.faa.gz - Protein sequences for BGC components with the header following: `[id_gene] [id_component]`.
+* identifier\_mapping.bgcs.tsv.gz - Identifier mapping and synopsis for BGCs with identifiers, bgc_type, whether or not cluster is on contig edge, number of genes, number of hits to MIBiG, and novety score.
+* identifier\_mapping.components.tsv.gz - Identifier mapping and synopsis for `antiSMASH` genbank files for BGCs compiled into a table format which includes all information included in the genbank files in addition to identifiers for BGC, component, genome, contig, region, gene, and BGC-type.  BGC identifiers are formatted as the following: `[id_genome]|[id_contig]|[id_region]` and component identifiers follow the format: `[id_genome]|[id_contig]|[id_region]_[position_of_gene_in_BGC]|[start_on_contig]-[end_on_contig]([strand])`. One-to-one mapping for component id and gene id called via `Prodigal` and augmented with `VEBA`.  Rows are with respect to gene/component.
+* homology.tsv.gz - Diamond alignment results to `MIBiG` and `VFDB` as database.
+* krona.html - Krona plot of BGC protocluster types
+* genbanks/*.gbk - BGC genbank files from `antiSMASH`
+* fasta/[id\_genome].faa - BGCs in protein space. Fasta header following: `[id_gene] [id_component]`.
+* fasta/[id\_genome].fasta - BGCs in nucleotide space. Fasta header following: `[id_bgc] len={},gc={},n_genes={},edge={}`.
+* prevalence_tables/bgcs.tsv.gz - Prevalence tables (row=genome, columns=BGC nucleotide cluster)
+* prevalence_tables/components.tsv.gz - Prevalence tables (row=BGC, columns=BGC protein cluster)
+* bgc_clusters.tsv - `MMSEQS2` clustering in nucleotide space
+* component_clusters.tsv - `MMSEQS2` clustering in protein space
 
 #### Next steps:
 
-Synthesize products, preserve the ecosystem, and save humanity.
+Cluster the prevalence tables, synthesize products, preserve the ecosystem, and save humanity.

@@ -42,26 +42,22 @@ ___________________________________________________________________
 
 ### Announcements
 
-* **`VEBA v1.2.0` is now available!**
+* **What's new in `VEBA v1.3.0`?**
 
 * **`VEBA` Modules:**
-	* Updated `GTDB-Tk` now uses `Mash` for ANI screening to speed up classification (now provided in `VDB_v5.1` database)
-	* rRNA and tRNA are identified for prokaryotic and eukaryotic genomes via `BARRNAP` and `tRNAscan-SE`
-	* Eukaryotic genes (CDS, rRNA, tRNA) are analyzed separately for nuclear, mitochondrion, and plastid sequences
-	* Genome GFF files include contigs, CDS, rRNA, and tRNA with tags for mitochondrion and plastids when applicable
-	* Clustering automatically generates pangenome protein prevalence tables for each genome cluster
-	* Ratios of singletons in each genome are now calculated
-	* [Virulence factor database](http://www.mgc.ac.cn/VFs/main.htm) (`VFDB`) is now included in annotations
-	* [UniRef50/90](https://www.uniprot.org/help/uniref) is now included in annotations
-	* `Krona` plots are generated for taxonomy classifications and biosynthetic gene cluster detection
-	* Fixed a minor issue in `biosynthetic.py` where the fasta and genbank files were not properly symlinked.  Also added virulence factor results to synopsis.
+	* Added `profile-pathway.py` module and associated scripts for building `HUMAnN` databases from *de novo* genomes and annotations.  Essentially, a reads-based functional profiling method via `HUMAnN` using binned genomes as the database.
+	* Added `marker_gene_clustering.py` script which identifies core marker proteins that are present in all genomes within a genome cluster (i.e., pangenome) and unique to only that genome cluster.  Clusters in either protein or nucleotide space.
+	* Added `module_completion_ratios.py` script which calculates KEGG module completion ratios for genomes and pangenomes. Automatically run in backend of `annotate.py`.
+	* Updated `annotate.py` and `merge_annotations.py` to provide better annotations for clustered proteins.
+	* Added `merge_genome_quality.py` and `merge_taxonomy_classifications.py` which compiles genome quality and taxonomy, respectively, for all organisms.
+	* Added BGC clustering in protein and nucleotide space to `biosynthetic.py`.  Also, produces prevalence tables that can be used for further clustering of BGCs.
+	* Added `pangenome_core_sequences` in `cluster.py` writes both protein and CDS sequences for each genome cluster.
+	* Added PDF visualization of newick trees in `phylogeny.py`.
+
 	
-	
-* **`VEBA` Database**:
-	* Added `VFDB`
-	* Updated `GTDB v207_v2 → v214.1`
-	* Changed `NR  → UniRef50/90` 
-	* Deprecated [`RefSeq non-redundant`](https://www.ncbi.nlm.nih.gov/refseq/about/nonredundantproteins/) in place of `UniRef`
+* **`VEBA` Database (`VDB_v5.2`)**:
+	* Added `CAZy`
+	* Added `MicrobeAnnotator-KEGG`
 
 Check out the [*VEBA* Change Log](CHANGELOG.md) for insight into what is being implemented in the upcoming version.
 
@@ -72,7 +68,9 @@ ___________________________________________________________________
 
 ### Installation and databases
 
-**Current Stable Version:** [`v1.2.0`](https://github.com/jolespin/veba/releases/tag/v1.2.0)
+**Current Stable Version:** [`v1.3.0`](https://github.com/jolespin/veba/releases/tag/v1.3.0)
+
+**Current Database Version:** `VDB_v5.2`
 
 Please refer to the [*Installation and Database Configuration Guide*](install/README.md) for software installation and database configuration.
 

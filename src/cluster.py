@@ -13,7 +13,7 @@ from soothsayer_utils import *
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.10.16"
+__version__ = "2023.10.24"
 
 # Global clustering
 def get_global_clustering_cmd( input_filepaths, output_filepaths, output_directory, directories, opts):
@@ -165,7 +165,9 @@ def create_pipeline(opts, directories, f_cmds):
     input_filepaths = [opts.genomes_table]
 
     output_filenames = [
+        "output/*.tsv.gz",
         "output/*.tsv",
+
         ]
 
     output_filepaths = list(map(lambda filename: os.path.join(output_directory, filename), output_filenames))
@@ -210,7 +212,9 @@ def create_pipeline(opts, directories, f_cmds):
         input_filepaths = [opts.genomes_table]
 
         output_filenames = [
+            "output/*.tsv.gz",
             "output/*.tsv",
+
             ]
 
         output_filepaths = list(map(lambda filename: os.path.join(output_directory, filename), output_filenames))

@@ -14,7 +14,7 @@ from soothsayer_utils import *
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.10.16"
+__version__ = "2023.10.27"
 
 # Assembly
 def preprocess( input_filepaths, output_filepaths, output_directory, directories, opts):
@@ -166,11 +166,13 @@ def get_fasttree_cmd(input_filepaths, output_filepaths, output_directory, direct
         output_filepaths[0],
         "-i",
         output_filepaths[1],
-
-
-
-
     ]
+
+    if not opts.no_show_support:
+        cmd += ["--ss"]
+    if not opts.no_show_branch_length:
+        cmd += ["--sbl"]
+
     return cmd
 
 
@@ -198,8 +200,13 @@ def get_iqtree_cmd(input_filepaths, output_filepaths, output_directory, director
         output_filepaths[0],
         "-i",
         output_filepaths[1],
-
     ]
+
+    if not opts.no_show_support:
+        cmd += ["--ss"]
+    if not opts.no_show_branch_length:
+        cmd += ["--sbl"]
+        
     return cmd
 
 
@@ -607,6 +614,8 @@ def main(args=None):
     parser_tree.add_argument("--iqtree_mset", type=str, default="WAG,LG", help="IQTree | Model set to choose from [Default: WAG,LG]")
     parser_tree.add_argument("--iqtree_bootstraps", type=int, default=1000, help="IQTree | Bootstraps [Default: 1000]")
     parser_tree.add_argument("--iqtree_options", type=str, default="", help="IQTree | More options (e.g. --arg 1 ) [Default: '']")
+    parser_tree.add_argument("--no_show_support", action="store_true", help="ETE3 | Don't show branch bootstrap/support values")
+    parser_tree.add_argument("--no_show_branch_length", action="store_true", help="ETE3 | Don't show branch lengths")
 
     # Options
     opts = parser.parse_args()
@@ -629,6 +638,8 @@ def main(args=None):
     directories["checkpoints"] = create_directory(os.path.join(directories["project"], "checkpoints"))
     directories["intermediate"] = create_directory(os.path.join(directories["project"], "intermediate"))
     os.environ["TMPDIR"] = directories["tmp"]
+    os.environ["QT_QPA_PLATFORM"] = "offscreen"
+    # export QT_QPA_PLATFORM=offscreen;
 
     # Info
     print(format_header(__program__, "="), file=sys.stdout)

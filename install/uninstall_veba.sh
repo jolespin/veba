@@ -1,5 +1,5 @@
 #!/bin/bash
-# __version__ = "2023.5.15"
+# __version__ = "2023.10.18"
 
 CONDA_BASE=$(conda run -n base bash -c "echo \${CONDA_PREFIX}")
 
@@ -12,4 +12,4 @@ echo -e " _    _ _______ ______  _______\n  \  /  |______ |_____] |_____|\n   \/
 echo -e "..............................."
 echo -e "     Uninstall Complete     "
 echo -e "..............................."
-echo -e "Don't forget to remove the VEBA database directory."
+echo -e "Don't forget to remove the VEBA database directory if you don't need it anymore.  If you're doing a reinstall, then think twice about this."

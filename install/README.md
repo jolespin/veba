@@ -7,7 +7,7 @@ The basis for these environments is creating a separate environment for each mod
 
 The majority of the time taken to build database is downloading/decompressing large archives, `Diamond` database creation of `UniRef`, and `MMSEQS2` database creation of microeukaryotic protein database.
 
-Total size is `214 GB` but if you have certain databases installed already then you can just symlink them so the `VEBA_DATABASE` path has the correct structure.  Note, the exact size may vary as Pfam and UniRef are updated regularly.
+Total size is `243 GB` but if you have certain databases installed already then you can just symlink them so the `VEBA_DATABASE` path has the correct structure.  Note, the exact size may vary as Pfam and UniRef are updated regularly.
 
 Each major version will be packaged as a [release](https://github.com/jolespin/veba/releases) which will include a log of module and script versions. 
 
@@ -83,7 +83,7 @@ The `VEBA` installation is going to configure some `conda` environments for you 
 ```
 # For stable version, download and decompress the tarball:
 
-VERSION="1.2.0"
+VERSION="1.3.0"
 wget https://github.com/jolespin/veba/archive/refs/tags/v${VERSION}.tar.gz
 tar -xvf v${VERSION}.tar.gz && mv veba-${VERSION} veba
 
@@ -181,6 +181,7 @@ VEBA-database_env
 VEBA-mapping_env
 VEBA-phylogeny_env
 VEBA-preprocess_env
+VEBA-profile_env
 ```
 All the environments should have the `VEBA_DATABASE` environment variable set. If not, then add it manually to ~/.bash_profile: `export VEBA_DATABASE=/path/to/veba_database`.
 

@@ -6,7 +6,79 @@ ________________________________________________________________
 
 #### Current Releases:
 
-**Release v1.2.0:**
+**Release v1.3.0:**
+
+* **`VEBA` Modules:**
+	* Added `profile-pathway.py` module and associated scripts for building `HUMAnN` databases from *de novo* genomes and annotations.  Essentially, a reads-based functional profiling method via `HUMAnN` using binned genomes as the database.
+	* Added `marker_gene_clustering.py` script which identifies core marker proteins that are present in all genomes within a genome cluster (i.e., pangenome) and unique to only that genome cluster.  Clusters in either protein or nucleotide space.
+	* Added `module_completion_ratios.py` script which calculates KEGG module completion ratios for genomes and pangenomes. Automatically run in backend of `annotate.py`.
+	* Updated `annotate.py` and `merge_annotations.py` to provide better annotations for clustered proteins.
+	* Added `merge_genome_quality.py` and `merge_taxonomy_classifications.py` which compiles genome quality and taxonomy, respectively, for all organisms.
+	* Added BGC clustering in protein and nucleotide space to `biosynthetic.py`.  Also, produces prevalence tables that can be used for further clustering of BGCs.
+	* Added `pangenome_core_sequences` in `cluster.py` writes both protein and CDS sequences for each genome cluster.
+	* Added PDF visualization of newick trees in `phylogeny.py`.
+
+	
+* **`VEBA` Database (`VDB_v5.2`)**:
+	* Added `CAZy`
+	* Added `MicrobeAnnotator-KEGG`
+
+<details>
+	<summary>**Release v1.3.0 Details**</summary>
+	
+* Update `annotate.py` and `merge_annotations.py` to handle `CAZy`.  They also properly address clustered protein annotations now. 
+* Added `module_completion_ratio.py` script which is a fork of `MicrobeAnnotator` [`ko_mapper.py`](https://github.com/cruizperez/MicrobeAnnotator/blob/master/microbeannotator/pipeline/ko_mapper.py).  Also included a database [Zenodo: 10020074](https://zenodo.org/records/10020074) which will be included in `VDB_v5.2`
+* Added a checkpoint for `tRNAscan-SE` in `binning-prokaryotic.py` and `eukaryotic_gene_modeling_wrapper.py`.
+* Added `profile-pathway.py` module and `VEBA-profile_env` environments which is a wrapper around `HUMAnN` for the custom database created from `annotate.py` and `compile_custom_humann_database_from_annotations.py`
+* Added `GenoPype version` to log output
+* Added `merge_genome_quality.py` which combines `CheckV`, `CheckM2`, and `BUSCO` results.
+* Added `compile_custom_humann_database_from_annotations.py` which compiles a `HUMAnN` protein database table from the output of `annotate.py` and taxonomy classifications.
+* Added functionality to `merge_taxonomy_classifications.py` to allow for `--no_domain` and `--no_header` which will serve as input to `compile_custom_humann_database_from_annotations.py`
+* Added `marker_gene_clustering.py` script which gets core marker genes unique to each SLC (i.e., pangenome). `average_number_of_copies_per_genome` to protein clusters.
+* Added `--minimum_core_prevalence` in `global_clustering.py`, `local_clustering.py`, and `cluster.py` which indicates prevalence ratio of protein clusters in a SLC will be considered core.  Also remove `--no_singletons` from `cluster.py` to avoid complications with marker genes.  Relabeled `--input` to `--genomes_table` in clustering scripts/module.
+* Added a check in `coverage.py` to see if the `mapped.sorted.bam` files are created, if they are then skip them.  Not yet implemented for GNU parallel option.
+* Changed default representative sequence format from table to fasta for `mmseqs2_wrapper.py`.
+* Added `--nucleotide_fasta_output` to `antismash_genbank_to_table.py` which outputs the actual BGC DNA sequence. Changed `--fasta_output` to `--protein_fasta_output` and added output to `biosynthetic.py`. Changed BGC component identifiers to `[bgc_id]_[position_in_bgc]|[start]:[end]([strand])` to match with `MetaEuk` identifiers. Changed `bgc_type` to `protocluster_type`.  `biosynthetic.py` now supports GFF files from `MetaEuk` (exon and gene features not supported by `antiSMASH`).  Fixed error related to `antiSMASH` adding CDS (i.e., `allorf_[start]_[end]`) that are not in GFF so `antismash_genbank_to_table.py` failed in those cases. 
+* Added `ete3` to `VEBA-phylogeny_env.yml` and automatically renders trees to PDF.
+* Added presets for `MEGAHIT` using the `--megahit_preset` option. 
+* The change for using `--mash_db` with `GTDB-Tk` violated the assumption that all prokaryotic classifications had a `msa_percent` field which caused the cluster-level taxonomy to fail.  `compile_prokaryotic_genome_cluster_classification_scores_table.py` fixes this by uses `fastani_ani` as the weight when genomes were classified using ANI and `msa_percent` for everything else.  Initial error caused unclassified prokaryotic for all cluster-level classifications.
+* Fixed small error where empty gff files with an asterisk in the name were created for samples that didn't have any prokaryotic MAGs.
+* Fixed critical error where descriptions in header were not being removed in `eukaryota.scaffolds.list` and did not remove eukaryotic scaffolds in `seqkit grep` so `DAS_Tool` output eukaryotic MAGs in `identifier_mapping.tsv` and `__DASTool_scaffolds2bin.no_eukaryota.txt`
+* Fixed `krona.html` in `biosynthetic.py` which was being created incorrectly from `compile_krona.py` script.
+* Create `pangenome_core_sequences` in `global_clustering.py` and `local_clustering.py` which writes both protein and CDS sequences for each SLC.  Also made default in `cluster.py` to NOT do local clustering switching `--no_local_clustering` to `--local_clustering`.
+* `pandas.errors.InvalidIndexError: Reindexing only valid with uniquely valued Index objects` in `biosynthetic.py` when `Diamond` finds multiple regions in one hit that matches.  Added `--sort_by` and `--ascending` to `concatenate_dataframes.py` along with automatic detection and removal of duplicate indices.  Also added `--sort_by bitscore` in `biosynthetic.py`.
+* Added core pangenome and singleton hits to clustering output
+* Updated `--megahit_memory` default from 0.9 to 0.99
+* Fixed error in `genomad_taxonomy_wrapper.py` where `viral_taxonomy.tsv` should have been `taxonomy.tsv`.
+* Fixed minor error in `assembly.py` that was preventing users from using `SPAdes` programs that were not `spades.py`, `metaspades.py`, or `rnaspades.py` that was the result of using an incorrect string formatting.
+* Updated `bowtie2` in preprocess, assembly, and mapping modules.  Updated `fastp` and `fastq_preprocessor` in preprocess module.
+
+</details>
+
+
+**Release v1.2.0 Highlights:**
+
+* **`VEBA` Modules:**
+	* Updated `GTDB-Tk` now uses `Mash` for ANI screening to speed up classification (now provided in `VDB_v5.1` database)
+	* rRNA and tRNA are identified for prokaryotic and eukaryotic genomes via `BARRNAP` and `tRNAscan-SE`
+	* Eukaryotic genes (CDS, rRNA, tRNA) are analyzed separately for nuclear, mitochondrion, and plastid sequences
+	* Genome GFF files include contigs, CDS, rRNA, and tRNA with tags for mitochondrion and plastids when applicable
+	* Clustering automatically generates pangenome protein prevalence tables for each genome cluster
+	* Ratios of singletons in each genome are now calculated
+	* [Virulence factor database](http://www.mgc.ac.cn/VFs/main.htm) (`VFDB`) is now included in annotations
+	* [UniRef50/90](https://www.uniprot.org/help/uniref) is now included in annotations
+	* `Krona` plots are generated for taxonomy classifications and biosynthetic gene cluster detection
+	* Fixed a minor issue in `biosynthetic.py` where the fasta and genbank files were not properly symlinked.  Also added virulence factor results to synopsis.
+	
+	
+* **`VEBA` Database (`VDB_v5.1`) **:
+	* Added `VFDB`
+	* Updated `GTDB v207_v2 → v214.1`
+	* Changed `NR  → UniRef50/90` 
+	* Deprecated [`RefSeq non-redundant`](https://www.ncbi.nlm.nih.gov/refseq/about/nonredundantproteins/) in place of `UniRef`
+
+<details>
+	<summary>**Release v1.2.0 Details**</summary>
 
 * Fixed minor error in `binning-prokaryotic.py` where the `--veba_database` argument wasn't utilized and only the environment variable `VEBA_DATABASE` could be used.
 * Updated the Docker images to have `/volumes/input`, `/volumes/output`, and `/volumes/database` directories to mount. 
@@ -22,9 +94,11 @@ ________________________________________________________________
 * Compiled and pushed `gtdb_r214.msh` mash file to [Zenodo:8048187](https://zenodo.org/record/8048187) which is now used by default in `classify-prokaryotic.py`.  It is now included in `VDB_v5.1`.
 * Cleaned up global and local clustering intermediate files.  Added pangenome tables and singelton information to outputs.
 
+</details>
+
 
 <details>
-	<summary>**Release v1.1.2:**</summary>
+	<summary>**Release v1.1.2 Details**</summary>
 	
 * Created Docker images for all modules
 * Replaced all absolute path symlinks with relative symlinks
@@ -48,7 +122,7 @@ ________________________________________________________________
 </details>
 
 <details>
-	<summary>**Release v1.1.1:**</summary>
+	<summary>**Release v1.1.1 Details**</summary>
 
 * Most important update includes fixing a broken VEBA-`binning-viral.yml` install recipe which had package conflicts for `aria2` 30e8b0a.
 * Fixes on conda-related environment variables in the install scripts.
@@ -62,7 +136,7 @@ ________________________________________________________________
 </details>
 
 <details>
-	<summary>**Release v1.1.0:**</summary>
+	<summary>**Release v1.1.0 Details**</summary>
 	
 * **Modules**:
 	* `annotate.py`
@@ -172,7 +246,7 @@ ________________________________________________________________
 </details>
 
 <details>
-	<summary>**Release v1.0.4:**</summary>
+	<summary>**Release v1.0.4 Details**</summary>
 	
 * Added `biopython` to `VEBA-assembly_env` which is needed when running `MEGAHIT` as the scaffolds are rewritten and [an error](https://github.com/jolespin/veba/issues/17) was raised. [aea51c3](https://github.com/jolespin/veba/commit/aea51c3e0b775aec90f7343f01cad6911f526f0a)
 * Updated Microeukaryotic protein database to exclude a few higher eukaryotes that were present in database, changed naming scheme to hash identifiers (from `cat reference.faa | seqkit fx2tab -s -n > id_to_hash.tsv`).  Switching database from [FigShare](https://figshare.com/articles/dataset/Microeukaryotic_Protein_Database/19668855) to [Zenodo](https://zenodo.org/record/7485114#.Y6vZO-zMKDU).  Uses database version `VDB_v3` which has the updated microeukaryotic protein database (`VDB-Microeukaryotic_v2`) [0845ba6](https://github.com/jolespin/veba/commit/0845ba6be65f3486d61fe7ae21a2937efeb42ee9)
@@ -180,7 +254,7 @@ ________________________________________________________________
 </details>
 
 <details>
-	<summary>**Release v1.0.3e:**</summary>
+	<summary>**Release v1.0.3e Details**</summary>
 	
 * Patch fix for `install_veba.sh` where `install/environments/VEBA-assembly_env.yml` raised [a compatibilty error](https://github.com/jolespin/veba/issues/15) when creating the `VEBA-assembly_env` environment. [c2ab957](https://github.com/jolespin/veba/commit/c2ab957be132d34e6b99d6dea394be4572b83066)
 * Patch fix for `VirFinder_wrapper.R` where `__version__ = ` variable was throwing [an R error](https://github.com/jolespin/veba/issues/13) when running `binning-viral.py` module. [19e8f38](https://github.com/jolespin/veba/commit/19e8f38a5050328b7ba88b2271f0221073748cbb)
@@ -201,7 +275,7 @@ ________________________________________________________________
 </details>
 
 <details>
-	<summary>**Release v1.0.2a:**</summary>
+	<summary>**Release v1.0.2a Details**</summary>
 
 * Updated *GTDB-Tk* in `VEBA-binning-prokaryotic_env` from `1.x` to `2.x` (this version uses much less memory): [f3507dd](https://github.com/jolespin/veba/commit/f3507dd13a42960e3671c9f8a106c9974fbfce21)
 * Updated the *GTDB-Tk* database from `R202` to `R207_v2` to be compatible with *GTDB-Tk v2.x*: [f3507dd](https://github.com/jolespin/veba/commit/f3507dd13a42960e3671c9f8a106c9974fbfce21)
@@ -217,7 +291,7 @@ ________________________________________________________________
 
 
 <details>
-	<summary>**Release v1.0.1:**</summary>
+	<summary>**Release v1.0.1 Details**</summary>
 
 * Fixed the fatal binning-eukaryotic.py error: [7c5addf](https://github.com/jolespin/veba/commit/7c5addf9ed6e8e45502274dd353f20b211838a41)
 * Fixed the minor file naming in cluster.py: [5803845](https://github.com/jolespin/veba/commit/58038451dac0791899aa7fca3f9d79454cb9ed46)
@@ -227,7 +301,7 @@ ________________________________________________________________
 
 
 <details>
-	<summary>**Release v1.0.0:**</summary>
+	<summary>**Release v1.0.0 Details**</summary>
 	
 * Released with *BMC Bionformatics* publication (doi:10.1186/s12859-022-04973-8).
 
@@ -239,15 +313,14 @@ ________________________________________________________________
 
 **Check:**
 
-* Start/end positions on MetaEuk gene ID might be off.
+* Start/end positions on `MetaEuk` gene ID might be off.
 
 **Critical:**
 
-* Dereplcate CDS sequences in GFF from MetaEuk for antiSMASH to work for eukaryotic genomes
-* Component clustering needs to be with respect to BGC not genome
+* Genome checkpoints in `tRNAscan-SE` aren't working properly.
+* Dereplcate CDS sequences in GFF from `MetaEuk` for `antiSMASH` to work for eukaryotic genomes
+* Error with `amplicon.py` that works when run manually...
 
-
-Error with `amplicon.py` that works when run manually...
 ```
 There was a problem importing veba_output/misc/reads_table.tsv:
 
@@ -255,36 +328,32 @@ There was a problem importing veba_output/misc/reads_table.tsv:
 ```
 
 **Definitely:**
-* Modify behavior of `annotate.py` to allow for skipping Pfam and/or KOFAM since they take a long time. 
-* Add `compile_custom_humann_database.py`
+
+* Add representative to `identifier_mapping.proteins.tsv.gz`
 * Add coding density to GFF files
 * Split `download_databases.sh`  into `download_databases.sh` (low memory, high threads) and `configure_databases.sh` (high memory, low-to-mid threads).  Use `aria2` in parallel instead of `wget`.
 * `NextFlow` support
 * Consistent usage of the following terms: 1) dataframe vs. table; 2) protein-cluster vs. orthogroup.
 * Add support for `FAMSA` in `phylogeny.py`
 * Create a `assembly-longreads.py` module that uses `MetaFlye`
-* Expand Microeukaryotic Protein Database to include more fungi (`Mycocosm`)
-* Add MAG-level counts to prokaryotic and eukaryotic. Add optional bam file for viral binning, if so then add MAG-level counts
+* Expand Microeukaryotic Protein Database to include more microeukaryotes (`Mycocosm` and `PhycoCosm` from `JGI`)
 * Install each module via `bioconda`
 * Add support for `Salmon` in `mapping.py` and `index.py`.  This can be used instead of `STAR` which will require adding the `exon` field to `Prodigal` GFF file (`MetaEuk` modified GFF files already have exon ids). 
-* Build Metaphlan (and HUMAnN) database from genomes.
 
 
 **Probably (Yes)?:**
 
-* Convert HMMs to MMSEQS2 (https://github.com/soedinglab/MMseqs2/wiki#how-to-create-a-target-profile-database-from-pfam)?
+* Convert HMMs to `MMSEQS2` (https://github.com/soedinglab/MMseqs2/wiki#how-to-create-a-target-profile-database-from-pfam)?
 * Run `cmsearch` before `tRNAscan-SE`
 * DN/DS from pangeome analysis
 * Add [iPHoP](https://bitbucket.org/srouxjgi/iphop/src/main/) to `binning-viral.py`.
 * Add a `metabolic.py` module	
 * Swap [`TransDecoder`](https://github.com/TransDecoder/TransDecoder) for [`TransSuite`](https://github.com/anonconda/TranSuite)
-* Reimplement `KOFAMSCAN` (which creates thousands of intermediate files) using `hmmer_wrapper.py`.
-* Build a clustered version of the Microeukaryotic Protein Database that is more efficient to run.
+* Build a clustered version of the Microeukaryotic Protein Database that is more efficient to run.  Similar to UniRef100, UniRef90, UniRef50.
 
 **...Maybe (Not)?**
 
-* Add `VAMB` as an option for `binning-prokaryotic.py` (requires python >= 3.7,<3.8)
-* Add support for `Anvi'o` object export in `cluster.py`.  Installation is quite involved as of 2023.6.12
+* Modify behavior of `annotate.py` to allow for skipping Pfam and/or KOFAM since they take a long time. 
 
 
 ________________________________________________________________
@@ -293,22 +362,24 @@ ________________________________________________________________
 <details>
 	<summary>**Daily Change Log:**</summary>
 	
+* [2023.10.27] - Update `annotate.py` and `merge_annotations.py` to handle `CAZy`.  They also properly address clustered protein annotations now. 
+* [2023.10.18] - Added `module_completion_ratio.py` script which is a fork of `MicrobeAnnotator` [`ko_mapper.py`](https://github.com/cruizperez/MicrobeAnnotator/blob/master/microbeannotator/pipeline/ko_mapper.py).  Also included a database [Zenodo: 10020074](https://zenodo.org/records/10020074) which will be included in `VDB_v5.2`
+* [2023.10.16] - Added a checkpoint for `tRNAscan-SE` in `binning-prokaryotic.py` and `eukaryotic_gene_modeling_wrapper.py`.
 * [2023.10.16] - Added `profile-pathway.py` module and `VEBA-profile_env` environments which is a wrapper around `HUMAnN` for the custom database created from `annotate.py` and `compile_custom_humann_database_from_annotations.py`
 * [2023.10.16] - Added `GenoPype version` to log output
 * [2023.10.16] - Added `merge_genome_quality.py` which combines `CheckV`, `CheckM2`, and `BUSCO` results.
 * [2023.10.11] - Added `compile_custom_humann_database_from_annotations.py` which compiles a `HUMAnN` protein database table from the output of `annotate.py` and taxonomy classifications.
 * [2023.10.11] - Added functionality to `merge_taxonomy_classifications.py` to allow for `--no_domain` and `--no_header` which will serve as input to `compile_custom_humann_database_from_annotations.py`
-* 
 * [2023.10.5] - Added `marker_gene_clustering.py` script which gets core marker genes unique to each SLC (i.e., pangenome). `average_number_of_copies_per_genome` to protein clusters.
 * [2023.10.5] - Added `--minimum_core_prevalence` in `global_clustering.py`, `local_clustering.py`, and `cluster.py` which indicates prevalence ratio of protein clusters in a SLC will be considered core.  Also remove `--no_singletons` from `cluster.py` to avoid complications with marker genes.  Relabeled `--input` to `--genomes_table` in clustering scripts/module.
 * [2023.9.21] - Added a check in `coverage.py` to see if the `mapped.sorted.bam` files are created, if they are then skip them.  Not yet implemented for GNU parallel option.
 * [2023.9.15] - Changed default representative sequence format from table to fasta for `mmseqs2_wrapper.py`.
 * [2023.9.12] - Added `--nucleotide_fasta_output` to `antismash_genbank_to_table.py` which outputs the actual BGC DNA sequence. Changed `--fasta_output` to `--protein_fasta_output` and added output to `biosynthetic.py`. Changed BGC component identifiers to `[bgc_id]_[position_in_bgc]|[start]:[end]([strand])` to match with `MetaEuk` identifiers. Changed `bgc_type` to `protocluster_type`.  `biosynthetic.py` now supports GFF files from `MetaEuk` (exon and gene features not supported by `antiSMASH`).  Fixed error related to `antiSMASH` adding CDS (i.e., `allorf_[start]_[end]`) that are not in GFF so `antismash_genbank_to_table.py` failed in those cases. 
 * [2023.9.12] - Added `ete3` to `VEBA-phylogeny_env.yml` and automatically renders trees to PDF. #! Need to test
-* [2023.9.11] - Added presets for `MEGAHIT` using the `--megahit_preset` option. #! Need to test
+* [2023.9.11] - Added presets for `MEGAHIT` using the `--megahit_preset` option. 
 * [2023.9.11] - The change for using `--mash_db` with `GTDB-Tk` violated the assumption that all prokaryotic classifications had a `msa_percent` field which caused the cluster-level taxonomy to fail.  `compile_prokaryotic_genome_cluster_classification_scores_table.py` fixes this by uses `fastani_ani` as the weight when genomes were classified using ANI and `msa_percent` for everything else.  Initial error caused unclassified prokaryotic for all cluster-level classifications.
 * [2023.9.8] - Fixed small error where empty gff files with an asterisk in the name were created for samples that didn't have any prokaryotic MAGs.
-* [2023.9.8] - Fixed critical error where descriptions in header were not being removed in ``eukaryota.scaffolds.list` and did not remove eukaryotic scaffolds in `seqkit grep` so `DAS_Tool` output eukaryotic MAGs in `identifier_mapping.tsv` and `__DASTool_scaffolds2bin.no_eukaryota.txt`
+* [2023.9.8] - Fixed critical error where descriptions in header were not being removed in `eukaryota.scaffolds.list` and did not remove eukaryotic scaffolds in `seqkit grep` so `DAS_Tool` output eukaryotic MAGs in `identifier_mapping.tsv` and `__DASTool_scaffolds2bin.no_eukaryota.txt`
 * [2023.9.5] - Fixed `krona.html` in `biosynthetic.py` which was being created incorrectly from `compile_krona.py` script.
 * [2023.8.30] - Create `pangenome_core_sequences` in `global_clustering.py` and `local_clustering.py` which writes both protein and CDS sequences for each SLC.  Also made default in `cluster.py` to NOT do local clustering switching `--no_local_clustering` to `--local_clustering`.
 * [2023.8.30] - `pandas.errors.InvalidIndexError: Reindexing only valid with uniquely valued Index objects` in `biosynthetic.py` when `Diamond` finds multiple regions in one hit that matches.  Added `--sort_by` and `--ascending` to `concatenate_dataframes.py` along with automatic detection and removal of duplicate indices.  Also added `--sort_by bitscore` in `biosynthetic.py`.

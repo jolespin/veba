@@ -419,11 +419,11 @@ CMD="source activate VEBA-cluster_env && cluster.py -i veba_output/misc/genomes_
 
 `veba_output/cluster/local`
 
-* global/feature\_compression\_ratios.tsv - Feature compression ratios for each domain
+* global/feature\_compression\_ratios.tsv.gz - Feature compression ratios for each domain
 * global/genome\_clusters.tsv - Machine-readable table for genome clusters `[id_genome_cluster, number_of_components, number_of_samples_of_origin, components, samples_of_origin]`
-* global/identifier\_mapping.genomes.tsv - Identifier mapping for genomes `[id_genome, organism_type, sample_of_origin, id_genome_cluster, number_of_proteins, number_of_singleton_protein_clusters, ratio_of_protein_cluster_are_singletons]`
-* global/identifier\_mapping.proteins.tsv - Identifier mapping for proteins `[id_protein, organism_type, id_genome, sample_of_origin, id_genome_cluster, id_protein_cluster]`
-* global/identifier\_mapping.scaffolds.tsv - Identifier mapping for contigs `[id_scaffold,	organism_type, id_genome, sample_of_origin, id_genome_cluster]`
+* global/identifier\_mapping.genomes.tsv.gz - Identifier mapping for genomes `[id_genome, organism_type, sample_of_origin, id_genome_cluster, number_of_proteins, number_of_singleton_protein_clusters, ratio_of_protein_cluster_are_singletons]`
+* global/identifier\_mapping.proteins.tsv.gz - Identifier mapping for proteins `[id_protein, organism_type, id_genome, sample_of_origin, id_genome_cluster, id_protein_cluster]`
+* global/identifier\_mapping.scaffolds.tsv.gz - Identifier mapping for contigs `[id_scaffold,	organism_type, id_genome, sample_of_origin, id_genome_cluster]`
 * global/mags\_to\_slcs.tsv
 * global/protein\_clusters.tsv - Machine-readable table for protein clusters `[id_protein_cluster, number_of_components, number_of_samples_of_origin, components, samples_of_origin]`
 * global/proteins\_to\_orthogroups.tsv - Identifier mapping between proteins and protein clusters `[id_protein, id_protein-cluster]`
@@ -552,25 +552,20 @@ The following output files will produced:
 * taxonomy_classifications.clusters.tsv - Taxonomy with respect to genome clusters
 
 #### 14. Annotate proteins
-Now that allf of the MAGs are recovered and classified, let's annotate the proteins using best-hit against UniRef, Pfam, and KOFAM.
+Now that all of the MAGs are recovered and classified, let's annotate the proteins using best-hit against UniRef,MiBIG,VFDB,CAZy Pfam, AntiFam, AMRFinder, and KOFAM.  HMMSearch will fail with sequences ≥ 100k so we need to remove any that are that long (there probably aren't but just to be safe).
 
 **Conda Environment:** `conda activate VEBA-annotate_env`
 
 ```
 # Let's merge all of the proteins.  
 
-cat veba_output/binning/*/*/output/genomes/*.faa > veba_output/misc/all_genomes.proteins.faa
-
-# Let's merge all of the identifier mappings. 
-# Note, this is optional but it's helpful for diving further into annotations
-# especially for viruses
-cat veba_output/binning/*/*/output/genomes/identifier_mapping.tsv > veba_output/misc/all_genomes.identifier_mapping.tsv
+cat veba_output/binning/*/*/output/genomes/*.faa | seqkit seq -M 99999 > veba_output/misc/all_genomes.all_proteins.lt100k.faa
 
 ```
 
-**Simple usage by running all at once**
+**Recommended usage by running all at once**
 
-For sake of simplicity, let's just annotate everything at once (see next section to speed this up):
+For sake of simplicity, let's just annotate everything at once (see next section to split this up).  Let's also use UniRef50 since this is an environmental dataset.  By annotating all of the proteins and providing clusters, we will be able to calculate KEGG module completion ratios both at the genome and pangenome (i.e., genome cluster) levels.
 
 ```
 
@@ -583,15 +578,40 @@ N="annotate"
 rm -f logs/${N}.*
 
 # Input filepaths
-PROTEINS=veba_output/misc/all_genomes.proteins.faa
-IDENTIFIER_MAPPING=veba_output/misc/all_genomes.identifier_mapping.tsv
-CMD="source activate VEBA-annotate_env && annotate.py -a ${PROTEINS} -i ${IDENTIFIER_MAPPING} -o veba_output/annotation -p ${N_JOBS}"
+PROTEINS=veba_output/misc/all_genomes.all_proteins.lt100k.faa
+IDENTIFIER_MAPPING=veba_output/cluster/output/global/identifier_mapping.proteins.tsv.gz
+
+# Command
+CMD="source activate VEBA-annotate_env && annotate.py -a ${PROTEINS} -i ${IDENTIFIER_MAPPING} -o veba_output/annotation -p ${N_JOBS} -u uniref50"
 
 # Either run this command or use SunGridEnginge/SLURM
 
 ```
 
-**Advanced usage by splitting up fasta into multiple files**
+The following output files will produced: 
+
+* annotations.proteins.tsv.gz - Concatenated annotations from Diamond (NR), Diamond (MiBIG), Diamond (VFDB), Diamond (CAZy), HMMSearch (Pfam), HMMSearch (NCBIfam-AMRFinder), HMMSearch (AntiFam), and KOFAMSCAN (KOFAM). 
+* annotations.protein_clusters.tsv.gz - Consensus annotations for protein clusters.
+* If `-i/--identifier_mapping` is provided, the the following is also included: 
+	* Identifers in `annotations.proteins.tsv.gz` and `annotations.protein_clusters.tsv.gz`
+	* kos.genomes.tsv and kos.genome_clusters.tsv which contain replicated `[id_genome]<tab>[id_ko]`
+	* module\_completion\_ratios.genomes.tsv and module\_compleition\_ratios.genome_clusters.tsv which contain KEGG module completion ratios (MCR) for each genome and genome cluster.
+
+
+**(Advanced) Annotating only representative sequences of each cluster**
+
+If you are restricted by resources or time you may want to do just annotate the representatives of each protein cluster.  You won't be able to use the `-i/--identifier_mapping` argument.
+
+```
+# Input filepaths
+PROTEINS=veba_output/cluster/output/global/representative_sequences.faa
+
+# Command
+CMD="source activate VEBA-annotate_env && annotate.py -a ${PROTEINS} -o veba_output/annotation -p ${N_JOBS} -u uniref50"
+
+```
+
+**(Advanced) Splitting up fasta into multiple files**
 
 If you are restricted by resources or time you may want to do this in batches.  
 You can split up the proteins into separate batches with `SeqKit`.
@@ -602,18 +622,13 @@ This would make 100 files: stdin.part_001.fasta - stdin.part_100.fasta
 N_PARTITIONS=100
 PARTITION_DIRECTORY=veba_output/misc/partitions/
 mkdir -p ${PARTITION_DIRECTORY}
-cat veba_output/misc/all_genomes.proteins.faa | seqkit split2 -p ${N_PARTITIONS} -O ${PARTITION_DIRECTORY}
+cat veba_output/binning/*/*/output/genomes/*.faa | seqkit seq -M 99999 | seqkit split2 -p ${N_PARTITIONS} -O ${PARTITION_DIRECTORY}
 
-# Now get the identifiers for each partition
-IDENTIFIER_MAPPING=veba_output/misc/all_genomes.identifier_mapping.tsv
+```
 
-for i in $(seq -f "%03g" 1 ${N_PARTITIONS}); do # This iterates through 1-100 and zero pads
-	PROTEINS=${PARTITION_DIRECTORY}/stdin.part_${i}.fasta
-	IDENTIFIERS=${PARTITION_DIRECTORY}/stdin.part_${i}.list
-	cat ${PROTEINS} | grep "^>" | cut -c2- | cut -f1 -d " " > ${IDENTIFIERS}
-	subset_table.py -i ${IDENTIFIERS} -t ${IDENTIFIER_MAPPING} -o ${PARTITION_DIRECTORY}/stdin.part_${i}.identifier_mapping.tsv
-	done
+Since proteins will be split up, you should use the `-i/--identifier_mapping` arguments.
 
+```
 # Drop down the number of threads used since we are running 100 jobs now
 N_JOBS=1
 
@@ -626,20 +641,12 @@ for i in $(seq -f "%03g" 1 ${N_PARTITIONS}); do
 	N="annotate-${i}"
 	rm -f logs/${N}.*
 	FAA=${PARTITION_DIRECTORY}/stdin.part_${i}.fasta
-	IDS=${PARTITION_DIRECTORY}/stdin.part_${i}.identifier_mapping.tsv
-	CMD="source activate VEBA-annotate_env && annotate.py -a ${FAA} -i ${IDS} -o ${OUT_DIR}/${i} -p ${N_JOBS}"
+	CMD="source activate VEBA-annotate_env && annotate.py -a ${FAA} -o ${OUT_DIR}/${i} -p ${N_JOBS} -u uniref50"
 
 	# Either run this command or use SunGridEnginge/SLURM
 	
 	done
-
 ```
-
-The following output files will produced: 
-
-* annotations.tsv.gz - Concatenated annotations from Diamond (NR), HMMSearch (Pfam), HMMSearch (NCBIfam-AMRFinder), HMMSearch (AntiFam), and KOFAMSCAN (KOFAM)
-* lineage.weighted_majority_vote.contigs.tsv.gz - [Experimental] Lineage predictions for contigs based on NR annotations.  This should be used only for experimentation as lineages are not determined using core markers. Contig-level classifications.
-* lineage.weighted_majority_vote.genomes.tsv.gz - [Experimental] Lineage predictions for contigs based on NR annotations.  This should be used only for experimentation as lineages are not determined using core markers. MAG-level classifications.
 
 _____________________________________________________
 

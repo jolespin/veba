@@ -1,6 +1,6 @@
 #!/bin/bash
-# __version__ = "2023.6.20"
-# VEBA_DATABASE_VERSION = "VDB_v5.1"
+# __version__ = "2023.10.23"
+# VEBA_DATABASE_VERSION = "VDB_v5.2"
 # MICROEUKAYROTIC_DATABASE_VERSION = "VDB-Microeukaryotic_v2.1"
 
 # Create database
@@ -110,12 +110,17 @@ rm -rf ${DATABASE_DIRECTORY}/MarkerSets.tar.gz
 
 # KOFAMSCAN
 echo ". .. ... ..... ........ ............."
-echo "vii * Processing KOFAMSCAN profile HMM marker sets"
+echo "vii * Processing KEGG profile HMM marker sets"
 echo ". .. ... ..... ........ ............."
 mkdir -v -p ${DATABASE_DIRECTORY}/Annotate/KOFAM
 wget -v -O - ftp://ftp.genome.jp/pub/db/kofam/ko_list.gz | gzip -d > ${DATABASE_DIRECTORY}/Annotate/KOFAM/ko_list
 wget -v -c ftp://ftp.genome.jp/pub/db/kofam/profiles.tar.gz -O - |  tar -xz
 mv profiles ${DATABASE_DIRECTORY}/Annotate/KOFAM/
+
+wget -v -O ${DATABASE_DIRECTORY}/MicrobeAnnotator-KEGG.tar.gz https://zenodo.org/records/10020074/files/MicrobeAnnotator-KEGG.tar.gz?download=1
+tar xvzf ${DATABASE_DIRECTORY}/MicrobeAnnotator-KEGG.tar.gz -C ${DATABASE_DIRECTORY}/Annotate --no-xattrs
+rm -rf ${DATABASE_DIRECTORY}/Annotate/._MicrobeAnnotator-KEGG
+rm -rf ${DATABASE_DIRECTORY}/MicrobeAnnotator-KEGG.tar.gz
 
 # Pfam
 echo ". .. ... ..... ........ ............."
@@ -182,6 +187,12 @@ mkdir -v -p ${DATABASE_DIRECTORY}/Annotate/VFDB
 wget -v -P ${DATABASE_DIRECTORY} http://www.mgc.ac.cn/VFs/Down/VFDB_setA_pro.fas.gz
 diamond makedb --in ${DATABASE_DIRECTORY}/VFDB_setA_pro.fas.gz --db ${DATABASE_DIRECTORY}/Annotate/VFDB/VFDB_setA_pro.dmnd
 rm -rf ${DATABASE_DIRECTORY}/VFDB_setA_pro.fas.gz
+
+# CAZy
+mkdir -v -p ${DATABASE_DIRECTORY}/Annotate/CAZy
+wget -v -P ${DATABASE_DIRECTORY} https://bcb.unl.edu/dbCAN2/download/CAZyDB.07262023.fa
+diamond makedb --in ${DATABASE_DIRECTORY}/CAZyDB.07262023.fa --db ${DATABASE_DIRECTORY}/Annotate/CAZy/CAZyDB.07262023.dmnd
+rm -rf ${DATABASE_DIRECTORY}/CAZyDB.07262023.fa
 
 # Contamination
 echo ". .. ... ..... ........ ............."

@@ -10,11 +10,12 @@ from Bio.SeqIO.FastaIO import SimpleFastaParser
 
 # Soothsayer Ecosystem
 from genopype import *
+from genopype import __version__ as genopype_version
 from soothsayer_utils import *
 
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.10.5"
+__version__ = "2023.10.24"
 
 def get_basename(x):
     _, fn = os.path.split(x)
@@ -38,7 +39,7 @@ def get_protein_cluster_prevalence(df_input:pd.DataFrame):
     # Create output
     df_output = pd.DataFrame(A, index=genomes, columns=clusters)
     df_output.index.name = "id_genome"
-    df_output.columns.name = "id_protein-cluster"
+    df_output.columns.name = "id_protein_cluster"
 
     return df_output
 
@@ -182,6 +183,7 @@ def main(args=None):
     print(format_header("Configuration:", "-"), file=sys.stdout)
     print("Python version:", sys.version.replace("\n"," "), file=sys.stdout)
     print("Python path:", sys.executable, file=sys.stdout) #sys.path[2]
+    print("GenoPype version:", genopype_version, file=sys.stdout) #sys.path[2]
     print("Script version:", __version__, file=sys.stdout)
     print("Moment:", get_timestamp(), file=sys.stdout)
     print("Directory:", os.getcwd(), file=sys.stdout)
@@ -501,6 +503,9 @@ def main(args=None):
             a = pd.read_csv(fp, sep="\t", index_col=0, header=None).iloc[:,0]
             proteincluster_to_representative.append(a)
         proteincluster_to_representative = pd.concat(proteincluster_to_representative)
+        representatives = set(proteincluster_to_representative.values)
+
+        df_proteins["protein_cluster_representative"] = df_proteins.index.map(lambda x: x in representatives)
 
         with open(os.path.join(directories["output"], "representative_sequences.faa"), "w") as f_representatives:
             for id_proteincluster, id_representative in pv(proteincluster_to_representative.items(), description=" * ({}) Writing protein cluster representative sequences".format(format_duration(t0)), unit="sequence", total=proteincluster_to_representative.size):
@@ -582,12 +587,12 @@ def main(args=None):
 
     # Writing output files
     print(format_header(" * ({}) Writing Output Tables:".format(format_duration(t0))), file=sys.stdout)
-    df_mags.to_csv(os.path.join(directories["output"], "identifier_mapping.genomes.tsv"), sep="\t")
-    df_scaffolds.to_csv(os.path.join(directories["output"], "identifier_mapping.scaffolds.tsv"), sep="\t")
-    df_proteins.to_csv(os.path.join(directories["output"], "identifier_mapping.proteins.tsv"), sep="\t")
-    df_genomeclusters.to_csv(os.path.join(directories["output"], "genome_clusters.tsv"), sep="\t")
-    df_proteinclusters.to_csv(os.path.join(directories["output"], "protein_clusters.tsv"), sep="\t")
-    df_fcr.to_csv(os.path.join(directories["output"], "feature_compression_ratios.tsv"), sep="\t")
+    df_mags.to_csv(os.path.join(directories["output"], "identifier_mapping.genomes.tsv.gz"), sep="\t")
+    df_scaffolds.to_csv(os.path.join(directories["output"], "identifier_mapping.scaffolds.tsv.gz"), sep="\t")
+    df_proteins.to_csv(os.path.join(directories["output"], "identifier_mapping.proteins.tsv.gz"), sep="\t")
+    df_genomeclusters.to_csv(os.path.join(directories["output"], "genome_clusters.tsv.gz"), sep="\t")
+    df_proteinclusters.to_csv(os.path.join(directories["output"], "protein_clusters.tsv.gz"), sep="\t")
+    df_fcr.to_csv(os.path.join(directories["output"], "feature_compression_ratios.tsv.gz"), sep="\t")
     df_mags["id_genome_cluster"].to_frame().dropna(how="any", axis=0).to_csv(os.path.join(directories["output"], "mags_to_slcs.tsv"), sep="\t", header=None)
     df_scaffolds["id_genome"].to_frame().dropna(how="any", axis=0).to_csv(os.path.join(directories["output"], "scaffolds_to_mags.tsv"), sep="\t", header=None)
     df_scaffolds["id_genome_cluster"].to_frame().dropna(how="any", axis=0).to_csv(os.path.join(directories["output"], "scaffolds_to_slcs.tsv"), sep="\t", header=None)

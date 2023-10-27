@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 from __future__ import print_function, division
-import sys, os, argparse, glob,  shutil
+import sys, os, argparse, glob,  shutil, gzip
 from collections import OrderedDict, defaultdict
 
 import pandas as pd
+from Bio.SeqIO.FastaIO import SimpleFastaParser
 
 # Soothsayer Ecosystem
 from genopype import *
@@ -14,7 +15,22 @@ from soothsayer_utils.soothsayer_utils import assert_acceptable_arguments
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.10.16"
+__version__ = "2023.10.25"
+
+def get_preprocess_cmd( input_filepaths, output_filepaths, output_directory, directories, opts, program):
+    cmd = [
+        "cat",
+        " ".join(input_filepaths),
+        "|",
+        os.environ["seqkit"],
+        "seq",
+        "-M",
+        opts.maximum_protein_length,
+        "--only-id",
+        ">",
+        os.path.join(directories["tmp"], "proteins.faa"),
+    ]
+    return cmd
 
 def get_diamond_cmd( input_filepaths, output_filepaths, output_directory, directories, opts, program):
     tmp = os.path.join(directories["tmp"], program)
@@ -128,32 +144,70 @@ def get_merge_annotations_cmd( input_filepaths, output_filepaths, output_directo
         "--diamond_uniref {}".format(input_filepaths[0]),
         "--diamond_mibig {}".format(input_filepaths[1]),
         "--diamond_vfdb {}".format(input_filepaths[2]),
-        "--hmmsearch_pfam {}".format(input_filepaths[3]),
-        "--hmmsearch_amr {}".format(input_filepaths[4]),
-        "--hmmsearch_antifam {}".format(input_filepaths[5]),
-        "--kofam {}".format(input_filepaths[6]),
+        "--diamond_cazy {}".format(input_filepaths[3]),
+        "--hmmsearch_pfam {}".format(input_filepaths[4]),
+        "--hmmsearch_amr {}".format(input_filepaths[5]),
+        "--hmmsearch_antifam {}".format(input_filepaths[6]),
+        "--kofam {}".format(input_filepaths[7]),
         # "--veba_database {}".format(opts.veba_database),
         "--fasta {}".format(opts.proteins),
-        "-o {}".format(output_directory)
+        "-o {}".format(output_directory),
+        '--composite_name_joiner="{}"'.format(opts.composite_name_joiner),
     ]
     if opts.identifier_mapping:
         cmd += [ 
             "-i {}".format(opts.identifier_mapping),
+            # "--genome_cluster_column_label {}".format(opts.genome_cluster_column_label),
+            # "--protein_cluster_column_label {}".format(opts.protein_cluster_column_label),
         ]
 
     return cmd
 
-def get_propagate_annotations_cmd( input_filepaths, output_filepaths, output_directory, directories, opts):
+
+def get_mcr_cmd( input_filepaths, output_filepaths, output_directory, directories, opts):
 
     # Command
     cmd = [
-        os.environ["propagate_annotations_from_representatives.py"],
+        os.environ["compile_ko_from_annotations.py"],
         "-i {}".format(input_filepaths[0]),
-        "-c {}".format(opts.protein_clusters),
-        "-o {}".format(output_filepaths[0]),
-    ]
+        "-o {}".format(os.path.join(output_directory, "kos.genomes.tsv")),
+        "-l genome",
+
+            "&&",
+        
+        os.environ["module_completion_ratios.py"],
+        "-i {}".format(os.path.join(output_directory, "kos.genomes.tsv")),
+        "-o {}".format(os.path.join(output_directory, "module_completion_ratios.genomes.tsv")),
+        "--database_directory {}".format(os.path.join(opts.veba_database, "Annotate", "MicrobeAnnotator-KEGG")),
+
+            "&&",
+
+        os.environ["compile_ko_from_annotations.py"],
+        "-i {}".format(input_filepaths[0]),
+        "-o {}".format(os.path.join(output_directory, "kos.genome_clusters.tsv")),
+        "-l genome_cluster",
+
+            "&&",
+        
+        os.environ["module_completion_ratios.py"],
+        "-i {}".format(os.path.join(output_directory, "kos.genome_clusters.tsv")),
+        "-o {}".format(os.path.join(output_directory, "module_completion_ratios.genome_clusters.tsv")),
+        "--database_directory {}".format(os.path.join(opts.veba_database, "Annotate", "MicrobeAnnotator-KEGG")),
+        ]
 
     return cmd
+
+# def get_propagate_annotations_cmd( input_filepaths, output_filepaths, output_directory, directories, opts):
+
+#     # Command
+#     cmd = [
+#         os.environ["propagate_annotations_from_representatives.py"],
+#         "-i {}".format(input_filepaths[0]),
+#         "-c {}".format(opts.protein_clusters),
+#         "-o {}".format(output_filepaths[0]),
+#     ]
+
+#     return cmd
 
 # ============
 # Run Pipeline
@@ -165,7 +219,11 @@ def add_executables_to_environment(opts):
     """
     accessory_scripts = {
                 "merge_annotations.py",
-                "propagate_annotations_from_representatives.py",
+                # "propagate_annotations_from_representatives.py",
+                "compile_ko_from_annotations.py",
+                "module_completion_ratios.py",
+                "merge_annotations.py",
+                "compile_custom_humann_database_from_annotations.py",
                 }
 
     required_executables={
@@ -216,6 +274,49 @@ def create_pipeline(opts, directories, f_cmds):
     pipeline = ExecutablePipeline(name=__program__,  f_cmds=f_cmds, checkpoint_directory=directories["checkpoints"], log_directory=directories["log"])
 
 
+    # # ==========
+    # # Diamond [nr]
+    # # ==========
+    # step = 0
+
+    # program = "preprocess"
+    # program_label = "{}__{}".format(step, program)
+    # # Add to directories
+
+    # # Info
+    # description = "Preprocess sequences"
+    # if os.path.isdir(opts.proteins):
+    #     input_filepaths = glob.glob(os.path.join(opts.proteins, "*.{}".format(opts.extension)))
+    # else:
+    #     input_filepaths = [opts.proteins]
+    # opts.protein_files = input_filepaths
+
+    # # i/o
+
+    # output_filepaths = [os.path.join(directories["tmp"], "proteins.faa")]
+
+    # params = {
+    #     "input_filepaths":input_filepaths,
+    #     "output_filepaths":output_filepaths,
+    #     "output_directory":output_directory,
+    #     "opts":opts,
+    #     "directories":directories,
+    #     "program":program,
+    # }
+
+    # cmd = get_preprocess_cmd(**params)
+
+    # pipeline.add_step(
+    #             id=program,
+    #             description = description,
+    #             step=step,
+    #             cmd=cmd,
+    #             input_filepaths = input_filepaths,
+    #             output_filepaths = output_filepaths,
+    #             validate_inputs=True,
+    #             validate_outputs=True,
+    # )
+
     # ==========
     # Diamond [nr]
     # ==========
@@ -232,7 +333,7 @@ def create_pipeline(opts, directories, f_cmds):
     # i/o
     input_filepaths = [
         opts.proteins, 
-         os.path.join(opts.veba_database, "Annotate", "UniRef", "{}.dmnd".format(opts.uniref)),
+        os.path.join(opts.veba_database, "Annotate", "UniRef", "{}.dmnd".format(opts.uniref)),
         ]
     output_filenames = ["output.tsv.gz"]
     output_filepaths = list(map(lambda filename: os.path.join(output_directory, filename), output_filenames))
@@ -344,10 +445,54 @@ def create_pipeline(opts, directories, f_cmds):
                 validate_inputs=True,
                 validate_outputs=True,
     )
+
+    # ==========
+    # Diamond
+    # ==========
+    step = 4
+
+    program = "diamond-cazy"
+    program_label = "{}__{}".format(step, program)
+    # Add to directories
+    output_directory = directories[("intermediate",  program_label)] = create_directory(os.path.join(directories["intermediate"], program_label))
+
+    # Info
+    description = "Diamond [CAZy]"
+
+    # i/o
+    input_filepaths = [
+        opts.proteins, 
+         os.path.join(opts.veba_database, "Annotate", "CAZy", "CAZyDB.07262023.dmnd"),
+        ]
+    output_filenames = ["output.tsv.gz"]
+    output_filepaths = list(map(lambda filename: os.path.join(output_directory, filename), output_filenames))
+
+    params = {
+        "input_filepaths":input_filepaths,
+        "output_filepaths":output_filepaths,
+        "output_directory":output_directory,
+        "opts":opts,
+        "directories":directories,
+        "program":program,
+    }
+
+    cmd = get_diamond_cmd(**params)
+
+    pipeline.add_step(
+                id=program,
+                description = description,
+                step=step,
+                cmd=cmd,
+                input_filepaths = input_filepaths,
+                output_filepaths = output_filepaths,
+                validate_inputs=True,
+                validate_outputs=True,
+    )
+
     # ==========
     # HMMSearch-Pfam
     # ==========
-    step = 4
+    step = 5
 
     program = "hmmsearch-pfam"
     program_label = "{}__{}".format(step, program)
@@ -389,7 +534,7 @@ def create_pipeline(opts, directories, f_cmds):
     # =============
     # HMMSearch-AMR
     # =============
-    step = 5
+    step = 6
 
     program = "hmmsearch-amr"
     program_label = "{}__{}".format(step, program)
@@ -431,7 +576,7 @@ def create_pipeline(opts, directories, f_cmds):
     # =================
     # HMMSearch-AntiFam
     # =================
-    step = 6
+    step = 7
 
     program = "hmmsearch-antifam"
     program_label = "{}__{}".format(step, program)
@@ -472,7 +617,7 @@ def create_pipeline(opts, directories, f_cmds):
     # ==========
     # KOFAMSCAN
     # ==========
-    step = 7
+    step = 8
 
     program = "kofamscan"
     program_label = "{}__{}".format(step, program)
@@ -514,7 +659,7 @@ def create_pipeline(opts, directories, f_cmds):
     # ==========
     # Merge annotations
     # ==========
-    step = 8
+    step = 9
 
     program = "merge_annotations"
     program_label = "{}__{}".format(step, program)
@@ -529,14 +674,18 @@ def create_pipeline(opts, directories, f_cmds):
         os.path.join(directories[("intermediate",  "1__diamond-uniref")], "output.tsv.gz"),
         os.path.join(directories[("intermediate",  "2__diamond-mibig")], "output.tsv.gz"),
         os.path.join(directories[("intermediate",  "3__diamond-vfdb")], "output.tsv.gz"),
-        os.path.join(directories[("intermediate",  "4__hmmsearch-pfam")], "output.tsv.gz"),
-        os.path.join(directories[("intermediate",  "5__hmmsearch-amr")], "output.tsv.gz"),
-        os.path.join(directories[("intermediate",  "6__hmmsearch-antifam")], "output.tsv.gz"),
-        os.path.join(directories[("intermediate",  "7__kofamscan")], "output.tsv.gz"),
+        os.path.join(directories[("intermediate",  "4__diamond-cazy")], "output.tsv.gz"),
+        os.path.join(directories[("intermediate",  "5__hmmsearch-pfam")], "output.tsv.gz"),
+        os.path.join(directories[("intermediate",  "6__hmmsearch-amr")], "output.tsv.gz"),
+        os.path.join(directories[("intermediate",  "7__hmmsearch-antifam")], "output.tsv.gz"),
+        os.path.join(directories[("intermediate",  "8__kofamscan")], "output.tsv.gz"),
 
 
     ]
-    output_filenames = ["annotations.tsv.gz"]
+    output_filenames = ["annotations.proteins.tsv.gz"]
+
+    if opts.identifier_mapping:
+        output_filenames += ["annotations.protein_clusters.tsv.gz"]
 
     output_filepaths = list(map(lambda filename: os.path.join(output_directory, filename), output_filenames))
 
@@ -564,24 +713,22 @@ def create_pipeline(opts, directories, f_cmds):
     # ==========
     # Propagate annotations
     # ==========
-    if opts.protein_clusters:
-        step = 9
+    if opts.identifier_mapping:
+        step = 10
 
-        program = "propogate_annotations"
+        program = "module_completion_ratios"
         program_label = "{}__{}".format(step, program)
         # Add to directories
         output_directory = directories["output"]
 
         # Info
-        description = "Propagate annotation results"
+        description = "Calculate module completion ratios"
 
         # i/o
         input_filepaths = [
-            os.path.join(directories["output"], "annotations.tsv.gz"),
-            opts.protein_clusters,
+            os.path.join(directories["output"], "annotations.proteins.tsv.gz"),
         ]
-        output_filenames = ["annotations.proteins.tsv.gz"]
-
+        output_filenames = ["kos.genomes.tsv", "kos.genome_clusters.tsv", "module_completion_ratios.genomes.tsv", "module_completion_ratios.genome_clusters.tsv"]
         output_filepaths = list(map(lambda filename: os.path.join(output_directory, filename), output_filenames))
 
         params = {
@@ -592,7 +739,7 @@ def create_pipeline(opts, directories, f_cmds):
             "directories":directories,
         }
 
-        cmd = get_propagate_annotations_cmd(**params)
+        cmd = get_mcr_cmd(**params)
 
         pipeline.add_step(
                     id=program,
@@ -607,28 +754,34 @@ def create_pipeline(opts, directories, f_cmds):
 
     return pipeline
 
+
+
 # Configure parameters
 def configure_parameters(opts, directories):
 
     assert_acceptable_arguments(opts.diamond_sensitivity, {"", "fast", "mid-sensitive", "sensitive", "more-sensitive", "very-sensitive", "ultra-sensitive"})
     assert_acceptable_arguments(opts.uniref, {"uniref90","uniref50"})
 
-    if opts.identifier_mapping or opts.protein_clusters:
-        assert bool(opts.identifier_mapping) != bool(opts.protein_clusters), "--identifier_mapping is for protein-level annotations and cannot be used with --protein_clusters"
+    # if opts.identifier_mapping or opts.protein_cluster_column_label:
+        # assert bool(opts.identifier_mapping) == bool(opts.protein_cluster_column_label), "--identifier_mapping must be provided with --protein_cluster_column_label"
 
+    assert opts.maximum_protein_length < 100000, "Must be < 100k because sequences this length or greater will cause HMMSearch to crash"
     # Set environment variables
     add_executables_to_environment(opts=opts)
 
-    # Concatenate proteins if a directory is provided
-    if os.path.isdir(opts.proteins):
-        fp_protein_cat = os.path.join(directories["tmp"], "proteins.faa")
-        with open(fp_protein_cat, "w") as f_out:
-            for fp in glob.glob(os.path.join(opts.proteins,"*.{}".format(opts.extension))):
-                with open(fp, "r") as f_in:
-                    shutil.copyfileobj(f_in, f_out)
-        print("Concatenating files from --proteins {}".format(opts.proteins), file=sys.stdout)
-        print("Changing --proteins to {}".format(fp_protein_cat), file=sys.stdout)
-        opts.proteins = fp_protein_cat
+def check_protein_sequence_lengths(path, maximum_protein_length):
+    if path.endswith(".gz"):
+        f = gzip.open(path, "rt")
+    else:
+        f = open(path, "r")
+
+    failed_identifiers = list()
+    for header, seq in pv(SimpleFastaParser(f), "Checking sequence lengths"):
+        n = len(seq)
+        if n > maximum_protein_length:
+            failed_identifiers.append(header.split(" ")[0])
+    assert len(failed_identifiers) == 0, "Please remove sequences longer than {}\nYou can do this by running `seqkit seq -M {} {}\n\nThe following identifiers are too long: {}".format(maximum_protein_length, maximum_protein_length, path, "\n\t".join(failed_identifiers))
+
 
 
 def main(args=None):
@@ -638,19 +791,24 @@ def main(args=None):
     # Path info
     description = """
     Running: {} v{} via Python v{} | {}""".format(__program__, __version__, sys.version.split(" ")[0], sys.executable)
-    usage = "{} -a <proteins> -o <output_directory> |Optional: -i <identifier_mapping or -c <protein_clusters>]\nWarnings:Proteins >100k will cause HMMSearch to crash.  Please prefilter using `seqkit seq -M 100000`".format(__program__)
+    usage = "{} -a <proteins> -o <output_directory> |Optional: -i <identifier_mapping]".format(__program__)
     epilog = "Copyright 2021 Josh L. Espinoza (jespinoz@jcvi.org)"
 
     # Parser
     parser = argparse.ArgumentParser(description=description, usage=usage, epilog=epilog, formatter_class=argparse.RawTextHelpFormatter)
     # Pipeline
     parser_io = parser.add_argument_group('Required I/O arguments')
-    parser_io.add_argument("-a","--proteins", type=str, required=True, help = "Either path/to/proteins.faa or a directory of fasta files using [-x]")
+    parser_io.add_argument("-a","--proteins", type=str, required=True, help = "path/to/proteins.faa fasta to annotate")
     parser_io.add_argument("-o","--output_directory", type=str, default="veba_output/annotation", help = "path/to/project_directory [Default: veba_output/annotation]")
-    parser_io.add_argument("-i","--identifier_mapping", type=str, required=False, help = "Tab-seperated value table of [id_protein]<tab>[id_contig]<tab>[id_genome], No header.  Cannot be used with --protein_clusters")
-    parser_io.add_argument("-c","--protein_clusters", type=str, required=False, help = "Tab-seperated value table of [id_protein]<tab>[id_protein_cluster].  Use this if the --proteins are representative sequences.  Cannot be used with --identifier_mapping")
-    parser_io.add_argument("-x", "--extension", type=str, default="faa", help = "Fasta file extension for proteins if a directory is provided for --proteins [Default: faa]")
-    # parser_io.add_argument("-M", "--maximum_protein_length", type=int, default=100000, help = "Proteins >100k will cause HMMSearch to crash and will use more resources [Default: 100000]")
+    parser_io.add_argument("-i","--identifier_mapping", type=str, required=False,  help = "Tab-seperated value table (identifier_mapping.proteins.tsv created by cluster.py)  Requirements: 1) contain headers; 2) first column must be protein identifiers; and 3) contains these columns to the right in any order. Format: [id_protein]<tab>[organism_type]<tab>[id_genome]<tab>[sample_of_origin]<tab>[id_genome_cluster]<tab>[id_protein_cluster] with headers [Optional]")
+    # parser_io.add_argument("-r","--representatives", type=str, required=False, help = "Tab-seperated value table of [id_protein]<tab>[id_protein_cluster].  Use this if you only want to annotate the representatives.")
+    # parser_io.add_argument("--genome_column_label", type=str, default="id_genome", help = "--genome_column_label must be in --identifier_mapping header [Default: id_genome]")
+    # parser_io.add_argument("--genome_cluster_column_label", type=str, default="id_genome_cluster", help = "--genome_cluster_column_label must be in --identifier_mapping header [Default: id_genome_cluster]")
+    # parser_io.add_argument("--protein_cluster_column_label", type=str, default="id_protein_cluster", help = "--protein_cluster_column_label must be in --identifier_mapping header [Default: id_protein_cluster]")
+    # parser_io.add_argument("--no_genome_clusters", action="store_true", help = "No genome clusters in --identifier_mapping header")
+    # parser_io.add_argument("--no_protein_clusters", action="store_true", help = "No protein clusters in --identifier_mapping header")
+    parser_io.add_argument("-x", "--extension", type=str, default="faa", help = "Fasta file extension for proteins if a directory is provided for --proteins (Can be gzipped) [Default: faa]")
+    parser_io.add_argument("-M", "--maximum_protein_length", type=int, default=99999, help = "Proteins ≥ 100k will cause HMMSearch to crash and will use more resources [Default: 99999]")
 
     # Utility
     parser_utility = parser.add_argument_group('Utility arguments')
@@ -659,6 +817,7 @@ def main(args=None):
     parser_utility.add_argument("--random_state", type=int, default=0, help = "Random state [Default: 0]")
     parser_utility.add_argument("--restart_from_checkpoint", type=str, default=None, help = "Restart from a particular checkpoint [Default: None]")
     parser_utility.add_argument("--keep_temporary_directory", action="store_true",  help = "Keep temporary directory [Default is to remove]")
+    parser_utility.add_argument("--no_check_protein_lengths", action="store_true",  help = "Do not check protein sequence lengths.  Not recommended.  Sequences must be < 100k or else HMMSearch will fail.")
     parser_utility.add_argument("-v", "--version", action='version', version="{} v{}".format(__program__, __version__))
 
     # Databases
@@ -680,8 +839,10 @@ def main(args=None):
 
     # KOFAMSCAN
     parser_kofamscan = parser.add_argument_group('KOFAMSCAN arguments')
-    
     parser_kofamscan.add_argument("--kofamscan_options", type=str, default="", help="Diamond | More options (e.g. --arg 1 ) [Default: '']")
+
+    parser_composite = parser.add_argument_group('Composite arguments')
+    parser_composite.add_argument("-j", "--composite_name_joiner", type=str, required=False,  default=";", help = "Composite label separator [Default: ; ]")
 
     # Options
     opts = parser.parse_args()
@@ -721,6 +882,10 @@ def main(args=None):
     print("Directory:", os.getcwd(), file=sys.stdout)
     print("Commands:", list(filter(bool,sys.argv)),  sep="\n", file=sys.stdout)
     configure_parameters(opts, directories)
+
+    # Check sequence lengths
+    if not opts.no_check_protein_lengths:
+        check_protein_sequence_lengths(opts.proteins, opts.maximum_protein_length)
 
     sys.stdout.flush()
 

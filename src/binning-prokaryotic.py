@@ -491,8 +491,17 @@ do
             >$OUTPUT_DIRECTORY/$ID.tRNA.gff
             >$OUTPUT_DIRECTORY/$ID.tRNA.struct
             >$OUTPUT_DIRECTORY/$ID.tRNA.txt
-            {} -$DOMAIN_ABBREVIATION --forceow --progress --threads {} --fasta $OUTPUT_DIRECTORY/$ID.tRNA --gff $OUTPUT_DIRECTORY/$ID.tRNA.gff --struct $OUTPUT_DIRECTORY/$ID.tRNA.struct {} $GENOME_FASTA > $OUTPUT_DIRECTORY/$ID.tRNA.txt
-        fi
+            
+            TRNA_FASTA=$OUTPUT_DIRECTORY/$ID.tRNA
+
+            if [[ -s "$TRNA_FASTA" ]]; 
+                then
+                    echo "[Skipping] [tRNAscan-SE] $GENOME_FASTA because tRNA fasta exists and is not empty"
+                else
+                    echo "[Running] [tRNAscan-SE] $GENOME_FASTA"
+                    {} -$DOMAIN_ABBREVIATION --forceow --progress --threads {} --fasta $OUTPUT_DIRECTORY/$ID.tRNA --gff $OUTPUT_DIRECTORY/$ID.tRNA.gff --struct $OUTPUT_DIRECTORY/$ID.tRNA.struct {} $GENOME_FASTA > $OUTPUT_DIRECTORY/$ID.tRNA.txt
+            fi    
+        fi  
     done
 done
 

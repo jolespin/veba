@@ -3,7 +3,7 @@ import sys, os, glob, argparse, warnings
 import pandas as pd
 
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.8.30"
+__version__ = "2023.10.23"
 
 def main(argv=None):
     # Path info
@@ -82,7 +82,7 @@ def main(argv=None):
                 if opts.prepend_index_levels is not None:
                     df.index = df.index.map(lambda x: (*opts.prepend_index_levels, x))
             except (pd.errors.EmptyDataError, FileNotFoundError) as e:
-                print("[Skipping] {}".format(e), file=sys.stderr)
+                print("[Skipping] {}: {}".format(e, fp), file=sys.stderr)
             if df is not None:
                 dataframes.append(df)
     else:
