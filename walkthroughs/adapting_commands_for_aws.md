@@ -38,7 +38,7 @@ This job definition pulls the [jolespin/veba_preprocess](https://hub.docker.com/
   "jobDefinitionName": "preprocess__S1",
   "type": "container",
   "containerProperties": {
-    "image": "jolespin/veba_preprocess:1.2.0",
+    "image": "jolespin/veba_preprocess:1.3.0",
     "command": [
       "preprocess.py",
       "-1",
