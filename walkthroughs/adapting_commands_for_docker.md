@@ -24,7 +24,7 @@ Refer to the [Docker documentation](https://docs.docker.com/engine/install/).
 Let's say you wanted to use the `preprocess` module.  Download the Docker image as so: 
 
 ```
-VERSION=1.2.0
+VERSION=1.3.0
 docker image pull jolespin/veba_preprocess:${VERSION}
 ``` 
 
