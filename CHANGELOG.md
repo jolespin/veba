@@ -6,7 +6,7 @@ ________________________________________________________________
 
 #### Current Releases:
 
-**Release v1.4.0 Highlights:**
+**Release v1.4.1 Highlights:**
 
 * **`VEBA` Modules:**
 
@@ -20,36 +20,6 @@ ________________________________________________________________
 * **`VEBA` Database (`VDB_v6`)**:
 
 	* Completely rebuilt `VEBA's Microeukaryotic Protein Database` to produce a clustered database `MicroEuk100/90/50` similar to `UniRef100/90/50`. Available on [doi:10.5281/zenodo.10139450](https://zenodo.org/records/10139451).
-
-	* **Number of sequences:**
-
-		 * MicroEuk100 = 79,920,431 (19 GB)
-		
-		 * MicroEuk90  = 51,767,730 (13 GB)
-		
-		 * MicroEuk50  = 29,898,853 (6.5 GB)
-
- 
-
-	* **Number of source organisms per dataset:**
-
-		* MycoCosm = 2503
-		
-		* PhycoCosm = 174
-		
-		* EnsemblProtists = 233
-		
-		* MMETSP = 759
-		
-		* TARA_SAGv1 = 8
-		
-		* EukProt = 366
-		
-		* EukZoo = 27
-		
-		* TARA_SMAGv1 = 389
-		
-		* NR_Protists-Fungi = 48217
 
 <details>
 	<summary>**Release v1.4.0 Details**</summary>
