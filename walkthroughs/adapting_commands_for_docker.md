@@ -24,7 +24,7 @@ Refer to the [Docker documentation](https://docs.docker.com/engine/install/).
 Let's say you wanted to use the `preprocess` module.  Download the Docker image as so: 
 
 ```
-VERSION=1.4.0
+VERSION=1.4.1
 docker image pull jolespin/veba_preprocess:${VERSION}
 ``` 
 
@@ -36,7 +36,7 @@ For example, here's how we would run the `preprocess.py` module.  First let's ju
 
 ```bash
 # Version
-VERSION=1.4.0
+VERSION=1.4.1
 
 # Image
 DOCKER_IMAGE="jolespin/veba_preprocess:${VERSION}"
@@ -90,7 +90,7 @@ CMD="preprocess.py -1 ${CONTAINER_INPUT_DIRECTORY}/${R1} -2 ${CONTAINER_INPUT_DI
 
 # Docker
 # Version
-VERSION=1.4.0
+VERSION=1.4.1
 
 # Image
 DOCKER_IMAGE="jolespin/veba_preprocess:${VERSION}"

@@ -1,5 +1,5 @@
 #!/bin/bash
-# __version__ = "2023.12.11"
+# __version__ = "2023.12.19"
 # VEBA_DATABASE_VERSION = "VDB_v6"
 # MICROEUKAYROTIC_DATABASE_VERSION = "MicroEuk_v3"
 
@@ -114,11 +114,7 @@ mmseqs createdb --compressed 1 ${DATABASE_DIRECTORY}/MicroEuk_v3/MicroEuk100.faa
 
 # MicroEuk100.eukaryota_odb10
 gzip -d ${DATABASE_DIRECTORY}/MicroEuk_v3/MicroEuk100.eukaryota_odb10.list.gz
-seqkit grep -f ${DATABASE_DIRECTORY}/MicroEuk_v3/MicroEuk100.eukaryota_odb10.list ${DATABASE_DIRECTORY}/MicroEuk_v3/MicroEuk100.faa | mmseqs createdb --compressed 1 stdin ${DATABASE_DIRECTORY}/Classify/MicroEuk/MicroEuk100
-
-# MicroEuk90
-gzip -d -c ${DATABASE_DIRECTORY}/MicroEuk_v3/MicroEuk90_clusters.tsv.gz | cut -f1 | sort -u > ${DATABASE_DIRECTORY}/MicroEuk_v3/MicroEuk90.list
-seqkit grep -f ${DATABASE_DIRECTORY}/MicroEuk_v3/MicroEuk90.list ${DATABASE_DIRECTORY}/MicroEuk_v3/MicroEuk100.faa | mmseqs createdb --compressed 1 stdin ${DATABASE_DIRECTORY}/Classify/MicroEuk/MicroEuk90
+seqkit grep -f ${DATABASE_DIRECTORY}/MicroEuk_v3/MicroEuk100.eukaryota_odb10.list ${DATABASE_DIRECTORY}/MicroEuk_v3/MicroEuk100.faa | mmseqs createdb --compressed 1 stdin ${DATABASE_DIRECTORY}/Classify/MicroEuk/MicroEuk100.eukaryota_odb10
 
 # MicroEuk90
 gzip -d -c ${DATABASE_DIRECTORY}/MicroEuk_v3/MicroEuk90_clusters.tsv.gz | cut -f1 | sort -u > ${DATABASE_DIRECTORY}/MicroEuk_v3/MicroEuk90.list
