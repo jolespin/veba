@@ -42,7 +42,7 @@ ___________________________________________________________________
 
 ### Announcements
 
-* **What's new in `VEBA v1.3.0`?**
+* **What's new in `VEBA v1.4.0`?**
 
 * **`VEBA` Modules:**
 
