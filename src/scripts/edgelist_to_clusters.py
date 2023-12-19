@@ -8,7 +8,7 @@ from tqdm import tqdm
 from Bio.SeqIO.FastaIO import SimpleFastaParser
 
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.4.17"
+__version__ = "2023.12.11"
 
 def main(args=None):
     # Path info
@@ -26,7 +26,7 @@ def main(args=None):
 
     parser.add_argument("-i","--input", type=str, default="stdin", help = "path/to/edgelist.tsv, No header. [id_1]<tab>[id_2] or [id_1]<tab>[id_2]<tab>[weight] [Default: stdin]") #  
     parser.add_argument("-o","--output", type=str, default="stdout", help = "path/to/clusters.tsv [Default: stdout]")
-    parser.add_argument("-t","--threshold", type=float, default=0.5,  help = "Minimum weight threshold. [Default: 0.5]") 
+    parser.add_argument("-t","--threshold", type=float, default=0.0,  help = "Minimum weight threshold. [Default: 0.0]") 
     parser.add_argument("-n", "--no_singletons", action="store_true", help = "Don't include self-interactions. Self-interactions will ensure unclustered genomes make it into the output")
     parser.add_argument("-b", "--basename", action="store_true", help = "Removes filepath prefix and extension.  Support for gzipped filepaths.")
     parser.add_argument("--identifiers", type=str, help = "Identifiers to include.  If missing identifiers and singletons are allowed, then they will be included as singleton clusters with weight of np.inf")
@@ -53,6 +53,7 @@ def main(args=None):
     opts.script_directory  = script_directory
     opts.script_filename = script_filename
 
+    
     # Input
     if opts.input == "stdin":
         opts.input = sys.stdin 
@@ -62,7 +63,11 @@ def main(args=None):
         opts.output = sys.stdout 
 
     # Edge list
-    df_edgelist = pd.read_csv(opts.input, sep="\t", header=None)
+    try:
+        df_edgelist = pd.read_csv(opts.input, sep="\t", header=None)
+    except pd.errors.EmptyDataError:
+        df_edgelist = pd.DataFrame(columns=["query", "reference"])
+
     assert df_edgelist.shape[1] in  {2,3}, "Must have 2 or 3 columns.  {} provided.".format(df_edgelist.shape[1])
     if opts.basename:
         def get_basename(x):
@@ -72,9 +77,13 @@ def main(args=None):
             return ".".join(fn.split(".")[:-1])
         df_edgelist.iloc[:,:2] = df_edgelist.iloc[:,:2].applymap(get_basename)
 
-    edgelist = df_edgelist.iloc[:,:2].values.tolist()
-
-    identifiers = set.union(*map(set, edgelist))
+    # Identifiers from edgelist
+    if not df_edgelist.empty:
+        edgelist = df_edgelist.iloc[:,:2].values.tolist()
+        identifiers = set.union(*map(set, edgelist))
+    else:
+        edgelist = list()
+        identifiers = set()
 
     all_identifiers = identifiers
     if opts.identifiers:
@@ -84,6 +93,7 @@ def main(args=None):
                 id = line.strip()
                 all_identifiers.add(id)
 
+    # Read in fasta
     if opts.fasta:
         id_to_sequence = dict()
         if opts.fasta.endswith(".gz"):

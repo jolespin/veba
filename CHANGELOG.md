@@ -6,7 +6,73 @@ ________________________________________________________________
 
 #### Current Releases:
 
-**Release v1.3.0:**
+**Release v1.4.0 Highlights:**
+
+* **`VEBA` Modules:**
+
+	* Added `profile-taxonomic.py` module which uses `sylph` to build a sketch database for genomes and queries the genome database for taxonomic abundance.
+	* Added long read support for `fastq_preprocessor`, `preprocess.py`, `assembly-long.py`, `coverage-long`, and all binning modules.
+	* Redesign `binning-eukaryotic` module to handle custom `MetaEuk` databases
+	* Added new usage syntax `veba --module preprocess --params “${PARAMS}”` where the Conda environment is abstracted and determined automatically in the backend.  Changed all the walkthroughs to reflect this change.
+	* Added `skani` which is the new default for genome-level clustering based on ANI.
+	* Added `Diamond DeepClust` as an alternative to `MMSEQS2` for protein clustering.
+
+* **`VEBA` Database (`VDB_v6`)**:
+
+	* Completely rebuilt `VEBA's Microeukaryotic Protein Database` to produce a clustered database `MicroEuk100/90/50` similar to `UniRef100/90/50`. Available on [doi:10.5281/zenodo.10139450](https://zenodo.org/records/10139451).
+
+	* **Number of sequences:**
+
+		 * MicroEuk100 = 79,920,431 (19 GB)
+		
+		 * MicroEuk90  = 51,767,730 (13 GB)
+		
+		 * MicroEuk50  = 29,898,853 (6.5 GB)
+
+ 
+
+	* **Number of source organisms per dataset:**
+
+		* MycoCosm = 2503
+		
+		* PhycoCosm = 174
+		
+		* EnsemblProtists = 233
+		
+		* MMETSP = 759
+		
+		* TARA_SAGv1 = 8
+		
+		* EukProt = 366
+		
+		* EukZoo = 27
+		
+		* TARA_SMAGv1 = 389
+		
+		* NR_Protists-Fungi = 48217
+
+<details>
+	<summary>**Release v1.4.0 Details**</summary>
+* [2023.12.15] - Added `profile-taxonomic.py` module which uses `sylph` to build a sketch database for genomes and queries the genome database similar to `Kraken` for taxonomic abundance.
+* [2023.12.14] - Removed requirement to have `--estimated_assembly_size` for Flye per [Flye Issue #652](https://github.com/fenderglass/Flye/issues/652).
+* [2023.12.14] - Added `sylph` to `VEBA-profile_env` for abundance profiling of genomes.
+* [2023.12.13] - Dereplicate duplicate contigs in `concatenate_fasta.py`.
+* [2023.12.12] - Added `--reference_gzipped` to `index.py` and `mapping.py` with new default being that the reference fasta is not gzipped.
+* [2023.12.11] - Added `skani` as new default for genome clustering in `cluster.py`, `global_clustering.py`, and `local_clustering.py`.
+* [2023.12.11] - Added support for long reads in `fastq_preprocessor`, `preprocess.py`, `assembly-long.py`, `coverage-long`, and all binning modules.
+* [2023.11.28] - Fixed `annotations.protein_clusters.tsv.gz` from `merge_annotations.py` added in patch update of `v1.3.1`.
+* [2023.11.14] - Added support for missing values in `compile_eukaryotic_classifications.py`.
+* [2023.11.13] - Added `--metaeuk_split_memory_limit` argument with (experimental) default set to `36G` in `binning-eukaryotic.py` and `eukaryotic_gene_modeling.py`.
+* [2023.11.10] - Added `--compressed 1` to `mmseqs createdb` in `download_databases.sh` installation script.
+* [2023.11.10] - Added a check to `check_fasta_duplicates.py` and `clean_fasta.py` to make sure there are no `>` characters in fasta sequence caused from concatenating fasta files that are missing linebreaks.
+* [2023.11.10] - Added `Diamond DeepClust` to `clustering_wrapper.py`, `global/local_clustering.py`, and `cluster.py`.  Changed `mmseqs2_wrapper.py` to `clustering_wrapper.py`.  Changed `easy-cluster` and `easy-linclust` to `mmseqs-cluster` and `mmseqs-linclust`.
+* [2023.11.9] - Fixed viral quality in `merge_genome_quality_assessments.py`
+* [2023.11.3] - Changed `consensus_genome_classification.py` to `consensus_genome_classification_ranked.py`.  Also, default behavior to allow for missing taxonomic levels.
+* [2023.11.2] - Fixed the `merge_annotations.py` resulting in a memory leak when creating the `annotations.protein_clusters.tsv.gz` output table.  However, still need to correct the formatting for empty sets and string lists.
+
+</details>
+
+**Release v1.3.0 Highlights:**
 
 * **`VEBA` Modules:**
 	* Added `profile-pathway.py` module and associated scripts for building `HUMAnN` databases from *de novo* genomes and annotations.  Essentially, a reads-based functional profiling method via `HUMAnN` using binned genomes as the database.
@@ -139,6 +205,7 @@ ________________________________________________________________
 	<summary>**Release v1.1.0 Details**</summary>
 	
 * **Modules**:
+
 	* `annotate.py`
 		* Added `NCBIfam-AMRFinder` AMR domain annotations
 		* Added `AntiFam` contimination annotations
@@ -238,6 +305,7 @@ ________________________________________________________________
 		* `build_taxa_sqlite.py`
 
 * **Miscellaneous**:
+
 	* Updated environments and now add versions to environments.
 	* Added `mamba` to installation to speed up.
 	* Added `transdecoder_wrapper.py` which is a wrapper around `TransDecoder` with direct support for `Diamond` and `HMMSearch` homology searches.  Also includes `append_geneid_to_transdecoder_gff.py` which is run in the backend to clean up the GFF file and make them compatible with what is output by `Prodigal` and `MetaEuk` runs of `VEBA`.
@@ -317,6 +385,8 @@ ________________________________________________________________
 
 **Critical:**
 
+* `binning-prokaryotic.py` doesn't produce an `unbinned.fasta` file for long reads if there aren't any genomes.  It also creates a symlink called `genomes` in the working directory.
+* Add a way to show all versions
 * Genome checkpoints in `tRNAscan-SE` aren't working properly.
 * Dereplcate CDS sequences in GFF from `MetaEuk` for `antiSMASH` to work for eukaryotic genomes
 * Error with `amplicon.py` that works when run manually...
@@ -329,32 +399,35 @@ There was a problem importing veba_output/misc/reads_table.tsv:
 
 **Definitely:**
 
+* Use `pigz` instead of `gzip`
+* Create a taxdump for `MicroEuk`
+* Reimplement `compile_eukaryotic_classifications.py`
 * Add representative to `identifier_mapping.proteins.tsv.gz`
-* Add coding density to GFF files
 * Split `download_databases.sh`  into `download_databases.sh` (low memory, high threads) and `configure_databases.sh` (high memory, low-to-mid threads).  Use `aria2` in parallel instead of `wget`.
 * `NextFlow` support
-* Consistent usage of the following terms: 1) dataframe vs. table; 2) protein-cluster vs. orthogroup.
-* Add support for `FAMSA` in `phylogeny.py`
-* Create a `assembly-longreads.py` module that uses `MetaFlye`
-* Expand Microeukaryotic Protein Database to include more microeukaryotes (`Mycocosm` and `PhycoCosm` from `JGI`)
 * Install each module via `bioconda`
 * Add support for `Salmon` in `mapping.py` and `index.py`.  This can be used instead of `STAR` which will require adding the `exon` field to `Prodigal` GFF file (`MetaEuk` modified GFF files already have exon ids). 
 
 
-**Probably (Yes)?:**
+**Eventually (Yes)?:**
 
+* Don't load all genomes, proteins, and cds into memory for clustering.
+* Add support for `FAMSA` in `phylogeny.py`
+* Consistent usage of the following terms: 1) dataframe vs. table; 2) protein-cluster vs. orthogroup.
+* Add coding density to GFF files
+* Add `vRhyme` to `binning_wrapper.py` and support `vRhyme` in `binning-viral.py`.
+* Phylogenetic tree of `MicroEuk100`
 * Convert HMMs to `MMSEQS2` (https://github.com/soedinglab/MMseqs2/wiki#how-to-create-a-target-profile-database-from-pfam)?
 * Run `cmsearch` before `tRNAscan-SE`
 * DN/DS from pangeome analysis
 * Add [iPHoP](https://bitbucket.org/srouxjgi/iphop/src/main/) to `binning-viral.py`.
 * Add a `metabolic.py` module	
 * Swap [`TransDecoder`](https://github.com/TransDecoder/TransDecoder) for [`TransSuite`](https://github.com/anonconda/TranSuite)
-* Build a clustered version of the Microeukaryotic Protein Database that is more efficient to run.  Similar to UniRef100, UniRef90, UniRef50.
+* For viral binning, contigs that are not identified as viral via `geNomad -> CheckV` use with `vRhyme`.
 
 **...Maybe (Not)?**
 
 * Modify behavior of `annotate.py` to allow for skipping Pfam and/or KOFAM since they take a long time. 
-
 
 ________________________________________________________________
 
@@ -362,6 +435,22 @@ ________________________________________________________________
 <details>
 	<summary>**Daily Change Log:**</summary>
 	
+* [2023.12.15] - Added `profile-taxonomic.py` module which uses `sylph` to build a sketch database for genomes and queries the genome database similar to `Kraken` for taxonomic abundance.
+* [2023.12.14] - Removed requirement to have `--estimated_assembly_size` for Flye per [Flye Issue #652](https://github.com/fenderglass/Flye/issues/652).
+* [2023.12.14] - Added `sylph` to `VEBA-profile_env` for abundance profiling of genomes.
+* [2023.12.13] - Dereplicate duplicate contigs in `concatenate_fasta.py`.
+* [2023.12.12] - Added `--reference_gzipped` to `index.py` and `mapping.py` with new default being that the reference fasta is not gzipped.
+* [2023.12.11] - Added `skani` as new default for genome clustering in `cluster.py`, `global_clustering.py`, and `local_clustering.py`.
+* [2023.12.11] - Added support for long reads in `fastq_preprocessor`, `preprocess.py`, `assembly-long.py`, and all binning modules.
+* [2023.11.28] - Fixed `annotations.protein_clusters.tsv.gz` from `merge_annotations.py` added in patch update of `v1.3.1`.
+* [2023.11.14] - Added support for missing values in `compile_eukaryotic_classifications.py`.
+* [2023.11.13] - Added `--metaeuk_split_memory_limit` argument with (experimental) default set to `36G` in `binning-eukaryotic.py` and `eukaryotic_gene_modeling.py`.
+* [2023.11.10] - Added `--compressed 1` to `mmseqs createdb` in `download_databases.sh` installation script.
+* [2023.11.10] - Added a check to `check_fasta_duplicates.py` and `clean_fasta.py` to make sure there are no `>` characters in fasta sequence caused from concatenating fasta files that are missing linebreaks.
+* [2023.11.10] - Added `Diamond DeepClust` to `clustering_wrapper.py`, `global/local_clustering.py`, and `cluster.py`.  Changed `mmseqs2_wrapper.py` to `clustering_wrapper.py`.  Changed `easy-cluster` and `easy-linclust` to `mmseqs-cluster` and `mmseqs-linclust`.
+* [2023.11.9] - Fixed viral quality in `merge_genome_quality_assessments.py`
+* [2023.11.3] - Changed `consensus_genome_classification.py` to `consensus_genome_classification_ranked.py`.  Also, default behavior to allow for missing taxonomic levels.
+* [2023.11.2] - Fixed the `merge_annotations.py` resulting in a memory leak when creating the `annotations.protein_clusters.tsv.gz` output table.  However, still need to correct the formatting for empty sets and string lists.
 * [2023.10.27] - Update `annotate.py` and `merge_annotations.py` to handle `CAZy`.  They also properly address clustered protein annotations now. 
 * [2023.10.18] - Added `module_completion_ratio.py` script which is a fork of `MicrobeAnnotator` [`ko_mapper.py`](https://github.com/cruizperez/MicrobeAnnotator/blob/master/microbeannotator/pipeline/ko_mapper.py).  Also included a database [Zenodo: 10020074](https://zenodo.org/records/10020074) which will be included in `VDB_v5.2`
 * [2023.10.16] - Added a checkpoint for `tRNAscan-SE` in `binning-prokaryotic.py` and `eukaryotic_gene_modeling_wrapper.py`.

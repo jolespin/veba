@@ -4,7 +4,7 @@ from collections import defaultdict
 import pandas as pd
 
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2021.10.16"
+__version__ = "2021.11.9"
 
 def get_prokaryotic_description(x, fields=["Completeness_Model_Used", "Additional_Notes"]):
     output = list()
@@ -93,7 +93,7 @@ def main(args=None):
         print("Could not find any prokaryotic genome assessment tables from CheckM2 in the following directory: {}".format(opts.binning_directory), file=sys.stdout)
 
     # Viral
-    viral_genome_quality_files = glob.glob(os.path.join(opts.binning_directory, opts.viral_subdirectory_name, "*", "output", "checkmv_results.filtered.tsv"))
+    viral_genome_quality_files = glob.glob(os.path.join(opts.binning_directory, opts.viral_subdirectory_name, "*", "output", "checkv_results.filtered.tsv"))
     if viral_genome_quality_files:
         print("* Compiling viral genome quality from following files:", *viral_genome_quality_files, sep="\n    ", file=sys.stdout)
 

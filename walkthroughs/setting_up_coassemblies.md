@@ -14,6 +14,9 @@ _____________________________________________________
 3. Coassembly using assembly.py
 4. Align reads from each sample to the coassembly to create sorted BAM files that will be used for binning and counts tables.
 
+**Conda Environment:** `conda activate VEBA`. Use this for intermediate scripts.
+______________________________________________________
+
 #### 1. Concatenate forward and reverse reads separately
 
 Refer to the [downloading and preprocessing reads workflow](download_and_preprocess_reads.md).  At this point, it's assumed you have the following: 
@@ -43,8 +46,6 @@ cat veba_output/preprocess/*/output/cleaned_2.fastq.gz > veba_output/misc/concat
 
 Here we are going to coassemble all of the reads using `metaSPAdes` which is default but if you are using metatranscriptomics then use `-P rnaSPAdes.py`.  
 
-**Conda Environment:** `conda activate VEBA-assembly_env`
-
 ```
 # Set the number of threads to use for each sample. Let's use 4
 N_JOBS=4
@@ -67,10 +68,10 @@ R1=veba_output/misc/concatenated_1.fastq.gz
 R2=veba_output/misc/concatenated_2.fastq.gz
 	
 # Set up command
-CMD="source activate VEBA-assembly_env && assembly.py -1 ${R1} -2 ${R2} -n ${ID} -o ${OUT_DIR} -p ${N_JOBS}"
+CMD="source activate VEBA && veba --module assembly --params \"-1 ${R1} -2 ${R2} -n ${ID} -o ${OUT_DIR} -p ${N_JOBS}\""
 
 # Use this for metatranscriptomics
-# CMD="source activate VEBA-assembly_env && assembly.py -1 ${R1} -2 ${R2} -n ${ID} -o ${OUT_DIR} -p ${N_JOBS} -P rnaspades.py"
+# CMD="source activate VEBA && veba --module assembly --params \"-1 ${R1} -2 ${R2} -n ${ID} -o ${OUT_DIR} -p ${N_JOBS} -P rnaspades.py\""
 	
 # Either run this command or use SunGridEnginge/SLURM
 	
@@ -91,10 +92,6 @@ The main one we need is `scaffolds.fasta`  which we will use for binning.  Note 
 
 #### 3. Align sample-specific reads to the coassembly
 
-
-
-**Conda Environment:** `conda activate VEBA-assembly_env`
-
 ```
 N_JOBS=4
 
@@ -103,7 +100,7 @@ N="coverage__${ID}";
 rm -f logs/${N}.*
 FASTA=veba_output/assembly/${ID}/output/scaffolds.fasta
 READS=veba_output/misc/reads_table.tsv
-CMD="source activate VEBA-assembly_env && coverage.py -f ${FASTA} -r ${READS} -p ${N_JOBS} -m 1500 -o veba_output/coverage/${ID}"
+CMD="source activate VEBA && veba --module coverage --params \"-f ${FASTA} -r ${READS} -p ${N_JOBS} -m 1500 -o veba_output/coverage/${ID}\""
 	
 # Either run this command or use SunGridEnginge/SLURM
 
@@ -125,7 +122,7 @@ _____________________________________________________
 
 Now that you have a coassembly and multiple sorted BAM files, it's time for binning.  Start at step 3 of the [end-to-end metagenomics](end-to-end_metagenomics.md) or [recovering viruses from metatranscriptomics](recovering_viruses_from_metatranscriptomics.md) workflows depending on whether or not you have metagenomics or metatranscriptomics, respectively.  
 
-**Please do not forget to adapt the BAM argument in the `binning-prokaryotic.py` command to include all the sample-specific sorted BAM files and not the concatenated sorted BAM.**  
+**Please do not forget to adapt the BAM argument in the `binning-prokaryotic` command to include all the sample-specific sorted BAM files and not the concatenated sorted BAM.**  
 
 More specifically, use `BAM="veba_output/coverage/coassembly/output/*/mapped.sorted.bam"` and not `BAM="veba_output/assembly/coassembly/output/mapped.sorted.bam"`.
 

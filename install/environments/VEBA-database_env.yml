@@ -1,4 +1,4 @@
-name: VEBA-database_env__v2023.6.20
+name: VEBA-database_env__v2023.11.30
 channels:
   - conda-forge
   - bioconda
@@ -14,8 +14,8 @@ dependencies:
   - bz2file=0.98=py_0
   - bzip2=1.0.8=h7f98852_4
   - c-ares=1.19.1=hd590300_0
-  - ca-certificates=2023.5.7=hbcca054_0
-  - certifi=2023.5.7=pyhd8ed1ab_0
+  - ca-certificates=2023.11.17=hbcca054_0
+  - certifi=2023.11.17=pyhd8ed1ab_0
   - charset-normalizer=3.1.0=pyhd8ed1ab_0
   - colorama=0.4.6=pyhd8ed1ab_0
   - coreutils=9.3=h0b41bf4_0
@@ -27,6 +27,7 @@ dependencies:
   - gettext=0.21.1=h27087fc_0
   - icu=72.1=hcb278e6_0
   - idna=3.4=pyhd8ed1ab_0
+  - k8=0.2.5=hdcf5f25_4
   - keyutils=1.6.1=h166bdaf_0
   - krb5=1.20.1=h81ceb04_0
   - ld_impl_linux-64=2.40=h41732ed_0
@@ -57,10 +58,11 @@ dependencies:
   - libuuid=2.38.1=h0b41bf4_0
   - libxml2=2.11.4=h0d562d8_0
   - libzlib=1.2.13=hd590300_5
+  - minimap2=2.26=he4a0461_2
   - mmseqs2=14.7e284=pl5321h6a68c12_2
   - ncurses=6.4=hcb278e6_0
   - numpy=1.25.0=py311h64a7726_0
-  - openssl=3.1.1=hd590300_1
+  - openssl=3.2.0=hd590300_1
   - pandas=2.0.2=py311h320fe9a_0
   - pathlib2=2.3.7.post1=py311h38be061_2
   - pcre=8.45=h9c3ff4c_0

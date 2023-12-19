@@ -1,12 +1,12 @@
 #!/usr/bin/env python
-import sys, os, argparse, re
+import sys, os, argparse, re, gzip
 from collections import defaultdict, OrderedDict
 import pandas as pd
 import numpy as np
 from soothsayer_utils import read_hmmer, pv, get_file_object, assert_acceptable_arguments, format_header, flatten
 
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.10.26"
+__version__ = "2023.11.24"
 
 # disclaimer = format_header("DISCLAIMER: Lineage predictions are NOT robust and DO NOT USE CORE MARKERS.  Please only use for exploratory suggestions.")
 
@@ -72,72 +72,78 @@ def compile_identifiers(df, id_protein_cluster):
     if len(organism_types) == 1:
         organism_types = list(organism_types)[0]
 
-    # Genomes
-    genomes = set(df["id_genome"])
+    # # Genomes
+    # genomes = set(df["id_genome"])
 
-    # Samples
-    samples = set(df["sample_of_origin"])
+    # # Samples
+    # samples = set(df["sample_of_origin"])
 
     # Genome clusters
     genome_clusters = set(df["id_genome_cluster"])
     if len(genome_clusters) == 1:
         genome_clusters = list(genome_clusters)[0]
 
-    data = OrderedDict([
-        ("id_genome_cluster", genome_clusters),
-        ("organism_type", organism_types),
-        ("genomes", genomes),
-        ("samples_of_origin", samples),
-    ],
-    )
-    data = pd.Series(data, name=id_protein_cluster)
-    data.index = data.index.map(lambda x: ("Identifiers", x))
+    # data = OrderedDict([
+    #     ("id_genome_cluster", genome_clusters),
+    #     ("organism_type", organism_types),
+    #     ("genomes", genomes),
+    #     ("samples_of_origin", samples),
+    # ],
+    # )
+    # data = pd.Series(data, name=id_protein_cluster)
+    # data.index = data.index.map(lambda x: ("Identifiers", x))
+    data = [genome_clusters, organism_types]#, genomes, samples]
     return data
 
 def compile_uniref(df, id_protein_cluster):
     df = df.dropna(how="all", axis=0)
-    unique_identifiers = set(df["sseqid"].unique())
-    data = OrderedDict([
-        ("number_of_proteins", df.shape[0]),
-        ("number_of_unique_hits", len(unique_identifiers)),
-        ("ids", unique_identifiers),
-        ("names", set(df["product"].unique())),
-    ],
-    )
-    data = pd.Series(data, name=id_protein_cluster)
-    data.index = data.index.map(lambda x: ("UniRef", x))
+    unique_identifiers = list(df["sseqid"].unique())
+    # data = OrderedDict([
+    #     ("number_of_proteins", df.shape[0]),
+    #     ("number_of_unique_hits", len(unique_identifiers)),
+    #     ("ids", unique_identifiers),
+    #     ("names", set(df["product"].unique())),
+    # ],
+    # )
+    # data = pd.Series(data, name=id_protein_cluster)
+    # data.index = data.index.map(lambda x: ("UniRef", x))
+
+    data = [df.shape[0], len(unique_identifiers), unique_identifiers, list(df["product"].unique())]
     return data
 
 def compile_nonuniref_diamond(df, id_protein_cluster, label):
     df = df.dropna(how="all", axis=0)
     unique_identifiers = set(df["sseqid"].unique())
-    data = OrderedDict(
-        [
-        ("number_of_proteins", df.shape[0]),
-        ("number_of_unique_hits", len(unique_identifiers)),
-        ("ids", unique_identifiers),
-        ("names", np.nan),
-        ],
-    )
-    data = pd.Series(data, name=id_protein_cluster)
-    data.index = data.index.map(lambda x: (label, x))
+    # data = OrderedDict(
+    #     [
+    #     ("number_of_proteins", df.shape[0]),
+    #     ("number_of_unique_hits", len(unique_identifiers)),
+    #     ("ids", unique_identifiers),
+    #     ("names", np.nan),
+    #     ],
+    # )
+    # data = pd.Series(data, name=id_protein_cluster)
+    # data.index = data.index.map(lambda x: (label, x))
+    data = [df.shape[0], len(unique_identifiers), list(unique_identifiers)]
+
     return data
 
 def compile_hmmsearch(df, id_protein_cluster, label):
     df = df.dropna(how="all", axis=0).query("number_of_hits > 0")
-    unique_identifiers = flatten(df["ids"], into=set)
-    unique_names = flatten(df["names"], into=set)
+    unique_identifiers = flatten(df["ids"], into=list, unique=True)
+    unique_names = flatten(df["names"], unique=True)
     
-    data = OrderedDict(
-        [
-        ("number_of_proteins", df.shape[0]),
-        ("number_of_unique_hits", len(unique_identifiers)),
-        ("ids", unique_identifiers),
-        ("names", unique_names),
-        ],
-    )
-    data = pd.Series(data, name=id_protein_cluster)
-    data.index = data.index.map(lambda x: (label, x))
+    # data = OrderedDict(
+    #     [
+    #     ("number_of_proteins", df.shape[0]),
+    #     ("number_of_unique_hits", len(unique_identifiers)),
+    #     ("ids", unique_identifiers),
+    #     ("names", unique_names),
+    #     ],
+    # )
+    # data = pd.Series(data, name=id_protein_cluster)
+    # data.index = data.index.map(lambda x: (label, x))
+    data = [df.shape[0], len(unique_identifiers), unique_identifiers, unique_names]
     return data
 
 
@@ -487,63 +493,112 @@ def main(args=None):
     df_annotations.to_csv(os.path.join(opts.output_directory, "annotations.proteins.tsv.gz"), sep="\t")
 
     if opts.identifier_mapping:
-        # Protein clusters
-        protein_to_proteincluster = df_annotations[("Identifiers", "id_protein_cluster")]
-        protein_cluster_annotations = list()
-        for id_protein_cluster, df in pv(df_annotations.groupby(protein_to_proteincluster), description="Compiling consensus annotations for protein clusters", total=protein_to_proteincluster.nunique(), unit=" Protein Clusters"):
-            # Identifiers
-            data_identifiers = compile_identifiers(df["Identifiers"], id_protein_cluster)
-            
-            # UniRef
-            data_uniref = compile_uniref(df["UniRef"], id_protein_cluster)
-            
-            # MIBiG
-            data_mibig = compile_nonuniref_diamond(df["MIBiG"], id_protein_cluster, "MIBiG")
+        with gzip.open(os.path.join(opts.output_directory, "annotations.protein_clusters.tsv.gz"), "wt") as f:
+            print("\t", 
+                  *["Identifiers"]*2,
+                  *["Consensus"]*1,
 
-            # VFDB
-            data_vfdb = compile_nonuniref_diamond(df["VFDB"], id_protein_cluster, "VFDB")
+                  *["UniRef"]*4,
+                  *["MIBiG"]*3,
+                  *["VFDB"]*3,
+                  *["CAZy"]*3,
+                  *["Pfam"]*4,
+                  *["NCBIfam-AMR"]*4,
+                  *["KOFAM"]*4,
+                  *["AntiFam"]*4,
+                  sep="\t", file=f)
 
-            # CAZy
-            data_cazy = compile_nonuniref_diamond(df["CAZy"], id_protein_cluster, "CAZy")
+            print(
+                "id_protein_cluster", 
+                *["id_genome_cluster", "organsim_type"], #, "genomes", "samples_of_origin"], # Identifiers
+                *["composite_name"], # Consensus
+                *["number_of_proteins", "number_of_unique_hits", "ids","names"], # UniRef
+                *["number_of_proteins", "number_of_unique_hits", "ids"], # MIBiG
+                *["number_of_proteins", "number_of_unique_hits", "ids"], # VFDB
+                *["number_of_proteins", "number_of_unique_hits", "ids"], # CAZy
+                *["number_of_proteins", "number_of_unique_hits", "ids","names"], # Pfam
+                *["number_of_proteins", "number_of_unique_hits", "ids","names"], # NCBIfam-AMR
+                *["number_of_proteins", "number_of_unique_hits", "ids","names"], # KOFAM
+                *["number_of_proteins", "number_of_unique_hits", "ids","names"], # AntiFam
+                sep="\t",
+                file=f,
+                )
+            # Protein clusters
+            protein_to_proteincluster = df_annotations[("Identifiers", "id_protein_cluster")]
+            protein_cluster_annotations = list()
+            for id_protein_cluster, df in pv(df_annotations.groupby(protein_to_proteincluster), description="Compiling consensus annotations for protein clusters", total=protein_to_proteincluster.nunique(), unit=" Protein Clusters"):
+                # Identifiers
+                data_identifiers = compile_identifiers(df["Identifiers"], id_protein_cluster)
+                
+                # UniRef
+                data_uniref = compile_uniref(df["UniRef"], id_protein_cluster)
+                
+                # MIBiG
+                data_mibig = compile_nonuniref_diamond(df["MIBiG"], id_protein_cluster, "MIBiG")
 
-            # Pfam
-            data_pfam = compile_hmmsearch(df["Pfam"], id_protein_cluster, "Pfam")
+                # VFDB
+                data_vfdb = compile_nonuniref_diamond(df["VFDB"], id_protein_cluster, "VFDB")
 
-            # NCBIfam-AMR
-            data_amr = compile_hmmsearch(df["NCBIfam-AMR"], id_protein_cluster, "NCBIfam-AMR")
+                # CAZy
+                data_cazy = compile_nonuniref_diamond(df["CAZy"], id_protein_cluster, "CAZy")
 
-            # KOFAM
-            data_kofam = compile_hmmsearch(df["KOFAM"], id_protein_cluster, "KOFAM")
-            
-            # AntiFam
-            data_antifam = compile_hmmsearch(df["AntiFam"], id_protein_cluster, "AntiFam")
+                # Pfam
+                data_pfam = compile_hmmsearch(df["Pfam"], id_protein_cluster, "Pfam")
 
-            # Composite name
-            composite_name = list()
-            composite_name += list(data_uniref[("UniRef","names")]) 
-            composite_name += list(data_kofam[("KOFAM", "names")]) 
-            composite_name += list(data_pfam[("Pfam","names")]) 
-            composite_name = opts.composite_name_joiner.join(composite_name)
-            data_consensus = pd.Series(composite_name, index=[("Consensus", "composite_name")])
+                # NCBIfam-AMR
+                data_amr = compile_hmmsearch(df["NCBIfam-AMR"], id_protein_cluster, "NCBIfam-AMR")
 
-            # Concatenate
-            data_concatenated = pd.concat([
-                data_identifiers, 
-                data_consensus,
-                data_uniref,
-                data_mibig,
-                data_vfdb,
-                data_cazy,
-                data_pfam,
-                data_amr,
-                data_kofam,
-                data_antifam,
-            ])
-            data_concatenated.name = id_protein_cluster
-            protein_cluster_annotations.append(data_concatenated)
+                # KOFAM
+                data_kofam = compile_hmmsearch(df["KOFAM"], id_protein_cluster, "KOFAM")
+                
+                # AntiFam
+                data_antifam = compile_hmmsearch(df["AntiFam"], id_protein_cluster, "AntiFam")
 
-        df_annotations_proteinclusters = pd.DataFrame(protein_cluster_annotations)
-        df_annotations_proteinclusters.to_csv(os.path.join(opts.output_directory, "annotations.protein_clusters.tsv.gz"), sep="\t")
+                # Composite name
+                composite_name = list()
+                composite_name += list(data_uniref[-1]) 
+                composite_name += list(data_kofam[-1]) 
+                composite_name += list(data_pfam[-1]) 
+                composite_name = list(filter(lambda x: isinstance(x, str), composite_name))
+                if len(composite_name) > 0:
+                    composite_name = opts.composite_name_joiner.join(composite_name)
+                else:
+                    composite_name = np.nan
+
+                print(
+                    id_protein_cluster, 
+                    *data_identifiers, 
+                    composite_name, 
+                    *data_uniref,
+                    *data_mibig,
+                    *data_vfdb,
+                    *data_cazy,
+                    *data_pfam,
+                    *data_amr,
+                    *data_kofam,
+                    *data_antifam,
+                    sep="\t", 
+                    file=f,
+                    )
+                
+                # data_consensus = pd.Series(composite_name, index=[("Consensus", "composite_name")])
+                # # Concatenate
+                # data_concatenated = pd.concat([
+                #     data_identifiers, 
+                #     data_consensus,
+                #     data_uniref,
+                #     data_mibig,
+                #     data_vfdb,
+                #     data_cazy,
+                #     data_pfam,
+                #     data_amr,
+                #     data_kofam,
+                #     data_antifam,
+                # ])
+                # data_concatenated.name = id_protein_cluster
+                # protein_cluster_annotations.append(data_concatenated)
+            # df_annotations_proteinclusters = pd.DataFrame(protein_cluster_annotations)
+            # df_annotations_proteinclusters.to_csv(os.path.join(opts.output_directory, "annotations.protein_clusters.tsv.gz"), sep="\t")
 
 
 

@@ -14,7 +14,7 @@ from soothsayer_utils import *
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.10.16"
+__version__ = "2023.12.2"
 
 # DATABASE_METAEUK="/usr/local/scratch/CORE/jespinoz/db/veba/v1.0/Classify/Eukaryotic/eukaryotic"
 
@@ -310,11 +310,13 @@ def get_eukaryotic_gene_modeling_cmd(input_filepaths, output_filepaths, output_d
 
     # Run Eukaryotic Gene Modeling
         "&&",
+
     os.environ["eukaryotic_gene_modeling_wrapper.py"],
     "--fasta {}".format(os.path.join(directories["tmp"], "scaffolds.binned.eukaryotic.fasta")),
     "--scaffolds_to_bins {}".format(input_filepaths[1]),
     "--tiara_results {}".format(input_filepaths[2]),
     "--metaeuk_database {}".format(opts.metaeuk_database),
+    "--metaeuk_split_memory_limit {}".format(opts.metaeuk_split_memory_limit),
     "-o {}".format(output_directory),
     "-p {}".format(opts.n_jobs),
 
@@ -1016,8 +1018,10 @@ def main(args=None):
 
     # MetaEuk
     parser_metaeuk = parser.add_argument_group('MetaEuk arguments')
+    parser_metaeuk.add_argument("-M", "--microeuk_database", type=str, choices={"MicroEuk100", "MicroEuk90", "MicroEuk50"}, default="MicroEuk50", help="MicroEuk database {MicroEuk100, MicroEuk90, MicroEuk50} [Default: MicroEuk50]")
     parser_metaeuk.add_argument("--metaeuk_sensitivity", type=float, default=4.0, help="MetaEuk | Sensitivity: 1.0 faster; 4.0 fast; 7.5 sensitive  [Default: 4.0]")
     parser_metaeuk.add_argument("--metaeuk_evalue", type=float, default=0.01, help="MetaEuk | List matches below this E-value (range 0.0-inf) [Default: 0.01]")
+    parser_metaeuk.add_argument("--metaeuk_split_memory_limit", type=str, default="36G", help="MetaEuk | Set max memory per split. E.g. 800B, 5K, 10M, 1G. Use 0 to use all available system memory. (Default value is experimental) [Default: 36G]")
     parser_metaeuk.add_argument("--metaeuk_options", type=str, default="", help="MetaEuk | More options (e.g. --arg 1 ) [Default: ''] https://github.com/soedinglab/metaeuk")
     # --split-memory-limit 70G: https://github.com/soedinglab/metaeuk/issues/59
 
@@ -1071,7 +1075,7 @@ def main(args=None):
     if opts.veba_database is None:
         assert "VEBA_DATABASE" in os.environ, "Please set the following environment variable 'export VEBA_DATABASE=/path/to/veba_database' or provide path to --veba_database"
         opts.veba_database = os.environ["VEBA_DATABASE"]
-    opts.metaeuk_database = os.path.join(opts.veba_database, "Classify", "Microeukaryotic", "microeukaryotic")
+    opts.metaeuk_database = os.path.join(opts.veba_database, "Classify", "MicroEuk", opts.microeuk_database)
 
 
     # Directories
@@ -1097,6 +1101,7 @@ def main(args=None):
     print("VEBA Database:", opts.veba_database, file=sys.stdout)    
     print("Moment:", get_timestamp(), file=sys.stdout)
     print("Directory:", os.getcwd(), file=sys.stdout)
+    if "TMPDIR" in os.environ: print(os.environ["TMPDIR"], file=sys.stdout)
     print("Commands:", list(filter(bool,sys.argv)),  sep="\n", file=sys.stdout)
     configure_parameters(opts, directories)
     sys.stdout.flush()

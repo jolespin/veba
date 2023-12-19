@@ -30,7 +30,6 @@ def main(argv=None):
     parser_io.add_argument("--fill_missing_weight", type=float,  help = "Fill missing weight between [0, 100.0].  [Default is to throw error if value is missing]")
     parser_io.add_argument("--header", action="store_true", help = "Include header")
 
-
     # Options
     opts = parser.parse_args()
     opts.script_directory  = script_directory

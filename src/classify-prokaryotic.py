@@ -15,7 +15,7 @@ from soothsayer_utils import *
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.10.16"
+__version__ = "2023.11.30"
 
 # GTDB-Tk
 def get_gtdbtk_cmd( input_filepaths, output_filepaths, output_directory, directories, opts):
@@ -138,7 +138,7 @@ def get_consensus_cluster_classification_cmd( input_filepaths, output_filepaths,
         "-i {}".format(input_filepaths[0]),
         "-c {}".format(input_filepaths[1]),
         "|",
-        os.environ["consensus_genome_classification.py"],
+        os.environ["consensus_genome_classification_ranked.py"],
         "--leniency {}".format(opts.leniency),
         "-o {}".format(output_filepaths[0]),
         "-u 'Unclassified prokaryote'",
@@ -158,7 +158,7 @@ def add_executables_to_environment(opts):
         "compile_prokaryotic_genome_cluster_classification_scores_table.py",
         # "cut_table_by_column_labels.py",
         "concatenate_dataframes.py",
-        "consensus_genome_classification.py",
+        "consensus_genome_classification_ranked.py",
         # "insert_column_to_table.py",
         "compile_krona.py",
 
@@ -443,6 +443,7 @@ def main(args=None):
     print("VEBA Database:", opts.veba_database, file=sys.stdout)
     print("Moment:", get_timestamp(), file=sys.stdout)
     print("Directory:", os.getcwd(), file=sys.stdout)
+    if "TMPDIR" in os.environ: print(os.environ["TMPDIR"], file=sys.stdout)
     print("Commands:", list(filter(bool,sys.argv)),  sep="\n", file=sys.stdout)
     configure_parameters(opts, directories)
     sys.stdout.flush()

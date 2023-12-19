@@ -5,7 +5,7 @@ import pandas as pd
 from tqdm import tqdm
 
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2021.10.11"
+__version__ = "2021.12.11"
 
 def main(args=None):
     # Path info
@@ -62,7 +62,7 @@ def main(args=None):
         for fp in genome_taxonomy:
             id_domain = fp.split("/")[-3]
             df = pd.read_csv(fp, sep="\t", index_col=0)
-            if id_domain.lower() in {"viral", "virus"}:
+            if id_domain.lower() in {"viral", "virus", "virion"}:
                 for id_genome, taxonomy in df["lineage"].items():
                     genome_to_data[id_genome] = {"domain":id_domain, "taxonomy_classification":taxonomy}
             if id_domain.lower() in {"prokaryotic", "prokaryotes", "prokarya", "bacteria", "archaea", "bacterial","archael", "prok", "proks"}:

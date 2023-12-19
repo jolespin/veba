@@ -13,7 +13,7 @@ from soothsayer_utils import *
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.10.16"
+__version__ = "2023.11.30"
 
 # .............................................................................
 # Notes
@@ -525,7 +525,7 @@ def main(args=None):
 
     # Aligner
     parser_seqkit = parser.add_argument_group('SeqKit seq arguments')
-    parser_seqkit.add_argument("-m", "--minimum_contig_length", type=int, default=1500, help="seqkit seq | Minimum contig length [Default: 1500]")
+    parser_seqkit.add_argument("-m", "--minimum_contig_length", type=int, default=1, help="seqkit seq | Minimum contig length [Default: 1]")
     parser_seqkit.add_argument("--seqkit_seq_options", type=str, default="", help="seqkit seq | More options (e.g. --arg 1 ) [Default: '']")
 
 
@@ -572,6 +572,7 @@ def main(args=None):
     print("Script version:", __version__, file=sys.stdout)
     print("Moment:", get_timestamp(), file=sys.stdout)
     print("Directory:", os.getcwd(), file=sys.stdout)
+    if "TMPDIR" in os.environ: print(os.environ["TMPDIR"], file=sys.stdout)
     print("Commands:", list(filter(bool,sys.argv)),  sep="\n", file=sys.stdout)
     configure_parameters(opts, directories)
     sys.stdout.flush()
