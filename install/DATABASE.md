@@ -232,7 +232,7 @@ VEBA’s Microeukaryotic Protein Database has been completely redesigned using t
 **Deprecated:**
 
 <details>
-	<summary> *VEBA Database* version: `VDB_v5.2` (243 GB) </details>
+	<summary> *VEBA Database* version: `VDB_v5.2` (243 GB) 
 
 *  Added `MicrobeAnnotator-KEGG` [Zenodo: 10020074](https://zenodo.org/records/10020074) which includes KEGG module pathway information from [`MicrobeAnnotator`](https://doi.org/10.1186/s12859-020-03940-5).
 *  Added `CAZy` protein sequences from [`dbCAN2`](https://academic.oup.com/nar/article/46/W1/W95/4996582)
