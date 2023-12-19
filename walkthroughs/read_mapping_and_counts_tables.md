@@ -15,6 +15,8 @@ _____________________________________________________
 2. Map reads to global reference and create base counts tables
 3. Merge the counts tables for all the samples
 
+**Conda Environment:** `conda activate VEBA`. Use this for intermediate scripts.
+
 _____________________________________________________
 
 
@@ -22,7 +24,6 @@ _____________________________________________________
 
 Here we are going to concatenate all of the binned contigs (i.e., MAGs) and their respective gene models (i.e., GFF files) then index using `Bowtie2`.
 
-**Conda Environment:** `conda activate VEBA-mapping_env`
 
 
 ```
@@ -44,7 +45,7 @@ ls veba_output/binning/*/*/output/genomes/*.gff > veba_output/misc/gene_models.l
 GENE_MODELS=veba_output/misc/gene_models.list
 
 # Set up command
-CMD="source activate VEBA-mapping_env && index.py -r ${GENOMES} -g ${GENE_MODELS} -o veba_output/index/global/ -p ${N_JOBS}"
+CMD="source activate VEBA && veba --module index --params \"-r ${GENOMES} -g ${GENE_MODELS} -o veba_output/index/global/ -p ${N_JOBS}\""
 
 # Either run this command or use SunGridEnginge/SLURM
 ```
@@ -63,9 +64,18 @@ Here we are map all of the reads to the global reference and create base counts 
 
 **Note:** Versions prior to v1.1.2 require the output directory to include the sample name. (e.g., `-o veba_output/mapping/global/${ID}` where `-n` is not used.  In v1.1.2+, the output directory is automatic (e.g., `veba_output/mapping/global/` and `-n ${ID}` are used)
 
-**Conda Environment:** `conda activate VEBA-mapping_env`
 
 ```
+# If you have run the cluster.py module you can use this:
+SCAFFOLDS_TO_MAGS=veba_output/cluster/output/global/scaffolds_to_mags.tsv
+SCAFFOLDS_TO_SLCS=veba_output/cluster/output/global/scaffolds_to_slcs.tsv
+PROTEINS_TO_ORTHOGROUPS=veba_output/cluster/output/global/proteins_to_orthogroups.tsv
+MAGS_TO_SLCS=veba_output/cluster/output/global/mags_to_slcs.tsv
+
+# If you skipped the clustering, you can oncatenate all of the scaffolds to bins from all of the domains
+cat veba_output/binning/*/*/output/scaffolds_to_bins.tsv > veba_output/misc/all_genomes.scaffolds_to_mags.tsv
+SCAFFOLDS_TO_MAGS=veba_output/misc/all_genomes.scaffolds_to_mags.tsv
+
 # Set a lower number of threads since we are running for each sample
 N_JOBS=2
 
@@ -84,7 +94,7 @@ for ID in $(cat identifiers.list); do
 	OUT_DIR=veba_output/mapping/global
 	
 	# Set up command	
-	CMD="source activate VEBA-mapping_env && mapping.py -1 ${R1} -2 ${R2} -n ${ID} -o ${OUT_DIR} -p ${N_JOBS} -x ${INDEX_DIRECTORY}"
+	CMD="source activate VEBA && veba --module mapping --params \"-1 ${R1} -2 ${R2} -n ${ID} -o ${OUT_DIR} -p ${N_JOBS} -x ${INDEX_DIRECTORY} --scaffolds_to_bins ${SCAFFOLDS_TO_MAGS}\"" #--scaffolds_to_clusters ${SCAFFOLDS_TO_SLCS} --proteins_to_orthogroups ${PROTEINS_TO_ORTHOGROUPS}
 	
 	# Either run this command or use SunGridEnginge/SLURM
 
@@ -110,16 +120,6 @@ MAPPING_DIRECTORY=veba_output/mapping/global
 
 # Set output directory (this is default)
 OUT_DIR=veba_output/counts
-
-# If you have run the cluster.py module you can use this:
-SCAFFOLDS_TO_MAGS=veba_output/cluster/output/global/scaffolds_to_mags.tsv
-SCAFFOLDS_TO_SLCS=veba_output/cluster/output/global/scaffolds_to_slcs.tsv
-#MAGS_TO_SLCS=veba_output/cluster/output/global/mags_to_slcs.tsv
-PROTEINS_TO_ORTHOGROUPS=veba_output/cluster/output/global/proteins_to_orthogroups.tsv
-
-# If you skipped the clustering, you can oncatenate all of the scaffolds to bins from all of the domains
-cat veba_output/binning/*/*/output/scaffolds_to_bins.tsv > veba_output/misc/all_genomes.scaffolds_to_mags.tsv
-SCAFFOLDS_TO_MAGS=veba_output/misc/all_genomes.scaffolds_to_mags.tsv
 
 # Merge contig-level counts (excu
 merge_contig_mapping.py -m ${MAPPING_DIRECTORY} -c ${MAGS_TO_SLCS}  -i ${SCAFFOLDS_TO_MAGS} -o ${OUT_DIR}

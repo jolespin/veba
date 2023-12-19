@@ -3,16 +3,18 @@ ____________________________________________________________
 #### Software installation
 One issue with having large-scale pipeline suites with open-source software is the issue of dependencies.  One solution for this is to have a modular software structure where each module has its own `conda` environment.  This allows for minimizing dependency constraints as this software suite uses an array of diverse packages from different developers. 
 
-The basis for these environments is creating a separate environment for each module with the `VEBA-` prefix and `_env` as the suffix.  For example `VEBA-assembly_env` or `VEBA-binning-prokaryotic_env`.  Because of this, `VEBA` is currently not available as a `conda` package but each module will be in the near future.  In the meantime, please use the `veba/install/install_veba.sh` script which installs each environment from the yaml files in `veba/install/environments/`. After installing the environments, use the `veba/install/download_databases.sh` script to download and configure the databases while also adding the environment variables to the activate/deactivate scripts in each environment.  To install anything manually, just read the scripts as they are well documented and refer to different URL and paths for specific installation options.
+The basis for these environments is creating a separate environment for each module with the `VEBA-` prefix and `_env` as the suffix.  For example `VEBA-assembly_env` or `VEBA-binning-prokaryotic_env`.  Because of this, `VEBA` is currently not available as a `conda` package but each module will be in the near future.  In the meantime, please use the `veba/install/install.sh` script which installs each environment from the yaml files in `veba/install/environments/`. After installing the environments, use the `veba/install/download_databases.sh` script to download and configure the databases while also adding the environment variables to the activate/deactivate scripts in each environment.  To install anything manually, just read the scripts as they are well documented and refer to different URL and paths for specific installation options.
 
-The majority of the time taken to build database is downloading/decompressing large archives, `Diamond` database creation of `UniRef`, and `MMSEQS2` database creation of microeukaryotic protein database.
+The majority of the time taken to build database is downloading/decompressing large archives (e.g., `UniRef` & `GTDB`), `Diamond` database creation of `UniRef`, and `MMSEQS2` database creation of `MicroEuk` database.
 
 Total size is `243 GB` but if you have certain databases installed already then you can just symlink them so the `VEBA_DATABASE` path has the correct structure.  Note, the exact size may vary as Pfam and UniRef are updated regularly.
 
 Each major version will be packaged as a [release](https://github.com/jolespin/veba/releases) which will include a log of module and script versions. 
 
-**Download Anaconda:** 
-[https://www.anaconda.com/products/distribution](https://www.anaconda.com/products/distribution)
+**Download Miniconda (or Anaconda):** 
+
+* [https://docs.conda.io/projects/miniconda/en/latest/](https://docs.conda.io/projects/miniconda/en/latest/) (Recommended)
+* [https://www.anaconda.com/products/distribution](https://www.anaconda.com/products/distribution)
 
 ____________________________________________________________
 
@@ -33,7 +35,7 @@ Currently, **Conda environments for VEBA are ONLY configured for Linux** and, du
 
 * Download/configure databases
 
-**0. Clean up your conda installation [Optional, but recommended]**
+**0. Clean up your conda installation [Optional, but highly recommended]**
 
 The `VEBA` installation is going to configure some `conda` environments for you and some of them have quite a bit of packages.  To minimize the likelihood of [weird errors](https://forum.qiime2.org/t/valueerror-unsupported-format-character-t-0x54-at-index-3312-when-creating-environment-from-environment-file/25237), it's recommended to do the following:
 
@@ -83,7 +85,7 @@ The `VEBA` installation is going to configure some `conda` environments for you 
 ```
 # For stable version, download and decompress the tarball:
 
-VERSION="1.3.0"
+VERSION="1.4.0"
 wget https://github.com/jolespin/veba/archive/refs/tags/v${VERSION}.tar.gz
 tar -xvf v${VERSION}.tar.gz && mv veba-${VERSION} veba
 
@@ -106,14 +108,16 @@ cd veba/install
 The update from `CheckM1` -> `CheckM2` and installation of `antiSMASH` require more memory and may require grid access if head node is limited.
 
 ```
-bash install_veba.sh
+bash install.sh
 ```
 
 **3. Activate the database conda environment, download, and configure databases**
 
 **Recommended resource allocatation:**  48 GB memory (time is dependent on I/O of database repositories)
 
-⚠️ **This step should use ~48 GB memory** and should be run using a compute grid via SLURM or SunGridEngine.  If this command is run on the head node it will likely fail or timeout if a connection is interrupted. The most computationally intensive steps are creating a `Diamond` database of `UniRef` and a `MMSEQS2` database of the microeukaryotic protein database.  Note the duration will depend on several factors including your internet connection speed and the I/O of public repositories.
+⚠️ **This step should use ~48 GB memory** and should be run using a compute grid via `SLURM` or `SunGridEngine`.  **If this command is run on the head node it will likely fail or timeout if a connection is interrupted.** The most computationally intensive steps are creating a `Diamond` database of `UniRef` and a `MMSEQS2` database of the `MicroEuk100/90/50`.  
+
+Note the duration will depend on several factors including your internet connection speed and the I/O of public repositories.
 
 **Future releases will split the downloading and configuration to better make use of resources.**
 
@@ -163,7 +167,7 @@ qsub -o logs/${N}.o -e logs/${N}.e -cwd -N ${N} -j y -pe threaded ${N_JOBS} "${C
 PARTITION=[partition name]
 ACCOUNT=[account name]
 
-sbatch -A ${ACCOUNT} -p ${PARTITION} -J ${N} -N 1 -c ${N_JOBS} --ntasks-per-node=1 -o logs/${N}.o -e logs/${N}.e --export=ALL -t 12:00:00 --mem=64G --wrap="${CMD}"
+sbatch -A ${ACCOUNT} -p ${PARTITION} -J ${N} -N 1 -c ${N_JOBS} --ntasks-per-node=1 -o logs/${N}.o -e logs/${N}.e --export=ALL -t 16:00:00 --mem=24G --wrap="${CMD}"
 ```
 
 Now, you should have the following environments:
@@ -183,6 +187,7 @@ VEBA-phylogeny_env
 VEBA-preprocess_env
 VEBA-profile_env
 ```
+
 All the environments should have the `VEBA_DATABASE` environment variable set. If not, then add it manually to ~/.bash_profile: `export VEBA_DATABASE=/path/to/veba_database`.
 
 You can check to make sure the `conda` environments were created and all of the environment variables were created using the following command:
@@ -218,7 +223,7 @@ ____________________________________________________________
 
 ```
 # Remove conda enivronments
-bash uninstall_veba.sh
+bash uninstall.sh
 
 # Remove VEBA database
 rm -rfv /path/to/veba_database
@@ -230,6 +235,6 @@ ____________________________________________________________
 There are currently 2 ways to update veba:
 
 1. Basic uninstall reinstall - You can uninstall and reinstall using the scripts in `veba/install/` directory.  It's recomended to do a fresh reinstall when updating from `v1.0.x` → `v1.2.x`.
-2. Patching existing installation - Complete reinstalls of *VEBA* environments and databases is time consuming so [we've detailed how to do specific patches **for advanced users**](PATCHES.md). If you don't feel comfortable running these commands, then just do a fresh install if you would like to update. 
+2. Patching existing installation - TBD Guide for updating specific modules in an installation.  
 
 

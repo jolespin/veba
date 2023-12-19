@@ -7,7 +7,7 @@ from genopype import __version__ as genopype_version
 from soothsayer_utils import *
 
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.10.16"
+__version__ = "2023.12.12"
 
 # ==============
 # Agostic commands
@@ -22,11 +22,22 @@ def get_concatenate_fasta_cmd( input_filepaths, output_filepaths, output_directo
         "-i {}".format(input_filepaths[0]),
         "-o {}".format(output_directory),
         "-m {}".format(opts.minimum_contig_length),
-        "-x {}".format("fa.gz"),
+        "-x {}".format("fa.gz" if opts.reference_gzipped else "fa"),
         "-b reference",
         "-M {}".format(opts.mode),
 
+        "&&",
 
+        "cat",
+        os.path.join(output_directory, "reference.fa.gz" if opts.reference_gzipped else "reference.fa"),
+        "|",
+        os.environ["seqkit"],
+        "fx2tab",
+        "-i",
+        "-s",
+        "-n",
+        ">",
+        os.path.join(output_directory, "reference.id_to_hash.tsv"),
     ]
     return cmd
 
@@ -51,21 +62,24 @@ def get_concatenate_gff_cmd( input_filepaths, output_filepaths, output_directory
 def get_bowtie2_local_cmd(input_filepaths, output_filepaths, output_directory, directories, opts):
     os.environ["TMPDIR"] = directories["tmp"]
     # Command 
+
     cmd = [
 """
-
+OUTPUT_DIRECTORY=%s
+FASTA_FILENAME=%s
 for ID_SAMPLE in $(cut -f1 %s); 
-    do %s --threads %d --seed %d %s/${ID_SAMPLE}/reference.fa.gz %s/${ID_SAMPLE}/reference.fa.gz
+    do %s --threads %d --seed %d ${OUTPUT_DIRECTORY}/${ID_SAMPLE}/${FASTA_FILENAME} ${OUTPUT_DIRECTORY}/${ID_SAMPLE}/${FASTA_FILENAME}
     done
 """%(
+    output_directory,
+    "reference.fa.gz" if opts.reference_gzipped else "reference.fa",
     opts.references,
     os.environ["bowtie2-build"],
     opts.n_jobs,
     opts.random_state,
-    output_directory,
-    output_directory,
     ),
     ]
+
 
     return cmd
 
@@ -115,10 +129,10 @@ def create_local_pipeline(opts, directories, f_cmds):
     ]
 
     output_filenames = [
-        "*/reference.fa.gz",
+        "*/reference.fa.gz" if opts.reference_gzipped else "*/reference.fa",
         "*/reference.saf",
-
-    ]
+        "*/reference.id_to_hash.tsv",
+        ]
     output_filepaths = list(map(lambda filename: os.path.join(output_directory, filename), output_filenames))
 
     params = {
@@ -207,8 +221,9 @@ def create_local_pipeline(opts, directories, f_cmds):
     # Info
     description = "Build mapping index"
     # i/o
+    
     input_filepaths = list(
-        map(lambda id_sample: os.path.join(directories["output"], id_sample, "reference.fa.gz"), 
+        map(lambda id_sample: os.path.join(directories["output"], id_sample, "reference.fa.gz" if opts.reference_gzipped else "reference.fa"), 
         opts.samples,
         ),
     )
@@ -273,8 +288,10 @@ def create_global_pipeline(opts, directories, f_cmds):
     ]
 
     output_filenames = [
-        "reference.fa.gz",
+        "reference.fa.gz" if opts.reference_gzipped else "reference.fa",
         "reference.saf",
+        "reference.id_to_hash.tsv",
+
     ]
     output_filepaths = list(map(lambda filename: os.path.join(output_directory, filename), output_filenames))
 
@@ -365,13 +382,22 @@ def create_global_pipeline(opts, directories, f_cmds):
     # Info
     description = "Build mapping index"
     # i/o
-    input_filepaths = [
-        os.path.join(directories["output"], "reference.fa.gz"),
-    ]
+    if opts.reference_gzipped:
+        input_filepaths = [
+            os.path.join(directories["output"], "reference.fa.gz"),
+        ]
 
-    output_filenames = [
-        "reference.fa.gz.*.bt2",
-    ]
+        output_filenames = [
+            "reference.fa.gz.*.bt2",
+        ]
+    else:
+        input_filepaths = [
+            os.path.join(directories["output"], "reference.fa"),
+        ]
+
+        output_filenames = [
+            "reference.fa.*.bt2",
+        ]
     output_filepaths = list(map(lambda filename: os.path.join(output_directory, filename), output_filenames))
 
     params = {
@@ -417,7 +443,8 @@ def add_executables_to_environment(opts):
 
     
     required_executables = set([ 
-         "bowtie2-build",
+        "seqkit",
+        "bowtie2-build",
     ])| accessory_scripts
 
     if opts.path_config == "CONDA_PREFIX":
@@ -509,8 +536,9 @@ def main(args=None):
     parser_io.add_argument("-r","--references", type=str, required=True, help = "local mode: [id_sample]<tab>[path/to/reference.fa] and global mode: [path/to/reference.fa]")
     parser_io.add_argument("-g","--gene_models", type=str, required=True, help = "local mode: [id_sample]<tab>[path/to/reference.gff] and global mode: [path/to/reference.gff]")
     parser_io.add_argument("-o","--output_directory", type=str, default="veba_output/index", help = "path/to/project_directory [Default: veba_output/index]")
-    parser_io.add_argument("-m", "--minimum_contig_length", type=int, default=1500, help="Minimum contig length [Default: 1500]")
+    parser_io.add_argument("-m", "--minimum_contig_length", type=int, default=1, help="Minimum contig length [Default: 1]")
     parser_io.add_argument("-M", "--mode", type=str, default="infer", help="Concatenate all references with global and build index or build index for each reference {global, local, infer}")
+    parser_io.add_argument("-z", "--reference_gzipped",action="store_true", help="Gzip the reference to generate `reference.fa.gz` instead of `reference.fa`")
     # parser_io.add_argument("-c", "--copy_files", action="store_true", help="Copy files instead of symlinking. Only applies to global.")
 
     # Utility
@@ -559,6 +587,7 @@ def main(args=None):
     print("Script version:", __version__, file=sys.stdout)
     print("Moment:", get_timestamp(), file=sys.stdout)
     print("Directory:", os.getcwd(), file=sys.stdout)
+    if "TMPDIR" in os.environ: print(os.environ["TMPDIR"], file=sys.stdout)
     print("Commands:", list(filter(bool,sys.argv)),  sep="\n", file=sys.stdout)
     configure_parameters(opts, directories)
     sys.stdout.flush()

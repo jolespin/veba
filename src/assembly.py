@@ -13,7 +13,7 @@ from soothsayer_utils import *
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.10.16"
+__version__ = "2023.11.30"
 
 # Assembly
 def get_assembly_cmd( input_filepaths, output_filepaths, output_directory, directories, opts):
@@ -683,8 +683,8 @@ def main(args=None):
     parser = argparse.ArgumentParser(description=description, usage=usage, epilog=epilog, formatter_class=argparse.RawTextHelpFormatter)
     # Pipeline
     parser_io = parser.add_argument_group('Required I/O arguments')
-    parser_io.add_argument("-1","--forward_reads", type=str, help = "path/to/forward_reads.fq")
-    parser_io.add_argument("-2","--reverse_reads", type=str, help = "path/to/reverse_reads.fq")
+    parser_io.add_argument("-1","--forward_reads", type=str, help = "path/to/forward_reads.fq[.gz]")
+    parser_io.add_argument("-2","--reverse_reads", type=str, help = "path/to/reverse_reads.fq[.gz]")
     parser_io.add_argument("-n", "--name", type=str, help="Name of sample", required=True)
     parser_io.add_argument("-o","--project_directory", type=str, default="veba_output/assembly", help = "path/to/project_directory [Default: veba_output/assembly]")
 
@@ -758,6 +758,7 @@ def main(args=None):
     print("Script version:", __version__, file=sys.stdout)
     print("Moment:", get_timestamp(), file=sys.stdout)
     print("Directory:", os.getcwd(), file=sys.stdout)
+    if "TMPDIR" in os.environ: print(os.environ["TMPDIR"], file=sys.stdout)
     print("Commands:", list(filter(bool,sys.argv)),  sep="\n", file=sys.stdout)
     configure_parameters(opts, directories)
     sys.stdout.flush()

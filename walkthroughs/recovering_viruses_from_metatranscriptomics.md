@@ -15,9 +15,9 @@ _____________________________________________________
 4. Cluster genomes and proteins
 5. Classify viral genomes
 
-#### 1. Preprocess reads and get directory set up
+**Conda Environment:** `conda activate VEBA`. Use this for intermediate scripts.
 
-**Conda Environment:** `conda activate VEBA-preprocess_env`
+#### 1. Preprocess reads and get directory set up
 
 Refer to the [downloading and preprocessing reads workflow](download_and_preprocess_reads.md).  At this point, it's assumed you have the following: 
 
@@ -28,8 +28,6 @@ Refer to the [downloading and preprocessing reads workflow](download_and_preproc
 #### 2. Assemble reads, map reads to assembly, calculate assembly statistics, and index the assembly
 
 Here we are going to assemble all of the reads using `rnaSPAdes`.  
-
-**Conda Environment:** `conda activate VEBA-assembly_env`
 
 ```
 # Set the number of threads to use for each sample. Let's use 4
@@ -53,7 +51,7 @@ for ID in $(cat identifiers.list); do
 	R2=veba_output/preprocess/${ID}/output/cleaned_2.fastq.gz
 	
 	# Set up command
-	CMD="source activate VEBA-assembly_env && assembly.py -1 ${R1} -2 ${R2} -n ${ID} -o ${OUT_DIR} -p ${N_JOBS} -P rnaspades.py"
+	CMD="source activate VEBA && veba --module assembly --params \"-1 ${R1} -2 ${R2} -n ${ID} -o ${OUT_DIR} -p ${N_JOBS} -P rnaspades.py\""
 	
 	# Either run this command or use SunGridEnginge/SLURM
 	
@@ -83,8 +81,6 @@ Where `g0` refers to the predicted gene and `i0` refers to the isoform transcrip
 #### 3. Recover viruses from metatranscriptomic assemblies
 We use a similar approach to the metagenomics with *geNomad* and *CheckV* but using the assembled transcripts instead.  Again, the criteria for high-quality viral genomes are described by the [*CheckV* author](https://scholar.google.com/citations?user=gmKnjNQAAAAJ&hl=en) [here in this Bitbucket Issue (#38)](https://bitbucket.org/berkeleylab/checkv/issues/38/recommended-cutoffs-for-analyzing-checkv).
 
-**Conda Environment:** `conda activate VEBA-binning-viral_env`
-
 ```
 N_JOBS=4
 
@@ -93,7 +89,7 @@ for ID in $(cat identifiers.list);
 	rm -f logs/${N}.*
 	FASTA=veba_output/transcript_assembly/${ID}/output/transcripts.fasta
 	BAM=veba_output/transcript_assembly/${ID}/output/mapped.sorted.bam
-	CMD="source activate VEBA-binning-viral_env && binning-viral.py -f ${FASTA} -b ${BAM} -n ${ID} -p ${N_JOBS} -m 1500 -o veba_output/binning/viral -a genomad"
+	CMD="source activate VEBA && veba --module binning-viral --params \"-f ${FASTA} -b ${BAM} -n ${ID} -p ${N_JOBS} -m 1500 -o veba_output/binning/viral -a genomad\""
 	
 	# Either run this command or use SunGridEnginge/SLURM
 
@@ -123,8 +119,6 @@ for ID in $(cat identifiers.list);
 #### 4. Cluster genomes and proteins
 To analyze these data, we are going to generate some counts tables and we want a single set of features to compare across all samples.  To achieve this, we are going to cluster the genomes into species-level clusters (SLC) and the proteins into SLC-specific protein clusters (SSPC).  Further, this clustering is dual purpose as it alleviates some of the bias from [the curse(s) of dimensionality](https://www.nature.com/articles/s41592-018-0019-x) with dimensionality reduction via feature compression - [a type of feature engineering](https://towardsdatascience.com/what-is-feature-engineering-importance-tools-and-techniques-for-machine-learning-2080b0269f10).
 
-**Conda Environment:** `conda activate VEBA-cluster_env`
-
 
 ```
 # We need to generate a table with the following fields:
@@ -137,7 +131,7 @@ compile_genomes_table.py -i veba_output/binning/ > veba_output/misc/genomes_tabl
 N_JOBS=12
 
 # Set up command
-CMD="source activate VEBA-cluster_env && cluster.py -i veba_output/misc/genomes_table.tsv -o veba_output/cluster -p ${N_JOBS}"
+CMD="source activate VEBA && veba --module cluster --params \"-i veba_output/misc/genomes_table.tsv -o veba_output/cluster -p ${N_JOBS}\""
 	
 # Either run this command or use SunGridEnginge/SLURM
 ```
@@ -173,9 +167,6 @@ CMD="source activate VEBA-cluster_env && cluster.py -i veba_output/misc/genomes_
 #### 5. Classify viral genomes
 Viral classification is performed using `geNomad`.  Classification can be performed using the intermediate binning results which is much quicker.  Alternatively, if you have viruses identified elsewhere you can still classify using the `--genomes` argument instead.
 
-**Conda Environment:** `conda activate VEBA-classify_env`
-
-
 ```
 N=classify-viral
 
@@ -188,7 +179,7 @@ CLUSTERS=veba_output/cluster/viral/output/clusters.tsv
 rm -rf logs/${N}.*
 
 # Set up the command
-CMD="source activate VEBA-classify_env && classify-viral.py -i ${BINNING_DIRECTORY} -c ${CLUSTERS} -o veba_output/classify/viral"
+CMD="source activate VEBA && veba --module classify-viral --params \"-i ${BINNING_DIRECTORY} -c ${CLUSTERS} -o veba_output/classify/viral\""
 
 # Either run this command or use SunGridEnginge/SLURM
 

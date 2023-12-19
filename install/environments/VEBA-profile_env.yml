@@ -1,4 +1,4 @@
-name: VEBA-profile_env__v2023.10.16
+name: VEBA-profile_env__v2023.12.14
 channels:
   - conda-forge
   - bioconda
@@ -21,12 +21,12 @@ dependencies:
   - bz2file=0.98=py_0
   - bzip2=1.0.8=h7f98852_4
   - c-ares=1.20.1=hd590300_0
-  - ca-certificates=2023.7.22=hbcca054_0
+  - ca-certificates=2023.11.17=hbcca054_0
   - cached-property=1.5.2=hd8ed1ab_1
   - cached_property=1.5.2=pyha770c72_1
   - cairo=1.16.0=hb05425b_5
   - capnproto=0.9.1=ha19adfc_4
-  - certifi=2023.7.22=pyhd8ed1ab_0
+  - certifi=2023.11.17=pyhd8ed1ab_0
   - charset-normalizer=3.3.0=pyhd8ed1ab_0
   - click=8.1.7=unix_pyh707e725_0
   - cmseq=1.0.4=pyhb7b1952_0
@@ -119,7 +119,7 @@ dependencies:
   - numpy=1.26.0=py310hb13e2d6_0
   - openjdk=17.0.3=h4335b31_6
   - openjpeg=2.5.0=h488ebb8_3
-  - openssl=3.1.3=hd590300_0
+  - openssl=3.2.0=hd590300_1
   - ossuuid=1.6.2=hf484d3e_1000
   - packaging=23.2=pyhd8ed1ab_0
   - pandas=2.1.1=py310hcc13569_1
@@ -198,6 +198,7 @@ dependencies:
   - six=1.16.0=pyh6c4a22f_0
   - soothsayer_utils=2022.6.24=py_0
   - statsmodels=0.14.0=py310h1f7b6fc_2
+  - sylph=0.4.1=h4ac6f70_0
   - tbb=2021.7.0=h924138e_1
   - tk=8.6.13=h2797004_0
   - tqdm=4.66.1=pyhd8ed1ab_0

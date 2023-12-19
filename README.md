@@ -45,19 +45,18 @@ ___________________________________________________________________
 * **What's new in `VEBA v1.3.0`?**
 
 * **`VEBA` Modules:**
-	* Added `profile-pathway.py` module and associated scripts for building `HUMAnN` databases from *de novo* genomes and annotations.  Essentially, a reads-based functional profiling method via `HUMAnN` using binned genomes as the database.
-	* Added `marker_gene_clustering.py` script which identifies core marker proteins that are present in all genomes within a genome cluster (i.e., pangenome) and unique to only that genome cluster.  Clusters in either protein or nucleotide space.
-	* Added `module_completion_ratios.py` script which calculates KEGG module completion ratios for genomes and pangenomes. Automatically run in backend of `annotate.py`.
-	* Updated `annotate.py` and `merge_annotations.py` to provide better annotations for clustered proteins.
-	* Added `merge_genome_quality.py` and `merge_taxonomy_classifications.py` which compiles genome quality and taxonomy, respectively, for all organisms.
-	* Added BGC clustering in protein and nucleotide space to `biosynthetic.py`.  Also, produces prevalence tables that can be used for further clustering of BGCs.
-	* Added `pangenome_core_sequences` in `cluster.py` writes both protein and CDS sequences for each genome cluster.
-	* Added PDF visualization of newick trees in `phylogeny.py`.
 
-	
-* **`VEBA` Database (`VDB_v5.2`)**:
-	* Added `CAZy`
-	* Added `MicrobeAnnotator-KEGG`
+	* Added `profile-taxonomic.py` module which uses `sylph` to build a sketch database for genomes and queries the genome database for taxonomic abundance.
+	* Added long read support for `fastq_preprocessor`, `preprocess.py`, `assembly-long.py`, `coverage-long`, and all binning modules.
+	* Redesign `binning-eukaryotic` module to handle custom `MetaEuk` databases
+	* Added new usage syntax `veba --module preprocess --params “${PARAMS}”` where the Conda environment is abstracted and determined automatically in the backend.  Changed all the walkthroughs to reflect this change.
+	* Added `skani` which is the new default for genome-level clustering based on ANI.
+	* Added `Diamond DeepClust` as an alternative to `MMSEQS2` for protein clustering.
+
+* **`VEBA` Database (`VDB_v6`)**:
+
+	* Completely rebuilt `VEBA's Microeukaryotic Protein Database` to produce a clustered database `MicroEuk100/90/50` similar to `UniRef100/90/50`. Available on [doi:10.5281/zenodo.10139450](https://zenodo.org/records/10139451).
+
 
 Check out the [*VEBA* Change Log](CHANGELOG.md) for insight into what is being implemented in the upcoming version.
 
@@ -68,9 +67,9 @@ ___________________________________________________________________
 
 ### Installation and databases
 
-**Current Stable Version:** [`v1.3.0`](https://github.com/jolespin/veba/releases/tag/v1.3.0)
+**Current Stable Version:** [`v1.4.0`](https://github.com/jolespin/veba/releases/tag/v1.4.0)
 
-**Current Database Version:** `VDB_v5.2`
+**Current Database Version:** `VDB_v6`
 
 Please refer to the [*Installation and Database Configuration Guide*](install/README.md) for software installation and database configuration.
 
@@ -85,7 +84,25 @@ ___________________________________________________________________
 [*Usage and Resource Requirements Guide*](src/README.md) for parameters and module descriptions
 
 [*Walkthrough Guides*](walkthroughs/README.md) for tutorials and workflows on how to get started
- 
+
+**Usage Example:**
+
+Running `preprocess` module. 
+
+1) Available with `v1.4.0+`:
+
+```
+source activate VEBA
+veba --module preprocess --params "{PARAMS}" 
+```
+
+2) Available with `v1.0.0 - v1.4.0+`:
+
+```
+source activate VEBA-preprocess_env
+preprocess.py "{PARAMS}"
+```
+
 <p align="right"><a href="#readme-top">^__^</a></p>
 
 ___________________________________________________________________
@@ -100,7 +117,9 @@ If you wish *VEBA* did something that isn't implemented, please submit a [`[Feat
 
 <p align="right"><a href="#readme-top">^__^</a></p>
 
+
 ___________________________________________________________________
+
 
 ### Output structure
 *VEBA*'s is built on the [*GenoPype*](https://github.com/jolespin/genopype) archituecture which creates a reproducible and easy-to-navigate directory structure.  *GenoPype*'s philosophy is to use the same names for all files but to have sample names as subdirectories.  This makes it easier to glob files for grepping, concatenating, etc. *NextFlow* support is in the works...

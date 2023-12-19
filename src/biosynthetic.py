@@ -13,7 +13,7 @@ from soothsayer_utils import *
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.10.16"
+__version__ = "2023.12.18"
 
 # antiSMASH
 def get_antismash_cmd( input_filepaths, output_filepaths, output_directory, directories, opts):
@@ -336,7 +336,7 @@ def get_mmseqs2_protein_cmd(input_filepaths, output_filepaths, output_directory,
 
             "&&",
 
-        os.environ["mmseqs2_wrapper.py"],
+        os.environ["clustering_wrapper.py"],
         "--fasta {}".format(os.path.join(directories["tmp"], "components.concatenated.faa")),
         "--output_directory {}".format(output_directory),
         "--no_singletons" if bool(opts.no_singletons) else "",
@@ -415,7 +415,7 @@ def get_mmseqs2_nucleotide_cmd(input_filepaths, output_filepaths, output_directo
 
             "&&",
 
-        os.environ["mmseqs2_wrapper.py"],
+        os.environ["clustering_wrapper.py"],
         "--fasta {}".format(os.path.join(directories["tmp"], "bgcs.concatenated.fasta")),
         "--output_directory {}".format(output_directory),
         "--no_singletons" if bool(opts.no_singletons) else "",
@@ -483,7 +483,7 @@ def add_executables_to_environment(opts):
         "concatenate_dataframes.py",
         "bgc_novelty_scorer.py",
         "compile_krona.py",
-        "mmseqs2_wrapper.py",
+        "clustering_wrapper.py",
         "compile_protein_cluster_prevalence_table.py",
         }
 
@@ -860,7 +860,7 @@ def main(args=None):
     # antiSMASH
     parser_antismash = parser.add_argument_group('antiSMASH arguments')
     parser_antismash.add_argument("-t", "--taxon", type=str, default="bacteria", help="Taxonomic classification of input sequence {bacteria,fungi} [Default: bacteria]")
-    parser_antismash.add_argument("--minimum_contig_length", type=int, default=1500, help="Minimum contig length.  [Default: 1500] ")
+    parser_antismash.add_argument("--minimum_contig_length", type=int, default=1, help="Minimum contig length.  [Default: 1] ")
     parser_antismash.add_argument("-d", "--antismash_database", type=str, default=os.path.join(site.getsitepackages()[0], "antismash", "databases"), help="antiSMASH | Database directory path [Default: {}]".format(os.path.join(site.getsitepackages()[0], "antismash", "databases")))
     parser_antismash.add_argument("-s", "--hmmdetection_strictness", type=str, default="relaxed", help="antiSMASH | Defines which level of strictness to use for HMM-based cluster detection {strict,relaxed,loose}  [Default: relaxed] ")
     parser_antismash.add_argument("--tta_threshold", type=float, default=0.65, help="antiSMASH | Lowest GC content to annotate TTA codons at [Default: 0.65]")
@@ -881,7 +881,7 @@ def main(args=None):
 
     # MMSEQS2
     parser_mmseqs2 = parser.add_argument_group('MMSEQS2 arguments')
-    parser_mmseqs2.add_argument("-a", "--algorithm", type=str, default="easy-cluster", help="MMSEQS2 | {easy-cluster, easy-linclust} [Default: easy-cluster]")
+    parser_mmseqs2.add_argument("-a", "--algorithm", type=str, default="mmseqs-cluster", choices={"mmseqs-cluster", "mmseqs-linclust"}, help="MMSEQS2 | {mmseqs-cluster, mmseqs-linclust} [Default: mmseqs-cluster]")
     parser_mmseqs2.add_argument("-f","--representative_output_format", type=str, default="fasta", help = "Format of output for representative sequences: {table, fasta} [Default: fasta]") # Should fasta be the new default?
 
 
@@ -943,6 +943,7 @@ def main(args=None):
     print("Script version:", __version__, file=sys.stdout)
     print("Moment:", get_timestamp(), file=sys.stdout)
     print("Directory:", os.getcwd(), file=sys.stdout)
+    if "TMPDIR" in os.environ: print(os.environ["TMPDIR"], file=sys.stdout)
     print("Commands:", list(filter(bool,sys.argv)),  sep="\n", file=sys.stdout)
     configure_parameters(opts, directories)
     sys.stdout.flush()

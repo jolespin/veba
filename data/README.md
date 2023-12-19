@@ -9,4 +9,13 @@ The following fastq files are subsets of the original SRA sequences designed for
 | S3        | SRR17458630 | FASTQ  | DNA  | 2389989  | 75      | 150.4   | 151     | 56.38 |
 | S4        | SRR17458638 | FASTQ  | DNA  | 3142566  | 75      | 150.5   | 151     | 46.34 |
 
-[**Download**](https://zenodo.org/record/7946802#.ZGVSpuzMKDU)
+Also includes the following: 
+
+* Metagenomic assemblies using metaSPAdes with sorted BAM files from Bowtie2
+* Genomes, gene models, etc.
+* Taxonomy classifications at the genome and genome cluster level
+* Annotations for genes and protein clusters
+* Biosynthetic gene clusters
+* Clusters for genomes and proteins
+
+[**Download**](https://zenodo.org/records/10094990)

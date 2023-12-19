@@ -12,7 +12,7 @@ from soothsayer_utils import *
 
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.5.8"
+__version__ = "2023.12.4"
 
 def get_maxbin2_cmd( input_filepaths, output_filepaths, output_directory, directories, opts):
     # Create dummy scaffolds_to_bins.tsv to overwrite later. This makes DAS_Tool easier to run
@@ -740,6 +740,9 @@ def add_executables_to_environment(opts):
                 "merge_cutup_clustering.py", 
                 "extract_fasta_bins.py", 
             } 
+    # if opts.algorithm == "vrhyme":
+    #     required_executables |= {"vRhyme"}
+
     # if opts.algorithm == "metacoag":
     #     required_executables |= {"MetaCoAG"}
 
@@ -845,7 +848,7 @@ def main(argv=None):
 
     # Binning
     parser_binning = parser.add_argument_group('Binning arguments')
-    parser_binning.add_argument("-a", "--algorithm", type=str, default="metabat2", help="Binning algorithm: {concoct, metabat2, maxbin2} Future: {metacoag, vamb} [Default: metabat2] ")
+    parser_binning.add_argument("-a", "--algorithm", type=str, default="metabat2", help="Binning algorithm: {concoct, metabat2, maxbin2} Future: {vrhyme} [Default: metabat2] ")
     parser_binning.add_argument("-m", "--minimum_contig_length", type=int, default=1500, help="Minimum contig length.  [Default: 1500] ")
     parser_binning.add_argument("-s", "--minimum_genome_length", type=int, default=150000, help="Minimum genome length.  [Default: 150000] ")
     parser_binning.add_argument("-P","--bin_prefix", type=str,  default="DEFAULT", help = "Prefix for bin names. Special strings include: 1) --bin_prefix NONE which does not include a bin prefix; and 2) --bin_prefix DEFAULT then prefix is [ALGORITHM_UPPERCASE]__")
@@ -870,8 +873,8 @@ def main(argv=None):
     # parser_metacoag = parser.add_argument_group('MetaCoAG arguments')
     # parser_metacoag.add_argument("--metacoag_options", type=str, default="", help="MetaCoAG | More options (e.g. --arg 1 ) [Default: '']")
 
-    # parser_vamb = parser.add_argument_group('VAMB arguments')
-    # parser_vamb.add_argument("--vamb_options", type=str, default="", help="VAMB | More options (e.g. --arg 1 ) [Default: '']")
+    # parser_vrhyme = parser.add_argument_group('vRhyme arguments')
+    # parser_vrhyme.add_argument("--vrhyme_options", type=str, default="", help="vRhyme | More options (e.g. --arg 1 ) [Default: '']")
 
     # Options
     opts = parser.parse_args(argv)

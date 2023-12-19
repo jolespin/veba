@@ -29,7 +29,7 @@ import sys, os, re, pickle, argparse, gzip
 from collections import OrderedDict, defaultdict
 import pandas as pd
 
-__version__ = "2023.10.23"
+__version__ = "2023.12.1"
 __program__ = os.path.split(sys.argv[0])[-1]
 
 ################################################################################
@@ -469,7 +469,7 @@ def main():
     parser = argparse.ArgumentParser(description=description, usage=usage, epilog=epilog, formatter_class=argparse.RawTextHelpFormatter)
 
 
-    parser.add_argument('-i', '--ko_table', help='path/to/ko_table.tsv following [id_genome]<tab>[id_ko], No header.  Cannot be used with --ko_lists')
+    parser.add_argument('-i', '--ko_table', default="stdin", help='path/to/ko_table.tsv following [id_genome]<tab>[id_ko], No header.  Cannot be used with --ko_lists [Default: stdin]')
     parser.add_argument('-k', '--ko_lists', nargs='+', help='Space-delimited list of filepaths where each file represents a genome and each line in the file is a KO id.  Cannot be used with --ko_table')
     parser.add_argument('-o', '--output',  default="stdout", help='Output file for module completion ratios [Default: stdout]')
     parser.add_argument("-d", '--database_directory', required=True, help='path/to/database_directory with pickle files')
@@ -482,6 +482,9 @@ def main():
 
     opts = parser.parse_args()
 
+    if opts.ko_lists is not None:
+        if opts.ko_table == "stdin":
+            opts.ko_table = None
     assert bool(opts.ko_table) != bool(opts.ko_lists), "Must provide KOs as either a tsv table (--ko_table) or a list of KO ids in different files (--ko_lists)"
     if opts.ko_table == "stdin":
         opts.ko_table = sys.stdin 

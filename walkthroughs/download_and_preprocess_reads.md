@@ -11,7 +11,7 @@ If you want to either remove human contamination or count ribosomal reads then m
 
 ```
 echo $VEBA_DATABASE
-/expanse/projects/jcl110/db/veba/VDB_v4 
+/expanse/projects/jcl110/db/veba/VDB_v6
 # ^_^ Yours will be different obviously #
 ```
 
@@ -111,28 +111,12 @@ Here we are going to count the reads for the human contamination and ribosomal r
 
 * ⚠️ If your host is not human then you will need to use a different contamination reference.  See item #22 in the [FAQ](https://github.com/jolespin/veba/blob/main/FAQ.md).
 
-* ⚠️ As of 2022.10.18 *VEBA* has switched from using the "GRCh38 no alt analysis set" to the "CHM13v2.0 telomore-to-telomere" build for human.  If you've installed *VEBA* before this date or are using `v1.0.0` release from [Espinoza et al. 2022](https://bmcbioinformatics.biomedcentral.com/articles/10.1186/s12859-022-04973-8) then you can update with the following code:
-
-```
-conda activate VEBA-database_env
-wget -v -P ${VEBA_DATABASE} https://genome-idx.s3.amazonaws.com/bt/chm13v2.0.zip
-unzip -d ${VEBA_DATABASE}/Contamination/ ${VEBA_DATABASE}/chm13v2.0.zip
-rm -rf ${VEBA_DATABASE}/chm13v2.0.zip
-
-# Use this if you want to remove the previous GRCh38 index
-rm -rf ${VEBA_DATABASE}/Contamination/grch38/
-```
-
-Continuing with the tutorial...just make note of the human index here and swap out GRCh38 for CHM13v2.0 if you decided to update:
 
 ```
 N_JOBS=4
 
-# Human Bowtie2 index
-HUMAN_INDEX=${VEBA_DATABASE}/Contamination/grch38/GCA_000001405.15_GRCh38_no_alt_analysis_set.fna.bowtie_index
-
-# or use this if you have updated from GRCh38 to CHM13v2.0
-# HUMAN_INDEX=${VEBA_DATABASE}/Contamination/chm13v2.0/chm13v2.0
+# CHM13v2.0
+HUMAN_INDEX=${VEBA_DATABASE}/Contamination/chm13v2.0/chm13v2.0
 
 # Ribosomal k-mer fasta
 RIBOSOMAL_KMERS=${VEBA_DATABASE}/Contamination/kmers/ribokmers.fa.gz
@@ -151,7 +135,7 @@ for ID in  $(cat identifiers.list); do
 	rm -f logs/${N}.*
 	
 	# Set up the command (use source from base environment instead of conda because of the `init` issues)
-	CMD="source activate VEBA-preprocess_env && preprocess.py -n ${ID} -1 ${R1} -2 ${R2} -p ${N_JOBS} -x ${HUMAN_INDEX} -k ${RIBOSOMAL_KMERS} --retain_contaminated_reads 0 --retain_kmer_hits 0 --retain_non_kmer_hits 0 -o veba_output/preprocess"
+	CMD="source activate VEBA && veba --module preprocess --params \"-n ${ID} -1 ${R1} -2 ${R2} -p ${N_JOBS} -x ${HUMAN_INDEX} -k ${RIBOSOMAL_KMERS} --retain_contaminated_reads 0 --retain_kmer_hits 0 --retain_non_kmer_hits 0 -o veba_output/preprocess\""
 	
 	# If you have SunGrid engine, do something like this:
 	# qsub -o logs/${N}.o -e logs/${N}.e -cwd -N ${N} -j y -pe threaded ${N_JOBS} "${CMD}"
@@ -161,7 +145,7 @@ for ID in  $(cat identifiers.list); do
 	
 	done
 ```
-Note: `preprocess.py` is a wrapper around `fastq_preprocessor` which takes in 0 and 1 as False and True, respectively.  The reasoning for this is that I was able to keep the prefix `retain` while setting defaults easier.
+Note: `preprocess` is a wrapper around `fastq_preprocessor`.
 
 It creates the following directory structure where each sample is it's own subdirectory.  Makes globbing much easier:
 
