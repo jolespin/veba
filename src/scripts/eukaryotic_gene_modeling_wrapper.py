@@ -13,7 +13,7 @@ from soothsayer_utils import *
 
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.10.16"
+__version__ = "2023.11.13"
 
 # Tiara
 def get_tiara_cmd(input_filepaths, output_filepaths, output_directory, directories, opts):
@@ -131,6 +131,7 @@ def get_metaeuk_cmd(input_filepaths, output_filepaths, output_directory, directo
         "--threads {}".format(opts.n_jobs),
         "-s {}".format(opts.metaeuk_sensitivity),
         "-e {}".format(opts.metaeuk_evalue),
+        "--split-memory-limit {}".format(opts.metaeuk_split_memory_limit),
         opts.metaeuk_options,
         os.path.join(directories["tmp"], "tmp.fasta"),
         opts.metaeuk_database, # db
@@ -1380,6 +1381,7 @@ def main(args=None):
     parser_metaeuk = parser.add_argument_group('MetaEuk arguments')
     parser_metaeuk.add_argument("--metaeuk_sensitivity", type=float, default=4.0, help="MetaEuk | Sensitivity: 1.0 faster; 4.0 fast; 7.5 sensitive  [Default: 4.0]")
     parser_metaeuk.add_argument("--metaeuk_evalue", type=float, default=0.01, help="MetaEuk | List matches below this E-value (range 0.0-inf) [Default: 0.01]")
+    parser_metaeuk.add_argument("--metaeuk_split_memory_limit", type=str, default="36G", help="MetaEuk | Set max memory per split. E.g. 800B, 5K, 10M, 1G. Use 0 to use all available system memory. (Default value is experimental) [Default: 36G]")
     parser_metaeuk.add_argument("--metaeuk_options", type=str, default="", help="MetaEuk | More options (e.g. --arg 1 ) [Default: ''] https://github.com/soedinglab/metaeuk")
 
     # Pyrodigal

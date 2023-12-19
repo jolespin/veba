@@ -13,7 +13,7 @@ from soothsayer_utils import *
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.10.16"
+__version__ = "2023.12.12"
 
 
 # Bowtie2
@@ -451,9 +451,12 @@ def configure_parameters(opts, directories):
         assert os.path.isdir(opts.reference_index), "If --reference_saf is not provided, then --reference_index must be provided as a directory containing a file 'reference.saf'"
         opts.reference_saf = os.path.join(opts.reference_index, "reference.saf")
 
-    # Check if --reference_index is a directory, if it is then set reference.fa.gz as the directory
+    # Check if --reference_index is a directory, if it is then set reference.fa as the directory
     if os.path.isdir(opts.reference_index):
-        opts.reference_index = os.path.join(opts.reference_index, "reference.fa.gz")
+        if opts.reference_gzipped:
+            opts.reference_index = os.path.join(opts.reference_index, "reference.fa.gz")
+        else:
+            opts.reference_index = os.path.join(opts.reference_index, "reference.fa")
 
     # If --reference_fasta isn't provided then set it to the --reference_index
     if opts.reference_fasta is None:
@@ -491,10 +494,11 @@ def main(args=None):
     parser_io.add_argument("-o","--project_directory", type=str, default="veba_output/mapping", help = "path/to/project_directory [Default: veba_output/mapping]")
 
     parser_reference = parser.add_argument_group('Reference arguments')
-    parser_reference.add_argument("-x", "--reference_index",type=str, required=True, help="path/to/bowtie2_index. Either a file or directory. If directory, then it assumes the index is named `reference.fa.gz`")
+    parser_reference.add_argument("-x", "--reference_index",type=str, required=True, help="path/to/bowtie2_index. Either a file or directory. If directory, then it assumes the index is named `reference.fa`")
     parser_reference.add_argument("-r", "--reference_fasta", type=str, required=False, help = "path/to/reference.fasta. If not provided then it is set to the --reference_index" ) # ; or (2) a directory of fasta files [Must all have the same extension.  Use `query_ext` argument]
     parser_reference.add_argument("-a", "--reference_gff",type=str, required=False, help="path/to/reference.gff. If not provided then --reference_index must be a directory that contains the file: 'reference.gff'")
     parser_reference.add_argument("-s", "--reference_saf",type=str, required=False, help="path/to/reference.saf. If not provided then --reference_index must be a directory that contains the file: 'reference.saf'")
+    parser_reference.add_argument("-z", "--reference_gzipped",action="store_true", help="If --reference_index directory, then it assumes the index is named `reference.fa.gz` instead of `reference.fa`")
 
     # parser_io.add_argument("-S","--scaffold_identifier_mapping", type=str, required=False,  help = "path/to/scaffold_identifiers.tsv, Format: [id_scaffold]<tab>[id_mag]<tab>[id_cluster], No header")
     # parser_io.add_argument("-O","--orf_identifier_mapping", type=str, required=False,  help = "path/to/scaffold_identifiers.tsv, Format: [id_scaffold]<tab>[id_mag]<tab>[id_cluster], No header")
@@ -558,6 +562,7 @@ def main(args=None):
     print("Script version:", __version__, file=sys.stdout)
     print("Moment:", get_timestamp(), file=sys.stdout)
     print("Directory:", os.getcwd(), file=sys.stdout)
+    if "TMPDIR" in os.environ: print(os.environ["TMPDIR"], file=sys.stdout)
     print("Commands:", list(filter(bool,sys.argv)),  sep="\n", file=sys.stdout)
     configure_parameters(opts, directories)
     sys.stdout.flush()

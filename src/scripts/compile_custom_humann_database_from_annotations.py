@@ -11,7 +11,7 @@ from Bio.SeqIO.FastaIO import SimpleFastaParser
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.10.11"
+__version__ = "2023.12.15"
 
 
 def main(args=None):
@@ -31,7 +31,7 @@ def main(args=None):
     parser.add_argument("-a","--annotations",  type=str,  required=True, help = "path/to/annotations.tsv[.gz] Output from annotations.py. Multi-level header that contains (UniRef, sseqid)")
     parser.add_argument("-t","--taxonomy",  type=str, required=True,  help = "path/to/taxonomy.tsv[.gz] [id_genome]<tab>[classification] (No header).  Use output from `merge_taxonomy_classifications.py` with --no_header and --no_domain")
     parser.add_argument("-s","--sequences",  type=str, required=True,  help = "path/to/proteins.fasta[.gz]")
-    parser.add_argument("-o","--output", type=str, default="stdout", help = "path/to/humann_uniref_annotations.tsv[.gz] [Default: stdout]")
+    parser.add_argument("-o","--output", type=str, default="stdout", help = "path/to/humann_uniref_annotations.tsv[.gz] (veba_output/profiling/databases/) is recommended [Default: stdout]")
     parser.add_argument("--sep", default=";", help = "Separator for taxonomic levels [Default: ;]")
     # parser.add_argument("--mandatory_taxonomy_prefixes", help = "Comma-separated values for mandatory prefix levels. (e.g., 'c__,f__,g__,s__')")
     # parser.add_argument("--discarded_file",  help = "Proteins that have been discarded due to incomplete lineage")

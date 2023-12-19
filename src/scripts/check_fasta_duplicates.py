@@ -3,7 +3,7 @@ import sys, os, argparse, gzip
 from tqdm import tqdm
 
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.4.17"
+__version__ = "2023.11.10"
 
 def main(args=None):
     # Path info
@@ -30,13 +30,15 @@ def main(args=None):
     if not opts.input:
         identifiers = set()
         duplicates = set()
-        for line in tqdm(sys.stdin, "stdin"):
+        for i, line in tqdm(enumerate(sys.stdin), "stdin"):
             if line.startswith(">"):
                 id = line[1:].split(" ")[0].strip()
                 if id not in identifiers:
                     identifiers.add(id)
                 else:
                     duplicates.add(id)
+            else:
+                assert ">" not in line, "Line={} has a '>' character in the sequence which will cause an error.  This can arise from concatenating fasta files where a record is missing a final linebreak".format(i+1)
         if duplicates:
             print("# Duplicates:", *sorted(duplicates), file=sys.stdout, sep="\n", end=None)
             sys.exit(1)
@@ -48,13 +50,16 @@ def main(args=None):
             identifiers = set()
             duplicates = set()
             f = {True:gzip.open(fp, "rt"), False:open(fp, "r")}[fp.endswith(".gz")]
-            for line in tqdm(f, fp):
+            for i,line in tqdm(enumerate(f), fp):
                 if line.startswith(">"):
                     id = line[1:].split(" ")[0]
                     if id not in identifiers:
                         identifiers.add(id)
                     else:
                         duplicates.add(id)
+                else:
+                    assert ">" not in line, "Line={} has a '>' character in the sequence which will cause an error.  This can arise from concatenating fasta files where a record is missing a final linebreak".format(i+1)
+
             if duplicates:
                 files_with_duplicates.add(fp)
                 print(f"[Fail] {fp}", file=sys.stdout)

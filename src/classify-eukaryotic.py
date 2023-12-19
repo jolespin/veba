@@ -14,7 +14,7 @@ from soothsayer_utils import *
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.10.16"
+__version__ = "2023.11.30"
 
 # Assembly
 def get_concatenate_cmd( input_filepaths, output_filepaths, output_directory, directories, opts):
@@ -160,7 +160,7 @@ def get_compile_cmd( input_filepaths, output_filepaths, output_directory, direct
 
     return cmd
 
-def get_consensus_genome_classification_cmd( input_filepaths, output_filepaths, output_directory, directories, opts):
+def get_consensus_genome_classification_ranked_cmd( input_filepaths, output_filepaths, output_directory, directories, opts):
 
     # Command
     cmd = [ 
@@ -172,7 +172,7 @@ def get_consensus_genome_classification_cmd( input_filepaths, output_filepaths, 
         "|",
         "tail -n +2",
         "|",
-        os.environ["consensus_genome_classification.py"],
+        os.environ["consensus_genome_classification_ranked.py"],
         "--leniency {}".format(opts.leniency),
         "-o {}".format(output_filepaths[0]),
         "-r c__,o__,f__,g__,s__",
@@ -224,7 +224,7 @@ def get_consensus_cluster_classification_cmd( input_filepaths, output_filepaths,
         "-n id_genome_cluster",
         "-i 0",
         "|",
-        os.environ["consensus_genome_classification.py"],
+        os.environ["consensus_genome_classification_ranked.py"],
         "--leniency {}".format(opts.leniency),
         "-o {}".format(output_filepaths[0]),
         "-r c__,o__,f__,g__,s__",
@@ -252,7 +252,7 @@ def add_executables_to_environment(opts):
         "filter_hmmsearch_results.py",
         "subset_table.py",
         "compile_eukaryotic_classifications.py",
-        "consensus_genome_classification.py",
+        "consensus_genome_classification_ranked.py",
         "insert_column_to_table.py",
         "metaeuk_wrapper.py",
         "scaffolds_to_bins.py",
@@ -481,7 +481,7 @@ def create_pipeline(opts, directories, f_cmds):
     # ==========
     step += 1
 
-    program = "consensus_genome_classification"
+    program = "consensus_genome_classification_ranked"
     program_label = "{}__{}".format(step, program)
     # Add to directories
     output_directory = directories["output"]# = create_directory(os.path.join(directories["intermediate"], program_label))
@@ -504,7 +504,7 @@ def create_pipeline(opts, directories, f_cmds):
         "directories":directories,
     }
 
-    cmd = get_consensus_genome_classification_cmd(**params)
+    cmd = get_consensus_genome_classification_ranked_cmd(**params)
 
     pipeline.add_step(
                 id=program,
@@ -698,6 +698,7 @@ def main(args=None):
     print("VEBA Database:", opts.veba_database, file=sys.stdout)
     print("Moment:", get_timestamp(), file=sys.stdout)
     print("Directory:", os.getcwd(), file=sys.stdout)
+    if "TMPDIR" in os.environ: print(os.environ["TMPDIR"], file=sys.stdout)
     print("Commands:", list(filter(bool,sys.argv)),  sep="\n", file=sys.stdout)
     configure_parameters(opts, directories)
     sys.stdout.flush()

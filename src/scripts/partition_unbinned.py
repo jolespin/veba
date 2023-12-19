@@ -4,7 +4,7 @@ from collections import defaultdict
 from Bio.SeqIO.FastaIO import SimpleFastaParser
 
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2021.08.05"
+__version__ = "2023.12.18"
 
 def main(args=None):
     # Path info
@@ -24,7 +24,7 @@ def main(args=None):
     parser.add_argument("-b","--bins", type=str, required=True, help = "path/to/bins.list, No header")
     parser.add_argument("-f","--fasta", type=str, required=True, help = "path/to/fasta")
     parser.add_argument("-o","--output", type=str, default="stdout",  help = "Output fasta file [Default: stdout]")
-    parser.add_argument("-m", "--minimum_contig_length", type=int, default=1000, help="Minimum contig length.  [Default: 1000] ")
+    parser.add_argument("-m", "--minimum_contig_length", type=int, default=1, help="Minimum contig length.  [Default: 1] ")
     parser.add_argument("--mode", type=str, default="unbinned", help="Get 'unbinned' or 'binned' contigs [Default: 'unbinned'] ")
 
 

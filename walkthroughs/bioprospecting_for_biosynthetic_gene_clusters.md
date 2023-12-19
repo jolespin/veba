@@ -12,6 +12,8 @@ _____________________________________________________
 1. Compile table of genomes and gene models
 2. Identify biosynthetic gene clusters and score novelty
 
+**Conda Environment:** `conda activate VEBA`. Use this for intermediate scripts.
+
 _____________________________________________________
 
 
@@ -37,8 +39,6 @@ We only need the `[id_genome] [path/to/genome.fasta] [path/to/gene_models.gff]` 
 
 Now that we have our genome table formatted so it is `[id_genome] [path/to/genome.fasta] [path/to/gene_models.gff]` without headers, we can run the `biosynthetic.py` module to identify biosynthetic gene clusters via `antiSMASH` and detect homology of components to the `MIBiG` database.
 
-**Conda Environment:** `conda activate VEBA-biosynthetic_env`
-
 
 ```
 # Set the number of threads
@@ -55,7 +55,7 @@ GENOMES=veba_output/misc/genomes_gene-models.tsv
 OUT_DIR=veba_output/biosynthetic/prokaryotic
 
 # Directory
-CMD="source activate VEBA-biosynthetic_env && biosynthetic.py -i ${GENOMES} -o ${OUT_DIR} -p ${N_JOBS} -t bacteria"
+CMD="source activate VEBA && veba --module biosynthetic --params \"-i ${GENOMES} -o ${OUT_DIR} -p ${N_JOBS} -t bacteria\""
 
 # Either run this command or use SunGridEnginge/SLURM
 ```

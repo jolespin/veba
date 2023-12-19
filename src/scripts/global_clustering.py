@@ -15,7 +15,7 @@ from soothsayer_utils import *
 
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.10.24"
+__version__ = "2023.12.8"
 
 def get_basename(x):
     _, fn = os.path.split(x)
@@ -50,13 +50,15 @@ def add_executables_to_environment(opts):
     """
     accessory_scripts = {
         "edgelist_to_clusters.py",
-        "mmseqs2_wrapper.py",
+        "clustering_wrapper.py",
         # "table_to_fasta.py",
     }
 
     required_executables={
+        "skani",
         "fastANI",
         "mmseqs",
+        "diamond",
      } 
   
 
@@ -97,7 +99,18 @@ def add_executables_to_environment(opts):
 # Configure parameters
 def configure_parameters(opts, directories):
     
-    assert_acceptable_arguments(opts.algorithm, {"easy-cluster", "easy-linclust"})
+    assert_acceptable_arguments(opts.protein_clustering_algorithm, {"easy-cluster", "easy-linclust", "mmseqs-cluster", "mmseqs-linclust", "diamond-cluster", "diamond-linclust"})
+    if opts.protein_clustering_algorithm in {"easy-cluster", "easy-linclust"}:
+        d = {"easy-cluster":"mmseqs-cluster", "easy-linclust":"mmseqs-linclust"}
+        warnings.warn("\n\nPlease use `{}` instead of `{}` for MMSEQS2 clustering.".format(d[opts.protein_clustering_algorithm], opts.protein_clustering_algorithm))
+        opts.protein_clustering_algorithm = d[opts.protein_clustering_algorithm]
+
+    if opts.skani_nonviral_preset.lower() == "none":
+        opts.skani_nonviral_preset = None
+
+    if opts.skani_viral_preset.lower() == "none":
+        opts.skani_viral_preset = None
+
     assert 0 < opts.minimum_core_prevalence <= 1.0, "--minimum_core_prevalence must be a float between (0.0,1.0])"
     # Set environment variables
     add_executables_to_environment(opts=opts)
@@ -119,10 +132,10 @@ def main(args=None):
     parser_io = parser.add_argument_group('Required I/O arguments')
     parser_io.add_argument("-i", "--genomes_table", type=str, default="stdin",  help = "path/to/genomes_table.tsv, Format: Must include the following columns (No header) [organism_type]<tab>[id_sample]<tab>[id_mag]<tab>[genome]<tab>[proteins]<tab>[cds] but can include additional columns to the right (e.g., [gene_models]).  Suggested input is from `compile_genomes_table.py` script. [Default: stdin]")
     parser_io.add_argument("-o","--output_directory", type=str, default="global_clustering_output", help = "path/to/project_directory [Default: global_clustering_output]")
-    parser_io.add_argument("-e", "--no_singletons", action="store_true", help="Exclude singletons") #isPSLC-1_SSPC-3345__SRR178126
-    parser_io.add_argument("-R", "--no_representative_sequences", action="store_true", help="Do not write representative sequences to fasta") #isPSLC-1_SSPC-3345__SRR178126
-    parser_io.add_argument("-C", "--no_core_sequences", action="store_true", help="Do not write core pagenome sequences to fasta") #isPSLC-1_SSPC-3345__SRR178126
-    # parser_io.add_argument("-M", "--no_marker_sequences", action="store_true", help="Do not write core pagenome sequences to fasta") #isPSLC-1_SSPC-3345__SRR178126
+    parser_io.add_argument("-e", "--no_singletons", action="store_true", help="Exclude singletons")
+    parser_io.add_argument("-R", "--no_representative_sequences", action="store_true", help="Do not write representative sequences to fasta") 
+    parser_io.add_argument("-C", "--no_core_sequences", action="store_true", help="Do not write core pagenome sequences to fasta") 
+    # parser_io.add_argument("-M", "--no_marker_sequences", action="store_true", help="Do not write core pagenome sequences to fasta") 
 
     # Utility
     parser_utility = parser.add_argument_group('Utility arguments')
@@ -132,28 +145,49 @@ def main(args=None):
     parser_utility.add_argument("-v", "--version", action='version', version="{} v{}".format(__program__, __version__))
     # parser_utility.add_argument("--verbose", action='store_true')
 
-    # FastANI
+    # ANI
+    parser_genome_clustering = parser.add_argument_group('Genome clustering arguments')
+    parser_genome_clustering.add_argument("-G", "--genome_clustering_algorithm", type=str,  choices={"fastani", "skani"}, default="skani", help="Program to use for ANI calculations.  `skani` is faster and more memory efficient. For v1.0.0 - v1.3.x behavior, use `fastani`. [Default: skani]")
+    parser_genome_clustering.add_argument("-A", "--ani_threshold", type=float, default=95.0, help="Species-level cluster (SLC) ANI threshold (Range (0.0, 100.0]) [Default: 95.0]")
+    parser_genome_clustering.add_argument("--genome_cluster_prefix", type=str, default="SLC-", help="Cluster prefix [Default: 'SLC-")
+    parser_genome_clustering.add_argument("--genome_cluster_suffix", type=str, default="", help="Cluster suffix [Default: '")
+    parser_genome_clustering.add_argument("--genome_cluster_prefix_zfill", type=int, default=0, help="Cluster prefix zfill. Use 7 to match identifiers from OrthoFinder.  Use 0 to add no zfill. [Default: 0]") #7
+
+    parser_skani = parser.add_argument_group('Skani triangle arguments')
+    parser_skani.add_argument("--skani_target_ani",  type=float, default=80, help="skani | If you set --skani_target_ani to --ani_threshold, you may screen out genomes ANI ≥ --ani_threshold [Default: 80]")
+    parser_skani.add_argument("--skani_minimum_af",  type=float, default=15, help="skani | Minimum aligned fraction greater than this value [Default: 15]")
+    parser_skani.add_argument("--skani_no_confidence_interval",  action="store_true", help="skani | Output [5,95] ANI confidence intervals using percentile bootstrap on the putative ANI distribution")
+    # parser_skani.add_argument("--skani_low_memory", action="store_true", help="Skani | More options (e.g. --arg 1 ) https://github.com/bluenote-1577/skani [Default: '']")
+
+    parser_skani = parser.add_argument_group('[Prokaryotic & Eukaryotic] Skani triangle arguments')
+    parser_skani.add_argument("--skani_nonviral_preset", type=str, default="medium", choices={"fast", "medium", "slow", "none"}, help="skani [Prokaryotic & Eukaryotic]| Use `none` if you are setting skani -c (compression factor) {fast, medium, slow, none} [Default: medium]")
+    parser_skani.add_argument("--skani_nonviral_compression_factor", type=int, default=125,  help="skani [Prokaryotic & Eukaryotic]|  Compression factor (k-mer subsampling rate).	[Default: 125]")
+    parser_skani.add_argument("--skani_nonviral_marker_kmer_compression_factor", type=int, default=1000,  help="skani [Prokaryotic & Eukaryotic] | Marker k-mer compression factor. Markers are used for filtering. [Default: 1000]")
+    parser_skani.add_argument("--skani_nonviral_options", type=str, default="", help="skani [Prokaryotic & Eukaryotic] | More options for `skani triangle` (e.g. --arg 1 ) [Default: '']")
+
+    parser_skani = parser.add_argument_group('[Viral] Skani triangle arguments')
+    parser_skani.add_argument("--skani_viral_preset", type=str, default="slow", choices={"fast", "medium", "slow", "none"}, help="skani | Use `none` if you are setting skani -c (compression factor) {fast, medium, slow, none} [Default: slow]")
+    parser_skani.add_argument("--skani_viral_compression_factor", type=int, default=30,  help="skani [Viral] | Compression factor (k-mer subsampling rate).	[Default: 30]")
+    parser_skani.add_argument("--skani_viral_marker_kmer_compression_factor", type=int, default=200,  help="skani [Viral] | Marker k-mer compression factor. Markers are used for filtering. Consider decreasing to ~200-300 if working with small genomes (e.g. plasmids or viruses). [Default: 200]")
+    parser_skani.add_argument("--skani_viral_options", type=str, default="", help="skani [Viral] | More options for `skani triangle` (e.g. --arg 1 ) [Default: '']")
+
     parser_fastani = parser.add_argument_group('FastANI arguments')
-    parser_fastani.add_argument("-A", "--ani_threshold", type=float, default=95.0, help="FastANI | Species-level cluster (SLC) ANI threshold (Range (0.0, 100.0]) [Default: 95.0]")
-    parser_fastani.add_argument("--genome_cluster_prefix", type=str, default="SLC-", help="Cluster prefix [Default: 'SLC-")
-    parser_fastani.add_argument("--genome_cluster_suffix", type=str, default="", help="Cluster suffix [Default: '")
-    parser_fastani.add_argument("--genome_cluster_prefix_zfill", type=int, default=0, help="Cluster prefix zfill. Use 7 to match identifiers from OrthoFinder.  Use 0 to add no zfill. [Default: 0]") #7
     parser_fastani.add_argument("--fastani_options", type=str, default="", help="FastANI | More options (e.g. --arg 1 ) [Default: '']")
 
-    # MMSEQS2
-    parser_mmseqs2 = parser.add_argument_group('MMSEQS2 arguments')
-    parser_mmseqs2.add_argument("-a", "--algorithm", type=str, default="easy-cluster", help="MMSEQS2 | {easy-cluster, easy-linclust} [Default: easy-cluster]")
-    parser_mmseqs2.add_argument("-t", "--minimum_identity_threshold", type=float, default=50.0, help="MMSEQS2 | SLC-Specific Protein Cluster (SSPC, previously referred to as SSO) percent identity threshold (Range (0.0, 100.0]) [Default: 50.0]")
-    parser_mmseqs2.add_argument("-c", "--minimum_coverage_threshold", type=float, default=0.8, help="MMSEQS2 | SSPC coverage threshold (Range (0.0, 1.0]) [Default: 0.8]")
-    parser_mmseqs2.add_argument("--protein_cluster_prefix", type=str, default="SSPC-", help="Cluster prefix [Default: 'SSPC-")
-    parser_mmseqs2.add_argument("--protein_cluster_suffix", type=str, default="", help="Cluster suffix [Default: '")
-    parser_mmseqs2.add_argument("--protein_cluster_prefix_zfill", type=int, default=0, help="Cluster prefix zfill. Use 7 to match identifiers from OrthoFinder.  Use 0 to add no zfill. [Default: 0]") #7
-    parser_mmseqs2.add_argument("--mmseqs2_options", type=str, default="", help="MMSEQS2 | More options (e.g. --arg 1 ) [Default: '']")
+    # Clustering
+    parser_protein_clustering = parser.add_argument_group('Protein clustering arguments')
+    parser_protein_clustering.add_argument("-P", "--protein_clustering_algorithm", type=str, choices={"mmseqs-cluster", "mmseqs-linclust", "diamond-cluster", "diamond-linclust"}, default="mmseqs-cluster", help="Clustering algorithm | Diamond can only be used for clustering proteins {mmseqs-cluster, mmseqs-linclust, diamond-cluster, mmseqs-linclust} [Default: mmseqs-cluster]")
+    parser_protein_clustering.add_argument("-t", "--minimum_identity_threshold", type=float, default=50.0, help="Clustering | Percent identity threshold (Range (0.0, 100.0]) [Default: 50.0]")
+    parser_protein_clustering.add_argument("-c", "--minimum_coverage_threshold", type=float, default=0.8, help="Clustering | Coverage threshold (Range (0.0, 1.0]) [Default: 0.8]")
+    parser_protein_clustering.add_argument("--protein_cluster_prefix", type=str, default="SSPC-", help="Cluster prefix [Default: 'SSPC-")
+    parser_protein_clustering.add_argument("--protein_cluster_suffix", type=str, default="", help="Cluster suffix [Default: '")
+    parser_protein_clustering.add_argument("--protein_cluster_prefix_zfill", type=int, default=0, help="Cluster prefix zfill. Use 7 to match identifiers from OrthoFinder.  Use 0 to add no zfill. [Default: 0]") #7
+    parser_protein_clustering.add_argument("--mmseqs2_options", type=str, default="", help="MMSEQS2 | More options (e.g. --arg 1 ) [Default: '']")
+    parser_protein_clustering.add_argument("--diamond_options", type=str, default="", help="Diamond | More options (e.g. --arg 1 ) [Default: '']")
 
     # Pangenome
     parser_pangenome = parser.add_argument_group('Pangenome arguments')
     parser_pangenome.add_argument("--minimum_core_prevalence", type=float, default=1.0, help="Minimum ratio of genomes detected in a SLC for a SSPC to be considered core (Range (0.0, 1.0]) [Default: 1.0]")
-
 
     # Options
     opts = parser.parse_args()
@@ -196,6 +230,19 @@ def main(args=None):
     configure_parameters(opts, directories)
     sys.stdout.flush()
 
+    # Genome clustering algorithm
+    GENOME_CLUSTERING_ALGORITHM = opts.genome_clustering_algorithm.lower()
+    if GENOME_CLUSTERING_ALGORITHM == "fastani":
+        GENOME_CLUSTERING_ALGORITHM = "FastANI"
+    if GENOME_CLUSTERING_ALGORITHM == "skani":
+        GENOME_CLUSTERING_ALGORITHM = "skani"
+
+    # Protein clustering algorithm
+    PROTEIN_CLUSTERING_ALGORITHM = opts.protein_clustering_algorithm.split("-")[0].lower()
+    if PROTEIN_CLUSTERING_ALGORITHM == "mmseqs":
+        PROTEIN_CLUSTERING_ALGORITHM = PROTEIN_CLUSTERING_ALGORITHM.upper()
+    if PROTEIN_CLUSTERING_ALGORITHM == "diamond":
+        PROTEIN_CLUSTERING_ALGORITHM = PROTEIN_CLUSTERING_ALGORITHM.capitalize()
 
     # Make directories
     t0 = time.time()
@@ -279,50 +326,125 @@ def main(args=None):
     # Commands
     f_cmds = open(os.path.join(opts.output_directory, "commands.sh"), "w")
 
-    # FastANI
-    print(format_header("* ({}) Running FastANI:".format(format_duration(t0))), file=sys.stdout)
-    for fp in pv(glob.glob(os.path.join(directories["intermediate"], "*",  "genomes.list")), "Running FastANI"):
+    # Pairwise ANI
+    print(format_header("* ({}) Running {}:".format(format_duration(t0), GENOME_CLUSTERING_ALGORITHM)), file=sys.stdout)
+    for fp in pv(glob.glob(os.path.join(directories["intermediate"], "*",  "genomes.list")), "Running pairwise ANI"):
         fields = fp.split("/")
         organism_type = fields[-2]
         output_directory = os.path.split(fp)[0]
+
+        if opts.genome_clustering_algorithm == "skani":
+            name = "skani__{}".format(organism_type)
+            description = "[Program = skani] [Organism_Type = {}]".format(organism_type)
+
+            arguments = list()
+
+            if organism_type.lower() in {"viral", "virus", "virion"}:
+                arguments += [
+                os.environ["skani"],
+                "triangle",
+                "--sparse",
+                "-t {}".format(opts.n_jobs),
+                "-l {}".format(fp),
+                "-o {}".format(os.path.join(output_directory, "skani_output.tsv")),
+                "--ci" if not opts.skani_no_confidence_interval else "",
+                "--min-af {}".format(opts.skani_minimum_af),
+                "-s {}".format(opts.skani_target_ani),
+                "-c {}".format(opts.skani_viral_compression_factor),
+                "-m {}".format(opts.skani_viral_marker_kmer_compression_factor),
+                "--{}".format(opts.skani_viral_preset) if opts.skani_viral_preset else "",
+                opts.skani_viral_options,
+                ]
+
+            else:
+                arguments += [
+                os.environ["skani"],
+                "triangle",
+                "--sparse",
+                "-t {}".format(opts.n_jobs),
+                "-l {}".format(fp),
+                "-o {}".format(os.path.join(output_directory, "skani_output.tsv")),
+                "--ci" if not opts.skani_no_confidence_interval else "",
+                "--min-af {}".format(opts.skani_minimum_af),
+                "-s {}".format(opts.skani_target_ani),
+                "-c {}".format(opts.skani_nonviral_compression_factor),
+                "-m {}".format(opts.skani_nonviral_marker_kmer_compression_factor),
+                "--{}".format(opts.skani_nonviral_preset) if opts.skani_nonviral_preset else "",
+                opts.skani_nonviral_options,
+                ]
+
+            arguments += [
+                    "&&",
+
+                "cat",
+                os.path.join(output_directory, "skani_output.tsv"),
+                "|",
+                "cut -f1-3",
+                "|",
+                "tail -n +2",
+                "|",
+                os.environ["edgelist_to_clusters.py"],
+                "--basename",
+                "-t {}".format(opts.ani_threshold),
+                "--no_singletons" if bool(opts.no_singletons) else "",
+                "--cluster_prefix {}{}".format(organism_type[0].upper(), opts.genome_cluster_prefix),
+                "--cluster_suffix {}".format(opts.genome_cluster_suffix) if bool(opts.genome_cluster_suffix) else "",
+                "--cluster_prefix_zfill {}".format(opts.genome_cluster_prefix_zfill),
+                "-o {}".format(os.path.join(output_directory, "genome_clusters.tsv")),
+                "--identifiers {}".format(os.path.join(directories["intermediate"], organism_type, "genome_identifiers.list")),
+                "--export_graph {}".format(os.path.join(directories["serialization"], f"{organism_type}.networkx_graph.pkl")),
+                "--export_dict {}".format(os.path.join(directories["serialization"], f"{organism_type}.dict.pkl")),
+
+                    "&&",
+
+                "rm -rf {}".format(os.path.join(directories["tmp"], "*")),
+
+                ] 
+            
+            cmd = Command(
+                arguments,
+                name=name, 
+                f_cmds=f_cmds,
+                )
         
-        name = "fastani__{}".format(organism_type)
-        description = "[Program = FastANI] [Organism_Type = {}]".format(organism_type)
-        cmd = Command([
-            os.environ["fastANI"],
-            "-t {}".format(opts.n_jobs),
-            "--rl {}".format(fp),
-            "--ql {}".format(fp),
-            "-o {}".format(os.path.join(output_directory, "fastani_output.tsv")),
-            opts.fastani_options,
+        if opts.genome_clustering_algorithm == "fastani":
+            name = "fastani__{}".format(organism_type)
+            description = "[Program = FastANI] [Organism_Type = {}]".format(organism_type)
+            cmd = Command([
+                os.environ["fastANI"],
+                "-t {}".format(opts.n_jobs),
+                "--rl {}".format(fp),
+                "--ql {}".format(fp),
+                "-o {}".format(os.path.join(output_directory, "fastani_output.tsv")),
+                opts.fastani_options,
 
-                "&&",
+                    "&&",
 
-            "cat",
-            os.path.join(output_directory, "fastani_output.tsv"),
-            "|",
-            "cut -f1-3",
-            "|",
-            os.environ["edgelist_to_clusters.py"],
-            "--basename",
-            "-t {}".format(opts.ani_threshold),
-            "--no_singletons" if bool(opts.no_singletons) else "",
-            "--cluster_prefix {}{}".format(organism_type[0].upper(), opts.genome_cluster_prefix),
-            "--cluster_suffix {}".format(opts.genome_cluster_suffix) if bool(opts.genome_cluster_suffix) else "",
-            "--cluster_prefix_zfill {}".format(opts.genome_cluster_prefix_zfill),
-            "-o {}".format(os.path.join(output_directory, "genome_clusters.tsv")),
-            "--identifiers {}".format(os.path.join(directories["intermediate"], organism_type, "genome_identifiers.list")),
-            "--export_graph {}".format(os.path.join(directories["serialization"], f"{organism_type}.networkx_graph.pkl")),
-            "--export_dict {}".format(os.path.join(directories["serialization"], f"{organism_type}.dict.pkl")),
+                "cat",
+                os.path.join(output_directory, "fastani_output.tsv"),
+                "|",
+                "cut -f1-3",
+                "|",
+                os.environ["edgelist_to_clusters.py"],
+                "--basename",
+                "-t {}".format(opts.ani_threshold),
+                "--no_singletons" if bool(opts.no_singletons) else "",
+                "--cluster_prefix {}{}".format(organism_type[0].upper(), opts.genome_cluster_prefix),
+                "--cluster_suffix {}".format(opts.genome_cluster_suffix) if bool(opts.genome_cluster_suffix) else "",
+                "--cluster_prefix_zfill {}".format(opts.genome_cluster_prefix_zfill),
+                "-o {}".format(os.path.join(output_directory, "genome_clusters.tsv")),
+                "--identifiers {}".format(os.path.join(directories["intermediate"], organism_type, "genome_identifiers.list")),
+                "--export_graph {}".format(os.path.join(directories["serialization"], f"{organism_type}.networkx_graph.pkl")),
+                "--export_dict {}".format(os.path.join(directories["serialization"], f"{organism_type}.dict.pkl")),
 
-                "&&",
+                    "&&",
 
-            "rm -rf {}".format(os.path.join(directories["tmp"], "*")),
+                "rm -rf {}".format(os.path.join(directories["tmp"], "*")),
 
-            ], 
-            name=name, 
-            f_cmds=f_cmds,
-            )
+                ], 
+                name=name, 
+                f_cmds=f_cmds,
+                )
 
         # Run command
         cmd.run(
@@ -339,11 +461,11 @@ def main(args=None):
                 print("Check the following files:\ncat {}".format(os.path.join(directories["log"], "{}.*".format(name))), file=sys.stdout)
                 sys.exit(cmd.returncode_)
 
-    # MMSEQS2
-    print(format_header(" * ({}) Running MMSEQS2:".format(format_duration(t0))), file=sys.stdout)
+    # Protein Clustering
+    print(format_header(" * ({}) Running {}:".format(format_duration(t0), PROTEIN_CLUSTERING_ALGORITHM)), file=sys.stdout)
     mag_to_genomecluster = dict()
     protein_to_proteincluster = dict()
-    for fp in pv(glob.glob(os.path.join(directories["intermediate"], "*", "genome_clusters.tsv")), "Running MMSEQS2"):
+    for fp in pv(glob.glob(os.path.join(directories["intermediate"], "*", "genome_clusters.tsv")), "Running {}".format(PROTEIN_CLUSTERING_ALGORITHM)):
         fields = fp.split("/")
         organism_type = fields[-2]
 
@@ -363,20 +485,21 @@ def main(args=None):
                 print(*proteins, sep="\n", file=f)
             write_fasta(protein_to_sequence[proteins], os.path.join(genomecluster_directory, "proteins.faa" ))
 
-            # Run MMSEQS2
-            name = "mmseqs2__{}__{}".format(organism_type, id_genomecluster)
-            description = "[Program = MMSEQS2] [Organism_Type = {}] [Genome_Cluster = {}]".format(organism_type, id_genomecluster)
+            # Run Clustering
+            name = "{}__{}__{}".format(PROTEIN_CLUSTERING_ALGORITHM.lower(), organism_type, id_genomecluster)
+            description = "[Program = {}] [Organism_Type = {}] [Genome_Cluster = {}]".format(PROTEIN_CLUSTERING_ALGORITHM, organism_type, id_genomecluster)
 
             cmd = Command([
-                os.environ["mmseqs2_wrapper.py"],
+                os.environ["clustering_wrapper.py"],
                 "--fasta {}".format(os.path.join(genomecluster_directory, "proteins.faa" )),
                 "--output_directory {}".format(genomecluster_directory),
                 "--no_singletons" if bool(opts.no_singletons) else "",
-                "--algorithm {}".format(opts.algorithm),
+                "--algorithm {}".format(opts.protein_clustering_algorithm),
                 "--n_jobs {}".format(opts.n_jobs),
                 "--minimum_identity_threshold {}".format(opts.minimum_identity_threshold),
                 "--minimum_coverage_threshold {}".format(opts.minimum_coverage_threshold),
                 "--mmseqs2_options='{}'" if bool(opts.mmseqs2_options) else "",
+                "--diamond_options='{}'" if bool(opts.diamond_options) else "",
                 "--cluster_prefix {}_{}".format(id_genomecluster, opts.protein_cluster_prefix),
                 "--cluster_suffix {}".format(opts.protein_cluster_suffix) if bool(opts.protein_cluster_suffix) else "",
                 "--cluster_prefix_zfill {}".format(opts.protein_cluster_prefix_zfill),

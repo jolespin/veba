@@ -1,11 +1,12 @@
 #!/bin/bash
-# __version__ = "2023.10.23"
-# VEBA_DATABASE_VERSION = "VDB_v5.2"
-# MICROEUKAYROTIC_DATABASE_VERSION = "VDB-Microeukaryotic_v2.1"
+# __version__ = "2023.12.11"
+# VEBA_DATABASE_VERSION = "VDB_v6"
+# MICROEUKAYROTIC_DATABASE_VERSION = "MicroEuk_v3"
 
 # Create database
 DATABASE_DIRECTORY=${1:-"."}
 REALPATH_DATABASE_DIRECTORY=$(realpath $DATABASE_DIRECTORY)
+SCRIPT_DIRECTORY=$(dirname "$0")
 
 # N_JOBS=$(2:-"1")
 
@@ -28,7 +29,7 @@ echo ". .. ... ..... ........ ............."
 echo "i * Processing NCBITaxonomy"
 echo ". .. ... ..... ........ ............."
 mkdir -v -p ${DATABASE_DIRECTORY}/Classify/NCBITaxonomy
-wget -v -P ${DATABASE_DIRECTORY}/Classify/NCBITaxonomy https://ftp.ncbi.nlm.nih.gov/pub/taxonomy/accession2taxid/prot.accession2taxid.FULL.gz 
+# wget -v -P ${DATABASE_DIRECTORY}/Classify/NCBITaxonomy https://ftp.ncbi.nlm.nih.gov/pub/taxonomy/accession2taxid/prot.accession2taxid.FULL.gz 
 wget -v -P ${DATABASE_DIRECTORY} https://ftp.ncbi.nlm.nih.gov/pub/taxonomy/taxdump.tar.gz
 # python -c 'import sys; from ete3 import NCBITaxa; NCBITaxa(taxdump_file="%s/taxdump.tar.gz"%(sys.argv[1]), dbfile="%s/Classify/NCBITaxonomy/taxa.sqlite"%(sys.argv[1]))' $DATABASE_DIRECTORY
 tar xzfv ${DATABASE_DIRECTORY}/taxdump.tar.gz -C ${DATABASE_DIRECTORY}/Classify/NCBITaxonomy/
@@ -86,18 +87,56 @@ echo ". .. ... ..... ........ ............."
 echo "v * Processing Microeukaryotic MMSEQS2 database"
 echo ". .. ... ..... ........ ............."
 
-# Download v2.1 from Zenodo
-wget -v -O ${DATABASE_DIRECTORY}/Microeukaryotic.tar.gz https://zenodo.org/record/7485114/files/VDB-Microeukaryotic_v2.tar.gz?download=1
-mkdir -p ${DATABASE_DIRECTORY}/Classify/Microeukaryotic && tar -xvzf ${DATABASE_DIRECTORY}/Microeukaryotic.tar.gz -C ${DATABASE_DIRECTORY}/Classify/Microeukaryotic --strip-components=1
-mmseqs createdb ${DATABASE_DIRECTORY}/Classify/Microeukaryotic/reference.faa.gz ${DATABASE_DIRECTORY}/Classify/Microeukaryotic/microeukaryotic
-rm -rf ${DATABASE_DIRECTORY}/Microeukaryotic.tar.gz
+## Download v2.1 from Zenodo
+# wget -v -O ${DATABASE_DIRECTORY}/Microeukaryotic.tar.gz https://zenodo.org/record/7485114/files/VDB-Microeukaryotic_v2.tar.gz?download=1
+# mkdir -p ${DATABASE_DIRECTORY}/Classify/Microeukaryotic && tar -xvzf ${DATABASE_DIRECTORY}/Microeukaryotic.tar.gz -C ${DATABASE_DIRECTORY}/Classify/Microeukaryotic --strip-components=1
+# mmseqs createdb --compressed 1 ${DATABASE_DIRECTORY}/Classify/Microeukaryotic/reference.faa.gz ${DATABASE_DIRECTORY}/Classify/Microeukaryotic/microeukaryotic
+# rm -rf ${DATABASE_DIRECTORY}/Microeukaryotic.tar.gz
 
-# eukaryota_odb10 subset of Microeukaryotic Protein Database
-wget -v -O ${DATABASE_DIRECTORY}/Classify/Microeukaryotic/reference.eukaryota_odb10.list https://zenodo.org/record/7485114/files/reference.eukaryota_odb10.list?download=1
-seqkit grep -f ${DATABASE_DIRECTORY}/Classify/Microeukaryotic/reference.eukaryota_odb10.list ${DATABASE_DIRECTORY}/Classify/Microeukaryotic/reference.faa.gz > ${DATABASE_DIRECTORY}/Classify/Microeukaryotic/reference.eukaryota_odb10.faa
-mmseqs createdb ${DATABASE_DIRECTORY}/Classify/Microeukaryotic/reference.eukaryota_odb10.faa ${DATABASE_DIRECTORY}/Classify/Microeukaryotic/microeukaryotic.eukaryota_odb10
-rm -rf ${DATABASE_DIRECTORY}/Classify/Microeukaryotic/reference.eukaryota_odb10.faa
-rm -rf ${DATABASE_DIRECTORY}/Classify/Microeukaryotic/reference.faa.gz # Comment this out if you want to keep the actual protein sequences
+# # eukaryota_odb10 subset of Microeukaryotic Protein Database
+# wget -v -O ${DATABASE_DIRECTORY}/Classify/Microeukaryotic/reference.eukaryota_odb10.list https://zenodo.org/record/7485114/files/reference.eukaryota_odb10.list?download=1
+# seqkit grep -f ${DATABASE_DIRECTORY}/Classify/Microeukaryotic/reference.eukaryota_odb10.list ${DATABASE_DIRECTORY}/Classify/Microeukaryotic/reference.faa.gz > ${DATABASE_DIRECTORY}/Classify/Microeukaryotic/reference.eukaryota_odb10.faa
+# mmseqs createdb --compressed 1 ${DATABASE_DIRECTORY}/Classify/Microeukaryotic/reference.eukaryota_odb10.faa ${DATABASE_DIRECTORY}/Classify/Microeukaryotic/microeukaryotic.eukaryota_odb10
+# rm -rf ${DATABASE_DIRECTORY}/Classify/Microeukaryotic/reference.eukaryota_odb10.faa
+# rm -rf ${DATABASE_DIRECTORY}/Classify/Microeukaryotic/reference.faa.gz # Comment this out if you want to keep the actual protein sequences
+
+# Download MicroEuk_v3 from Zenodo
+wget -v -O ${DATABASE_DIRECTORY}/MicroEuk_v3.tar.gz https://zenodo.org/records/10139451/files/MicroEuk_v3.tar.gz?download=1 
+tar xvzf ${DATABASE_DIRECTORY}/MicroEuk_v3.tar.gz -C ${DATABASE_DIRECTORY}
+mkdir -p ${DATABASE_DIRECTORY}/Classify/MicroEuk
+
+# Source Taxonomy
+cp -rf ${DATABASE_DIRECTORY}/MicroEuk_v3/source_taxonomy.tsv.gz ${DATABASE_DIRECTORY}/Classify/MicroEuk
+
+# MicroEuk100
+gzip -d ${DATABASE_DIRECTORY}/MicroEuk_v3/MicroEuk100.faa.gz
+mmseqs createdb --compressed 1 ${DATABASE_DIRECTORY}/MicroEuk_v3/MicroEuk100.faa ${DATABASE_DIRECTORY}/Classify/MicroEuk/MicroEuk100
+
+# MicroEuk100.eukaryota_odb10
+gzip -d ${DATABASE_DIRECTORY}/MicroEuk_v3/MicroEuk100.eukaryota_odb10.list.gz
+seqkit grep -f ${DATABASE_DIRECTORY}/MicroEuk_v3/MicroEuk100.eukaryota_odb10.list ${DATABASE_DIRECTORY}/MicroEuk_v3/MicroEuk100.faa | mmseqs createdb --compressed 1 stdin ${DATABASE_DIRECTORY}/Classify/MicroEuk/MicroEuk100
+
+# MicroEuk90
+gzip -d -c ${DATABASE_DIRECTORY}/MicroEuk_v3/MicroEuk90_clusters.tsv.gz | cut -f1 | sort -u > ${DATABASE_DIRECTORY}/MicroEuk_v3/MicroEuk90.list
+seqkit grep -f ${DATABASE_DIRECTORY}/MicroEuk_v3/MicroEuk90.list ${DATABASE_DIRECTORY}/MicroEuk_v3/MicroEuk100.faa | mmseqs createdb --compressed 1 stdin ${DATABASE_DIRECTORY}/Classify/MicroEuk/MicroEuk90
+
+# MicroEuk90
+gzip -d -c ${DATABASE_DIRECTORY}/MicroEuk_v3/MicroEuk90_clusters.tsv.gz | cut -f1 | sort -u > ${DATABASE_DIRECTORY}/MicroEuk_v3/MicroEuk90.list
+seqkit grep -f ${DATABASE_DIRECTORY}/MicroEuk_v3/MicroEuk90.list ${DATABASE_DIRECTORY}/MicroEuk_v3/MicroEuk100.faa | mmseqs createdb --compressed 1 stdin ${DATABASE_DIRECTORY}/Classify/MicroEuk/MicroEuk90
+
+# MicroEuk50
+gzip -d -c ${DATABASE_DIRECTORY}/MicroEuk_v3/MicroEuk50_clusters.tsv.gz | cut -f1 | sort -u > ${DATABASE_DIRECTORY}/MicroEuk_v3/MicroEuk50.list
+seqkit grep -f ${DATABASE_DIRECTORY}/MicroEuk_v3/MicroEuk50.list ${DATABASE_DIRECTORY}/MicroEuk_v3/MicroEuk100.faa | mmseqs createdb --compressed 1 stdin ${DATABASE_DIRECTORY}/Classify/MicroEuk/MicroEuk50
+
+# source_to_lineage.dict.pkl.gz
+build_source_to_lineage_dictionary.py -i ${DATABASE_DIRECTORY}/MicroEuk_v3/source_taxonomy.tsv.gz -o ${DATABASE_DIRECTORY}/Classify/MicroEuk/source_to_lineage.dict.pkl.gz
+
+# target_to_source.dict.pkl.gz
+build_target_to_source_dictionary.py -i ${DATABASE_DIRECTORY}/MicroEuk_v3/identifier_mapping.proteins.tsv.gz -o ${DATABASE_DIRECTORY}/Classify/MicroEuk/target_to_source.dict.pkl.gz
+
+# Remove intermediate files
+rm -rf ${DATABASE_DIRECTORY}/MicroEuk_v3/
+rm -rf ${DATABASE_DIRECTORY}/MicroEuk_v3.tar.gz
 
 # MarkerSets
 echo ". .. ... ..... ........ ............."
@@ -213,10 +252,16 @@ rm -rf ${DATABASE_DIRECTORY}/Contamination/AntiFam/*.seed
 mkdir -v -p ${DATABASE_DIRECTORY}/Contamination/kmers
 wget -v -O ${DATABASE_DIRECTORY}/Contamination/kmers/ribokmers.fa.gz https://figshare.com/ndownloader/files/36220587
 
-# Replacing GRCh38 with CHM13v2.0 in v2022.10.18
+# T2T-CHM13v2.0
+# Bowtie2 Index
 wget -v -P ${DATABASE_DIRECTORY} https://genome-idx.s3.amazonaws.com/bt/chm13v2.0.zip
 unzip -d ${DATABASE_DIRECTORY}/Contamination/ ${DATABASE_DIRECTORY}/chm13v2.0.zip
 rm -rf ${DATABASE_DIRECTORY}/chm13v2.0.zip
+
+# # MiniMap2 Index (Uncomment if you plan on using long reads (7.1 GB))
+# wget -v -P ${DATABASE_DIRECTORY} https://ftp.ncbi.nlm.nih.gov/genomes/refseq/vertebrate_mammalian/Homo_sapiens/latest_assembly_versions/GCF_009914755.1_T2T-CHM13v2.0/GCF_009914755.1_T2T-CHM13v2.0_genomic.fna.gz
+# minimap2 -d ${DATABASE_DIRECTORY}/Contamination/chm13v2.0/chm13v2.0.mmi ${DATABASE_DIRECTORY}/GCF_009914755.1_T2T-CHM13v2.0_genomic.fna.gz
+# rm -rf ${DATABASE_DIRECTORY}/GCF_009914755.1_T2T-CHM13v2.0_genomic.fna.gz
 
 echo ". .. ... ..... ........ ............."
 echo "xii * Adding the following environment variable to VEBA environments: export VEBA_DATABASE=${REALPATH_DATABASE_DIRECTORY}"

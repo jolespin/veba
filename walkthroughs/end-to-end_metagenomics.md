@@ -23,11 +23,11 @@ _____________________________________________________
 12. Classify eukaryotic genomes
 13. Annotate proteins
 
+**Conda Environment:** `conda activate VEBA`. Use this for intermediate scripts.
+
 _____________________________________________________
 
 #### 1. Preprocess reads and get directory set up
-
-**Conda Environment:** `conda activate VEBA-preprocess_env`
 
 Refer to the [downloading and preprocessing reads walkthrough](download_and_preprocess_reads.md).  At this point, it's assumed you have the following: 
 
@@ -40,8 +40,6 @@ Refer to the [downloading and preprocessing reads walkthrough](download_and_prep
 Here we are going to assemble all of the reads using `metaSPAdes`.  If you have metatranscriptomics, then check out the [walkthrough for recovering viruses from metatranscriptomics](recovering_viruses_from_metatranscriptomics.md).  
 
 **Recommended memory request:** For this *Plastisphere* dataset, I requested `64GB` of memory from my HPC.  Though, this will change depending on how deep your samples are sequenced.
-
-**Conda Environment:** `conda activate VEBA-assembly_env`
 
 ```
 # Set the number of threads to use for each sample. Let's use 4
@@ -65,7 +63,7 @@ for ID in $(cat identifiers.list); do
 	R2=veba_output/preprocess/${ID}/output/cleaned_2.fastq.gz
 	
 	# Set up command
-	CMD="source activate VEBA-assembly_env && assembly.py -1 ${R1} -2 ${R2} -n ${ID} -o ${OUT_DIR} -p ${N_JOBS} -P metaspades.py"
+	CMD="source activate VEBA && veba --module assembly --params \"-1 ${R1} -2 ${R2} -n ${ID} -o ${OUT_DIR} -p ${N_JOBS} -P metaspades.py\""
 	
 	# Either run this command or use SunGridEnginge/SLURM
 	
@@ -98,7 +96,6 @@ Let's start the binning with viruses since this is performed on a per-contig bas
 
 **Recommended memory request:** `16 GB`
 
-**Conda Environment:** `conda activate VEBA-binning-viral_env`
 
 ```
 N_JOBS=4
@@ -108,7 +105,7 @@ for ID in $(cat identifiers.list);
 	rm -f logs/${N}.*
 	FASTA=veba_output/assembly/${ID}/output/scaffolds.fasta
 	BAM=veba_output/assembly/${ID}/output/mapped.sorted.bam
-	CMD="source activate VEBA-binning-viral_env && binning-viral.py -f ${FASTA} -b ${BAM} -n ${ID} -p ${N_JOBS} -m 1500 -o veba_output/binning/viral"
+	CMD="source activate VEBA && veba --module binning-viral --params \"-f ${FASTA} -b ${BAM} -n ${ID} -p ${N_JOBS} -m 1500 -o veba_output/binning/viral\""
 	# Either run this command or use SunGridEnginge/SLURM
 
 	done
@@ -140,11 +137,8 @@ Here we are going to perform iterative prokaryotic binning.  It's difficult to s
 
 If you have a lot of samples and a lot of contigs then use the `--skip_maxbin2` flag because it takes MUCH longer to run.  For the *Plastisphere* it was going to take 40 hours per `MaxBin2` run (there are 2 `MaxBin2` runs) per iteration.  `Metabat2` and `CONCOCT` can do the heavy lifting much faster and often with better results so it's recommended to skip `MaxBin2` for larger datasets.  
 
-**Recommended memory request:** `10GB` 
+**Recommended memory request:** `16GB` 
 
-*Versions prior to `v1.1.0` were reliant on `GTDB-Tk` which needed at least `60GB`.  `GTDB-Tk` is no longer required with the update of `CheckM` to `CheckM2`.*
-
-**Conda Environment:** `conda activate VEBA-binning-prokaryotic_env`
 
 ```
 N_JOBS=4
@@ -161,7 +155,7 @@ for ID in $(cat identifiers.list); do
 	FASTA=veba_output/binning/viral/${ID}/output/unbinned.fasta
 	BAM=veba_output/assembly/${ID}/output/mapped.sorted.bam
 	
-	CMD="source activate VEBA-binning-prokaryotic_env && binning-prokaryotic.py -f ${FASTA} -b ${BAM} -n ${ID} -p ${N_JOBS} -o ${OUT_DIR} -m 1500 -I ${N_ITER}"
+	CMD="source activate VEBA && veba --module binning-prokaryotic --params \"-f ${FASTA} -b ${BAM} -n ${ID} -p ${N_JOBS} -o ${OUT_DIR} -m 1500 -I ${N_ITER}\""
 
 	# Either run this command or use SunGridEnginge/SLURM
 
@@ -194,9 +188,7 @@ for ID in $(cat identifiers.list); do
 #### 5. Recover eukaryotes from metagenomic assemblies
 Let's take the unbinned contigs from the prokaryotic binning and recover eukayoritc genomes.  Unfortunately, we aren't going to do iterative binning here because there aren't any tools that can handle consensus genome binning as there is with prokaryotes (e.g., *DAS Tool*).  We have the option to use either *Metabat2* or *CONCOCT*.  In our experience, *Metabat2* works better for recovering eukaryotic genomes from metagenomes and it's also faster as well.
 
-**Recommended memory request:** `128GB` 
-
-**Conda Environment:** `conda activate VEBA-binning-eukaryotic_env`
+**Recommended memory request:** `48GB` 
 
 ```
 N_JOBS=4
@@ -209,7 +201,7 @@ for ID in $(cat identifiers.list); do
 	rm -f logs/${N}.*
 	FASTA=veba_output/binning/prokaryotic/${ID}/output/unbinned.fasta
 	BAM=veba_output/assembly/${ID}/output/mapped.sorted.bam
-	CMD="source activate VEBA-binning-eukaryotic_env && binning-eukaryotic.py -f ${FASTA} -b ${BAM} -n ${ID} -p ${N_JOBS} -m 1500 -a metabat2 -o ${OUT_DIR}"
+	CMD="source activate VEBA && veba --module binning-eukaryotic --params \"-f ${FASTA} -b ${BAM} -n ${ID} -p ${N_JOBS} -m 1500 -a metabat2 -o ${OUT_DIR}\""
 	
 	# Either run this command or use SunGridEnginge/SLURM
 
@@ -257,8 +249,6 @@ That said, if you decide to move forward with the multi-sample approach then the
 
 **Recommended memory request:** `24 GB`
 
-**Conda Environment:** `conda activate VEBA-assembly_env`
-
 ```
 
 
@@ -269,8 +259,6 @@ mkdir -p veba_output/misc
 # Most VEBA environments should have SeqKit installed.  
 # I recommend having this light-weight program in base environment 
 # if you do a lot of fasta manipulation. 
-
-conda activate VEBA-preprocess_env
 
 # --------------------------------------------------------------------
 
@@ -302,11 +290,11 @@ compile_reads_table.py -i veba_output/preprocess/ -r > veba_output/misc/reads_ta
 
 # Now let's map all the reads to the pseudo-coassembly (i.e., all_sample_specific_mags.unbinned_contigs.gt1500.fasta)
 
-N=pseudo-coassembly
+N=Multisample
 
 N_JOBS=16 # Let's use more threads here because we are going to be handling multiple samples at once
 
-CMD="source activate VEBA-assembly_env && coverage.py -f veba_output/misc/all_sample_specific_mags.unbinned_contigs.gt1500.fasta -r veba_output/misc/reads_table.tsv -p ${N_JOBS} -o veba_output/assembly/pseudo-coassembly -m 1500"
+CMD="source activate VEBA && veba --module coverage --params \"-f veba_output/misc/all_sample_specific_mags.unbinned_contigs.gt1500.fasta -r veba_output/misc/reads_table.tsv -p ${N_JOBS} -o veba_output/assembly/Multisample -m 1500\""
 
 # Either run this command or use SunGridEnginge/SLURM
 ```
@@ -327,8 +315,6 @@ Let's try to recover some prokaryotes using the concatenated unbinned contigs.
 **Recommended memory request:** `10 - 24GB` 
 
 
-**Conda Environment:** `conda activate VEBA-binning-prokaryotic_env`
-
 ```
 # Setting more threads since we are only running this once
 N_JOBS=32
@@ -337,14 +323,14 @@ N_JOBS=32
 N_ITER=5
 
 # Set up filepaths and names
-NAME="pseudo-coassembly"
+NAME="Multisample"
 N="binning-prokaryotic__${NAME}"
 rm -f logs/${N}.*
-FASTA=veba_output/assembly/pseudo-coassembly/output/reference.fasta
-BAMS=veba_output/assembly/pseudo-coassembly/output/*/mapped.sorted.bam
+FASTA=veba_output/assembly/${NAME}/output/reference.fasta
+BAMS=veba_output/assembly/${NAME}/output/*/mapped.sorted.bam
 
 # Set up command
-CMD="source activate VEBA-binning-prokaryotic_env && binning-prokaryotic.py -f ${FASTA} -b ${BAMS} -n ${NAME} -p ${N_JOBS} -m 1500 -I ${N_ITER} --skip_maxbin2"
+CMD="source activate VEBA && veba --module binning-prokaryotic --params \"-f ${FASTA} -b ${BAMS} -n ${NAME} -p ${N_JOBS} -m 1500 -I ${N_ITER} --skip_maxbin2\""
 
 # Either run this command or use SunGridEnginge/SLURM
 
@@ -356,9 +342,8 @@ Check Step 4 for the output file descriptions.
 #### ⚠️ 8. Recover eukaryotes from pseudo-coassembly [Optional]
 Let's try to recover some eukaryotes using the updated concatenated unbinned contigs. 
 
-**Recommended memory request:** `128GB` 
+**Recommended memory request:** `48 GB` 
 
-**Conda Environment:** `conda activate VEBA-binning-eukaryotic_env`
 
 
 ```
@@ -366,14 +351,14 @@ Let's try to recover some eukaryotes using the updated concatenated unbinned con
 N_JOBS=32
 
 # Set up filepaths and names
-NAME="pseudo-coassembly"
+NAME="Multisample"
 N="binning-eukaryotic__${NAME}"
 rm -f logs/${N}.*
 FASTA=veba_output/binning/prokaryotic/${NAME}/output/unbinned.fasta
 BAMS=veba_output/assembly/${NAME}/output/*/mapped.sorted.bam
 
 # Set up command
-CMD="source activate VEBA-binning-eukaryotic_env && binning-eukaryotic.py -f ${FASTA} -b ${BAMS} -n ${NAME} -p ${N_JOBS} -m 1500 -a metabat2  -o veba_output/binning/eukaryotic"
+CMD="source activate VEBA && veba --module binning-eukaryotic --params \"-f ${FASTA} -b ${BAMS} -n ${NAME} -p ${N_JOBS} -m 1500 -a metabat2  -o veba_output/binning/eukaryotic\""
 
 # Either run this command or use SunGridEnginge/SLURM
 
@@ -389,8 +374,6 @@ To analyze these data, we are going to generate some counts tables and we want a
 
 **Recommended memory request:** `24 GB` should work for most datasets but you may need to increase for much larger datasets.
 
-**Conda Environment:** `conda activate VEBA-cluster_env`
-
 
 ```
 # We need to generate a table with the following fields:
@@ -403,7 +386,7 @@ compile_genomes_table.py -i veba_output/binning/ > veba_output/misc/genomes_tabl
 N_JOBS=12
 
 # Set up command
-CMD="source activate VEBA-cluster_env && cluster.py -i veba_output/misc/genomes_table.tsv -o veba_output/cluster -p ${N_JOBS}"
+CMD="source activate VEBA && veba --module cluster --params \"-i veba_output/misc/genomes_table.tsv -o veba_output/cluster -p ${N_JOBS}\""
 	
 # Either run this command or use SunGridEnginge/SLURM
 
@@ -433,15 +416,13 @@ CMD="source activate VEBA-cluster_env && cluster.py -i veba_output/misc/genomes_
 * global/pangenome_tables/*.tsv.gz - Pangenome tables for each SLC with prevalence values
 * global/serialization/*.dict.pkl - Python dictionaries for clusters
 * global/serialization/*.networkx_graph.pkl - NetworkX graphs for clusters
-* local/* - If `--no_local_clustering` is not selected then all of the files are generated for local clustering
+* local/* - If `--local_clustering` is selected then all of the files are generated for local clustering
 
 
 #### 10. Classify viral genomes
 Viral classification is performed using `geNomad`.  Classification can be performed using the intermediate binning results which is much quicker.  Alternatively, if you have viruses identified elsewhere you can still classify using the `--genomes` argument instead.
 
-**Recommended memory request:** `1 GB` will work if you've performed viral binning via *VEBA*.  If not, these use `16 GB` for external genomes. 
-
-**Conda Environment:** `conda activate VEBA-classify_env`
+**Recommended memory request:** `1 GB` should work if you've performed viral binning via *VEBA*.  If not, these use `16 GB` for external genomes. 
 
 ```
 N=classify-viral
@@ -458,7 +439,7 @@ CLUSTERS=veba_output/cluster/output/global/mags_to_slcs.tsv
 rm -rf logs/${N}.*
 
 # Set up the command
-CMD="source activate VEBA-classify_env && classify-viral.py -i ${BINNING_DIRECTORY} -c ${CLUSTERS} -o veba_output/classify/viral -p ${N_JOBS}"
+CMD="source activate VEBA && veba --module classify-viral --params \"-i ${BINNING_DIRECTORY} -c ${CLUSTERS} -o veba_output/classify/viral -p ${N_JOBS}\""
 
 # Either run this command or use SunGridEnginge/SLURM
 
@@ -474,7 +455,6 @@ Prokaryotic classification is performed using `GTDB-Tk`.  Classification can be 
 
 **Recommended memory request:** `72 GB`
 
-**Conda Environment:** `conda activate VEBA-classify_env`
 
 ```
 N_JOBS=16
@@ -490,7 +470,7 @@ BINNING_DIRECTORY=veba_output/binning/prokaryotic
 CLUSTERS=veba_output/cluster/output/global/mags_to_slcs.tsv
 
 # Set up the command
-CMD="source activate VEBA-classify_env && classify-prokaryotic.py -i ${BINNING_DIRECTORY} -c ${CLUSTERS} -p ${N_JOBS} -o veba_output/classify/prokaryotic"
+CMD="source activate VEBA && veba --module classify-prokaryotic --params \"-i ${BINNING_DIRECTORY} -c ${CLUSTERS} -p ${N_JOBS} -o veba_output/classify/prokaryotic\""
 
 # Either run this command or use SunGridEnginge/SLURM
 
@@ -502,11 +482,10 @@ The following output files will produced:
 * taxonomy.clusters.tsv - Prokaryotic cluster classification (If --clusters are provided)
 
 #### 12. Classify eukaryotic genomes
-*VEBA* is going to use the *MetaEuk/MMSEQS2* protein alignments based on [*VEBA's* microeukaryotic protein database](https://doi.org/10.6084/m9.figshare.19668855.v1).  The default is to use [BUSCO's eukaryota_odb10](https://busco-data.ezlab.org/v5/data/lineages/eukaryota_odb10.2020-09-10.tar.gz) marker set but you can use the annotations from all proteins if you want by providing the `--include_all_genes` flag. The former will take a little bit longer since it needs to run *hmmsearch* but it's more robust and doesn't take that much longer.
+*VEBA* is going to use the *MetaEuk/MMSEQS2* protein alignments based on [*VEBA's* MicroEuk100](https://zenodo.org/records/10139451).  The default is to use [BUSCO's eukaryota_odb10](https://busco-data.ezlab.org/v5/data/lineages/eukaryota_odb10.2020-09-10.tar.gz) marker set but you can use the annotations from all proteins if you want by providing the `--include_all_genes` flag but that's not recommended for classification.
 
 **Recommended memory request:** `12 GB`
 
-**Conda Environment:** `conda activate VEBA-classify_env`
 
 ```
 # This is threaded if you use the default (i.e., core marker detection)
@@ -522,7 +501,7 @@ BINNING_DIRECTORY=veba_output/binning/eukaryotic
 CLUSTERS=veba_output/cluster/output/global/mags_to_slcs.tsv
 
 # Set up the command
-CMD="source activate VEBA-classify_env && classify-eukaryotic.py -i ${BINNING_DIRECTORY} -c ${CLUSTERS} -o veba_output/classify/eukaryotic -p ${N_JOBS}"
+CMD="source activate VEBA && veba --module classify-eukaryotic --params \"-i ${BINNING_DIRECTORY} -c ${CLUSTERS} -o veba_output/classify/eukaryotic -p ${N_JOBS}\""
 
 # Either run this command or use SunGridEnginge/SLURM
 
@@ -539,9 +518,6 @@ Instead of having 3 separate classification tables, it would be much more useful
 
 **Recommended memory request:** `1 GB`
 
-
-**Conda Environment:** `conda activate VEBA-classify_env`
-
 ```
 merge_taxonomy_classifications.py -i veba_output/classify -o veba_output/classify
 ```
@@ -553,8 +529,6 @@ The following output files will produced:
 
 #### 14. Annotate proteins
 Now that all of the MAGs are recovered and classified, let's annotate the proteins using best-hit against UniRef,MiBIG,VFDB,CAZy Pfam, AntiFam, AMRFinder, and KOFAM.  HMMSearch will fail with sequences ≥ 100k so we need to remove any that are that long (there probably aren't but just to be safe).
-
-**Conda Environment:** `conda activate VEBA-annotate_env`
 
 ```
 # Let's merge all of the proteins.  
@@ -582,7 +556,7 @@ PROTEINS=veba_output/misc/all_genomes.all_proteins.lt100k.faa
 IDENTIFIER_MAPPING=veba_output/cluster/output/global/identifier_mapping.proteins.tsv.gz
 
 # Command
-CMD="source activate VEBA-annotate_env && annotate.py -a ${PROTEINS} -i ${IDENTIFIER_MAPPING} -o veba_output/annotation -p ${N_JOBS} -u uniref50"
+CMD="source activate VEBA && veba --module annotate --params \"-a ${PROTEINS} -i ${IDENTIFIER_MAPPING} -o veba_output/annotation -p ${N_JOBS} -u uniref50\""
 
 # Either run this command or use SunGridEnginge/SLURM
 
@@ -607,7 +581,7 @@ If you are restricted by resources or time you may want to do just annotate the 
 PROTEINS=veba_output/cluster/output/global/representative_sequences.faa
 
 # Command
-CMD="source activate VEBA-annotate_env && annotate.py -a ${PROTEINS} -o veba_output/annotation -p ${N_JOBS} -u uniref50"
+CMD="source activate VEBA && veba --module annotate --params \"-a ${PROTEINS} -o veba_output/annotation -p ${N_JOBS} -u uniref50\""
 
 ```
 
@@ -641,7 +615,7 @@ for i in $(seq -f "%03g" 1 ${N_PARTITIONS}); do
 	N="annotate-${i}"
 	rm -f logs/${N}.*
 	FAA=${PARTITION_DIRECTORY}/stdin.part_${i}.fasta
-	CMD="source activate VEBA-annotate_env && annotate.py -a ${FAA} -o ${OUT_DIR}/${i} -p ${N_JOBS} -u uniref50"
+	CMD="source activate VEBA && veba --module annotate --params \"-a ${FAA} -o ${OUT_DIR}/${i} -p ${N_JOBS} -u uniref50\""
 
 	# Either run this command or use SunGridEnginge/SLURM
 	

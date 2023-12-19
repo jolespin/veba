@@ -12,6 +12,8 @@ _____________________________________________________
 1. Download the proteomes of similar organisms
 2. Perform phylogenetic inference on proteomes
 
+**Conda Environment:** `conda activate VEBA`. Use this for intermediate scripts.
+
 _____________________________________________________
 
 
@@ -235,8 +237,6 @@ diatoms/SRR17458638__METABAT2__E.1__bin.3.faa
 
 Now that we have all of the files we need, we can perform phylogenetic inference using BUSCO's eukaryota_odb10 markers and score cutoffs.  For eukaryotes, it's advised that you use the eukaryota_odb10 marker set because this is the core marker set used for classification.  This isn't the case for prokaryotes and viruses.  If you don't have enough resources to run maximum likelihood trees via *IQTREE2* then use `--no_iqtree`.
 
-**Conda Environment:** `conda activate VEBA-phylogeny_env`
-
 
 ```
 # Set the number of threads
@@ -260,7 +260,7 @@ MINIMUM_GENOMES_ALIGNED_RATIO=0.95
 OUT_DIR=veba_output/phylogeny/diatoms
 
 # Directory
-CMD="source activate VEBA-phylogeny_env && phylogeny.py -a ${PROTEINS} -o ${OUT_DIR} -p ${N_JOBS}  -f name --no_iqtree -d ${HMM} -s ${SCORES} --minimum_genomes_aligned_ratio ${MINIMUM_GENOMES_ALIGNED_RATIO} 
+CMD="source activate VEBA && veba --module phylogeny --params \"-a ${PROTEINS} -o ${OUT_DIR} -p ${N_JOBS}  -f name --no_iqtree -d ${HMM} -s ${SCORES} --minimum_genomes_aligned_ratio ${MINIMUM_GENOMES_ALIGNED_RATIO}\""
 
 # Either run this command or use SunGridEnginge/SLURM
 ```

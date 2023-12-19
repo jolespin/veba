@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# __version__ = "2023.01.05"
+# __version__ = "2023.12.18"
 
 # Usage: git clone https://github.com/jolespin/veba && update_environment_scripts.sh /path/to/veba_repository
 echo "-----------------------------------------------------------------------------------------------------"
@@ -17,13 +17,14 @@ if [ $# -eq 0 ]; then
     chmod 775 ${VEBA_REPOSITORY_DIRECTORY}/src/*
     chmod 775 ${VEBA_REPOSITORY_DIRECTORY}/src/scripts/*
 
-                 else
+    else
 
     VEBA_REPOSITORY_DIRECTORY=$1
 
 fi
 
-CONDA_BASE=$(conda run -n base bash -c "echo \${CONDA_PREFIX}")
+# CONDA_BASE=$(conda run -n base bash -c "echo \${CONDA_PREFIX}")
+CONDA_BASE=$(conda info --base)
 
 echo "-----------------------------------------------------------------------------------------------------"
 echo " * Source VEBA: ${VEBA_REPOSITORY_DIRECTORY}"
@@ -31,9 +32,10 @@ echo " * Destination VEBA environments CONDA_BASE: ${CONDA_BASE}"
 echo "-----------------------------------------------------------------------------------------------------"
 
 # Environemnts
-for ENV_PREFIX in ${CONDA_BASE}/envs/VEBA-*; do
+for ENV_PREFIX in ${CONDA_BASE}/envs/VEBA ${CONDA_BASE}/envs/VEBA-*; 
+do
     echo $ENV_PREFIX
     cp ${VEBA_REPOSITORY_DIRECTORY}/src/*.py ${ENV_PREFIX}/bin/
     cp -r ${VEBA_REPOSITORY_DIRECTORY}/src/scripts/ ${ENV_PREFIX}/bin/
     ln -sf ${ENV_PREFIX}/bin/scripts/* ${ENV_PREFIX}/bin/
-    done
+done

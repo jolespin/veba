@@ -15,9 +15,9 @@ _____________________________________________________
 2. Provide a counts table and sample metadata
 3. Provide a counts table, sample metadata, and 
 
-_____________________________________________________
+**Conda Environment:** `conda activate VEBA`. Use this for intermediate scripts.
 
-**Conda Environment:** `conda activate VEBA-mapping_env`
+_____________________________________________________
 
 
 #### 1. Let's convert to a Python pickle object without any metadata
