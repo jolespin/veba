@@ -6,7 +6,7 @@ ________________________________________________________________
 
 #### Current Releases:
 
-**Release v1.4.1 Highlights:**
+**Release v1.4.2 Highlights:**
 
 * **`VEBA` Modules:**
 
@@ -369,6 +369,7 @@ There was a problem importing veba_output/misc/reads_table.tsv:
 
 **Definitely:**
 
+* Add option to `compile_custom_humann_database_from_annotations.py` to only output best hit of a UniRef identifier per genome.
 * Use `pigz` instead of `gzip`
 * Create a taxdump for `MicroEuk`
 * Reimplement `compile_eukaryotic_classifications.py`
@@ -405,6 +406,8 @@ ________________________________________________________________
 <details>
 	<summary>**Daily Change Log:**</summary>
 	
+* [2023.12.21] - `GTDB-Tk` changed name of archaea summary file so VEBA was not adding this to final classification. Fixed this in `classify-prokaryotic.py`.
+* [2023.12.20] - Fixed files not being closed in `compile_custom_humann_database_from_annotations.py` and added options to use different annotation file formats (i.e., multilevel, header, and no header).
 * [2023.12.15] - Added `profile-taxonomic.py` module which uses `sylph` to build a sketch database for genomes and queries the genome database similar to `Kraken` for taxonomic abundance.
 * [2023.12.14] - Removed requirement to have `--estimated_assembly_size` for Flye per [Flye Issue #652](https://github.com/fenderglass/Flye/issues/652).
 * [2023.12.14] - Added `sylph` to `VEBA-profile_env` for abundance profiling of genomes.

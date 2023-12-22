@@ -15,7 +15,7 @@ from soothsayer_utils import *
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.11.30"
+__version__ = "2023.12.21"
 
 # GTDB-Tk
 def get_gtdbtk_cmd( input_filepaths, output_filepaths, output_directory, directories, opts):
@@ -93,8 +93,8 @@ def get_gtdbtk_cmd( input_filepaths, output_filepaths, output_directory, directo
         os.environ["concatenate_dataframes.py"],
         "--axis 0",
         "--allow_empty_or_missing_files",
-        os.path.join(output_directory, "classify", "gtdbtk.ar122.summary.tsv"),
-        os.path.join(output_directory, "classify", "gtdbtk.bac120.summary.tsv"),
+        os.path.join(output_directory, "classify", "gtdbtk.ar*.summary.tsv"),
+        os.path.join(output_directory, "classify", "gtdbtk.bac*.summary.tsv"),
         ">",
         os.path.join(directories["output"], "taxonomy.tsv"),
 
