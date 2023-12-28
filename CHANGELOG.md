@@ -22,23 +22,25 @@ ________________________________________________________________
 	* Completely rebuilt `VEBA's Microeukaryotic Protein Database` to produce a clustered database `MicroEuk100/90/50` similar to `UniRef100/90/50`. Available on [doi:10.5281/zenodo.10139450](https://zenodo.org/records/10139451).
 
 <details>
-	<summary>**Release v1.4.0 Details**</summary>
-* [2023.12.15] - Added `profile-taxonomic.py` module which uses `sylph` to build a sketch database for genomes and queries the genome database similar to `Kraken` for taxonomic abundance.
-* [2023.12.14] - Removed requirement to have `--estimated_assembly_size` for Flye per [Flye Issue #652](https://github.com/fenderglass/Flye/issues/652).
-* [2023.12.14] - Added `sylph` to `VEBA-profile_env` for abundance profiling of genomes.
-* [2023.12.13] - Dereplicate duplicate contigs in `concatenate_fasta.py`.
-* [2023.12.12] - Added `--reference_gzipped` to `index.py` and `mapping.py` with new default being that the reference fasta is not gzipped.
-* [2023.12.11] - Added `skani` as new default for genome clustering in `cluster.py`, `global_clustering.py`, and `local_clustering.py`.
-* [2023.12.11] - Added support for long reads in `fastq_preprocessor`, `preprocess.py`, `assembly-long.py`, `coverage-long`, and all binning modules.
-* [2023.11.28] - Fixed `annotations.protein_clusters.tsv.gz` from `merge_annotations.py` added in patch update of `v1.3.1`.
-* [2023.11.14] - Added support for missing values in `compile_eukaryotic_classifications.py`.
-* [2023.11.13] - Added `--metaeuk_split_memory_limit` argument with (experimental) default set to `36G` in `binning-eukaryotic.py` and `eukaryotic_gene_modeling.py`.
-* [2023.11.10] - Added `--compressed 1` to `mmseqs createdb` in `download_databases.sh` installation script.
-* [2023.11.10] - Added a check to `check_fasta_duplicates.py` and `clean_fasta.py` to make sure there are no `>` characters in fasta sequence caused from concatenating fasta files that are missing linebreaks.
-* [2023.11.10] - Added `Diamond DeepClust` to `clustering_wrapper.py`, `global/local_clustering.py`, and `cluster.py`.  Changed `mmseqs2_wrapper.py` to `clustering_wrapper.py`.  Changed `easy-cluster` and `easy-linclust` to `mmseqs-cluster` and `mmseqs-linclust`.
-* [2023.11.9] - Fixed viral quality in `merge_genome_quality_assessments.py`
-* [2023.11.3] - Changed `consensus_genome_classification.py` to `consensus_genome_classification_ranked.py`.  Also, default behavior to allow for missing taxonomic levels.
-* [2023.11.2] - Fixed the `merge_annotations.py` resulting in a memory leak when creating the `annotations.protein_clusters.tsv.gz` output table.  However, still need to correct the formatting for empty sets and string lists.
+	<summary><b>Release v1.4.2 Details</b></summary>
+
+* Fixed critical error where `classify_eukaryotic.py` was trying to access a deprecated database file from MicrEuk_v2.
+* Added `profile-taxonomic.py` module which uses `sylph` to build a sketch database for genomes and queries the genome database similar to `Kraken` for taxonomic abundance.
+* Removed requirement to have `--estimated_assembly_size` for Flye per [Flye Issue #652](https://github.com/fenderglass/Flye/issues/652).
+* Added `sylph` to `VEBA-profile_env` for abundance profiling of genomes.
+* Dereplicate duplicate contigs in `concatenate_fasta.py`.
+* Added `--reference_gzipped` to `index.py` and `mapping.py` with new default being that the reference fasta is not gzipped.
+* Added `skani` as new default for genome clustering in `cluster.py`, `global_clustering.py`, and `local_clustering.py`.
+* Added support for long reads in `fastq_preprocessor`, `preprocess.py`, `assembly-long.py`, `coverage-long`, and all binning modules.
+* Fixed `annotations.protein_clusters.tsv.gz` from `merge_annotations.py` added in patch update of `v1.3.1`.
+* Added support for missing values in `compile_eukaryotic_classifications.py`.
+* Added `--metaeuk_split_memory_limit` argument with (experimental) default set to `36G` in `binning-eukaryotic.py` and `eukaryotic_gene_modeling.py`.
+* Added `--compressed 1` to `mmseqs createdb` in `download_databases.sh` installation script.
+* Added a check to `check_fasta_duplicates.py` and `clean_fasta.py` to make sure there are no `>` characters in fasta sequence caused from concatenating fasta files that are missing linebreaks.
+* Added `Diamond DeepClust` to `clustering_wrapper.py`, `global/local_clustering.py`, and `cluster.py`.  Changed `mmseqs2_wrapper.py` to `clustering_wrapper.py`.  Changed `easy-cluster` and `easy-linclust` to `mmseqs-cluster` and `mmseqs-linclust`.
+* Fixed viral quality in `merge_genome_quality_assessments.py`
+* Changed `consensus_genome_classification.py` to `consensus_genome_classification_ranked.py`.  Also, default behavior to allow for missing taxonomic levels.
+* Fixed the `merge_annotations.py` resulting in a memory leak when creating the `annotations.protein_clusters.tsv.gz` output table.  However, still need to correct the formatting for empty sets and string lists.
 
 </details>
 
@@ -60,7 +62,7 @@ ________________________________________________________________
 	* Added `MicrobeAnnotator-KEGG`
 
 <details>
-	<summary>**Release v1.3.0 Details**</summary>
+	<summary><b>Release v1.3.0 Details</b></summary>
 	
 * Update `annotate.py` and `merge_annotations.py` to handle `CAZy`.  They also properly address clustered protein annotations now. 
 * Added `module_completion_ratio.py` script which is a fork of `MicrobeAnnotator` [`ko_mapper.py`](https://github.com/cruizperez/MicrobeAnnotator/blob/master/microbeannotator/pipeline/ko_mapper.py).  Also included a database [Zenodo: 10020074](https://zenodo.org/records/10020074) which will be included in `VDB_v5.2`
@@ -114,7 +116,7 @@ ________________________________________________________________
 	* Deprecated [`RefSeq non-redundant`](https://www.ncbi.nlm.nih.gov/refseq/about/nonredundantproteins/) in place of `UniRef`
 
 <details>
-	<summary>**Release v1.2.0 Details**</summary>
+	<summary><b>Release v1.2.0 Details</b></summary>
 
 * Fixed minor error in `binning-prokaryotic.py` where the `--veba_database` argument wasn't utilized and only the environment variable `VEBA_DATABASE` could be used.
 * Updated the Docker images to have `/volumes/input`, `/volumes/output`, and `/volumes/database` directories to mount. 
@@ -134,7 +136,7 @@ ________________________________________________________________
 
 
 <details>
-	<summary>**Release v1.1.2 Details**</summary>
+	<summary><b>Release v1.1.2 Details</b></summary>
 	
 * Created Docker images for all modules
 * Replaced all absolute path symlinks with relative symlinks
@@ -158,7 +160,7 @@ ________________________________________________________________
 </details>
 
 <details>
-	<summary>**Release v1.1.1 Details**</summary>
+	<summary><b>Release v1.1.1 Details</b></summary>
 
 * Most important update includes fixing a broken VEBA-`binning-viral.yml` install recipe which had package conflicts for `aria2` 30e8b0a.
 * Fixes on conda-related environment variables in the install scripts.
@@ -172,7 +174,7 @@ ________________________________________________________________
 </details>
 
 <details>
-	<summary>**Release v1.1.0 Details**</summary>
+	<summary><b>Release v1.1.0 Details</b></summary>
 	
 * **Modules**:
 
@@ -284,7 +286,7 @@ ________________________________________________________________
 </details>
 
 <details>
-	<summary>**Release v1.0.4 Details**</summary>
+	<summary><b>Release v1.0.4 Details</b></summary>
 	
 * Added `biopython` to `VEBA-assembly_env` which is needed when running `MEGAHIT` as the scaffolds are rewritten and [an error](https://github.com/jolespin/veba/issues/17) was raised. [aea51c3](https://github.com/jolespin/veba/commit/aea51c3e0b775aec90f7343f01cad6911f526f0a)
 * Updated Microeukaryotic protein database to exclude a few higher eukaryotes that were present in database, changed naming scheme to hash identifiers (from `cat reference.faa | seqkit fx2tab -s -n > id_to_hash.tsv`).  Switching database from [FigShare](https://figshare.com/articles/dataset/Microeukaryotic_Protein_Database/19668855) to [Zenodo](https://zenodo.org/record/7485114#.Y6vZO-zMKDU).  Uses database version `VDB_v3` which has the updated microeukaryotic protein database (`VDB-Microeukaryotic_v2`) [0845ba6](https://github.com/jolespin/veba/commit/0845ba6be65f3486d61fe7ae21a2937efeb42ee9)
@@ -292,7 +294,7 @@ ________________________________________________________________
 </details>
 
 <details>
-	<summary>**Release v1.0.3e Details**</summary>
+	<summary><b>Release v1.0.3e Details</b></summary>
 	
 * Patch fix for `install_veba.sh` where `install/environments/VEBA-assembly_env.yml` raised [a compatibilty error](https://github.com/jolespin/veba/issues/15) when creating the `VEBA-assembly_env` environment. [c2ab957](https://github.com/jolespin/veba/commit/c2ab957be132d34e6b99d6dea394be4572b83066)
 * Patch fix for `VirFinder_wrapper.R` where `__version__ = ` variable was throwing [an R error](https://github.com/jolespin/veba/issues/13) when running `binning-viral.py` module. [19e8f38](https://github.com/jolespin/veba/commit/19e8f38a5050328b7ba88b2271f0221073748cbb)
@@ -313,7 +315,7 @@ ________________________________________________________________
 </details>
 
 <details>
-	<summary>**Release v1.0.2a Details**</summary>
+	<summary><b>Release v1.0.2a Details</b></summary>
 
 * Updated *GTDB-Tk* in `VEBA-binning-prokaryotic_env` from `1.x` to `2.x` (this version uses much less memory): [f3507dd](https://github.com/jolespin/veba/commit/f3507dd13a42960e3671c9f8a106c9974fbfce21)
 * Updated the *GTDB-Tk* database from `R202` to `R207_v2` to be compatible with *GTDB-Tk v2.x*: [f3507dd](https://github.com/jolespin/veba/commit/f3507dd13a42960e3671c9f8a106c9974fbfce21)
@@ -329,7 +331,7 @@ ________________________________________________________________
 
 
 <details>
-	<summary>**Release v1.0.1 Details**</summary>
+	<summary><b>Release v1.0.1 Details</b></summary>
 
 * Fixed the fatal binning-eukaryotic.py error: [7c5addf](https://github.com/jolespin/veba/commit/7c5addf9ed6e8e45502274dd353f20b211838a41)
 * Fixed the minor file naming in cluster.py: [5803845](https://github.com/jolespin/veba/commit/58038451dac0791899aa7fca3f9d79454cb9ed46)
@@ -339,7 +341,7 @@ ________________________________________________________________
 
 
 <details>
-	<summary>**Release v1.0.0 Details**</summary>
+	<summary><b>Release v1.0.0 Details</b></summary>
 	
 * Released with *BMC Bionformatics* publication (doi:10.1186/s12859-022-04973-8).
 
@@ -404,8 +406,10 @@ ________________________________________________________________
 
 
 <details>
-	<summary>**Daily Change Log:**</summary>
+	<summary> <b>Daily Change Log:</b> </summary>
 	
+* [2023.12.28] - Fixed critical error where `classify_eukaryotic.py` was trying to access a deprecated database file from MicrEuk_v2.
+* [2023.12.22] - Fixed minor error with `eukaryotic_gene_modeling_wrapper.py` not allowing for `Tiara` to run in backend.
 * [2023.12.21] - `GTDB-Tk` changed name of archaea summary file so VEBA was not adding this to final classification. Fixed this in `classify-prokaryotic.py`.
 * [2023.12.20] - Fixed files not being closed in `compile_custom_humann_database_from_annotations.py` and added options to use different annotation file formats (i.e., multilevel, header, and no header).
 * [2023.12.15] - Added `profile-taxonomic.py` module which uses `sylph` to build a sketch database for genomes and queries the genome database similar to `Kraken` for taxonomic abundance.
