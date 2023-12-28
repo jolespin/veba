@@ -154,6 +154,7 @@ def get_compile_cmd( input_filepaths, output_filepaths, output_directory, direct
         "-s {}".format(input_filepaths[1]),
         "--eukaryotic_database {}".format(opts.eukaryotic_database),
         "-o {}".format(output_filepaths[0]),
+        "-b '{}'".format(opts.blacklist),
         "--debug",
     ]
     # if opts.clusters:
@@ -658,6 +659,7 @@ def main(args=None):
     parser_consensus.add_argument("--retain_unannotated", type=int, default=1, help = "Consider unannotations (i.e., blank functions) in the scording system [Default: 1]")
     parser_consensus.add_argument("--unannotated_weight", type=float, default=0.382, help = "Weight for unannotations (i.e., blank functions) in the scording system? [Default: 0.382]")
     parser_consensus.add_argument("--representative_threshold", type=float, default=0.618, help = "Score to consider as representative [Default: 0.618]")
+    parser_consensus.add_argument("-b", "--blacklist", type=str, default="species:uncultured eukaryote", help="Comma-separated list of [taxon_level]:[blacklisted label]. Use 'NONE' for no black listed taxa. [Default: species:uncultured eukaryote]")
 
     # Options
     opts = parser.parse_args()
