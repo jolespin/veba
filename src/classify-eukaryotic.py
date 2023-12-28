@@ -14,7 +14,7 @@ from soothsayer_utils import *
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.11.30"
+__version__ = "2023.12.28"
 
 # Assembly
 def get_concatenate_cmd( input_filepaths, output_filepaths, output_directory, directories, opts):
@@ -91,7 +91,7 @@ def get_metaeuk_cmd( input_filepaths, output_filepaths, output_directory, direct
         os.environ["metaeuk_wrapper.py"],
         "-f {}".format(os.path.join(directories["tmp"], "concatenated_genomes.fa")),
         "-o {}".format(output_directory),
-        "--metaeuk_database {}".format(os.path.join(opts.veba_database, "Classify", "Microeukaryotic", "microeukaryotic.eukaryota_odb10")),
+        "--metaeuk_database {}".format(os.path.join(opts.veba_database, "Classify", "MicroEuk", "MicroEuk100.eukaryota_odb10")),
         "--n_jobs {}".format(opts.n_jobs),
         "--scaffolds_to_bins {}".format(os.path.join(output_directory, "scaffolds_to_bins.tsv")),
 

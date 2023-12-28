@@ -13,7 +13,7 @@ from soothsayer_utils import *
 
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.11.13"
+__version__ = "2023.12.22"
 
 # Tiara
 def get_tiara_cmd(input_filepaths, output_filepaths, output_directory, directories, opts):
@@ -1355,11 +1355,11 @@ def main(args=None):
     # Pipeline
     parser_io = parser.add_argument_group('I/O arguments')
     parser_io.add_argument("-f","--fasta", type=str, required=True, help = "path/to/scaffolds.fasta")
-    parser_io.add_argument("-t","--tiara_results", type=str, required=True, help = "path/to/scaffolds.fasta")
+    parser_io.add_argument("-t","--tiara_results", type=str, required=False, help = "path/to/scaffolds.fasta [Optional]")
     parser_io.add_argument("-n","--name", type=str, required=False, help = "path/to/scaffolds.fasta [Cannot be used with --scaffolds_to_bins]")
     parser_io.add_argument("-i","--scaffolds_to_bins", type=str, required=False,  help = "path/to/scaffolds_to_bins.tsv, [Optional] Format: [id_scaffold]<tab>[id_bin], No header. [Cannot be used with --name]")
     parser_io.add_argument("-o","--output_directory", type=str, default="eukaryotic_gene_modeling_output", help = "path/to/project_directory [Default: eukaryotic_gene_modeling_output]")
-    parser_io.add_argument("-d", "--metaeuk_database", type=str,  required=True, help=f"MetaEuk/MMSEQS2 database (E.g., $VEBA_DATABASE/Classify/Microeukaryotic/microeukaryotic)")
+    parser_io.add_argument("-d", "--metaeuk_database", type=str,  required=True, help=f"MetaEuk/MMSEQS2 database (E.g., $VEBA_DATABASE/Classify/MicroEuk/MicroEuk50)")
 
     # Utility
     parser_utility = parser.add_argument_group('Utility arguments')
@@ -1375,6 +1375,7 @@ def main(args=None):
     # parser_organelle.add_argument("--mitochondrion_suffix", type=str, default=".mtDNA", help = "Mitochondrion suffix [Default: .mtDNA]")
     # parser_organelle.add_argument("--plastid_suffix", type=str, default=".plastid", help = "Plastid suffix [Default: .plastid]")
     # parser_organelle.add_argument("--unknown_suffix", type=str, default=".unknown", help = "Unknown suffix [Default: .unknown]")
+    parser_organelle.add_argument("--tiara_minimum_length", type=int, default=3000, help="Tiara | Minimum contig length. Anything lower than 3000 is not recommended. [Default: 3000]")
     parser_organelle.add_argument("--tiara_options", type=str, default="", help="Tiara | More options (e.g. --arg 1 ) [Default: '']")
 
     # MetaEuk
