@@ -32,7 +32,7 @@ def main(args=None):
     parser.add_argument("--header", type=int, default=1, help="Include header in output {0=No, 1=Yes) [Default: 1]")
     parser.add_argument("--debug", action="store_true")
     parser.add_argument("--remove_genes_with_missing_values", action="store_true")
-    parser.add_argument("--use_original_metaeuk_gene_identifiers", action="store_true")
+    # parser.add_argument("--use_original_metaeuk_gene_identifiers", action="store_true")
 
     # Options
     opts = parser.parse_args()
@@ -164,9 +164,9 @@ def main(args=None):
     if opts.remove_genes_with_missing_values:
         df_gene_classifications = df_gene_classifications.dropna(how="any", axis=0)
 
-    if not opts.use_original_metaeuk_gene_identifiers:
-        metaeuk_to_gene = df_metaeuk["gene_id"].to_dict()
-        df_gene_classifications.index = df_gene_classifications.index.map(lambda x: metaeuk_to_gene[x])
+    # if not opts.use_original_metaeuk_gene_identifiers: #!
+        # gene_to_header = df_metaeuk["MetaEuk_header"]
+    #     df_gene_classifications.index = df_gene_classifications.index.map(lambda x: gene_to_header[x])
 
     df_gene_classifications.to_csv(opts.output, sep="\t", header=bool(opts.header))
 

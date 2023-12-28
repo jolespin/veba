@@ -140,6 +140,7 @@ def get_hmmsearch_cmd( input_filepaths, output_filepaths, output_directory, dire
         "-t {}".format(os.path.join(directories["intermediate"], "identifier_mapping.metaeuk.tsv")),
         "--drop_duplicates",
         "--index_column 4",
+        "--index_name id_gene",
         ">",
         os.path.join(directories["intermediate"], "identifier_mapping.metaeuk.score_filtered.tsv"),
     ]

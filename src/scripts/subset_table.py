@@ -6,7 +6,7 @@ import pandas as pd
 
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.3.14"
+__version__ = "2023.12.28"
 
 #
 def main(args=None):
@@ -28,6 +28,8 @@ def main(args=None):
     parser.add_argument("-a","--axis", type=int, default=0, help = "index:axis=0, columns:axis=1")
     # parser.add_argument("--column", type=int, help = "Column to look for index")
     parser.add_argument("--index_column", type=int, default=0, help = "Index column [Default: 0]")
+    parser.add_argument("--index_name", type=str,  help = "Add index name")
+
     parser.add_argument("-d", "--drop_duplicates", action="store_true", help = "Drop duplicates")
 
     parser.add_argument("--sep", type=str, default="\t", help = "Separator [Default: <tab>]")
@@ -83,6 +85,8 @@ def main(args=None):
             df = df.drop(index, axis=1)
 
     # Write table
+    if opts.index_name:
+        df.index.name = opts.index_name
     df.to_csv(opts.output_table, sep=opts.sep, header=not opts.no_header)
 
 if __name__ == "__main__":
