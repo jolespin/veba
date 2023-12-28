@@ -6,7 +6,7 @@ from collections import OrderedDict
 from tqdm import tqdm 
 
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.12.14"
+__version__ = "2023.12.28"
 
 
 def main(args=None):
@@ -32,6 +32,8 @@ def main(args=None):
     parser.add_argument("--header", type=int, default=1, help="Include header in output {0=No, 1=Yes) [Default: 1]")
     parser.add_argument("--debug", action="store_true")
     parser.add_argument("--remove_genes_with_missing_values", action="store_true")
+    parser.add_argument("-b", "--blacklist", type=str, help="Comma-separated list of [taxon_level]:[blacklisted label] (e.g. species:uncultured eukaryote,genus:unclassified)")
+
     # parser.add_argument("--use_original_metaeuk_gene_identifiers", action="store_true")
 
     # Options
@@ -87,6 +89,22 @@ def main(args=None):
     gene_to_target = df_metaeuk["T_acc"]
     gene_to_source = gene_to_target.map(lambda id_target: target_to_source.get(id_target,np.nan))
 
+    # Blacklist
+    blacklisted_sources = set()
+    if opts.blacklist:
+        print("* The following taxa will be blacklisted (i.e., bitscores --> 0)", file=sys.stderr)
+        for item in opts.blacklist.split(","):
+            assert ":" in item
+            taxon_level, blacklist_label = item.split(":")
+            assert taxon_level in df_source_taxonomy.columns
+
+            sources = list()
+            for id_source, taxon_value in df_source_taxonomy[taxon_level].items():
+                if taxon_value == blacklist_label:
+                    sources.append(id_source)
+            blacklisted_sources.update(sources)
+            print(" * {}".format(item), sorted(sources), sep="\n", file=sys.stderr)
+
     if opts.scaffolds_to_bins:
         # Scaffolds -> Bins
         fp = opts.scaffolds_to_bins
@@ -138,6 +156,10 @@ def main(args=None):
     })
     df_gene_classifications.index.name = "id_gene"
 
+    if blacklisted_sources:
+        df_gene_classifications["bitscore_before_blacklist"] = df_gene_classifications["bitscore"].copy()
+        mask = df_gene_classifications["id_source"].map(lambda x: x in blacklisted_sources)
+        df_gene_classifications.loc[mask, "bitscore"] = 0.0
 
     # df_gene_classifications = pd.concat([
     #     gene_to_scaffold.to_frame("id_scaffold"),
@@ -170,7 +192,7 @@ def main(args=None):
 
     df_gene_classifications.to_csv(opts.output, sep="\t", header=bool(opts.header))
 
-  
+    
 
 
     
