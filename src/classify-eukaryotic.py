@@ -673,7 +673,7 @@ def main(args=None):
     if opts.veba_database is None:
         assert "VEBA_DATABASE" in os.environ, "Please set the following environment variable 'export VEBA_DATABASE=/path/to/veba_database' or provide path to --veba_database"
         opts.veba_database = os.environ["VEBA_DATABASE"]
-    opts.eukaryotic_database = os.path.join(opts.veba_database, "Classify", "Microeukaryotic")
+    opts.eukaryotic_database = os.path.join(opts.veba_database, "Classify", "MicroEuk")
     opts.hmms = os.path.join(opts.veba_database, "MarkerSets", "eukaryota_odb10.hmm.gz")
     opts.scores_cutoff = os.path.join(opts.veba_database, "MarkerSets", "eukaryota_odb10.scores_cutoff.tsv.gz")
 
