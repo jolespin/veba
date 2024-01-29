@@ -1,6 +1,6 @@
-# v2023.8.22
+# v2024.1.29
 # =================================
-FROM mambaorg/micromamba:1.4.9
+FROM mambaorg/micromamba:1.5.6
 
 ARG ENV_NAME
 
@@ -19,7 +19,7 @@ RUN mkdir -p /volumes/database
 RUN mkdir -p veba/
 USER $MAMBA_USER
 COPY --chown=$MAMBA_USER:$MAMBA_USER ./install/ veba/install/
-COPY --chown=$MAMBA_USER:$MAMBA_USER ./src/ veba/src/
+COPY --chown=$MAMBA_USER:$MAMBA_USER ./bin/ veba/bin/
 COPY --chown=$MAMBA_USER:$MAMBA_USER ./VERSION veba/VERSION
 COPY --chown=$MAMBA_USER:$MAMBA_USER ./LICENSE veba/LICENSE
 
@@ -28,7 +28,7 @@ RUN micromamba install -y -n base -f veba/install/environments/${ENV_NAME}.yml &
     micromamba clean -a -y -f
 
 # Add environment scripts to environment bin
-RUN cp -rf veba/src/* /opt/conda/bin/ && \
+RUN cp -rf veba/bin/* /opt/conda/bin/ && \
     ln -sf /opt/conda/bin/scripts/*.py /opt/conda/bin/ && \
     ln -sf /opt/conda/bin/scripts/*.r /opt/conda/bin/
 
