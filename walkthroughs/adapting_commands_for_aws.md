@@ -38,7 +38,7 @@ This job definition pulls the [jolespin/veba_preprocess](https://hub.docker.com/
   "jobDefinitionName": "preprocess__S1",
   "type": "container",
   "containerProperties": {
-    "image": "jolespin/veba_preprocess:1.4.1",
+    "image": "jolespin/veba_preprocess:1.5.0",
     "command": [
       "preprocess.py",
       "-1",
@@ -62,7 +62,7 @@ This job definition pulls the [jolespin/veba_preprocess](https://hub.docker.com/
         "efsVolumeConfiguration": {
           "fileSystemId": "fs-xxx",
           "transitEncryption": "ENABLED",
-          "rootDirectory": "databases/veba/VDB_v5.1/"
+          "rootDirectory": "databases/veba/VDB_v6/"
         }
       },
       {

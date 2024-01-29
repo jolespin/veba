@@ -8,7 +8,7 @@ from Bio import SeqIO
 from tqdm import tqdm
 
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.9.17"
+__version__ = "2024.1.16"
 
 def gc_content(seq):
     seq = seq.upper()
@@ -152,15 +152,15 @@ def main(args=None):
                 if "gene_id" not in df.columns:
                     genes = None
                     if "Name" in df.columns:
-                        genes = df["Name"].strip()
+                        genes = df["Name"].str.strip()
                     elif "ID" in df.columns:
-                        genes = df["ID"].strip()
+                        genes = df["ID"].str.strip()
                     elif "locus_tag" in df.columns:
-                        genes = df["locus_tag"].strip()
+                        genes = df["locus_tag"].str.strip()
                     elif "protein_id" in df.columns:
-                        genes = df["protein_id"].strip()
+                        genes = df["protein_id"].str.strip()
                     elif "gene" in df.columns:
-                        genes = df["gene"].strip()
+                        genes = df["gene"].str.strip()
                     assert genes is not None, "Cannot identify gene identifiers for contig: {}".format(id_contig)
                     df["gene_id"] = genes
 

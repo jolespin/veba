@@ -14,7 +14,7 @@ from soothsayer_utils import *
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.11.30"
+__version__ = "2024.1.2"
 
 # Assembly
 def preprocess( input_filepaths, output_filepaths, output_directory, directories, opts):
@@ -35,7 +35,7 @@ def preprocess( input_filepaths, output_filepaths, output_directory, directories
         else:
             for path in df.index:
                 id_mag = path.split("/")[-1][:-1*(len(opts.extension) + 1)]
-                assert id_mag not in proteins, "--proteins has non-unique MAG identifiers"
+                assert id_mag not in proteins, "--proteins has non-unique MAG identifiers: {} is duplicated".format(id_mag)
                 proteins[id_mag] = path 
         proteins = pd.Series(proteins)
 
@@ -148,12 +148,12 @@ cut -f1 %s | %s -j %d 'echo "[ClipKIT] {}"  &&  %s %s/{}.msa -m %s -o %s/{}.msa.
     return cmd
 
 # FastTree
-def get_fasttree_cmd(input_filepaths, output_filepaths, output_directory, directories, opts):
+def get_tree_cmd(input_filepaths, output_filepaths, output_directory, directories, opts):
 
     # Command
     cmd = [
-        os.environ["fasttree"],
-        opts.fasttree_options,
+        os.environ[opts.tree_algorithm],
+        {"FastTree":opts.fasttree_options, "VeryFastTree":opts.veryfasttree_options}[opts.tree_algorithm],
         input_filepaths[0],
         ">",
         output_filepaths[0],
@@ -242,7 +242,7 @@ def add_executables_to_environment(opts):
                 "muscle",
                 "clipkit",
                 "parallel",
-                "fasttree",
+                opts.tree_algorithm,
                 "iqtree",
                 "ete3",
 
@@ -417,20 +417,23 @@ def create_pipeline(opts, directories, f_cmds):
     # ==========
     step = 3
 
-    program = "fasttree"
+    program = opts.tree_algorithm.lower()#"fasttree"
     program_label = "{}__{}".format(step, program)
     # Add to directories
     output_directory = directories[("intermediate",  program_label)] = create_directory(os.path.join(directories["intermediate"], program_label))
 
     # Info
-    description = "Tree construction via FastTree"
+    description = "Tree construction via {}".format(opts.tree_algorithm)
 
 
     # i/o
     input_filepaths = [
         os.path.join(directories[("intermediate", "2__msa")], "concatenated_alignment.fasta"),
         ]
-    output_filenames = ["concatenated_alignment.fasttree.nw", "concatenated_alignment.fasttree.nw.pdf"]
+    output_filenames = [
+        "concatenated_alignment.{}.nw".format(opts.tree_algorithm.lower()), 
+        "concatenated_alignment.{}.nw.pdf".format(opts.tree_algorithm.lower()),
+        ]
     output_filepaths = list(map(lambda filename: os.path.join(output_directory, filename), output_filenames))
 
     params = {
@@ -441,7 +444,7 @@ def create_pipeline(opts, directories, f_cmds):
         "directories":directories,
     }
 
-    cmd = get_fasttree_cmd(**params)
+    cmd = get_tree_cmd(**params)
 
     pipeline.add_step(
                 id=program,
@@ -513,8 +516,8 @@ def create_pipeline(opts, directories, f_cmds):
         os.path.join(directories[("intermediate", "2__msa")], "prefiltered_alignment_table.tsv.gz"),
         os.path.join(directories[("intermediate", "2__msa")], "alignment_table.boolean.tsv.gz"), 
         os.path.join(directories[("intermediate", "2__msa")], "concatenated_alignment.fasta"),
-        os.path.join(directories[("intermediate", "3__fasttree")], "concatenated_alignment.fasttree.nw"),
-        os.path.join(directories[("intermediate", "3__fasttree")], "concatenated_alignment.fasttree.nw.pdf"),
+        os.path.join(directories[("intermediate", "3__{}".format(opts.tree_algorithm.lower()))], "concatenated_alignment.{}.nw".format(opts.tree_algorithm.lower())),
+        os.path.join(directories[("intermediate", "3__{}".format(opts.tree_algorithm.lower()))], "concatenated_alignment.{}.nw.pdf".format(opts.tree_algorithm.lower())),
 
     ]
     if not opts.no_iqtree:
@@ -556,6 +559,10 @@ def configure_parameters(opts, directories):
         opts.hmmsearch_threshold = None
     assert_acceptable_arguments(opts.hmm_marker_field, {"accession", "name"})
     assert_acceptable_arguments(opts.alignment_algorithm, {"align", "super5"})
+    if opts.tree_algorithm == "fasttree":
+        opts.tree_algorithm = "FastTree"
+    if opts.tree_algorithm == "veryfasttree":
+        opts.tree_algorithm = "VeryFastTree"
     
     # Set environment variables
     add_executables_to_environment(opts=opts)
@@ -608,7 +615,9 @@ def main(args=None):
 
     # Tree
     parser_tree = parser.add_argument_group('Tree arguments')
+    parser_tree.add_argument("-T", "--tree_algorithm", type=str,  choices={"fasttree", "veryfasttree"}, default="FastTree", help = "Tree inference algorithm to use {fasttree, veryfasttree} [Default: fasttree]")
     parser_tree.add_argument("--fasttree_options", type=str, default="", help="FastTree | More options (e.g. --arg 1 ) [Default: '']")
+    parser_tree.add_argument("--veryfasttree_options", type=str, default="", help="VeryFastTree | More options (e.g. --arg 1 ) [Default: '']")
     parser_tree.add_argument("--no_iqtree", action="store_true", help="IQTree | Don't run IQTree")
     parser_tree.add_argument("--iqtree_model", type=str, default="MFP", help="IQTree | Model finder [Default: MFP]")
     parser_tree.add_argument("--iqtree_mset", type=str, default="WAG,LG", help="IQTree | Model set to choose from [Default: WAG,LG]")

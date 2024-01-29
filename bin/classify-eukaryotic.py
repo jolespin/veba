@@ -14,7 +14,7 @@ from soothsayer_utils import *
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.12.28"
+__version__ = "2024.1.2"
 
 # Assembly
 def get_concatenate_cmd( input_filepaths, output_filepaths, output_directory, directories, opts):
@@ -105,6 +105,24 @@ def get_metaeuk_cmd( input_filepaths, output_filepaths, output_directory, direct
 
     return cmd
 
+def get_symlink_cmd( input_filepaths, output_filepaths, output_directory, directories, opts):
+    cmd = [ 
+
+    "DST={}; (for SRC in {}; do SRC=$(realpath --relative-to $DST $SRC); ln -sf $SRC $DST; done)".format(
+        output_directory,
+        " ".join(input_filepaths[1:]), 
+        ),
+
+        "&&",
+
+    "DST={}; (for SRC in {}; do SRC=$(realpath --relative-to $DST $SRC); ln -sf $SRC $DST/concatenated_proteins.faa; done)".format(
+        directories["tmp"],
+        input_filepaths[0], 
+        )
+    ]
+
+    return cmd
+
 def get_hmmsearch_cmd( input_filepaths, output_filepaths, output_directory, directories, opts):
     cmd = [ 
         os.environ["hmmsearch"],
@@ -175,7 +193,7 @@ def get_consensus_genome_classification_ranked_cmd( input_filepaths, output_file
         "tail -n +2",
         "|",
         os.environ["consensus_genome_classification_ranked.py"],
-        "--leniency {}".format(opts.leniency),
+        "--leniency {}".format(opts.leniency_genome_classification),
         "-o {}".format(output_filepaths[0]),
         "-r c__,o__,f__,g__,s__",
         # "--simple",
@@ -307,7 +325,7 @@ def create_pipeline(opts, directories, f_cmds):
     # ==========
     step = 1
 
-    if opts.eukaryotic_binning_directory:
+    if opts.mode == "directory":
         program = "concatenate"
         program_label = "{}__{}".format(step, program)
         # Add to directories
@@ -344,7 +362,7 @@ def create_pipeline(opts, directories, f_cmds):
                     validate_outputs=True,
         )
 
-    if opts.genomes:
+    if opts.mode == "genomes":
         program = "metaeuk"
         program_label = "{}__{}".format(step, program)
         # Add to directories
@@ -370,6 +388,46 @@ def create_pipeline(opts, directories, f_cmds):
         }
 
         cmd = get_metaeuk_cmd(**params)
+
+        pipeline.add_step(
+                    id=program,
+                    description = description,
+                    step=step,
+                    cmd=cmd,
+                    input_filepaths = input_filepaths,
+                    output_filepaths = output_filepaths,
+                    validate_inputs=True,
+                    validate_outputs=True,
+        )
+
+    if opts.mode == "manual":
+        program = "symlink"
+        program_label = "{}__{}".format(step, program)
+        # Add to directories
+        output_directory = directories["intermediate"]
+
+        # Info
+        description = "Symlinking manual MetaEuk run"
+
+
+        # i/o
+        input_filepaths = [
+            opts.proteins,
+            opts.identifier_mapping_metaeuk,
+            opts.scaffolds_to_bins,
+            ]
+        output_filenames = ["scaffolds_to_bins.tsv", "identifier_mapping.metaeuk.tsv"]
+        output_filepaths = list(map(lambda filename: os.path.join(directories["intermediate"], filename), output_filenames))
+
+        params = {
+            "input_filepaths":input_filepaths,
+            "output_filepaths":output_filepaths,
+            "output_directory":output_directory,
+            "opts":opts,
+            "directories":directories,
+        }
+
+        cmd = get_symlink_cmd(**params)
 
         pipeline.add_step(
                     id=program,
@@ -609,7 +667,36 @@ def configure_parameters(opts, directories):
     # if not opts.include_all_genes:
     #     assert opts.hmms is not None, "If not --include_all_genes then you must provide --hmms"
     #     assert opts.scores_cutoff is not None, "If not --include_all_genes then you must provide --scores_cutoff"
-    assert bool(opts.eukaryotic_binning_directory) != bool(opts.genomes), "Must choose either --eukaryotic_binning_directory or --genomes, not both."
+    inferred_mode = None
+    if bool(opts.eukaryotic_binning_directory):
+        assert not bool(opts.genomes), "Cannot use --genomes with --mode directory"
+        assert not bool(opts.proteins),  "Cannot use --proteins with --mode directory"
+        assert not bool(opts.identifier_mapping_metaeuk),  "Cannot use --identifier_mapping_metaeuk with --mode directory"
+        assert not bool(opts.scaffolds_to_bins),  "Cannot use --scaffolds_to_bins with --mode directory"
+        inferred_mode = "directory"
+    if bool(opts.genomes):
+        assert not bool(opts.eukaryotic_binning_directory), "Cannot use --eukaryotic_binning_directory with --mode genomes"
+        assert not bool(opts.proteins),  "Cannot use --proteins with --mode genomes"
+        assert not bool(opts.identifier_mapping_metaeuk),  "Cannot use --identifier_mapping_metaeuk with --mode genomes"
+        assert not bool(opts.scaffolds_to_bins),  "Cannot use --scaffolds_to_bins with --mode genomes"
+        inferred_mode = "genomes"
+
+    if any([
+        bool(opts.proteins),
+        bool(opts.identifier_mapping_metaeuk),
+        bool(opts.scaffolds_to_bins)
+    ]):
+        assert not bool(opts.eukaryotic_binning_directory), "Cannot use --eukaryotic_binning_directory with --mode manual"
+        assert not bool(opts.genomes), "Cannot use --genomes with --mode manual"
+        assert bool(opts.proteins),  "Must provide --proteins, --identifier_mapping_metaeuk, and --scaffolds_to_bins with --mode manual"
+        assert bool(opts.identifier_mapping_metaeuk),  "Must provide --proteins, --identifier_mapping_metaeuk, and --scaffolds_to_bins with --mode manual"
+        assert bool(opts.scaffolds_to_bins),  "Must provide --proteins, --identifier_mapping_metaeuk, and --scaffolds_to_bins with --mode manual"
+        inferred_mode = "manual"
+    if opts.mode == "auto":
+        opts.mode = inferred_mode
+        print("Automatically determined mode = {}".format(opts.mode), file=sys.stdout)
+
+
     # Set environment variables
     add_executables_to_environment(opts=opts)
 
@@ -626,12 +713,22 @@ def main(args=None):
     # Parser
     parser = argparse.ArgumentParser(description=description, usage=usage, epilog=epilog, formatter_class=argparse.RawTextHelpFormatter)
     # Pipeline 
-    parser_io = parser.add_argument_group('Required I/O arguments')
-    parser_io.add_argument("-i","--eukaryotic_binning_directory", type=str, help = "path/to/eukaryotic_binning_directory [Cannot be used with --genomes]")
-    parser_io.add_argument("-g","--genomes", type=str, help = "path/to/genomes.list where each line is a path to a genome.fasta [Cannot be ued with --eukaryotic_binning_directory]")
+    parser_io = parser.add_argument_group('I/O arguments')
     parser_io.add_argument("-c","--clusters", type=str, help = "path/to/clusters.tsv, Format: [id_mag]<tab>[id_cluster], No header.")
     parser_io.add_argument("-o","--output_directory", type=str, default="veba_output/classify/eukaryotic", help = "path/to/output_directory [Default: veba_output/classify/eukaryotic]")
     parser_io.add_argument("-x","--extension", type=str, default="fa", help = "path/to/output_directory.  Does not support gzipped. [Default: fa]")
+    parser_io.add_argument("-m","--mode", type=str, default="auto", choices={"directory", "genomes", "manual", "auto"}, help = "{directory, genomes, manual, auto} [Default: auto]")
+
+    parser_binning_directory = parser.add_argument_group('[mode=binning_directory] arguments')
+    parser_binning_directory.add_argument("-i","--eukaryotic_binning_directory", type=str, help = "path/to/eukaryotic_binning_directory [Cannot be used with --mode genomes or manual]")
+
+    parser_genomes = parser.add_argument_group('[mode=genomes] arguments')
+    parser_genomes.add_argument("-g","--genomes", type=str, help = "path/to/genomes.list where each line is a path to a genome.fasta [Cannot be used with --mode binning_directory or manual]")
+
+    parser_manual = parser.add_argument_group('[mode=manual] arguments')
+    parser_manual.add_argument("-a","--proteins", type=str, help = "path/to/concatenated_proteins.faa  [Cannot be used with --model _binning_directory or genomes]")
+    parser_manual.add_argument("-t","--identifier_mapping_metaeuk", type=str, help = "path/to/identifier_mapping.metaeuk.tsv  [Cannot be used with --model _binning_directory or genomes]")
+    parser_manual.add_argument("-s","--scaffolds_to_bins", type=str, help = "path/to/scaffolds_to_bins.tsv  [Cannot be used with --model _binning_directory or genomes]")
 
     # Utility
     parser_utility = parser.add_argument_group('Utility arguments')
@@ -654,7 +751,8 @@ def main(args=None):
 
     # Consensus genome classification
     parser_consensus= parser.add_argument_group('Consensus genome arguments')
-    parser_consensus.add_argument("-l","--leniency", default=1.382, type=float, help = "Leniency parameter. Lower value means more conservative weighting. A value of 1 indiciates no weight bias. A value greater than 1 puts higher weight on higher level taxonomic assignments. A value less than 1 puts lower weights on higher level taxonomic assignments.  [Default: 1.382]")
+    parser_consensus.add_argument("-L","--leniency_genome_classification", default=1.0, type=float, help = "Leniency parameter for genomes. Lower value means more conservative weighting. A value of 1 indiciates no weight bias. A value greater than 1 puts higher weight on higher level taxonomic assignments. A value less than 1 puts lower weights on higher level taxonomic assignments.  [Default: 1.0]")
+    parser_consensus.add_argument("-l","--leniency", default=1.0, type=float, help = "Leniency parameter for genome cluster. Lower value means more conservative weighting. A value of 1 indiciates no weight bias. A value greater than 1 puts higher weight on higher level taxonomic assignments. A value less than 1 puts lower weights on higher level taxonomic assignments.  [Default: 1.0]")
     parser_consensus.add_argument("--similarity_threshold", type=float, default=0.8, help = "Threshold for similarity analysis [Default: 0.8]")
     parser_consensus.add_argument("--retain_unannotated", type=int, default=1, help = "Consider unannotations (i.e., blank functions) in the scording system [Default: 1]")
     parser_consensus.add_argument("--unannotated_weight", type=float, default=0.382, help = "Weight for unannotations (i.e., blank functions) in the scording system? [Default: 0.382]")

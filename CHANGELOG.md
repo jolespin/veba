@@ -6,6 +6,37 @@ ________________________________________________________________
 
 #### Current Releases:
 
+**Release v1.5.0 Highlights:**
+
+* Added `VeryFastTree` to `phylogeny.py`
+* Added `--blacklist` to `compile_eukaryotic_classifications.py`
+* Added compatibility for `antismash_genbanks_to_table.py` to operate on `antiSMASH v7` genbanks
+* Added `compile_phylogenomic_functional_categories.py` script which automates the methodology from [Espinoza et al. 2022 (doi:10.1093/pnasnexus/pgac239)](https://academic.oup.com/pnasnexus/article/1/5/pgac239/6762943)
+* Fixed error in `annotations.protein_clusters.tsv` formatting from `annotate.py`
+* Fixed situation where `unbinned.fasta` were not added in `binning-prokaryotic.py` and bad symlinks were created for GFF, rRNA, and tRNA when no genoems were detected.
+* Fixed critical error where `classify_eukaryotic.py` was trying to access a deprecated database file from MicroEuk_v2.
+
+<details>
+	<summary><b>Release v1.5.0 Details</b></summary>
+
+* Cleaned up installation files
+* Changed `veba/src/` to `veba/bin/`
+* Checked `SCRIPT_VERSIONS` to `VEBA_SCRIPT_VERSIONS` which are now in `bin/` of conda environment
+* Fixed header being offset in `annotations.protein_clusters.tsv` where it could not be read with Pandas.
+* Fixed `binning-prokaryotic.py` the creation of non-existing symlinks where "'*.gff'", "'*.rRNA'", and "'*.tRNA'" were created.
+* Fixed .strip method on Pandas series in `antismash_genbanks_to_table.py` for compatibilty with `antiSMASH 6 and 7`
+* Fixed situation where `unbinned.fasta` is empty in `binning-prokaryotic.py` when there are no bins that pass qc.
+* Fixed minor error in `coverage.py` where `samtools sort --reference` was getting `reads_table.tsv` and not `reference.fasta`
+* Changed default behavior from deterministic to not deterministic for increase in speed in `assembly-long.py`. (i.e., `--no_deterministic` --> `--deterministic`)
+* Added `VeryFastTree` as an option to `phylogeny.py` with `FastTree` remaining as the default.
+* Changed default `--leniency` parameter on `classify_eukaryotic.py` and `consensus_genome_classification_ranked.py` to `1.0` and added `--leniecy_genome_classification` as a separate option.
+* Added `--blacklist` option to `compile_eukaryotic_classifications.py` with a default value of `species:uncultured eukaryote` in `classify_eukaryotic.py`
+* Fixed critical error where `classify_eukaryotic.py` was trying to access a deprecated database file from MicrEuk_v2.
+* Fixed minor error with `eukaryotic_gene_modeling_wrapper.py` not allowing for `Tiara` to run in backend.
+* Added `compile_phylogenomic_functional_categories.py` script which automates the methodology from [Espinoza et al. 2022 (doi:10.1093/pnasnexus/pgac239)](https://academic.oup.com/pnasnexus/article/1/5/pgac239/6762943)
+</details>
+
+
 **Release v1.4.2 Highlights:**
 
 * **`VEBA` Modules:**
@@ -357,10 +388,9 @@ ________________________________________________________________
 
 **Critical:**
 
-* `binning-prokaryotic.py` doesn't produce an `unbinned.fasta` file for long reads if there aren't any genomes.  It also creates a symlink called `genomes` in the working directory.
 * Add a way to show all versions
 * Genome checkpoints in `tRNAscan-SE` aren't working properly.
-* Dereplcate CDS sequences in GFF from `MetaEuk` for `antiSMASH` to work for eukaryotic genomes
+* Dereplicate CDS sequences in GFF from `MetaEuk` for `antiSMASH` to work for eukaryotic genomes
 * Error with `amplicon.py` that works when run manually...
 
 ```
@@ -371,24 +401,26 @@ There was a problem importing veba_output/misc/reads_table.tsv:
 
 **Definitely:**
 
+* Script to get representative genome in a genome cluster based on `NetworkX` graph
+* Add `convert_reads_long_to_short.py` which will take windows of 150 bp for the long reads.
 * Add option to `compile_custom_humann_database_from_annotations.py` to only output best hit of a UniRef identifier per genome.
 * Use `pigz` instead of `gzip`
 * Create a taxdump for `MicroEuk`
 * Reimplement `compile_eukaryotic_classifications.py`
 * Add representative to `identifier_mapping.proteins.tsv.gz`
 * Split `download_databases.sh`  into `download_databases.sh` (low memory, high threads) and `configure_databases.sh` (high memory, low-to-mid threads).  Use `aria2` in parallel instead of `wget`.
-* `NextFlow` support
-* Install each module via `bioconda`
 * Add support for `Salmon` in `mapping.py` and `index.py`.  This can be used instead of `STAR` which will require adding the `exon` field to `Prodigal` GFF file (`MetaEuk` modified GFF files already have exon ids). 
+* [Optional] Number of plasmids (via geNomad) for each MAG.
 
 
 **Eventually (Yes)?:**
 
+* `NextFlow` support
+* Install each module via `bioconda`
 * Don't load all genomes, proteins, and cds into memory for clustering.
 * Add support for `FAMSA` in `phylogeny.py`
 * Consistent usage of the following terms: 1) dataframe vs. table; 2) protein-cluster vs. orthogroup.
 * Add coding density to GFF files
-* Add `vRhyme` to `binning_wrapper.py` and support `vRhyme` in `binning-viral.py`.
 * Phylogenetic tree of `MicroEuk100`
 * Convert HMMs to `MMSEQS2` (https://github.com/soedinglab/MMseqs2/wiki#how-to-create-a-target-profile-database-from-pfam)?
 * Run `cmsearch` before `tRNAscan-SE`
@@ -397,6 +429,8 @@ There was a problem importing veba_output/misc/reads_table.tsv:
 * Add a `metabolic.py` module	
 * Swap [`TransDecoder`](https://github.com/TransDecoder/TransDecoder) for [`TransSuite`](https://github.com/anonconda/TranSuite)
 * For viral binning, contigs that are not identified as viral via `geNomad -> CheckV` use with `vRhyme`.
+* Add `vRhyme` to `binning_wrapper.py` and support `vRhyme` in `binning-viral.py`.
+
 
 **...Maybe (Not)?**
 
@@ -407,7 +441,15 @@ ________________________________________________________________
 
 <details>
 	<summary> <b>Daily Change Log:</b> </summary>
-	
+* [2024.1.23] - Added `compile_phylogenomic_functional_categories.py` script which automates the methodology from [Espinoza et al. 2022 (doi:10.1093/pnasnexus/pgac239)](https://academic.oup.com/pnasnexus/article/1/5/pgac239/6762943)
+* [2024.1.22] - Fixed header being offset in `annotations.protein_clusters.tsv` where it could not be read with Pandas.
+* [2024.1.22] - Fixed `binning-prokaryotic.py` the creation of non-existing symlinks where "'*.gff'", "'*.rRNA'", and "'*.tRNA'" were created.
+* [2024.1.16] - Fixed .strip method on Pandas series in `antismash_genbanks_to_table.py` for compatibilty with `antiSMASH 6 and 7`
+* [2024.1.7] - Fixed situation where `unbinned.fasta` is empty in `binning-prokaryotic.py` when there are no bins that pass qc.
+* [2024.1.7] - Fixed minor error in `coverage.py` where `samtools sort --reference` was getting `reads_table.tsv` and not `reference.fasta`
+* [2023.1.4] - Changed default behavior from deterministic to not deterministic for increase in speed in `assembly-long.py`. (i.e., `--no_deterministic` --> `--deterministic`)
+* [2024.1.2] - Added `VeryFastTree` as an option to `phylogeny.py` with `FastTree` remaining as the default.
+* [2023.12.30] - Changed default `--leniency` parameter on `classify_eukaryotic.py` and `consensus_genome_classification_ranked.py` to `1.0` and added `--leniecy_genome_classification` as a separate option.
 * [2023.12.28] - Added `--blacklist` option to `compile_eukaryotic_classifications.py` with a default value of `species:uncultured eukaryote` in `classify_eukaryotic.py`
 * [2023.12.28] - Fixed critical error where `classify_eukaryotic.py` was trying to access a deprecated database file from MicrEuk_v2.
 * [2023.12.22] - Fixed minor error with `eukaryotic_gene_modeling_wrapper.py` not allowing for `Tiara` to run in backend.

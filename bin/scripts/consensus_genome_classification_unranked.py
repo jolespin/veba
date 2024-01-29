@@ -9,7 +9,7 @@ import taxopy
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.6.7"
+__version__ = "2023.12.30"
 
 def main(args=None):
     # Path info

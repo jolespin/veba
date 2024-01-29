@@ -9,7 +9,7 @@ import numpy as np
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.11.3"
+__version__ = "2023.12.31"
 
 # RANK_TO_PREFIX="superkingdom:d__,phylum:p__,class:c__,order:o__,family:f__,genus:g__,species:s__"
 
@@ -38,7 +38,7 @@ def get_consensus_classification(
     rank_prefixes:list,
     number_of_taxonomic_levels="infer",
     delimiter=";",
-    leniency:float=1.382,
+    leniency:float=1.0,
     ):
     # Assertions
     assert np.all(classification.notnull())
@@ -156,7 +156,7 @@ def main(args=None):
     # Pipeline
     parser.add_argument("-i","--input", default="stdin", type=str, help = "path/to/genome_to_classification.tsv  [id_genome]<tab>[id_genome_cluster]<tab>[classification]<tab>[weight]; No header. [Default: stdin]")
     parser.add_argument("-o","--output", type=str, default="stdout", help = "Output table with consensus classification [Default: stdout]")
-    parser.add_argument("-l","--leniency", default=1.382, type=float, help = "Leniency parameter. Lower value means more conservative weighting. A value of 1 indiciates no weight bias. A value greater than 1 puts higher weight on higher level taxonomic assignments. A value less than 1 puts lower weights on higher level taxonomic assignments.  [Default: 1.382]")
+    parser.add_argument("-l","--leniency", default=1.0, type=float, help = "Leniency parameter. Lower value means more conservative weighting. A value of 1 indiciates no weight bias. A value greater than 1 puts higher weight on higher level taxonomic assignments. A value less than 1 puts lower weights on higher level taxonomic assignments.  [Default: 1.0]")
     parser.add_argument("-r", "--rank_prefixes", type=str, default=RANK_PREFIXES, help = "Rank prefixes separated by , delimiter'\n[Default: {}]".format(RANK_PREFIXES))
     parser.add_argument("-d", "--delimiter", type=str, default=";", help = "Taxonomic delimiter [Default: ; ]")
     parser.add_argument("-s", "--simple", action="store_true", help = "Simple classification that does not use lineage information from --rank_prefixes")

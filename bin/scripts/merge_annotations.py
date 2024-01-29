@@ -6,7 +6,7 @@ import numpy as np
 from soothsayer_utils import read_hmmer, pv, get_file_object, assert_acceptable_arguments, format_header, flatten
 
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.11.24"
+__version__ = "2024.1.22"
 
 # disclaimer = format_header("DISCLAIMER: Lineage predictions are NOT robust and DO NOT USE CORE MARKERS.  Please only use for exploratory suggestions.")
 
@@ -494,8 +494,9 @@ def main(args=None):
 
     if opts.identifier_mapping:
         with gzip.open(os.path.join(opts.output_directory, "annotations.protein_clusters.tsv.gz"), "wt") as f:
-            print("\t", 
-                  *["Identifiers"]*2,
+            print(
+                  # "\t", 
+                  *["Identifiers"]*3,
                   *["Consensus"]*1,
 
                   *["UniRef"]*4,

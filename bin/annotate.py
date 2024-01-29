@@ -15,7 +15,7 @@ from soothsayer_utils.soothsayer_utils import assert_acceptable_arguments
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.11.30"
+__version__ = "2024.1.8"
 
 def get_preprocess_cmd( input_filepaths, output_filepaths, output_directory, directories, opts, program):
     cmd = [
@@ -822,7 +822,7 @@ def main(args=None):
 
     # Databases
     parser_databases = parser.add_argument_group('Database arguments')
-    parser_databases.add_argument("-u", "--uniref", type=str,  default="uniref90", help="UniRef database to use {uniref90, uniref50}.  uniref90 receommended for well-characterized systems and uniref50 for less characterized systems [Default: uniref90]")
+    parser_databases.add_argument("-u", "--uniref", type=str,  default="uniref50", help="UniRef database to use {uniref90, uniref50}.  uniref90 receommended for well-characterized systems and uniref50 for less characterized systems [Default: uniref50]")
     parser_databases.add_argument("--veba_database", type=str,  help=f"VEBA database location.  [Default: $VEBA_DATABASE environment variable]")
     
     # Diamond

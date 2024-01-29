@@ -13,7 +13,7 @@ from soothsayer_utils import *
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.11.30"
+__version__ = "2024.1.22"
 
 # Assembly
 def get_coverage_cmd( input_filepaths, output_filepaths, output_directory, directories, opts):
@@ -44,7 +44,7 @@ def get_coverage_cmd( input_filepaths, output_filepaths, output_directory, direc
     ">",
     output_filepaths[0],
 
-    "&&",
+        "&&",
 
     # # Coverage for MaxBin2
     # "cut -f1,4",
@@ -547,12 +547,10 @@ def get_consolidate_cmd(input_filepaths, output_filepaths, output_directory, dir
 
     cmd = [
         """
-rm -rf {}
 mkdir -p {}
 S2B=$(ls {}) || (echo 'No genomes have been detected' && exit 1)
 
 """.format(
-    os.path.join(output_directory, "*"),
     os.path.join(output_directory, "genomes"),
     os.path.join(directories["intermediate"], "*__checkm2",  "filtered", "scaffolds_to_bins.tsv"),
     ),
@@ -612,7 +610,7 @@ DIR_TRNA={}
 OUTPUT_DIRECTORY={}
 mkdir -p $OUTPUT_DIRECTORY
 
-for GENOME_FASTA in {};
+for GENOME_FASTA in $(ls {});
 do
     ID=$(basename $GENOME_FASTA .fa)
     DIR_GENOME=$(dirname $GENOME_FASTA)
@@ -638,7 +636,7 @@ done
 
     cmd += [ 
 
-        "DST={}; for SRC in {}; do SRC=$(realpath --relative-to $DST $SRC); ln -sf $SRC $DST; done".format(
+        "DST={}; for SRC in $(ls {}); do SRC=$(realpath --relative-to $DST $SRC); ln -sf $SRC $DST; done".format(
         os.path.join(output_directory,"genomes"),
         os.path.join(directories[("intermediate", "{}__barrnap".format(step-3))], "*.rRNA"),
     ),
@@ -649,7 +647,7 @@ done
     cmd += [ 
             "&&",
 
-        "DST={}; for SRC in {}; do SRC=$(realpath --relative-to $DST $SRC); ln -sf $SRC $DST; done".format(
+        "DST={}; for SRC in $(ls {}); do SRC=$(realpath --relative-to $DST $SRC); ln -sf $SRC $DST; done".format(
         os.path.join(output_directory,"genomes"),
         os.path.join(directories[("intermediate", "{}__trnascan-se".format(step-2))], "*.tRNA"),
     ),
@@ -737,7 +735,7 @@ done
         os.path.join(output_directory,"gene_statistics.tRNA.tsv"),
 
         # Binned/Unbinned
-                    "&&",
+            "&&",
 
         "cat",
         opts.fasta,
@@ -753,7 +751,13 @@ done
         "-j {}".format(opts.n_jobs),
         "-m {}".format(opts.minimum_contig_length),
         ">",
-        os.path.join(output_directory,"unbinned.fasta"),
+        os.path.join(directories["tmp"], "unbinned.fasta"),
+
+            "&&",
+
+        "mv",
+        os.path.join(directories["tmp"], "unbinned.fasta"),
+        os.path.join(output_directory,"unbinned.fasta"), 
     
             "&&",
 

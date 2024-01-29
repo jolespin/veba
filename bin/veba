@@ -1,5 +1,5 @@
 #!/bin/bash
-# v2023.12.18
+# v2023.1.23
 
 # Define available modules
 AVAILABLE_MODULES=(
@@ -48,12 +48,13 @@ show_help() {
     echo "  -m, --module    Specify the module.  Available modules: ${AVAILABLE_MODULES[*]}"
     echo "  -p, --params    Specify parameters to give to each module"
     echo "  -v, --version   Display the version information"
+    echo "  -V, --full_versions   Display the full version information"
     echo "  -h, --help      Display this help message"
     exit 0
 }
 
 # Parse command-line arguments
-ARGS=$(getopt -o m:p:vh --long module:,params:,version,help -n "$0" -- "$@")
+ARGS=$(getopt -o m:p:vVh --long module:,params:,version,full_versions,help -n "$0" -- "$@")
 
 # Exit if getopt encounters an error
 if [ $? -ne 0 ]; then
@@ -80,6 +81,11 @@ while true; do
         -v|--version)
             echo "VEBA Version:"
             cat "${SCRIPT_DIRECTORY}/VEBA_VERSION"
+            exit 0
+            ;;
+        -V|--full_versions)
+            echo "VEBA Versions:"
+            cat "${SCRIPT_DIRECTORY}/VEBA_SCRIPT_VERSIONS"
             exit 0
             ;;
         -h|--help)

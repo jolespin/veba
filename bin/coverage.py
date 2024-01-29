@@ -13,144 +13,183 @@ from soothsayer_utils import *
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.12.14"
+__version__ = "2024.1.7"
+
+# .............................................................................
+# Notes
+# .............................................................................
+# * Make batch version that takes in a manifest file
+# .............................................................................
+# Primordial
+# .............................................................................
+
 
 # Assembly
-def get_assembly_cmd( input_filepaths, output_filepaths, output_directory, directories, opts):
+def get_index_cmd( input_filepaths, output_filepaths, output_directory, directories, opts):
+
     # Command
     cmd = [
-        os.environ["flye"],
-        "--{} {}".format(opts.reads_type, input_filepaths[0]),
-        "-g {}".format(opts.estimated_assembly_size) if opts.estimated_assembly_size else "",
-        "-o {}".format(output_directory),
-        "-t {}".format(opts.n_jobs),
-        "--deterministic" if not opts.no_deterministic else "",
-        "--meta" if opts.program == "metaflye" else "",
-        opts.assembler_options,
+        # Filtering out small contigs
+        "cat",
+        opts.fasta,
+        "|",
+        os.environ["seqkit"],
+        "seq", 
+        "-m {}".format(opts.minimum_contig_length),
+        "-j {}".format(opts.n_jobs),
+        opts.seqkit_seq_options,
+        ">",
+        output_filepaths[0],
 
-            # Get failed length cutoff fasta
-                "&&",
+        # Create SAF file
+        "&&",
+        os.environ["fasta_to_saf.py"],
+        "-i {}".format(output_filepaths[0]),
+        ">",
+        output_filepaths[1],
 
-            "mv",
-            os.path.join(output_directory, "assembly.fasta"),
-            os.path.join(output_directory, "assembly_original.fasta"),
+        "&&",
+        # Bowtie2 Index
+        os.environ["bowtie2-build"],
+        "--threads {}".format(opts.n_jobs),
+        "--seed {}".format(opts.random_state),
+        opts.bowtie2_index_options,
+        output_filepaths[0], # Reference
+        output_filepaths[0], # Index
 
-                "&&",
+        # Get stats for reference
+        "&&",
+        os.environ["seqkit"],
+        "stats",
+        "-a", 
+        "-j {}".format(opts.n_jobs),
+        "-T",
+        "-b",
+        output_filepaths[0],
+        ">",
+        output_filepaths[2],
+    ]
 
-            "cat",
-            os.path.join(output_directory, "assembly_original.fasta"),
-            "|",
-            os.environ["seqkit"],
-            "seq",
-            "-M {}".format(max(opts.minimum_contig_length - 1, 1)),
-            "|",
-            "gzip",
-            ">",
-            os.path.join(output_directory, "assembly_failed_length_cutoff.fasta.gz"),
-
-            # Filter out small scaffolds and add prefix if applicable
-                "&&",
-
-            "cat",
-            os.path.join(output_directory, "assembly_original.fasta"),
-            "|",
-            os.environ["seqkit"],
-            "seq",
-            "-m {}".format(opts.minimum_contig_length),
-            "|",
-            os.environ["seqkit"],
-            "replace",
-            "-r {}".format(opts.scaffold_prefix),
-            "-p '^'",
-            ">",
-            os.path.join(output_directory, "assembly.fasta"),
-
-                "&&",
-
-            "rm -rf",
-            os.path.join(output_directory, "assembly_original.fasta"),
-
-                "&&",
-                
-            os.environ["fasta_to_saf.py"],
-            "-i",
-            os.path.join(output_directory, "assembly.fasta"),
-            ">",
-            os.path.join(output_directory, "assembly.fasta.saf"),
-        ]
-
-
-
-    # files_to_remove = [ 
-    # ]
-
-    # for fn in files_to_remove:
-    #     cmd += [ 
-    #         "&&",
-    #         "rm -rf {}".format(os.path.join(output_directory, fn)),
-    #     ]
     return cmd
 
+
 # Bowtie2
+def get_alignment_gnuparallel_cmd(input_filepaths, output_filepaths, output_directory, directories, opts):
+
+    # Command
+    cmd = [
+
+# MAKE THIS A FOR LOOP WITH MAX THREADS FOR EACH ONE. THE REASON FOR THIS IS THAT IF THERE IS A SMALL SAMPLE IT WILL BE DONE QUICK BUT THE LARGER SAMPLES ARE GOING TO BE STUCK WITH ONE THREAD STILL
+"""
+    # Clear temporary directory just in case
+
+rm -rf %s
+
+# Bowtie2
+%s --jobs %d -a %s -C "\t" "mkdir -p %s && %s -x %s -1 {2} -2 {3} --threads 1 --seed %d --no-unal %s | %s sort --threads 1 --reference %s -T %s > %s && %s index -@ 1 %s"
+
+"""%( 
+    os.path.join(directories["tmp"], "*"),
+
+    # Parallel
+    os.environ["parallel"],
+    opts.n_jobs,
+    input_filepaths[0],
+
+    # Make directory
+    os.path.join(output_directory, "{1}"),
+
+    # Bowtie2
+    os.environ["bowtie2"],
+    input_filepaths[1],
+    opts.random_state,
+    opts.bowtie2_options,
+
+    # Samtools sort
+    os.environ["samtools"],
+    input_filepaths[0],
+    os.path.join(directories["tmp"], "samtools_sort_{1}"),
+    os.path.join(output_directory, "{1}", "mapped.sorted.bam"),
+
+    # Samtools index
+    os.environ["samtools"],
+    os.path.join(output_directory, "{1}", "mapped.sorted.bam"),
+
+    ),
+
+
+    ]
+
+    return cmd
+
 def get_alignment_cmd(input_filepaths, output_filepaths, output_directory, directories, opts):
 
     # Command
     cmd = [
+
+# MAKE THIS A FOR LOOP WITH MAX THREADS FOR EACH ONE. THE REASON FOR THIS IS THAT IF THERE IS A SMALL SAMPLE IT WILL BE DONE QUICK BUT THE LARGER SAMPLES ARE GOING TO BE STUCK WITH ONE THREAD STILL
+"""
+ # Clear temporary directory just in case
+rm -rf %s
+
+# Read lines
+READ_TABLE=%s
+
+while IFS= read -r LINE
+do echo $LINE
+    # Split fields
+    ID_SAMPLE=$(echo $LINE | cut -f1 -d " ")
+    R1=$(echo $LINE | cut -f2 -d " ")
+    R2=$(echo $LINE | cut -f3 -d " ")
+
+    # Create subdirectory
+    mkdir -p %s
+
+    OUTPUT_BAM="%s"
+
+    # Bowtie2
+    if [[ -e "$OUTPUT_BAM" && -s "$OUTPUT_BAM" ]]; then
+        echo "[Skipping (Exists)] [Bowtie2] [$ID_SAMPLE]"
+    else
+        echo "[Running] [Bowtie2] [$ID_SAMPLE]"
+        %s -x %s -1 $R1 -2 $R2 --threads %d --seed %d --no-unal %s | %s sort --threads %d --reference %s -T %s > $OUTPUT_BAM && %s index -@ %d $OUTPUT_BAM
+    fi
+done < $READ_TABLE
+
+"""%( 
     # Clear temporary directory just in case
-    "rm -rf {}".format(os.path.join(directories["tmp"], "*")),
-    "&&",
+    os.path.join(directories["tmp"], "*"),
 
-    # MiniMap2 Index
-    "(",
-    os.environ["minimap2"],
-    "-t {}".format(opts.n_jobs),
-    "-d {}".format(output_filepaths[0]), # Index
-    opts.minimap2_index_options,
-    input_filepaths[1], # Reference
-    ")",
-
-    "&&",
-
-    # MiniMap2
-    "(",
-    os.environ["minimap2"],
-    "-a",
-    "-t {}".format(opts.n_jobs),
-    "-x {}".format(opts.minimap2_preset),
-    opts.minimap2_options,
-    output_filepaths[0],
+    # Read lines
     input_filepaths[0],
 
+    # Make directory
+    os.path.join(output_directory, "${ID_SAMPLE}"),
+
+    # Output BAM
+    os.path.join(output_directory, "${ID_SAMPLE}", "mapped.sorted.bam"),
 
 
-    # Convert to sorted BAM
-    "|",
+    # Bowtie2
+    os.environ["bowtie2"],
+    input_filepaths[1],
+    opts.n_jobs,
+    opts.random_state,
+    opts.bowtie2_options,
 
+    # Samtools sort
     os.environ["samtools"],
-    "view",
-    "-b",
-    "-h",
-    "-F 4",
+    opts.n_jobs,
+    input_filepaths[1],
+    os.path.join(directories["tmp"], "samtools_sort_${ID_SAMPLE}"),
+    # os.path.join(output_directory, "${ID_SAMPLE}", "mapped.sorted.bam"),
 
-    "|",
-
+    # Samtools index
     os.environ["samtools"],
-    "sort",
-    "--threads {}".format(opts.n_jobs),
-    "--reference {}".format(input_filepaths[1]),
-    "-T {}".format(os.path.join(directories["tmp"], "samtools_sort")),
-    ">",
-    output_filepaths[1],
-    ")",
+    opts.n_jobs,
+    # os.path.join(output_directory, "${ID_SAMPLE}", "mapped.sorted.bam"),
+    ),
 
-    "&&",
-
-    "(",
-    os.environ["samtools"],
-    "index",
-    "-@ {}".format(opts.n_jobs),
-    output_filepaths[1],
-    ")",
     ]
 
     return cmd
@@ -168,41 +207,21 @@ def get_featurecounts_cmd(input_filepaths, output_filepaths, output_directory, d
     "(",
         os.environ["featureCounts"],
         # "-G {}".format(input_filepaths[0]),
-        "-a {}".format(input_filepaths[1]),
+        "-a {}".format(input_filepaths[0]),
         "-o {}".format(os.path.join(output_directory, "featurecounts.tsv")),
         "-F SAF",
-        "-L",
         "--tmpDir {}".format(os.path.join(directories["tmp"], "featurecounts")),
         "-T {}".format(opts.n_jobs),
+        "-p --countReadPairs",
         opts.featurecounts_options,
-        input_filepaths[2],
+        *input_filepaths[1:],
     ")",
         "&&",
     "gzip -f {}".format(os.path.join(output_directory, "featurecounts.tsv")),
         ]
     return cmd
 
-# seqkit
-def get_seqkit_cmd(input_filepaths, output_filepaths, output_directory, directories, opts):
 
-    # Command
-
-    # ORF-Level Counts
-    cmd = [
-
-        os.environ["seqkit"],
-        "stats",
-        "-a", 
-        "-j {}".format(opts.n_jobs),
-        "-T",
-        "-b",
-        os.path.join(directories[("intermediate","1__assembly")], "*.fasta"),
-        "|",
-        "gzip",
-        ">",
-        output_filepaths[0],
-        ]
-    return cmd
 
 # Symlink
 def get_symlink_cmd(input_filepaths, output_filepaths, output_directory, directories, opts):
@@ -224,15 +243,16 @@ def add_executables_to_environment(opts):
     Adapted from Soothsayer: https://github.com/jolespin/soothsayer
     """
     accessory_scripts = {
-                "fasta_to_saf.py",
+                "fasta_to_saf.py"
                 }
 
     required_executables={
-                "flye",
-                "minimap2",
+                "bowtie2-build",
+                "bowtie2",
                 "samtools",
                 "featureCounts",
                 "seqkit",
+                "parallel",
      } | accessory_scripts
 
     if opts.path_config == "CONDA_PREFIX":
@@ -255,14 +275,12 @@ def add_executables_to_environment(opts):
     # Display
     for name in sorted(accessory_scripts):
         executables[name] = "'{}'".format(os.path.join(opts.script_directory, "scripts", name)) # Can handle spaces in path
-
     print(format_header( "Adding executables to path from the following source: {}".format(opts.path_config), "-"), file=sys.stdout)
     for name, executable in executables.items():
         if name in required_executables:
             print(name, executable, sep = " --> ", file=sys.stdout)
             os.environ[name] = executable.strip()
     print("", file=sys.stdout)
-
 
 # Pipeline
 def create_pipeline(opts, directories, f_cmds):
@@ -271,7 +289,7 @@ def create_pipeline(opts, directories, f_cmds):
     # Primordial
     # .................................................................
     # Commands file
-    pipeline = ExecutablePipeline(name=__program__, description=opts.name, f_cmds=f_cmds, checkpoint_directory=directories["checkpoints"], log_directory=directories["log"])
+    pipeline = ExecutablePipeline(name=__program__, description="Coverage", f_cmds=f_cmds, checkpoint_directory=directories["checkpoints"], log_directory=directories["log"])
 
     # ==========
     # Assembly
@@ -280,17 +298,19 @@ def create_pipeline(opts, directories, f_cmds):
     step = 1
 
     # Info
-    program = "assembly"
+    program = "index"
     program_label = "{}__{}".format(step, program)
-    description = "Assembling long reads via {}".format(opts.program.capitalize())
+    description = "Preprocess fasta file and build Bowtie2 index"
     
     # Add to directories
     output_directory = directories[("intermediate",  program_label)] = create_directory(os.path.join(directories["intermediate"], program_label))
 
 
     # i/o
-    input_filepaths = [opts.reads]
-    output_filenames = ["assembly.fasta", "assembly.fasta.saf"]
+    input_filepaths = [opts.fasta]
+    output_filenames = ["reference.fasta", "reference.fasta.saf", "seqkit_stats.tsv", "reference.fasta.*.bt2"] 
+
+
     output_filepaths = list(map(lambda filename: os.path.join(output_directory, filename), output_filenames))
 
     params = {
@@ -301,7 +321,7 @@ def create_pipeline(opts, directories, f_cmds):
         "directories":directories,
     }
 
-    cmd = get_assembly_cmd(**params)
+    cmd = get_index_cmd(**params)
     pipeline.add_step(
                 id=program_label,
                 description = description,
@@ -324,7 +344,7 @@ def create_pipeline(opts, directories, f_cmds):
     # Info
     program = "alignment"
     program_label = "{}__{}".format(step, program)
-    description = "Aligning reads to assembly"
+    description = "Aligning reads to reference"
 
     # Add to directories
     output_directory = directories[("intermediate",  program_label)] = create_directory(os.path.join(directories["intermediate"], program_label))
@@ -332,14 +352,15 @@ def create_pipeline(opts, directories, f_cmds):
 
     # i/o
     input_filepaths = [
-        opts.reads,
-        os.path.join(directories[("intermediate", "1__assembly")], "assembly.fasta"),
-        ] 
+            opts.reads,
+            os.path.join(directories[("intermediate", "1__index")], "reference.fasta"),
+        ]
 
-    output_filepaths = [
-        os.path.join(directories[("intermediate", "1__assembly")], "assembly.fasta.mmi"),
-        os.path.join(output_directory, "mapped.sorted.bam"),
-    ]
+
+
+    output_filenames = ["*/mapped.sorted.bam"]
+    output_filepaths = list(map(lambda filename: os.path.join(output_directory, filename), output_filenames))
+
 
     params = {
         "input_filepaths":input_filepaths,
@@ -349,7 +370,10 @@ def create_pipeline(opts, directories, f_cmds):
         "directories":directories,
     }
 
-    cmd = get_alignment_cmd(**params)
+    if not opts.one_task_per_cpu:
+        cmd = get_alignment_cmd(**params)
+    else:
+        cmd = get_alignment_gnuparallel_cmd(**params)
     pipeline.add_step(
                 id=program_label,
                 description = description,
@@ -362,8 +386,6 @@ def create_pipeline(opts, directories, f_cmds):
                 log_prefix=program_label,
 
     )
-
-
 
     # ==========
     # featureCounts
@@ -381,9 +403,8 @@ def create_pipeline(opts, directories, f_cmds):
     # i/o
 
     input_filepaths = [ 
-        os.path.join(directories[("intermediate", "1__assembly")], "assembly.fasta"),
-        os.path.join(directories[("intermediate", "1__assembly")], "assembly.fasta.saf"),
-        os.path.join(directories[("intermediate", "2__alignment")], "mapped.sorted.bam"),
+        os.path.join(directories[("intermediate", "1__index")], "reference.fasta.saf"),
+        os.path.join(directories[("intermediate", "2__alignment")], "*", "mapped.sorted.bam"),
     ]
 
     output_filenames = ["featurecounts.tsv.gz"]
@@ -411,57 +432,13 @@ def create_pipeline(opts, directories, f_cmds):
 
     )
 
-    # ==========
-    # stats
-    # ==========
-    
-    step = 4
-
-    # Info
-    program = "seqkit"
-    program_label = "{}__{}".format(step, program)
-    description = "Assembly statistics"
-
-    # Add to directories
-    output_directory = directories[("intermediate",  program_label)] = create_directory(os.path.join(directories["intermediate"], program_label))
-
-
-    # i/o
-    input_filepaths = [
-                    os.path.join(directories[("intermediate", "1__assembly")], "*.fasta"),
-
-    ]
-
-    output_filenames = ["seqkit_stats.tsv.gz"]
-    output_filepaths = list(map(lambda filename: os.path.join(output_directory, filename), output_filenames))
-
-    params = {
-        "input_filepaths":input_filepaths,
-        "output_filepaths":output_filepaths,
-        "output_directory":output_directory,
-        "opts":opts,
-        "directories":directories,
-    }
-
-    cmd = get_seqkit_cmd(**params)
-    pipeline.add_step(
-                id=program_label,
-                description = description,
-                step=step,
-                cmd=cmd,
-                input_filepaths = input_filepaths,
-                output_filepaths = output_filepaths,
-                validate_inputs=True,
-                validate_outputs=True,
-                log_prefix=program_label,
-
-    )
+   
 
 
     # =============
     # Symlink
     # =============
-    step = 5
+    step = 4
 
     # Info
     program = "symlink"
@@ -473,14 +450,13 @@ def create_pipeline(opts, directories, f_cmds):
 
     # i/o
 
-    input_filepaths = [ 
-        os.path.join(directories[("intermediate", "1__assembly")], "assembly.fasta"),
-        os.path.join(directories[("intermediate", "1__assembly")], "assembly.fasta.mmi"),
-        os.path.join(directories[("intermediate", "2__alignment")], "mapped.sorted.bam"),
-        os.path.join(directories[("intermediate", "2__alignment")], "mapped.sorted.bam.bai"),
-        os.path.join(directories[("intermediate", "3__featurecounts")], "featurecounts.tsv.gz"),
-        os.path.join(directories[("intermediate", "4__seqkit")], "seqkit_stats.tsv.gz"),
-    ]
+    input_filepaths = [
+            os.path.join(directories[("intermediate", "1__index")], "reference.fasta"),
+            os.path.join(directories[("intermediate", "1__index")], "reference.fasta.saf"),
+            os.path.join(directories[("intermediate", "1__index")], "seqkit_stats.tsv"),
+            os.path.join(directories[("intermediate", "2__alignment")], "*"),
+            os.path.join(directories[("intermediate", "3__featurecounts")], "featurecounts.tsv.gz"),
+        ]
 
     output_filenames =  map(lambda fp: fp.split("/")[-1], input_filepaths)
     output_filepaths = list(map(lambda fn:os.path.join(directories["output"], fn), output_filenames))
@@ -513,14 +489,10 @@ def create_pipeline(opts, directories, f_cmds):
 def configure_parameters(opts, directories):
     # os.environ[]
 
-    # Scaffold prefix
-    if opts.scaffold_prefix == "NONE":
-        opts.scaffold_prefix = ""
-    else:
-        if "NAME" in opts.scaffold_prefix:
-            opts.scaffold_prefix = opts.scaffold_prefix.replace("NAME", opts.name)
-        print("Using the following prefix for all {} scaffolds: {}".format(opts.program, opts.scaffold_prefix), file=sys.stdout)
-    
+        # assert not bool(opts.unpaired_reads), "Cannot have --unpaired_reads if --forward_reads.  Note, this behavior may be changed in the future but it's an adaptation of interleaved reads."
+    df = pd.read_csv(opts.reads, sep="\t", header=None)
+    n, m = df.shape
+    assert m == 3, "--reads must be a 3 column table seperated by tabs and no header. Currently there are {} columns".format(m)
     # Set environment variables
     add_executables_to_environment(opts=opts)
 
@@ -531,16 +503,16 @@ def main(args=None):
     # Path info
     description = """
     Running: {} v{} via Python v{} | {}""".format(__program__, __version__, sys.version.split(" ")[0], sys.executable)
-    usage = "{} -i <reads.fq[.gz]> -n <name> -g <estimated_genome_size> -o <output_directory>".format(__program__)
+    usage = "{} -f <reference.fasta> -r <reads.tsv> -o <output_directory>".format(__program__)
     epilog = "Copyright 2021 Josh L. Espinoza (jespinoz@jcvi.org)"
 
     # Parser
     parser = argparse.ArgumentParser(description=description, usage=usage, epilog=epilog, formatter_class=argparse.RawTextHelpFormatter)
     # Pipeline
     parser_io = parser.add_argument_group('Required I/O arguments')
-    parser_io.add_argument("-i","--reads", type=str, required=True, help = "path/to/reads.fq[.gz]")
-    parser_io.add_argument("-n", "--name", type=str, required=True, help="Name of sample")
-    parser_io.add_argument("-o","--project_directory", type=str, default="veba_output/assembly", help = "path/to/project_directory [Default: veba_output/assembly]")
+    parser_io.add_argument("-f","--fasta", type=str, required=True, help = "path/to/reference.fasta. Recommended usage is for merging unbinned contigs. [Required]")
+    parser_io.add_argument("-r","--reads", type=str, required = True, help = "path/to/reads_table.tsv with the following format: [id_sample]<tab>[path/to/r1.fastq.gz]<tab>[path/to/r2.fastq.gz], No header")
+    parser_io.add_argument("-o","--output_directory", type=str, default="veba_output/assembly/multisample", help = "path/to/project_directory [Default: veba_output/assembly/multisample]")
 
     # Utility
     parser_utility = parser.add_argument_group('Utility arguments')
@@ -551,22 +523,17 @@ def main(args=None):
     parser_utility.add_argument("-v", "--version", action='version', version="{} v{}".format(__program__, __version__))
     parser_utility.add_argument("--tmpdir", type=str, help="Set temporary directory")  #site-packges in future
 
-    # Assembler
-    parser_assembler = parser.add_argument_group('Assembler arguments')
-    parser_assembler.add_argument("-P", "--program", type=str, default="flye", choices={"flye", "metaflye"}, help="Assembler |  {flye, metaflye}} [Default: 'flye']")
-    parser_assembler.add_argument("-s", "--scaffold_prefix", type=str, default="NAME__", help="Assembler |  Special options:  Use NAME to use --name.  Use NONE to not include a prefix. [Default: 'NAME__']")
-    parser_assembler.add_argument("-m", "--minimum_contig_length", type=int, default=1, help="Minimum contig length.  Should be lenient here because longer thresholds can be used for binning downstream. Recommended for metagenomes to use 1000 here. [Default: 1] ")
-    parser_assembler.add_argument("-t", "--reads_type", type=str, default="nano-hq", choices={"nano-hq", "nano-corr", "nano-raw", "pacbio-hifi", "pacbio-corr", "pacbio-raw"}, help="Reads type for (meta)flye.  {nano-hq, nano-corr, nano-raw, pacbio-hifi, pacbio-corr, pacbio-raw} [Default: nano-hq] ")
-    parser_assembler.add_argument("-g", "--estimated_assembly_size", type=str,  help="Estimated assembly size (e.g., 5m, 2.6g)")
-    parser_assembler.add_argument("--no_deterministic", action="store_true", help="Do not use deterministic mode.  This will result in a faster assembly since it will be threaded but can get different assemblies upon rerunning")
-    parser_assembler.add_argument("--assembler_options", type=str, default="", help="Assembler options for Flye-based programs (e.g. --arg 1 ) [Default: '']")
+    # Aligner
+    parser_seqkit = parser.add_argument_group('SeqKit seq arguments')
+    parser_seqkit.add_argument("-m", "--minimum_contig_length", type=int, default=1, help="seqkit seq | Minimum contig length [Default: 1]")
+    parser_seqkit.add_argument("--seqkit_seq_options", type=str, default="", help="seqkit seq | More options (e.g. --arg 1 ) [Default: '']")
+
 
     # Aligner
-    parser_aligner = parser.add_argument_group('MiniMap2 arguments')
-    parser_aligner.add_argument("--minimap2_preset", type=str, default="map-ont", help="MiniMap2 | MiniMap2 preset {map-pb, map-ont, map-hifi} [Default: map-ont]")
-    # parser_aligner.add_argument("--no_create_index", action="store_true", help="Do not create a MiniMap2 index")
-    parser_aligner.add_argument("--minimap2_index_options", type=str, default="", help="MiniMap2 | More options (e.g. --arg 1 ) [Default: '']\nhttps://github.com/lh3/minimap2")
-    parser_aligner.add_argument("--minimap2_options", type=str, default="", help="MiniMap2 | More options (e.g. --arg 1 ) [Default: '']\nhttps://github.com/lh3/minimap2")
+    parser_aligner = parser.add_argument_group('Bowtie2 arguments')
+    parser_aligner.add_argument("--bowtie2_index_options", type=str, default="", help="bowtie2-build | More options (e.g. --arg 1 ) [Default: '']")
+    parser_aligner.add_argument("--one_task_per_cpu", action="store_true", help="Use GNU parallel to run GNU parallel with 1 task per CPU.  Useful if all samples are roughly the same size but inefficient if depth varies.")
+    parser_aligner.add_argument("--bowtie2_options", type=str, default="", help="bowtie2 | More options (e.g. --arg 1 ) [Default: '']")
 
     # featureCounts
     parser_featurecounts = parser.add_argument_group('featureCounts arguments')
@@ -584,24 +551,21 @@ def main(args=None):
         opts.n_jobs = cpu_count()
     assert opts.n_jobs >= 1, "--n_jobs must be ≥ 1.  To select all available threads, use -1."
 
-
     # Directories
     directories = dict()
-    directories["project"] = create_directory(opts.project_directory)
-    directories["sample"] = create_directory(os.path.join(directories["project"], opts.name))
-    directories["output"] = create_directory(os.path.join(directories["sample"], "output"))
-    directories["log"] = create_directory(os.path.join(directories["sample"], "log"))
+    directories["project"] = create_directory(opts.output_directory)
+    directories["output"] = create_directory(os.path.join(directories["project"], "output"))
+    directories["log"] = create_directory(os.path.join(directories["project"], "log"))
     if not opts.tmpdir:
-        opts.tmpdir = os.path.join(directories["sample"], "tmp")
+        opts.tmpdir = os.path.join(directories["project"], "tmp")
     directories["tmp"] = create_directory(opts.tmpdir)
-    directories["checkpoints"] = create_directory(os.path.join(directories["sample"], "checkpoints"))
-    directories["intermediate"] = create_directory(os.path.join(directories["sample"], "intermediate"))
-    # os.environ["TMPDIR"] = directories["tmp"]
+    directories["checkpoints"] = create_directory(os.path.join(directories["project"], "checkpoints"))
+    directories["intermediate"] = create_directory(os.path.join(directories["project"], "intermediate"))
+    os.environ["TMPDIR"] = directories["tmp"]
 
     # Info
     print(format_header(__program__, "="), file=sys.stdout)
     print(format_header("Configuration:", "-"), file=sys.stdout)
-    print(format_header("Name: {}".format(opts.name), "."), file=sys.stdout)
     print("Python version:", sys.version.replace("\n"," "), file=sys.stdout)
     print("Python path:", sys.executable, file=sys.stdout) #sys.path[2]
     print("GenoPype version:", genopype_version, file=sys.stdout) #sys.path[2]
@@ -614,7 +578,7 @@ def main(args=None):
     sys.stdout.flush()
 
     # Run pipeline
-    with open(os.path.join(directories["sample"], "commands.sh"), "w") as f_cmds:
+    with open(os.path.join(directories["project"], "commands.sh"), "w") as f_cmds:
         pipeline = create_pipeline(
                      opts=opts,
                      directories=directories,

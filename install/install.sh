@@ -1,16 +1,21 @@
 #!/bin/bash
-# __version__ = "2023.12.19"
+# __version__ = "2024.1.23"
 
 SCRIPT_PATH=$(realpath $0)
-PREFIX=$(echo $SCRIPT_PATH | python -c "import sys; print('/'.join(sys.stdin.read().split('/')[:-1]))")
+SCRIPT_DIRECTORY=$(dirname $0)
+VEBA_REPOSITORY_DIRECTORY=$(realpath ${SCRIPT_DIRECTORY}/../)
+
+LOG_DIRECTORY=${1:-"logs/veba_installation"}
+mkdir -pv ${LOG_DIRECTORY}
+
 # CONDA_BASE=$(conda run -n base bash -c "echo \${CONDA_PREFIX}")
 CONDA_BASE=$(conda info --base)
 
 # Update permissions
-echo "Updating permissions for scripts in ${PREFIX}/../src"
-chmod 755 ${PREFIX}/../src/veba
-chmod 755 ${PREFIX}/../src/*.py
-chmod 755 ${PREFIX}/../src/scripts/*
+echo "Updating permissions for scripts in ${VEBA_REPOSITORY_DIRECTORY}/bin"
+chmod 755 ${VEBA_REPOSITORY_DIRECTORY}/bin/veba
+chmod 755 ${VEBA_REPOSITORY_DIRECTORY}/bin/*.py
+chmod 755 ${VEBA_REPOSITORY_DIRECTORY}/bin/scripts/*
 
 # Install mamba
 conda install -c conda-forge mamba -y 
@@ -21,43 +26,45 @@ conda install -c conda-forge mamba -y
 echo "Creating ${VEBA} main environment"
 
 ENV_NAME="VEBA"
-mamba create -y -n $ENV_NAME -c conda-forge -c bioconda -c jolespin seqkit genopype networkx biopython biom-format anndata || (echo "Error when creating main VEBA environment" ; exit 1) &> ${PREFIX}/environments/VEBA.log
+mamba create -y -n $ENV_NAME -c conda-forge -c bioconda -c jolespin seqkit genopype networkx biopython biom-format anndata || (echo "Error when creating main VEBA environment" ; exit 1) &> ${LOG_DIRECTORY}/VEBA.log
 
 # Copy main executable
 echo -e "\t*Copying main VEBA executable into ${ENV_NAME} environment path"
-cp -r ${PREFIX}/../src/veba ${CONDA_BASE}/envs/${ENV_NAME}/bin/
+cp -r ${VEBA_REPOSITORY_DIRECTORY}/bin/veba ${CONDA_BASE}/envs/${ENV_NAME}/bin/
 # Copy over files to environment bin/
 echo -e "\t*Copying VEBA modules into ${ENV_NAME} environment path"
-cp -r ${PREFIX}/../src/*.py ${CONDA_BASE}/envs/${ENV_NAME}/bin/
+cp -r ${VEBA_REPOSITORY_DIRECTORY}/bin/*.py ${CONDA_BASE}/envs/${ENV_NAME}/bin/
 echo -e "\t*Copying VEBA utility scripts into ${ENV_NAME} environment path"
-cp -r ${PREFIX}/../src/scripts/ ${CONDA_BASE}/envs/${ENV_NAME}/bin/
+cp -r ${VEBA_REPOSITORY_DIRECTORY}/bin/scripts/ ${CONDA_BASE}/envs/${ENV_NAME}/bin/
 # Symlink the utility scripts to bin/
 echo -e "\t*Symlinking VEBA utility scripts into ${ENV_NAME} environment path"
 ln -sf ${CONDA_BASE}/envs/${ENV_NAME}/bin/scripts/* ${CONDA_BASE}/envs/${ENV_NAME}/bin/
 
 # Version
-cp -rf ${PREFIX}/../VERSION ${CONDA_BASE}/envs/${ENV_NAME}/bin/VEBA_VERSION
+cp -rf ${VEBA_REPOSITORY_DIRECTORY}/VERSION ${CONDA_BASE}/envs/${ENV_NAME}/bin/VEBA_VERSION
+cp -r ${VEBA_REPOSITORY_DIRECTORY}/bin/VEBA_SCRIPT_VERSIONS ${CONDA_BASE}/envs/${ENV_NAME}/bin/
 
 # Module environments
-for ENV_YAML in ${PREFIX}/environments/VEBA*.yml; do
+for ENV_YAML in ${VEBA_REPOSITORY_DIRECTORY}/install/environments/VEBA*.yml; do
     # Get environment name
     ENV_NAME=$(basename $ENV_YAML .yml)
 
     # Create conda environment
     echo "Creating ${ENV_NAME} module environment"
-    mamba env create -n $ENV_NAME -f $ENV_YAML || (echo "Error when creating VEBA environment: ${ENV_YAML}" ; exit 1) &> ${ENV_YAML}.log
+    mamba env create -n $ENV_NAME -f $ENV_YAML || (echo "Error when creating VEBA environment: ${ENV_YAML}" ; exit 1) &> ${LOG_DIRECTORY}/${ENV_NAME}.log
 
     # Copy over files to environment bin/
     echo -e "\t*Copying VEBA modules into ${ENV_NAME} environment path"
-    cp -r ${PREFIX}/../src/*.py ${CONDA_BASE}/envs/${ENV_NAME}/bin/
+    cp -r ${VEBA_REPOSITORY_DIRECTORY}//bin/*.py ${CONDA_BASE}/envs/${ENV_NAME}/bin/
     echo -e "\t*Copying VEBA utility scripts into ${ENV_NAME} environment path"
-    cp -r ${PREFIX}/../src/scripts/ ${CONDA_BASE}/envs/${ENV_NAME}/bin/
+    cp -r ${VEBA_REPOSITORY_DIRECTORY}/bin/scripts/ ${CONDA_BASE}/envs/${ENV_NAME}/bin/
     # Symlink the utility scripts to bin/
     echo -e "\t*Symlinking VEBA utility scripts into ${ENV_NAME} environment path"
     ln -sf ${CONDA_BASE}/envs/${ENV_NAME}/bin/scripts/* ${CONDA_BASE}/envs/${ENV_NAME}/bin/
 
     # Version
-    cp -rf ${PREFIX}/../VERSION ${CONDA_BASE}/envs/${ENV_NAME}/bin/VEBA_VERSION
+    cp -rf ${VEBA_REPOSITORY_DIRECTORY}/VERSION ${CONDA_BASE}/envs/${ENV_NAME}/bin/VEBA_VERSION
+    cp -r ${VEBA_REPOSITORY_DIRECTORY}/bin/VEBA_SCRIPT_VERSIONS ${CONDA_BASE}/envs/${ENV_NAME}/bin/
 
     done
 
