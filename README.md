@@ -46,12 +46,14 @@ ___________________________________________________________________
 
 * **`VEBA` Modules:**
 
-	* Added `profile-taxonomic.py` module which uses `sylph` to build a sketch database for genomes and queries the genome database for taxonomic abundance.
-	* Added long read support for `fastq_preprocessor`, `preprocess.py`, `assembly-long.py`, `coverage-long`, and all binning modules.
-	* Redesign `binning-eukaryotic` module to handle custom `MetaEuk` databases
-	* Added new usage syntax `veba --module preprocess --params “${PARAMS}”` where the Conda environment is abstracted and determined automatically in the backend.  Changed all the walkthroughs to reflect this change.
-	* Added `skani` which is the new default for genome-level clustering based on ANI.
-	* Added `Diamond DeepClust` as an alternative to `MMSEQS2` for protein clustering.
+	* Added `VeryFastTree` to `phylogeny.py`
+	* Added `--blacklist` to `compile_eukaryotic_classifications.py`
+	* Added compatibility for `antismash_genbanks_to_table.py` to operate on `antiSMASH v7` genbanks
+	* Added `compile_phylogenomic_functional_categories.py` script which automates the methodology from [Espinoza et al. 2022 (doi:10.1093/pnasnexus/pgac239)](https://academic.oup.com/pnasnexus/article/1/5/pgac239/6762943)
+	* Fixed error in `annotations.protein_clusters.tsv` formatting from `annotate.py`
+	* Fixed situation where `unbinned.fasta` were not added in `binning-prokaryotic.py` and bad symlinks were created for GFF, rRNA, and tRNA when no genoems were detected.
+	* Fixed critical error where `classify_eukaryotic.py` was trying to access a deprecated database file from MicroEuk_v2.
+
 
 * **`VEBA` Database (`VDB_v6`)**:
 
