@@ -1,9 +1,9 @@
 #!/bin/bash
-# __version__ = "2023.10.18"
+# __version__ = "2024.1.22"
 
 CONDA_BASE=$(conda run -n base bash -c "echo \${CONDA_PREFIX}")
 
-for FP in ${CONDA_BASE}/envs/VEBA-*_env; do 
+for FP in ${CONDA_BASE}/envs/VEBA ${CONDA_BASE}/envs/VEBA-*_env; do 
 	ENV_NAME=$(basename $FP)
 	mamba env remove -n ${ENV_NAME}
 	done

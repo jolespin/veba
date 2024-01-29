@@ -48,6 +48,7 @@ sbatch -J ${N} -N 1 -c ${N_JOBS} --ntasks-per-node=1 -o logs/${N}.o -e logs/${N}
 ##### Bioprospecting:
 
 * **[Bioprospecting for biosynthetic gene clusters](bioprospecting_for_biosynthetic_gene_clusters.md)** - Detecting biosynthetic gene clusters (BGC) with and scoring novelty of BGCs.
+* **[CRISPR-Cas system screening with *de novo* genomes](crispr-cas_system_screening_de-novo_genomes.md)** How use `CRISPRCasTyper` as a post hoc analysis for screening genomes.
 
 ##### Mapping reads and rapid profiling:
 
@@ -68,6 +69,7 @@ ___________________________________________
 * Workflow for low-depth samples with no bins
 * Assigning eukaryotic taxonomy to unbinned contigs
 * Bioprospecting using [`PlasticDB` database](https://plasticdb.org/)
+* Targeted pathway profiling of large and complex reference databases
 ___________________________________________
 
 ##### Notes:

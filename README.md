@@ -42,7 +42,7 @@ ___________________________________________________________________
 
 ### Announcements
 
-* **What's new in `VEBA v1.4.2`?**
+* **What's new in `VEBA v1.5.0`?**
 
 * **`VEBA` Modules:**
 
@@ -67,7 +67,7 @@ ___________________________________________________________________
 
 ### Installation and databases
 
-**Current Stable Version:** [`v1.4.2`](https://github.com/jolespin/veba/releases/tag/v1.4.2)
+**Current Stable Version:** [`v1.5.0`](https://github.com/jolespin/veba/releases/tag/v1.5.0)
 
 **Current Database Version:** `VDB_v6`
 
