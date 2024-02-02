@@ -388,10 +388,10 @@ ________________________________________________________________
 
 **Critical:**
 
-* Add a way to show all versions
+* Don't load all genomes, proteins, and cds into memory for clustering.
 * Genome checkpoints in `tRNAscan-SE` aren't working properly.
 * Dereplicate CDS sequences in GFF from `MetaEuk` for `antiSMASH` to work for eukaryotic genomes
-* Error with `amplicon.py` that works when run manually...
+* Error with `amplicon.py` that works when run manually... (Developmental module)
 
 ```
 There was a problem importing veba_output/misc/reads_table.tsv:
@@ -401,7 +401,7 @@ There was a problem importing veba_output/misc/reads_table.tsv:
 
 **Definitely:**
 
-* Script to get representative genome in a genome cluster based on `NetworkX` graph
+* Script to get representative genome in a genome cluster based on `NetworkX` graph  (option for weighted degree or longest genome)
 * Add `convert_reads_long_to_short.py` which will take windows of 150 bp for the long reads.
 * Add option to `compile_custom_humann_database_from_annotations.py` to only output best hit of a UniRef identifier per genome.
 * Use `pigz` instead of `gzip`
@@ -417,9 +417,7 @@ There was a problem importing veba_output/misc/reads_table.tsv:
 
 * `NextFlow` support
 * Install each module via `bioconda`
-* Don't load all genomes, proteins, and cds into memory for clustering.
-* Add support for `FAMSA` in `phylogeny.py`
-* Consistent usage of the following terms: 1) dataframe vs. table; 2) protein-cluster vs. orthogroup.
+* Consistent usage of the following terms: 1) dataframe vs. table; 2) protein-cluster vs. orthogroup.  Dataframes should refer to generic tables while tables refer to specifics like "genomes table".
 * Add coding density to GFF files
 * Phylogenetic tree of `MicroEuk100`
 * Convert HMMs to `MMSEQS2` (https://github.com/soedinglab/MMseqs2/wiki#how-to-create-a-target-profile-database-from-pfam)?
@@ -441,6 +439,8 @@ ________________________________________________________________
 
 <details>
 	<summary> <b>Daily Change Log:</b> </summary>
+
+* [2024.1.28] - Replaced `src/` with `bin/` and added `-V|--full_versions to show all VEBA versions`
 * [2024.1.23] - Added `compile_phylogenomic_functional_categories.py` script which automates the methodology from [Espinoza et al. 2022 (doi:10.1093/pnasnexus/pgac239)](https://academic.oup.com/pnasnexus/article/1/5/pgac239/6762943)
 * [2024.1.22] - Fixed header being offset in `annotations.protein_clusters.tsv` where it could not be read with Pandas.
 * [2024.1.22] - Fixed `binning-prokaryotic.py` the creation of non-existing symlinks where "'*.gff'", "'*.rRNA'", and "'*.tRNA'" were created.

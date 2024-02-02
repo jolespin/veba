@@ -66,6 +66,7 @@ ___________________________________________
 
 **Coming Soon:**
 
+* Visualizing genome-clusters with `NetworkX``
 * Workflow for low-depth samples with no bins
 * Assigning eukaryotic taxonomy to unbinned contigs
 * Bioprospecting using [`PlasticDB` database](https://plasticdb.org/)
