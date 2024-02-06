@@ -33,34 +33,35 @@ sbatch -J ${N} -N 1 -c ${N_JOBS} --ntasks-per-node=1 -o logs/${N}.o -e logs/${N}
 
 ##### Accessing SRA: 
 
-*  **[Downloading and preprocessing fastq files](download_and_preprocess_reads.md)** - Explains how to download reads from NCBI and run *VEBA's* `preprocess.py` module to decontaminate either metagenomic and/or metatranscriptomic reads.
+*  **[Downloading and preprocessing fastq files](docs/download_and_preprocess_reads.md)** - Explains how to download reads from NCBI and run *VEBA's* `preprocess.py` module to decontaminate either metagenomic and/or metatranscriptomic reads.
 
 ##### End-to-end workflows:
 
-* **[Complete end-to-end metagenomics analysis](end-to-end_metagenomics.md)** - Goes through assembling metagenomic reads, binning, clustering, classification, and annotation.  We also show how to use the unbinned contigs in a pseudo-coassembly with guidelines on when it's a good idea to go this route.
-*  **[Recovering viruses from metatranscriptomics](recovering_viruses_from_metatranscriptomics.md)** - Goes through assembling metatranscriptomic reads, viral binning, clustering, and classification.
+* **[Complete end-to-end metagenomics analysis](docs/end-to-end_metagenomics.md)** - Goes through assembling metagenomic reads, binning, clustering, classification, and annotation.  We also show how to use the unbinned contigs in a pseudo-coassembly with guidelines on when it's a good idea to go this route.
+* **[Recovering viruses from metatranscriptomics](docs/recovering_viruses_from_metatranscriptomics.md)** - Goes through assembling metatranscriptomic reads, viral binning, clustering, and classification.
 * **[Setting up *bona fide* coassemblies for metagenomics or metatranscriptomics](setting_up_coassemblies.md)** - In the case where all samples are of low depth, it may be useful to use coassembly instead of sample-specific approaches.  This walkthrough goes through concatenating reads, creating a reads table, coassembly of concatenated reads, aligning sample-specific reads to the coassembly for multiple sorted BAM files, and mapping reads for scaffold/transcript-level counts.  Please note that a coassembly differs from the pseudo-coassembly concept introduced in the VEBA publication.  For more information regarding the differences between *bona fide* coassembly and pseud-coassembly, please refer to [*23. What's the difference between a coassembly and a pseudo-coassembly?*](https://github.com/jolespin/veba/blob/main/FAQ.md#23-whats-the-difference-between-a-coassembly-and-a-pseudo-coassembly). 
 
 ##### Phylogenetics:
 
-* **[Phylogenetic inference](phylogenetic_inference.md)** - Phylogenetic inference of eukaryotic diatoms.
+* **[Phylogenetic inference](docs/phylogenetic_inference.md)** - Phylogenetic inference of eukaryotic diatoms.
 
 ##### Bioprospecting:
 
-* **[Bioprospecting for biosynthetic gene clusters](bioprospecting_for_biosynthetic_gene_clusters.md)** - Detecting biosynthetic gene clusters (BGC) with and scoring novelty of BGCs.
-* **[CRISPR-Cas system screening with *de novo* genomes](crispr-cas_system_screening_de-novo_genomes.md)** How use `CRISPRCasTyper` as a post hoc analysis for screening genomes.
+* **[Bioprospecting for biosynthetic gene clusters](docs/bioprospecting_for_biosynthetic_gene_clusters.md)** - Detecting biosynthetic gene clusters (BGC) with and scoring novelty of BGCs.
+* **[CRISPR-Cas system screening with *de novo* genomes](docs/crispr-cas_system_screening_de-novo_genomes.md)** How use `CRISPRCasTyper` as a post hoc analysis for screening genomes.
 
-##### Mapping reads and rapid profiling:
+##### Read mapping, rapid profiling, feature engineering, and converting counts tables:
 
-*  **[Read mapping and counts tables](read_mapping_and_counts_tables.md)** - Read mapping and generating counts tables at the contig, MAG, SLC, ORF, and SSO levels. 
-* **[Taxonomic profiling *de novo* genomes](taxonomic_profiling_de-novo_genomes.md)** - Explains how to build and profile reads to custom `Sylph` databases from *de novo* genomes.
-* **[Pathway profiling *de novo* genomes](pathway_profiling_de-novo_genomes.md)** - Explains how to build and align reads to custom `HUMAnN` databases from *de novo* genomes and annotations.
-* **[Converting counts tables](converting_counts_tables.md)** - Convert your counts table (with or without metadata) to [anndata](https://anndata.readthedocs.io/en/latest/index.html) or [biom](https://biom-format.org/) format.  Also supports [Pandas pickle](https://pandas.pydata.org/docs/reference/api/pandas.read_pickle.html) format.
+* **[Taxonomic profiling *de novo* genomes](docs/taxonomic_profiling_de-novo_genomes.md)** - Explains how to build and profile reads to custom `Sylph` databases from *de novo* genomes.
+* **[Pathway profiling *de novo* genomes](docs/pathway_profiling_de-novo_genomes.md)** - Explains how to build and align reads to custom `HUMAnN` databases from *de novo* genomes and annotations.
+* **[Read mapping and counts tables](docs/read_mapping_and_counts_tables.md)** - Traditional read mapping and generating counts tables at the contig, MAG, SLC, ORF, and SSO levels. 
+* **[Phylogenomic functional categories using *de novo* genomes](docs/phylogenomic_functional_categories.md)** - PhyloGenomic Functional Categories (PGFC) using annotations, clusters, and counts tables as implemented in [*Espinoza et al. 2022*](https://academic.oup.com/pnasnexus/article/1/5/pgac239/6762943).
+* **[Converting counts tables](docs/converting_counts_tables.md)** - Convert your counts table (with or without metadata) to [anndata](https://anndata.readthedocs.io/en/latest/index.html) or [biom](https://biom-format.org/) format.  Also supports [Pandas pickle](docs/https://pandas.pydata.org/docs/reference/api/pandas.read_pickle.html) format.
 
 ##### Containerization and AWS:
 
-* **[Adapting commands for Docker](adapting_commands_for_docker.md)** - Explains how to download and use Docker for running VEBA.
-* **[Adapting commands for AWS](adapting_commands_for_aws.md)** - Explains how to download and use Docker for running VEBA specifically on AWS.
+* **[Adapting commands for Docker](docs/adapting_commands_for_docker.md)** - Explains how to download and use Docker for running VEBA.
+* **[Adapting commands for AWS](docs/adapting_commands_for_aws.md)** - Explains how to download and use Docker for running VEBA specifically on AWS.
 
 ___________________________________________
 
