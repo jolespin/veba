@@ -1012,6 +1012,8 @@ KOFAMSCAN arguments:
 
 * annotations.tsv.gz - Concatenated annotations from Diamond (UniRef, MiBIG, VFDB), HMMSearch (Pfam, AntiFam), and KOFAMSCAN (KEGG)
 * annotations.proteins.tsv.gz - Propogated annotations if clusters are provided
+* module_completion_ratios.genomes.tsv - KEGG module completion ratios for each genomes [Only if --identifier_mapping is provided]
+* module_completion_ratios.genome_clusters.tsv - KEGG module completion ratios for each genome clusters [Only if --identifier_mapping is provided]
 
 <p align="right"><a href="#readme-top">^__^</a></p>
 
