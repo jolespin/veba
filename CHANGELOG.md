@@ -440,6 +440,7 @@ ________________________________________________________________
 <details>
 	<summary> <b>Daily Change Log:</b> </summary>
 
+* [2024.2.13] - Fixed error in `merge_genome_quality_assessment.py` script where log messages were going to stdout instead of stderr.
 * [2024.1.28] - Replaced `src/` with `bin/` and added `-V|--full_versions to show all VEBA versions`
 * [2024.1.23] - Added `compile_phylogenomic_functional_categories.py` script which automates the methodology from [Espinoza et al. 2022 (doi:10.1093/pnasnexus/pgac239)](https://academic.oup.com/pnasnexus/article/1/5/pgac239/6762943)
 * [2024.1.22] - Fixed header being offset in `annotations.protein_clusters.tsv` where it could not be read with Pandas.

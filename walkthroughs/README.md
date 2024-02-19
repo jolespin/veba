@@ -55,6 +55,7 @@ sbatch -J ${N} -N 1 -c ${N_JOBS} --ntasks-per-node=1 -o logs/${N}.o -e logs/${N}
 * **[Taxonomic profiling *de novo* genomes](docs/taxonomic_profiling_de-novo_genomes.md)** - Explains how to build and profile reads to custom `Sylph` databases from *de novo* genomes.
 * **[Pathway profiling *de novo* genomes](docs/pathway_profiling_de-novo_genomes.md)** - Explains how to build and align reads to custom `HUMAnN` databases from *de novo* genomes and annotations.
 * **[Read mapping and counts tables](docs/read_mapping_and_counts_tables.md)** - Traditional read mapping and generating counts tables at the contig, MAG, SLC, ORF, and SSO levels. 
+* **[Merging counts tables with taxonomy](docs/merging_counts_with_taxonomy.md)** - Explains how to merge counts tables with taxonomy.
 * **[Phylogenomic functional categories using *de novo* genomes](docs/phylogenomic_functional_categories.md)** - PhyloGenomic Functional Categories (PGFC) using annotations, clusters, and counts tables as implemented in [*Espinoza et al. 2022*](https://academic.oup.com/pnasnexus/article/1/5/pgac239/6762943).
 * **[Converting counts tables](docs/converting_counts_tables.md)** - Convert your counts table (with or without metadata) to [anndata](https://anndata.readthedocs.io/en/latest/index.html) or [biom](https://biom-format.org/) format.  Also supports [Pandas pickle](docs/https://pandas.pydata.org/docs/reference/api/pandas.read_pickle.html) format.
 
@@ -67,9 +68,9 @@ ___________________________________________
 
 **Coming Soon:**
 
-* Visualizing genome-clusters with `NetworkX``
+* Visualizing genome-clusters with `NetworkX`
 * Workflow for low-depth samples with no bins
-* Assigning eukaryotic taxonomy to unbinned contigs
+* Assigning eukaryotic taxonomy to unbinned contigs (`metaeuk taxtocontig`)
 * Bioprospecting using [`PlasticDB` database](https://plasticdb.org/)
 * Targeted pathway profiling of large and complex reference databases
 ___________________________________________
