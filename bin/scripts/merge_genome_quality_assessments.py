@@ -4,7 +4,7 @@ from collections import defaultdict
 import pandas as pd
 
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2021.11.9"
+__version__ = "2024.2.13"
 
 def get_prokaryotic_description(x, fields=["Completeness_Model_Used", "Additional_Notes"]):
     output = list()
@@ -75,7 +75,7 @@ def main(args=None):
     # Prokaryotic
     prokaryotic_genome_quality_files = glob.glob(os.path.join(opts.binning_directory, opts.prokaryotic_subdirectory_name, "*", "output", "checkm2_results.filtered.tsv"))
     if prokaryotic_genome_quality_files:
-        print("* Compiling prokaryotic genome quality from following files:", *prokaryotic_genome_quality_files, sep="\n    ", file=sys.stdout)
+        print("* Compiling prokaryotic genome quality from following files:", *prokaryotic_genome_quality_files, sep="\n    ", file=sys.stderr)
 
         for fp in prokaryotic_genome_quality_files:
             id_domain = fp.split("/")[-4]
@@ -90,12 +90,12 @@ def main(args=None):
             genome_quality_dataframes.append(df_unified)
 
     else:
-        print("Could not find any prokaryotic genome assessment tables from CheckM2 in the following directory: {}".format(opts.binning_directory), file=sys.stdout)
+        print("Could not find any prokaryotic genome assessment tables from CheckM2 in the following directory: {}".format(opts.binning_directory), file=sys.stderr)
 
     # Viral
     viral_genome_quality_files = glob.glob(os.path.join(opts.binning_directory, opts.viral_subdirectory_name, "*", "output", "checkv_results.filtered.tsv"))
     if viral_genome_quality_files:
-        print("* Compiling viral genome quality from following files:", *viral_genome_quality_files, sep="\n    ", file=sys.stdout)
+        print("* Compiling viral genome quality from following files:", *viral_genome_quality_files, sep="\n    ", file=sys.stderr)
 
         for fp in viral_genome_quality_files:
             id_domain = fp.split("/")[-4]
@@ -110,12 +110,12 @@ def main(args=None):
             genome_quality_dataframes.append(df_unified)
 
     else:
-        print("Could not find any viral genome assessment tables from CheckV in the following directory: {}".format(opts.binning_directory), file=sys.stdout)
+        print("Could not find any viral genome assessment tables from CheckV in the following directory: {}".format(opts.binning_directory), file=sys.stderr)
 
     # Eukaryotic
     eukaryotic_genome_quality_files = glob.glob(os.path.join(opts.binning_directory, opts.eukaryotic_subdirectory_name, "*", "output", "busco_results.filtered.tsv"))
     if eukaryotic_genome_quality_files:
-        print("* Compiling eukaryotic genome quality from following files:", *eukaryotic_genome_quality_files, sep="\n    ", file=sys.stdout)
+        print("* Compiling eukaryotic genome quality from following files:", *eukaryotic_genome_quality_files, sep="\n    ", file=sys.stderr)
 
         for fp in eukaryotic_genome_quality_files:
             id_domain = fp.split("/")[-4]
@@ -140,7 +140,7 @@ def main(args=None):
             genome_quality_dataframes.append(df_unified)
 
     else:
-        print("Could not find any eukaryotic genome assessment tables from BUSCO in the following directory: {}".format(opts.binning_directory), file=sys.stdout)
+        print("Could not find any eukaryotic genome assessment tables from BUSCO in the following directory: {}".format(opts.binning_directory), file=sys.stderr)
 
     assert len(genome_quality_dataframes) > 0, "No genome quality assessment tables were found in the following directory: {}".format(opts.binning_directory)
     df_genome_quality = pd.concat(genome_quality_dataframes, axis=0)
