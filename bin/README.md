@@ -1338,6 +1338,162 @@ Novelty score threshold arguments:
 
 <p align="right"><a href="#readme-top">^__^</a></p>
 
+
+#### *profile-taxonomy.py*
+**Taxonomic profiling of *de novo* genomes**
+
+The profile-taxonomy module does the following: 0) builds a Sylph sketch database (63) for non-viral and viral genomes using the compile_custom_sylph_sketch_database_from_genomes.py script prior to running the module;  1) converts paired reads to a query sketch database using Sylph; 2) profiles the genome sketch databases using the query sketch database generated from the reads; 3) reformats the Sylph output tables; and 4) aggregates abundances with respect to SLC if clusters are provided. 
+
+```
+usage: profile-taxonomy.py -1 <forward_reads.fq> -2 <reverse_reads.fq>|-s <sketch> -n <name> -o <output_directory> -d <db_1.syldb db_2.syldb ... db_n.syldb>
+
+    Running: profile-taxonomy.py v2023.12.19 via Python v3.10.12 | /expanse/projects/jcl110/miniconda3/envs/VEBA-profile_env/bin/python
+
+options:
+  -h, --help            show this help message and exit
+
+Required I/O arguments:
+  -1 FORWARD_READS, --forward_reads FORWARD_READS
+                        path/to/forward_reads.fq[.gz]
+  -2 REVERSE_READS, --reverse_reads REVERSE_READS
+                        path/to/reverse_reads.fq[.gz]]
+  -s READS_SKETCH, --reads_sketch READS_SKETCH
+                        path/to/reads_sketch.sylsp (e.g., sylph sketch output) (Cannot be used with --forward_reads and --reverse_reads)
+  -n NAME, --name NAME  Name of sample
+  -d SYLPH_DATABASES [SYLPH_DATABASES ...], --sylph_databases SYLPH_DATABASES [SYLPH_DATABASES ...]
+                        Sylph database(s) with all genomes.  Can be multiple databases delimited by spaces.  Use compile_custom_sylph_sketch_database_from_genomes.py to build database.
+  -o PROJECT_DIRECTORY, --project_directory PROJECT_DIRECTORY
+                        path/to/project_directory [Default: veba_output/profiling/taxonomy]
+  -c GENOME_CLUSTERS, --genome_clusters GENOME_CLUSTERS
+                        path/to/mags_to_slcs.tsv. [id_genome]<tab>[id_genome-cluster], No header. Aggregates counts for genome clusters.
+  -F {sketch,paired}, --input_reads_format {sketch,paired}
+                        Input reads format {paired, sketch} [Default: auto]
+  -x EXTENSION, --extension EXTENSION
+                        Fasta file extension for bins. Assumes all genomes have the same file extension. [Default: fa]
+
+Utility arguments:
+  --path_config PATH_CONFIG
+                        path/to/config.tsv [Default: CONDA_PREFIX]
+  -p N_JOBS, --n_jobs N_JOBS
+                        Number of threads [Default: 1]
+  --random_state RANDOM_STATE
+                        Random state [Default: 0]
+  --restart_from_checkpoint RESTART_FROM_CHECKPOINT
+                        Restart from a particular checkpoint [Default: None]
+  -v, --version         show program's version number and exit
+  --tmpdir TMPDIR       Set temporary directory
+
+Sylph sketch arguments (Fastq):
+  --sylph_sketch_k {21,31}
+                        Sylph sketch [Fastq] |  Value of k. Only k = 21, 31 are currently supported. [Default: 31]
+  --sylph_sketch_minimum_spacing SYLPH_SKETCH_MINIMUM_SPACING
+                        Sylph sketch [Fastq] |  Minimum spacing between selected k-mers on the genomes [Default: 30]
+  --sylph_sketch_subsampling_rate SYLPH_SKETCH_SUBSAMPLING_RATE
+                        Sylph sketch [Fastq] |  Subsampling rate.	 sylph runs without issues if the -c for all genomes is ≥ the -c for reads.  [Default: 100]
+  --sylph_sketch_options SYLPH_SKETCH_OPTIONS
+                        Sylph sketch [Fastq] | More options for `sylph sketch` (e.g. --arg 1 ) [Default: '']
+
+Sylph profile arguments:
+  --sylph_profile_minimum_ani SYLPH_PROFILE_MINIMUM_ANI
+                        Sylph profile | Minimum adjusted ANI to consider (0-100). [Default: 95]
+  --sylph_profile_minimum_number_kmers SYLPH_PROFILE_MINIMUM_NUMBER_KMERS
+                        Sylph profile | Exclude genomes with less than this number of sampled k-mers.  Default is 50 in Sylph but lowering to 20 accounts for viruses and small CPR genomes. [Default: 20]
+  --sylph_profile_minimum_count_correct SYLPH_PROFILE_MINIMUM_COUNT_CORRECT
+                        Sylph profile | Minimum k-mer multiplicity needed for coverage correction. Higher values gives more precision but lower sensitivity [Default: 3]
+  --sylph_profile_options SYLPH_PROFILE_OPTIONS
+                        Sylph profile | More options for `sylph profile` (e.g. --arg 1 ) [Default: '']
+  --header              Include header in taxonomic abundance tables
+
+```
+
+**Output:**
+
+* reads.sylsp - Reads sketch if paired-end reads were provided
+* sylph\_profile.tsv.gz - Output of `sylph profile`
+* taxonomic_abundance.tsv.gz - Genome-level taxonomic abundance (No header)
+* taxonomic_abundance.clusters.tsv.gz - SLC-level taxonomic abundance (No header, if --genome_clusters wer provided)
+
+#### *profile-pathway.py*
+**Pathway profiling of *de novo* genomes**
+The profile-pathway module does the following: 0) builds a custom HUMAnN database based on protein annotations, identifier mapping tables, and taxonomy assignments using the compile_custom_humann_database_from_annotations.py script prior to running the module; 1) either accepts pre-joined reads, joins paired end reads using bbmerge.sh from BBSuite, or a BAM file of paired-end reads and joins them; 2) builds a Diamond database of proteins from the custom HUMAnN annotation table; 3) uses HUMAnN for pathway profiling of the joined reads using the custom HUMAnN database (16); and 4) reformats the output files.
+
+```
+usage: profile-pathway.py -1 <forward_reads.fq> -2 <reverse_reads.fq> -n <name> -o <output_directory>
+
+    Running: profile-pathway.py v2023.11.30 via Python v3.10.12 | /expanse/projects/jcl110/miniconda3/envs/VEBA-profile_env/bin/python
+
+options:
+  -h, --help            show this help message and exit
+
+Required reads arguments:
+  -1 FORWARD_READS, --forward_reads FORWARD_READS
+                        path/to/forward_reads.fq (Requires --reverse_reads, cannot be used with --joined_reads or --bam)
+  -2 REVERSE_READS, --reverse_reads REVERSE_READS
+                        path/to/reverse_reads.fq (Requires --forward_reads, cannot be used with --joined_reads or --bam)
+  -j JOINED_READS, --joined_reads JOINED_READS
+                        path/to/joined_reads.fq (e.g., bbmerge.sh output) (Cannot be used with --forward_reads, --reverse_reads, or --bam)
+  -b BAM, --bam BAM     path/to/mapped.sorted.bam file aligned to genomes (Cannot be used with --forward_reads, --reverse_reads, or --joined_reads)
+  -F INPUT_READS_FORMAT, --input_reads_format INPUT_READS_FORMAT
+                        Input reads format {paired, joined, bam} [Default: auto]
+
+Required database arguments:
+  -i IDENTIFIER_MAPPING, --identifier_mapping IDENTIFIER_MAPPING
+                        Identifier mapping which includes [id_protein]<tab>[id_uniref]<tab>[length]<tab>[lineage].  In VEBA, you can use `compile_custom_humann_database_from_annotations.py`.
+                        https://github.com/biobakery/humann#custom-reference-database-annotations
+  -f FASTA, --fasta FASTA
+                        Protein fasta to build database
+  -d DIAMOND_DATABASE, --diamond_database DIAMOND_DATABASE
+                        Diamond database with all proteins from --identifier_mapping
+
+Required I/O arguments:
+  -n NAME, --name NAME  Name of sample
+  -o PROJECT_DIRECTORY, --project_directory PROJECT_DIRECTORY
+                        path/to/project_directory [Default: veba_output/profiling/pathways]
+
+Utility arguments:
+  --path_config PATH_CONFIG
+                        path/to/config.tsv [Default: CONDA_PREFIX]
+  -p N_JOBS, --n_jobs N_JOBS
+                        Number of threads [Default: 1]
+  --random_state RANDOM_STATE
+                        Random state [Default: 0]
+  --restart_from_checkpoint RESTART_FROM_CHECKPOINT
+                        Restart from a particular checkpoint [Default: None]
+  -v, --version         show program's version number and exit
+  --tmpdir TMPDIR       Set temporary directory
+
+bbmerge.sh arguments:
+  --minimum_merge_overlap MINIMUM_MERGE_OVERLAP
+                        bbmerge.sh | Minimum number of overlapping bases to allow merging. [Default: 12]
+  --bbmerge_options BBMERGE_OPTIONS
+                        bbmerge.sh options (e.g. --arg 1 ) [Default: '']
+
+HUMAnN arguments:
+  --search_mode SEARCH_MODE
+                        HUMAnN | Search for uniref50 or uniref90 gene families {uniref50, uniref90, auto} [Default: 'auto']
+  --pathways PATHWAYS   HUMAnN | The database to use for pathway computations {metacyc, unipathway} [Default: 'metacyc']
+  -e EVALUE, --evalue EVALUE
+                        HUMAnN | The evalue threshold to use with the translated search [Default: 1.0]
+  -m TRANSLATED_IDENTITY_THRESHOLD, --translated_identity_threshold TRANSLATED_IDENTITY_THRESHOLD
+                        HUMAnN | Identity threshold for translated alignments [Default: Tuned automatically (based on uniref mode) unless a custom value is specified]
+  -q TRANSLATED_QUERY_COVERAGE_THRESHOLD, --translated_query_coverage_threshold TRANSLATED_QUERY_COVERAGE_THRESHOLD
+                        HUMAnN | Query coverage threshold for translated alignments [Default: 90.0]
+  -s TRANSLATED_SUBJECT_COVERAGE_THRESHOLD, --translated_subject_coverage_threshold TRANSLATED_SUBJECT_COVERAGE_THRESHOLD
+                        HUMAnN | Subject coverage threshold for translated alignments [Default: 50.0]
+  --humann_memory HUMANN_MEMORY
+                        HUMAnN | Memory use mode {minimum, maximum} [Default: 'minimum']
+  --humann_options HUMANN_OPTIONS
+                        HUMAnN options (e.g. --arg 1 ) [Default: '']
+  ```
+
+**Output:**
+
+* reads.seqkit_stats.tsv - Sequence stats for input reads
+* humann\_pathabundance.tsv - Stratified abundance of taxa-specific metabolic pathways
+* humann\_pathcoverage.tsv - Stratified pathway completion ratio of taxa-specific metabolic pathways
+* humann\_genefamilies.tsv - Stratified abundance of taxa-specific gene families
+* humann\_diamond\_unaligned.fa.gz - Joined reads that did not align to database
+* humann\_diamond\_aligned.tsv.gz - Aligned reads from translated blast search to database (blast6 format)
 ___________________________________________________________________
 ## Developmental
 
@@ -1417,6 +1573,9 @@ Copyright 2021 Josh L. Espinoza (jespinoz@jcvi.org)
 * tree.nwk - Newick formatted tree
 
 <p align="right"><a href="#readme-top">^__^</a></p>
+
+___________________________________________________________________
+## Deprecated
 
 #### *assembly-sequential.py*
 **Assemble metagenomes sequentially**
