@@ -231,6 +231,7 @@ ___________________________________________________________________
 The main function of this module is classify viral genomes using `geNomad`.  You can use either genomes recovered using `VEBA` or acquired elsewhere (e.g., NCBI, JGI, another tool).
 
 * **Taxonomy:**
+
     * `taxonomy.tsv` - Viral genome classification based on `geNomad`
     * `taxonomy.clusters.tsv` - Viral cluster classification (If `--clusters` are provided)
 
@@ -334,7 +335,7 @@ The main function of this module is map reads to `Bowtie2` index created by `ind
     To merge these counts tables together, run the following command from this [walkthrough](read_mapping_and_counts_tables.md): 
 
     ```bash
-    # Merge contig-level counts (excu
+    # Merge contig-level counts
     merge_contig_mapping.py -m ${MAPPING_DIRECTORY} -c ${MAGS_TO_SLCS}  -i ${SCAFFOLDS_TO_MAGS} -o ${OUT_DIR}
 
     # Merge ORF-level counts
@@ -359,7 +360,6 @@ The main function of this module is estimate taxonomic abundances of a custom ge
 
     ```bash
     merge_generalized_mapping.py -o veba_output/profiling/taxonomy/merged.taxonomic_abundance.tsv.gz veba_output/profiling/taxonomy/*/output/taxonomic_abundance.tsv.gz
-
 
     merge_generalized_mapping.py -o veba_output/profiling/taxonomy/merged.taxonomic_abundance.clusters.tsv.gz veba_output/profiling/taxonomy/*/output/taxonomic_abundance.clusters.tsv.gz
     ```
@@ -439,7 +439,7 @@ The main function of this module is run `antiSMASH`, reformat the results (tabul
 
 * **Visualization:**
 
-    * krona.html - HTML showing Krona plot for number of BGCs per protocluster-type.
+    * `krona.html` - HTML showing Krona plot for number of BGCs per protocluster-type.
 
 * **Prevalence tables:**
 
