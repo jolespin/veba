@@ -83,9 +83,11 @@ ___________________________________________________________________
 
 ### Getting started with *VEBA*
 
-[*Usage and Resource Requirements Guide*](src/README.md) for parameters and module descriptions
+[*Usage and Resource Requirements Guide*](bin/README.md) for parameters and module descriptions
 
 [*Walkthrough Guides*](walkthroughs/README.md) for tutorials and workflows on how to get started
+
+[*Quick Guides*](walkthroughs/docs/interpreting_module_outputs.md) for interpreting module outputs.
 
 **Usage Example:**
 
@@ -111,14 +113,13 @@ ___________________________________________________________________
 
 ### What does *VEBA* do?
 
-Please refer to the [*Modules*](src/README.md) for a description of all *VEBA* modules and their functionality.
+Please refer to the [*Modules*](bin/README.md) for a description of all *VEBA* modules and their functionality.
 
 If you wish *VEBA* did something that isn't implemented, please submit a [`[Feature Request Issue]`](https://github.com/jolespin/veba/issues/new/choose).
 
 [![Schematic](images/Schematic.png)](images/Schematic.pdf)
 
 <p align="right"><a href="#readme-top">^__^</a></p>
-
 
 ___________________________________________________________________
 
@@ -155,8 +156,6 @@ project_directory/output/
 # Commands
 project_directory/commands.sh
 ```
-
-
 
 For *VEBA*, it has all the directories created by `GenoPype` above but is built for having multiple samples under the same project. 
 

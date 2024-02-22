@@ -68,7 +68,7 @@ The following output files will produced for each sample:
 * reads.sylsp - Reads sketch if paired-end reads were provided
 * sylph\_profile.tsv.gz - Output of `sylph profile`
 * taxonomic_abundance.tsv.gz - Genome-level taxonomic abundance (No header)
-* taxonomic_abundance.clusters.tsv.gz - SLC-level taxonomic abundance (No header)
+* taxonomic_abundance.clusters.tsv.gz - SLC-level taxonomic abundance (No header, if --genome_clusters wer provided)
 
 #### 3. Merge the tables
 

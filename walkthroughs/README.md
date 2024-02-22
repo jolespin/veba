@@ -29,6 +29,11 @@ qsub -o logs/${N}.o -e logs/${N}.e -cwd -N ${N} -j y -pe threaded ${N_JOBS} "${C
 sbatch -J ${N} -N 1 -c ${N_JOBS} --ntasks-per-node=1 -o logs/${N}.o -e logs/${N}.e --export=ALL -t 12:00:00 --mem=20G --wrap="${CMD}"
 ```
 
+
+#### Quick guides: 
+
+* **[Interpreting module outputs](docs/interpreting_module_outputs.md)** - This guide serves as a reference to understand the most important outputs from each module along with how analyze certain files downstream.
+
 #### Available walkthroughs:
 
 ##### Accessing SRA: 
