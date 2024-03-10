@@ -13,10 +13,10 @@ from soothsayer_utils import *
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.12.18"
+__version__ = "2024.3.5"
 
 # antiSMASH
-def get_antismash_cmd( input_filepaths, output_filepaths, output_directory, directories, opts):
+def get_antismash_from_genomes_cmd( input_filepaths, output_filepaths, output_directory, directories, opts):
     # Command
     cmd = [
 """
@@ -32,8 +32,6 @@ do read -r -a ARRAY <<< $LINE
     GENE_MODELS=${ARRAY[2]}
 
     CHECKPOINT="${INTERMEDIATE_DIRECTORY}/${ID}/ANTISMASH_CHECKPOINT"
-
-    CWD=${PWD}
 
     if [ ! -f ${CHECKPOINT} ]; then
 
@@ -141,7 +139,7 @@ done < %s
     opts.hmmdetection_strictness,
 
     # Summary table
-    os.environ["antismash_genbanks_to_table.py"],
+    os.environ["biosynthetic_genbanks_to_table.py"],
 
     # Krona (Local)
     os.environ["compile_krona.py"],
@@ -173,6 +171,141 @@ done < %s
     ),
     ]
 
+    return cmd
+
+def get_antismash_from_existing_results_cmd( input_filepaths, output_filepaths, output_directory, directories, opts):
+    # Command
+    cmd = [
+"""
+OUTPUT_DIRECTORY=%s
+INTERMEDIATE_DIRECTORY=%s
+TMP=%s
+mkdir -p ${INTERMEDIATE_DIRECTORY}
+n=1
+while IFS= read -r LINE
+do read -r -a ARRAY <<< $LINE
+    ID=${ARRAY[0]}
+    ANTISMASH_RESULTS_DIRECTORY=${ARRAY[1]}
+
+    echo "[Running ${ID}]"
+
+    # Create directory
+    mkdir -p ${INTERMEDIATE_DIRECTORY}/${ID}
+
+    START_TIME=${SECONDS}
+
+    cp -rf ${ANTISMASH_RESULTS_DIRECTORY}/*.region*.gbk ${INTERMEDIATE_DIRECTORY}/${ID}
+
+    # Genbanks to table
+    %s -i ${INTERMEDIATE_DIRECTORY}/${ID} -o ${INTERMEDIATE_DIRECTORY}/${ID}/veba_formatted_output
+
+    # Compile table for Krona graph
+    %s -i ${INTERMEDIATE_DIRECTORY}/${ID}/veba_formatted_output/bgc_protocluster-types.tsv.gz -m biosynthetic-local -o ${INTERMEDIATE_DIRECTORY}/${ID}/veba_formatted_output/krona.tsv
+
+    # Create Krona graph
+    %s -o ${INTERMEDIATE_DIRECTORY}/${ID}/veba_formatted_output/krona.html -n ${ID} ${INTERMEDIATE_DIRECTORY}/${ID}/veba_formatted_output/krona.tsv
+
+    # Symlink sequences
+    FASTA_DIRECTORY=${OUTPUT_DIRECTORY}/fasta/
+    DST=${FASTA_DIRECTORY}/
+
+    # Proteins
+    SRC_FILES=${INTERMEDIATE_DIRECTORY}/${ID}/veba_formatted_output/fasta/components.faa.gz
+    for SRC in $(ls ${SRC_FILES})
+    do
+        if [ -f "${SRC}" ]; then
+            SRC=$(realpath --relative-to ${DST} ${SRC})
+            ln -sf ${SRC} ${DST}/${ID}.faa.gz
+        fi
+    done
+
+    # DNA
+    SRC_FILES=${INTERMEDIATE_DIRECTORY}/${ID}/veba_formatted_output/fasta/bgcs.fasta.gz
+    for SRC in $(ls ${SRC_FILES})
+    do
+        if [ -f "${SRC}" ]; then
+            SRC=$(realpath --relative-to ${DST} ${SRC})
+            ln -sf ${SRC} ${DST}/${ID}.fasta.gz
+        fi
+    done
+
+    # Symlink genbanks
+    GENBANK_DIRECTORY=${OUTPUT_DIRECTORY}/genbanks/
+    mkdir -p ${GENBANK_DIRECTORY}/${ID}
+    SRC_FILES=${INTERMEDIATE_DIRECTORY}/${ID}/*.region*.gbk
+    DST=${GENBANK_DIRECTORY}/${ID}/
+
+    for SRC in $(ls ${SRC_FILES})
+    do
+        SRC=$(realpath --relative-to ${DST} ${SRC})
+        ln -sf ${SRC} ${DST}
+    done
+
+    # Completed
+    echo "Completed: $(date)" > ${INTERMEDIATE_DIRECTORY}/${ID}/ANTISMASH_CHECKPOINT
+
+    # Remove large assembly files
+    rm -rf ${INTERMEDIATE_DIRECTORY}/${ID}/assembly.*
+
+    END_TIME=${SECONDS}
+    RUN_TIME=$((END_TIME-START_TIME))
+    echo "*** n=${n} // ${ID} // Duration: ${RUN_TIME} seconds ***"
+
+    n=$(($n+1))
+
+
+done < %s
+
+# Concatenate tables
+%s -a 0 -e ${INTERMEDIATE_DIRECTORY}/*/veba_formatted_output/identifier_mapping.components.tsv.gz | gzip > ${OUTPUT_DIRECTORY}/identifier_mapping.components.tsv.gz
+%s -a 0 -e ${INTERMEDIATE_DIRECTORY}/*/veba_formatted_output/bgc_protocluster-types.tsv.gz | gzip > ${OUTPUT_DIRECTORY}/bgc_protocluster-types.tsv.gz
+%s -a 0 -e ${INTERMEDIATE_DIRECTORY}/*/veba_formatted_output/identifier_mapping.bgcs.tsv.gz | gzip > ${OUTPUT_DIRECTORY}/identifier_mapping.bgcs.tsv.gz
+
+# Krona
+# Compile table for Krona graph
+%s -i ${OUTPUT_DIRECTORY}/bgc_protocluster-types.tsv.gz -m biosynthetic-global -o ${OUTPUT_DIRECTORY}/krona.tsv
+
+# Create Krona graph
+%s ${OUTPUT_DIRECTORY}/krona.tsv -o ${OUTPUT_DIRECTORY}/krona.html -n 'antiSMASH'
+"""%( 
+    # Args
+    directories["output"],
+    output_directory,
+    directories["tmp"],
+
+
+    # Summary table
+    os.environ["biosynthetic_genbanks_to_table.py"],
+
+    # Krona (Local)
+    os.environ["compile_krona.py"],
+
+    os.environ["ktImportText"],
+
+    # Symlink (proteins)
+
+    # Symlink (genbanks)
+
+    # Remove large assembly
+
+    # Input
+    input_filepaths[0],
+
+    # Concatenate
+    os.environ["concatenate_dataframes.py"],
+
+    os.environ["concatenate_dataframes.py"],
+
+    os.environ["concatenate_dataframes.py"],
+
+    # Krona (Global)
+    os.environ["compile_krona.py"],
+
+
+    os.environ["ktImportText"],
+
+    ),
+    ]
     return cmd
 
 # Diamond
@@ -479,7 +612,7 @@ def add_executables_to_environment(opts):
     """
 
     accessory_scripts = {
-        "antismash_genbanks_to_table.py", 
+        "biosynthetic_genbanks_to_table.py", 
         "concatenate_dataframes.py",
         "bgc_novelty_scorer.py",
         "compile_krona.py",
@@ -547,34 +680,67 @@ def create_pipeline(opts, directories, f_cmds):
     # Add to directories
     output_directory = directories[("intermediate",  program_label)] = create_directory(os.path.join(directories["intermediate"], program_label))
 
-    # Info
-    description = "Biosynthetic gene cluster detection"
+    if opts.from_genomes:
+
+        # Info
+        description = "Biosynthetic gene cluster detection from genomes"
 
 
-    # i/o
-    input_filepaths = [
-        opts.input,
-        ]
+        # i/o
+        input_filepaths = [
+            opts.from_genomes,
+            ]
 
-    output_filenames = [
-        "identifier_mapping.components.tsv.gz", 
-        "bgc_protocluster-types.tsv.gz",
-        "identifier_mapping.bgcs.tsv.gz",
-        "krona.html",
-        "fasta/",
-        "genbanks/",
-        ]
-    output_filepaths = list(map(lambda filename: os.path.join(directories["output"], filename), output_filenames))
+        output_filenames = [
+            "identifier_mapping.components.tsv.gz", 
+            "bgc_protocluster-types.tsv.gz",
+            "identifier_mapping.bgcs.tsv.gz",
+            "krona.html",
+            "fasta/",
+            "genbanks/",
+            ]
+        output_filepaths = list(map(lambda filename: os.path.join(directories["output"], filename), output_filenames))
 
-    params = {
-        "input_filepaths":input_filepaths,
-        "output_filepaths":output_filepaths,
-        "output_directory":output_directory,
-        "opts":opts,
-        "directories":directories,
-    }
+        params = {
+            "input_filepaths":input_filepaths,
+            "output_filepaths":output_filepaths,
+            "output_directory":output_directory,
+            "opts":opts,
+            "directories":directories,
+        }
 
-    cmd = get_antismash_cmd(**params)
+        cmd = get_antismash_from_genomes_cmd(**params)
+
+    if opts.from_antismash:
+
+        # Info
+        description = "Compiling biosynthetic gene clusters from existing antiSMASH run"
+
+
+        # i/o
+        input_filepaths = [
+            opts.from_antismash,
+            ]
+
+        output_filenames = [
+            "identifier_mapping.components.tsv.gz", 
+            "bgc_protocluster-types.tsv.gz",
+            "identifier_mapping.bgcs.tsv.gz",
+            "krona.html",
+            "fasta/",
+            "genbanks/",
+            ]
+        output_filepaths = list(map(lambda filename: os.path.join(directories["output"], filename), output_filenames))
+
+        params = {
+            "input_filepaths":input_filepaths,
+            "output_filepaths":output_filepaths,
+            "output_directory":output_directory,
+            "opts":opts,
+            "directories":directories,
+        }
+
+        cmd = get_antismash_from_existing_results_cmd(**params)
 
 
     pipeline.add_step(
@@ -821,6 +987,9 @@ def create_pipeline(opts, directories, f_cmds):
 # Configure parameters
 def configure_parameters(opts, directories):
     assert os.path.exists(opts.antismash_database), "--antismash_database %s does not exist".format(opts.antismash_database)
+    assert bool(opts.from_genomes) != bool(opts.from_antismash), "Must use either -i/--from_genomes or -A/--from_antismash not both"
+    assert any([bool(opts.from_genomes),  bool(opts.from_antismash)]), "Must use either -i/--from_genomes or -A/--from_antismash not both"
+
     # Set environment variables
     add_executables_to_environment(opts=opts)
 
@@ -838,12 +1007,10 @@ def main(args=None):
     parser = argparse.ArgumentParser(description=description, usage=usage, epilog=epilog, formatter_class=argparse.RawTextHelpFormatter)
     # Pipeline
     parser_io = parser.add_argument_group('Required I/O arguments')
-    parser_io.add_argument("-i", "--input", type=str, required=True, help = "path/to/input.tsv, Format: Must include the follow columns (No header) [id_mag]<tab>[genome]<tab>[gene_models].  Suggested input is from `compile_genomes_table.py` script. Use cut -f3,4,7")
-    # parser_io.add_argument("-m","--mags", type=str, help = "Either 1) Tab-seperated value table of [id_mag]<tab>[path/to/genome.fasta]; or 2) a file with a list filepaths for genomes (Must have same extension)")
-    # parser_io.add_argument("-g","--gene_models", type=str, help = "Tab-seperated value table of [id_mag]<tab>[path/to/gene_models.gff]. Must be gff3.")
+    parser_io.add_argument("-i", "--from_genomes", type=str, help = "path/to/input.tsv. Cannot be used with -A/--from_antismash. Format: Must include the follow columns (No header) [id_genome]<tab>[genome]<tab>[gene_models].  Suggested input is from `compile_genomes_table.py` script. Use cut -f3,4,7")
+    parser_io.add_argument("-A", "--from_antismash", type=str,  help = "path/to/input.tsv. Cannot be used with -i/--from_genomes. Format: Must include the follow columns (No header) [id_genome]<tab>[path/to/biosynthetic_results_directory/]")
     parser_io.add_argument("-o","--output_directory", type=str, default="veba_output/biosynthetic", help = "path/to/project_directory [Default: veba_output/biosynthetic]")
-    # parser_io.add_argument("--mags_extension", type=str, default="fa", help = "Fasta file extension for --mags if a list is provided [Default: fa]")
-    # parser_io.add_argument("--gene_models_extension", type=str, default="gff", help = "File extension for gene models if a list is provided [Default: gff]")
+
 
     # Utility
     parser_utility = parser.add_argument_group('Utility arguments')

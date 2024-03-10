@@ -15,7 +15,7 @@ from soothsayer_utils import *
 
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.12.8"
+__version__ = "2024.3.8"
 
 def get_basename(x):
     _, fn = os.path.split(x)
@@ -604,11 +604,18 @@ def main(args=None):
     fcr_data = defaultdict(dict)
     for organism_type, df in df_mags.groupby("organism_type"):
         feature_to_cluster = df["id_genome_cluster"].dropna()
+        fcr_data[organism_type]["number_of_genomes"] = feature_to_cluster.size
+        fcr_data[organism_type]["number_of_genome-clusters"] = feature_to_cluster.nunique()
         fcr_data[organism_type]["genomic_fcr"] = 1 - (feature_to_cluster.nunique()/feature_to_cluster.size)
     for organism_type, df in df_proteins.groupby("organism_type"):
         feature_to_cluster = df["id_protein_cluster"].dropna()
+        fcr_data[organism_type]["number_of_proteins"] = feature_to_cluster.size
+        fcr_data[organism_type]["number_of_protein-clusters"] = feature_to_cluster.nunique()
         fcr_data[organism_type]["functional_fcr"] = 1 - (feature_to_cluster.nunique()/feature_to_cluster.size)
     df_fcr = pd.DataFrame(fcr_data).T.sort_index()
+    df_fcr = df_fcr.loc[:,["number_of_genomes", "number_of_genome-clusters", "genomic_fcr", "number_of_proteins", "number_of_protein-clusters", "functional_fcr"]]
+    for id_field in ["number_of_genomes", "number_of_genome-clusters", "number_of_proteins", "number_of_protein-clusters"]:
+        df_fcr[id_field] = df_fcr[id_field].astype(int)
     df_fcr.index.name = "organism_type"
 
     # Get representative sequences

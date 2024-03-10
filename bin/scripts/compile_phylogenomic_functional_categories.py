@@ -15,7 +15,7 @@ script_directory  =  os.path.dirname(os.path.abspath( __file__ ))
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2024.1.27"
+__version__ = "2024.2.5"
 
 
 def main(args=None):
@@ -33,11 +33,12 @@ def main(args=None):
     # Pipeline
     parser.add_argument("-i","--annotation_results",  type=str, default = "stdin", help = "path/to/annotation.tsv from annotate.py [Default: stdin]")
     parser.add_argument("-X","--counts",  type=str, required = True, help = "path/to/X_orfs.tsv[.gz] from mapping.py at the ORF/gene/protein level.  Rows=Samples, Columns=Genes")
-    parser.add_argument("-g","--genes",  type=str, help = "path/to/genes.ffn[.gz] fasta used for scaling-factors.  If --level is genome_cluster, this should be the representative gene sequence using the SSPC label as the identifier.")
-    parser.add_argument("-o","--output_directory", type=str, default="phylogenomic_functional_categories", help = "path/to/output_directory [Default: phylogenomic_functional_categories]")
+    parser.add_argument("-f","--fasta",  type=str, help = "path/to/sequences.faa[.gz] fasta used for scaling-factors.  If --level is genome, this should be proteins from ORFs.  If --level is genome_cluster, this should be the representative gene sequence using the SSPC label as the identifier.")
+    parser.add_argument("-o","--output_directory", type=str, default="veba_output/phylogenomic_functional_categories", help = "path/to/output_directory [Default: veba_output/phylogenomic_functional_categories]")
     parser.add_argument("-l","--level", type=str, default="genome_cluster", help = "level {genome, genome_cluster} [Default: genome_cluster]")
     parser.add_argument("-n","--name", type=str,  help = "Name of CategoricalEngineerFeature object (e.g., TestDataset-Metagenomics or CohortX-Metatranscriptomics)")
     parser.add_argument("--minimum_count", type=float, default=1.0, help = "Minimum count to include gene [Default: 1 ]")
+    parser.add_argument("--multiplier",  type=int, choices={1,3}, default=3, help = "Multiplier for scaling factors.  If genes in nucleotide-space are used then this should 1 and genes in protein-space are used this should be 3. [Default: 3]")
     parser.add_argument("--veba_database", type=str,  help = "VEBA Database [Default: $VEBA_DATABASE environment variable]")
 
     # parser.add_argument("-p", "--include_protein_identifiers", action="store_true", help = "Write protein identifiers")
@@ -145,7 +146,12 @@ def main(args=None):
         df_kos_global = pd.DataFrame(kos_global, columns=[{"genome":"id_protein","genome_cluster":"id_protein_cluster"}[opts.level], level_field[1], "id_kegg-ortholog"])
         del kos_global
         df_kos_global.to_csv(os.path.join(opts.output_directory, "intermediate", "kos.{}s.tsv".format(opts.level)), sep="\t", index=False)
-        assert set(protein_to_modules.keys()) <= set(X_counts.columns), "All the genes/proteins in --annotation_results must be present in --counts"
+
+        A = set(protein_to_modules.keys())
+        B = set(X_counts.columns)
+        # assert A <= B, "All the genes/proteins in --annotation_results must be present in --counts.  There are {} unique to --annotation_results and {} unique to --counts with {} shared.".format(len(A - B), len(B-A), len(A & B))
+        print("There are {} unique to --annotation_results and {} unique to --counts with {} shared.".format(len(A - B), len(B-A), len(A & B)), file=f_log)
+
 
         # Index of proteins with KEGG module info
         protein_to_modules = pd.Series(protein_to_modules)
@@ -170,11 +176,12 @@ def main(args=None):
                         print(id_organism, id_ko, sep="\t", file=f_kos)
 
         scaling_factors = None
-        if opts.genes:
-            gene_to_length = read_fasta(opts.genes, description=False, verbose=True)
+        if opts.fasta:
+            gene_to_length = read_fasta(opts.fasta, description=False, verbose=True)
             gene_to_length = gene_to_length.map(len)
             assert set(protein_to_modules.keys()) <= set(gene_to_length.index), "All the genes/proteins in --annotation_results must be present in --genes"
             scaling_factors = gene_to_length.loc[protein_to_modules.index]
+            scaling_factors = scaling_factors * opts.multiplier
 
         # Feature engineering
         protein_to_organism = protein_to_organism.loc[protein_to_modules.index]
@@ -183,7 +190,7 @@ def main(args=None):
             initial_feature_type="protein_cluster" if opts.level == "genome_cluster" else "protein",
             engineered_feature_type="pgfc",
             observation_type="id_sample",
-            unit_type="normalized_counts" if opts.genes else "counts",
+            unit_type="normalized_counts" if opts.fasta else "counts",
             name=opts.name,
         )
 

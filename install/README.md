@@ -85,12 +85,13 @@ The `VEBA` installation is going to configure some `conda` environments for you 
 ```
 # For stable version, download and decompress the tarball:
 
-VERSION="1.5.0"
+VERSION="2.0.0"
 # wget https://github.com/jolespin/veba/archive/refs/tags/v${VERSION}.tar.gz
 # tar -xvf v${VERSION}.tar.gz && mv veba-${VERSION} veba
 
-wget https://github.com/jolespin/veba/releases/download/v${VERSION}/v${VERSION}.zip
-unzip -d veba v${VERSION}.zip
+# Alternative download
+# wget https://github.com/jolespin/veba/releases/download/v${VERSION}/v${VERSION}.zip
+# unzip -d veba v${VERSION}.zip
 
 # For developmental version, clone the repository:
 # git clone https://github.com/jolespin/veba/
@@ -112,6 +113,16 @@ The update from `CheckM1` -> `CheckM2` and installation of `antiSMASH` require m
 
 ```
 bash install.sh
+```
+
+If you want to specify a certain log file: 
+```
+bash install path/to/log
+```
+
+If you need custom locations for you `conda` environments: # Yes, you need to use the log positional argument too
+```
+bash install path/to/log path/to/conda_environments_directory/
 ```
 
 **3. Activate the database conda environment, download, and configure databases**
@@ -201,10 +212,39 @@ bash check_installation.sh
 
 Future versions will have `bioconda` installation available.
 
-#### Alternatively, if you just need to update environment variables with existing database:
+#### Updating environment executables/scripts:
+
+These are useful for path updates. 
 
 ```
-bash update_environment_variables.sh
+bash update_environment_scripts.sh
+```
+
+Let's say you have a separate VEBA repository you want to install scripts from (e.g., you pulled the developmental from GitHub)
+
+```
+bash update_environment_scripts.sh path/to/veba_repository
+```
+
+or if you have your `conda` environments in a separate directory than your base `conda`:
+
+```
+bash update_environment_scripts.sh path/to/veba_repository path/to/conda_environments/
+```
+
+
+#### Updating environment variables with configured database:
+
+Let's say you moved your database directory or configured a new one somewhere else.  You can do the following:
+
+```
+bash update_environment_variables.sh path/to/database/
+```
+
+or if you have your environments in a custom path:
+
+```
+bash update_environment_variables.sh path/to/database/ path/to/conda_environments/
 ```
 
 **If you want to use containerized versions:**

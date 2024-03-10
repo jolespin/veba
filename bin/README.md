@@ -923,7 +923,7 @@ MMSEQS2 arguments:
 ```
 **Output:**
 
-* global/feature\_compression\_ratios.tsv - Feature compression ratios for each domain
+* global/feature\_compression\_ratios.tsv - Feature compression ratios for each domain.  **Also includes a summary of the number of genomes, genome clusters, proteins, and protein clusters.**
 * global/genome\_clusters.tsv - Machine-readable table for genome clusters `[id_genome_cluster, number_of_components, number_of_samples_of_origin, components, samples_of_origin]`
 * global/identifier\_mapping.genomes.tsv - Identifier mapping for genomes `[id_genome, organism_type, sample_of_origin, id_genome_cluster, number_of_proteins, number_of_singleton_protein_clusters, ratio_of_protein_cluster_are_singletons]`
 * global/identifier\_mapping.proteins.tsv - Identifier mapping for proteins `[id_protein, organism_type, id_genome, sample_of_origin, id_genome_cluster, id_protein_cluster]`

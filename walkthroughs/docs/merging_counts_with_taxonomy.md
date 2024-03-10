@@ -52,6 +52,8 @@ You'll get the following output files:
 * X_mags.tsv.gz - Counts tables gzipped and tab-delimited (samples, MAGs)
 * X_slcs.tsv.gz - Counts tables gzipped and tab-delimited (samples, SLCs)
 
+
+
 If you have taxonomic profiling abundances instead: 
 
 ```bash
@@ -97,6 +99,23 @@ You'll get the following output which will contain transposed counts (rows=featu
 
 * merged.taxonomic_abundance.with_taxonomy.tsv.gz
 * merged.taxonomic_abundance.clusters.with_taxonomy.tsv.gz
+
+
+If you want to have genome-level counts but also include the genome-clusters:
+
+```bash
+MAGS_TO_SLCS=veba_output/cluster/output/global/mags_to_slcs.tsv
+
+# Bowtie2 Mapping
+merge_counts_with_taxonomy.py -X veba_output/counts/X_mags.tsv.gz -t veba_output/classify/taxonomy_classifications.tsv -o veba_output/counts/X_mags.with_taxonomy.with_slcs.tsv.gz -c ${MAGS_TO_SLCS}
+
+# Sylph profiling
+merge_counts_with_taxonomy.py -X veba_output/profiling/taxonomy/merged.taxonomic_abundance.tsv.gz -t veba_output/classify/taxonomy_classifications.tsv -o veba_output/counts/X_mags.with_taxonomy.with_slcs.tsv.gz -c ${MAGS_TO_SLCS}
+```
+
+You'll get the following output which will contain transposed counts (rows=features) with organism type and classifications prepended which now includes the genome cluster column:
+
+* veba_output/counts/X_mags.with_taxonomy.with_slcs.tsv.gz
 
 
 #### Next steps:
