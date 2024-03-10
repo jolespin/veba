@@ -43,7 +43,7 @@ ___________________________________________________________________
 
 ### Announcements
 
-* **New features and updates in`VEBA v2.0.0`?**
+* **New features and updates in`VEBA v2.0.0`**
 
 	* **`VEBA` Modules:**
 		* Expanded functionality, streamlined user-interface, and Docker containerization
