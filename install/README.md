@@ -115,14 +115,14 @@ The update from `CheckM1` -> `CheckM2` and installation of `antiSMASH` require m
 bash install.sh
 ```
 
-If you want to specify a certain log file: 
+If you want to specify a certain log directory: 
 ```
-bash install.sh path/to/log
+bash install.sh path/to/log_directory/ # Default: logs/veba_installation/
 ```
 
 If you need custom locations for you `conda` environments: # Yes, you need to use the log positional argument too
 ```
-bash install.sh path/to/log path/to/conda_environments_directory/
+bash install.sh path/to/log_directory/ path/to/conda_environments_directory/
 ```
 
 **3. Activate the database conda environment, download, and configure databases**
