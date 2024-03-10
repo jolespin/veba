@@ -117,12 +117,12 @@ bash install.sh
 
 If you want to specify a certain log file: 
 ```
-bash install path/to/log
+bash install.sh path/to/log
 ```
 
 If you need custom locations for you `conda` environments: # Yes, you need to use the log positional argument too
 ```
-bash install path/to/log path/to/conda_environments_directory/
+bash install.sh path/to/log path/to/conda_environments_directory/
 ```
 
 **3. Activate the database conda environment, download, and configure databases**
