@@ -1,10 +1,35 @@
 ### What's next for *VEBA*?
 
-*VEBA* is currently under active development. If you are interested in requesting features or wish to report a bug, please post a GitHub issue prefixed with the tag `[Feature Request]` and `[Bug]`, respectively.  If you want to contribute or have any other inquiries, contact me at `jespinoz[A|T]jcvi[DOT]org`.
+*VEBA* is currently under active development. If you are interested in requesting features or wish to report a bug, please post a GitHub issue prefixed with the tag `[Feature Request]` and `[Bug]`, respectively.  If you want to contribute or have any other inquiries, contact me at `jol.espinoz[A|T]gmail[DOT]com`.
 
 ________________________________________________________________
 
 #### Current Releases:
+
+**Release v2.0.0 Highlights:**
+
+* Added `-A/--from_antismash` in `biosynthetic.py` to use preexisting `antiSMASH` results.  Also changed `-i/--input` to `-i/--from_genomes`.
+* Added `number_of_genomes`, `number_of_genome-clusters`, `number_of_proteins`, and `number_of_protein-clusters` to `feature_compression_ratios.tsv.gz` from `cluster.py`
+* Added custom path for `conda` environments
+* Added `busco_version` parameter to `merge_busco_json.py` with default set to `5.4.x` and additional support for `5.6.x`.
+* Changed `antimash_genbanks_to_table.py` to `biosynthetic_genbanks_to_table.py` for future support of `DeepBGC` and `GECCO`
+
+
+<details>
+	<summary><b>Release v2.0.0 Details</b></summary>
+
+* Changed default assembly algorithm to `metaflye` instead of `flye` in `assembly-long.py`
+* Added `number_of_genomes`, `number_of_genome-clusters`, `number_of_proteins`, and `number_of_protein-clusters` to `feature_compression_ratios.tsv.gz` from `cluster.py`
+* Added `-A/--from_antismash` in `biosynthetic.py` to use preexisting `antiSMASH` results.  Also changed `-i/--input` to `-i/--from_genomes`.
+* Changed `antimash_genbanks_to_table.py` to `biosynthetic_genbanks_to_table.py` for future support of `DeepBGC` and `GECCO`
+* Added `busco_version` parameter to `merge_busco_json.py` with default set to `5.4.x` and additional support for `5.6.x`.
+* Added `CONDA_ENVS_PATH` to `update_environment_scripts.sh`, `update_environment_variables.sh`, and `check_installation.sh`
+* Added `CONDA_ENVS_PATH` to `veba` to allow for custom environment locations
+* Changed `install.sh` to support custom `CONDA_ENVS_PATH` argument `bash install.sh path/to/log path/to/envs/`
+*  Added `merge_counts_with_taxonomy.py`
+
+
+</details>
 
 **Release v1.5.0 Highlights:**
 
@@ -401,7 +426,11 @@ There was a problem importing veba_output/misc/reads_table.tsv:
 
 **Definitely:**
 
+* `busco_wrapper.py` that relabels all the genes, runs analysis, then converts output to tsv.
+* Script to update genome clusters
+* Script to update protein clusters
 * Script to get representative genome in a genome cluster based on `NetworkX` graph  (option for weighted degree or longest genome)
+* Script to add `Diamond` or `HMMSearch` annotations to `annotations.proteins.tsv.gz`
 * Add `convert_reads_long_to_short.py` which will take windows of 150 bp for the long reads.
 * Add option to `compile_custom_humann_database_from_annotations.py` to only output best hit of a UniRef identifier per genome.
 * Use `pigz` instead of `gzip`
@@ -415,6 +444,7 @@ There was a problem importing veba_output/misc/reads_table.tsv:
 
 **Eventually (Yes)?:**
 
+* Support for `MAFFT` instead of `MUSCLE` as it performs especially well for multidomain protein with variable domain architectures.
 * `NextFlow` support
 * Install each module via `bioconda`
 * Consistent usage of the following terms: 1) dataframe vs. table; 2) protein-cluster vs. orthogroup.  Dataframes should refer to generic tables while tables refer to specifics like "genomes table".
@@ -440,7 +470,15 @@ ________________________________________________________________
 <details>
 	<summary> <b>Daily Change Log:</b> </summary>
 
-* [2024.2.13] - Fixed error in `merge_genome_quality_assessment.py` script where log messages were going to stdout instead of stderr.
+* [2024.3.8] - Changed default assembly algorithm to `metaflye` instead of `flye` in `assembly-long.py`
+* [2024.3.8] - Added `number_of_genomes`, `number_of_genome-clusters`, `number_of_proteins`, and `number_of_protein-clusters` to `feature_compression_ratios.tsv.gz` from `cluster.py`
+* [2024.3.5] - Added `-A/--from_antismash` in `biosynthetic.py` to use preexisting `antiSMASH` results.  Also changed `-i/--input` to `-i/--from_genomes`.
+* [2024.3.4] - Changed `antimash_genbanks_to_table.py` to `biosynthetic_genbanks_to_table.py` for future support of `DeepBGC` and `GECCO`
+* [2024.2.28] - Added `busco_version` parameter to `merge_busco_json.py` with default set to `5.4.x` and additional support for `5.6.x`.
+* [2024.2.24] - Added `CONDA_ENVS_PATH` to `update_environment_scripts.sh`, `update_environment_variables.sh`, and `check_installation.sh`
+* [2024.2.17] - Added `CONDA_ENVS_PATH` to `veba` to allow for custom environment locations
+* [2024.2.16] - Changed `install.sh` to support custom `CONDA_ENVS_PATH` argument `bash install.sh path/to/log path/to/envs/`
+* [2024.2.16] - Added `merge_counts_with_taxonomy.py`
 * [2024.1.28] - Replaced `src/` with `bin/` and added `-V|--full_versions to show all VEBA versions`
 * [2024.1.23] - Added `compile_phylogenomic_functional_categories.py` script which automates the methodology from [Espinoza et al. 2022 (doi:10.1093/pnasnexus/pgac239)](https://academic.oup.com/pnasnexus/article/1/5/pgac239/6762943)
 * [2024.1.22] - Fixed header being offset in `annotations.protein_clusters.tsv` where it could not be read with Pandas.

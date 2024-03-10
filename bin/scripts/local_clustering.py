@@ -15,7 +15,7 @@ from soothsayer_utils import *
 
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.12.11"
+__version__ = "2024.3.8"
 
 def get_basename(x):
     _, fn = os.path.split(x)
@@ -608,16 +608,25 @@ def main(args=None):
 
     print(" * ({}) Calculating feature compression ratios for each sample".format(format_duration(t0)), file=sys.stdout)
     fcr_data = defaultdict(dict)
+
     for organism_type, df_1 in df_mags.groupby("organism_type"):
         for id_sample, df_2 in df_1.groupby("sample_of_origin"):
             feature_to_cluster = df_2["id_genome_cluster"].dropna()
+            fcr_data[(organism_type, id_sample)]["number_of_genomes"] = feature_to_cluster.size
+            fcr_data[(organism_type, id_sample)]["number_of_genome-clusters"] = feature_to_cluster.nunique()
             fcr_data[(organism_type, id_sample)]["genomic_fcr"] = 1 - (feature_to_cluster.nunique()/feature_to_cluster.size)
 
     for organism_type, df_1 in df_proteins.groupby("organism_type"):
         for id_sample, df_2 in df_1.groupby("sample_of_origin"):
             feature_to_cluster = df_2["id_protein_cluster"].dropna()
+            fcr_data[(organism_type, id_sample)]["number_of_proteins"] = feature_to_cluster.size
+            fcr_data[(organism_type, id_sample)]["number_of_protein-clusters"] = feature_to_cluster.nunique()
             fcr_data[(organism_type, id_sample)]["functional_fcr"] = 1 - (feature_to_cluster.nunique()/feature_to_cluster.size)
+
     df_fcr = pd.DataFrame(fcr_data).T.sort_index()
+    df_fcr = df_fcr.loc[:,["number_of_genomes", "number_of_genome-clusters", "genomic_fcr", "number_of_proteins", "number_of_protein-clusters", "functional_fcr"]]
+    for id_field in ["number_of_genomes", "number_of_genome-clusters", "number_of_proteins", "number_of_protein-clusters"]:
+        df_fcr[id_field] = df_fcr[id_field].astype(int)
     df_fcr.index.names = ["organism_type", "id_sample"]
     
     # Get representative sequences

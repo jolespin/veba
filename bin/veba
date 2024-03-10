@@ -1,5 +1,8 @@
 #!/bin/bash
-# v2023.1.23
+# v2024.2.17
+
+CONDA_ENVS_PATH=${CONDA_ENVS_PATH:-"$(conda info --base)/envs/"}
+
 
 # Define available modules
 AVAILABLE_MODULES=(
@@ -118,83 +121,83 @@ fi
 # Perform tasks based on the specified module
 case $MODULE in
     "annotate")
-        source "${CONDA_BASE}/bin/activate" VEBA-annotate_env
+        source "${CONDA_BASE}/bin/activate" ${CONDA_ENVS_PATH}/VEBA-annotate_env
         annotate.py $PARAMS
         ;;
     "assembly-long")
-        source "${CONDA_BASE}/bin/activate" VEBA-assembly_env
+        source "${CONDA_BASE}/bin/activate" ${CONDA_ENVS_PATH}/VEBA-assembly_env
         assembly-long.py $PARAMS
         ;;
     "assembly")
-        source "${CONDA_BASE}/bin/activate" VEBA-assembly_env
+        source "${CONDA_BASE}/bin/activate" ${CONDA_ENVS_PATH}/VEBA-assembly_env
         assembly.py $PARAMS
         ;;
     "binning-eukaryotic")
-        source "${CONDA_BASE}/bin/activate" VEBA-binning-eukaryotic_env
+        source "${CONDA_BASE}/bin/activate" ${CONDA_ENVS_PATH}/VEBA-binning-eukaryotic_env
         binning-eukaryotic.py $PARAMS
         ;;
     "binning-prokaryotic")
-        source "${CONDA_BASE}/bin/activate" VEBA-binning-prokaryotic_env
+        source "${CONDA_BASE}/bin/activate" ${CONDA_ENVS_PATH}/VEBA-binning-prokaryotic_env
         binning-prokaryotic.py $PARAMS
         ;;
     "binning-viral")
-        source "${CONDA_BASE}/bin/activate" VEBA-binning-viral_env
+        source "${CONDA_BASE}/bin/activate" ${CONDA_ENVS_PATH}/VEBA-binning-viral_env
         binning-viral.py $PARAMS
         ;;
     "biosynthetic")
-        source "${CONDA_BASE}/bin/activate" VEBA-biosynthetic_env
+        source "${CONDA_BASE}/bin/activate" ${CONDA_ENVS_PATH}/VEBA-biosynthetic_env
         biosynthetic.py $PARAMS
         ;;
     "classify-eukaryotic")
-        source "${CONDA_BASE}/bin/activate" VEBA-classify_env
+        source "${CONDA_BASE}/bin/activate" ${CONDA_ENVS_PATH}/VEBA-classify_env
         classify-eukaryotic.py $PARAMS
         ;;
     "classify-prokaryotic")
-        source "${CONDA_BASE}/bin/activate" VEBA-classify_env
+        source "${CONDA_BASE}/bin/activate" ${CONDA_ENVS_PATH}/VEBA-classify_env
         classify-prokaryotic.py $PARAMS
         ;;
     "classify-viral")
-        source "${CONDA_BASE}/bin/activate" VEBA-classify_env
+        source "${CONDA_BASE}/bin/activate" ${CONDA_ENVS_PATH}/VEBA-classify_env
         classify-viral.py $PARAMS
         ;;
     "cluster")
-        source "${CONDA_BASE}/bin/activate" VEBA-cluster_env
+        source "${CONDA_BASE}/bin/activate" ${CONDA_ENVS_PATH}/VEBA-cluster_env
         cluster.py $PARAMS
         ;;
     "coverage-long")
-        source "${CONDA_BASE}/bin/activate" VEBA-assembly_env
+        source "${CONDA_BASE}/bin/activate" ${CONDA_ENVS_PATH}/VEBA-assembly_env
         coverage-long.py $PARAMS
         ;;
     "coverage")
-        source "${CONDA_BASE}/bin/activate" VEBA-assembly_env
+        source "${CONDA_BASE}/bin/activate" ${CONDA_ENVS_PATH}/VEBA-assembly_env
         coverage.py $PARAMS
         ;;
     "index")
-        source "${CONDA_BASE}/bin/activate" VEBA-mapping_env
+        source "${CONDA_BASE}/bin/activate" ${CONDA_ENVS_PATH}/VEBA-mapping_env
         index.py $PARAMS
         ;;
     "mapping")
-        source "${CONDA_BASE}/bin/activate" VEBA-mapping_env
+        source "${CONDA_BASE}/bin/activate" ${CONDA_ENVS_PATH}/VEBA-mapping_env
         mapping.py $PARAMS
         ;;
     "phylogeny")
-        source "${CONDA_BASE}/bin/activate" VEBA-phylogeny_env
+        source "${CONDA_BASE}/bin/activate" ${CONDA_ENVS_PATH}/VEBA-phylogeny_env
         phylogeny.py $PARAMS
         ;;
     "preprocess-long")
-        source "${CONDA_BASE}/bin/activate" VEBA-preprocess_env
+        source "${CONDA_BASE}/bin/activate" ${CONDA_ENVS_PATH}/VEBA-preprocess_env
         preprocess-long.py $PARAMS
         ;;
     "preprocess")
-        source "${CONDA_BASE}/bin/activate" VEBA-preprocess_env
+        source "${CONDA_BASE}/bin/activate" ${CONDA_ENVS_PATH}/VEBA-preprocess_env
         preprocess.py $PARAMS
         ;;
     "profile-pathway")
-        source "${CONDA_BASE}/bin/activate" VEBA-profile_env
+        source "${CONDA_BASE}/bin/activate" ${CONDA_ENVS_PATH}/VEBA-profile_env
         profile-pathway.py $PARAMS
         ;;
     "profile-taxonomy")
-        source "${CONDA_BASE}/bin/activate" VEBA-profile_env
+        source "${CONDA_BASE}/bin/activate" ${CONDA_ENVS_PATH}/VEBA-profile_env
         profile-taxonomy.py $PARAMS
         ;;
 esac

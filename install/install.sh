@@ -1,6 +1,5 @@
 #!/bin/bash
-# __version__ = "2024.1.23"
-
+# __version__ = "2024.3.5"
 SCRIPT_PATH=$(realpath $0)
 SCRIPT_DIRECTORY=$(dirname $0)
 VEBA_REPOSITORY_DIRECTORY=$(realpath ${SCRIPT_DIRECTORY}/../)
@@ -8,8 +7,7 @@ VEBA_REPOSITORY_DIRECTORY=$(realpath ${SCRIPT_DIRECTORY}/../)
 LOG_DIRECTORY=${1:-"logs/veba_installation"}
 mkdir -pv ${LOG_DIRECTORY}
 
-# CONDA_BASE=$(conda run -n base bash -c "echo \${CONDA_PREFIX}")
-CONDA_BASE=$(conda info --base)
+CONDA_ENVS_PATH=${2:-"$(conda info --base)/envs/"}
 
 # Update permissions
 echo "Updating permissions for scripts in ${VEBA_REPOSITORY_DIRECTORY}/bin"
@@ -26,23 +24,26 @@ conda install -c conda-forge mamba -y
 echo "Creating ${VEBA} main environment"
 
 ENV_NAME="VEBA"
-mamba create -y -n $ENV_NAME -c conda-forge -c bioconda -c jolespin seqkit genopype networkx biopython biom-format anndata || (echo "Error when creating main VEBA environment" ; exit 1) &> ${LOG_DIRECTORY}/VEBA.log
+mamba create -y -p ${CONDA_ENVS_PATH}/${ENV_NAME} -c conda-forge -c bioconda -c jolespin seqkit genopype networkx biopython biom-format anndata || (echo "Error when creating main VEBA environment" ; exit 1) &> ${LOG_DIRECTORY}/VEBA.log
 
 # Copy main executable
 echo -e "\t*Copying main VEBA executable into ${ENV_NAME} environment path"
-cp -r ${VEBA_REPOSITORY_DIRECTORY}/bin/veba ${CONDA_BASE}/envs/${ENV_NAME}/bin/
+cp -r ${VEBA_REPOSITORY_DIRECTORY}/bin/veba ${CONDA_ENVS_PATH}/${ENV_NAME}/bin/
+
 # Copy over files to environment bin/
 echo -e "\t*Copying VEBA modules into ${ENV_NAME} environment path"
-cp -r ${VEBA_REPOSITORY_DIRECTORY}/bin/*.py ${CONDA_BASE}/envs/${ENV_NAME}/bin/
+cp -r ${VEBA_REPOSITORY_DIRECTORY}/bin/*.py ${CONDA_ENVS_PATH}/${ENV_NAME}/bin/
+
 echo -e "\t*Copying VEBA utility scripts into ${ENV_NAME} environment path"
-cp -r ${VEBA_REPOSITORY_DIRECTORY}/bin/scripts/ ${CONDA_BASE}/envs/${ENV_NAME}/bin/
+cp -r ${VEBA_REPOSITORY_DIRECTORY}/bin/scripts/ ${CONDA_ENVS_PATH}/${ENV_NAME}/bin/
+
 # Symlink the utility scripts to bin/
 echo -e "\t*Symlinking VEBA utility scripts into ${ENV_NAME} environment path"
-ln -sf ${CONDA_BASE}/envs/${ENV_NAME}/bin/scripts/* ${CONDA_BASE}/envs/${ENV_NAME}/bin/
+ln -sf ${CONDA_ENVS_PATH}/${ENV_NAME}/bin/scripts/* ${CONDA_ENVS_PATH}/${ENV_NAME}/bin/
 
 # Version
-cp -rf ${VEBA_REPOSITORY_DIRECTORY}/VERSION ${CONDA_BASE}/envs/${ENV_NAME}/bin/VEBA_VERSION
-cp -r ${VEBA_REPOSITORY_DIRECTORY}/bin/VEBA_SCRIPT_VERSIONS ${CONDA_BASE}/envs/${ENV_NAME}/bin/
+cp -rf ${VEBA_REPOSITORY_DIRECTORY}/VERSION ${CONDA_ENVS_PATH}/${ENV_NAME}/bin/VEBA_VERSION
+cp -r ${VEBA_REPOSITORY_DIRECTORY}/bin/VEBA_SCRIPT_VERSIONS ${CONDA_ENVS_PATH}/${ENV_NAME}/bin/
 
 # Module environments
 for ENV_YAML in ${VEBA_REPOSITORY_DIRECTORY}/install/environments/VEBA*.yml; do
@@ -51,20 +52,26 @@ for ENV_YAML in ${VEBA_REPOSITORY_DIRECTORY}/install/environments/VEBA*.yml; do
 
     # Create conda environment
     echo "Creating ${ENV_NAME} module environment"
-    mamba env create -n $ENV_NAME -f $ENV_YAML || (echo "Error when creating VEBA environment: ${ENV_YAML}" ; exit 1) &> ${LOG_DIRECTORY}/${ENV_NAME}.log
+    mamba env create -f $ENV_YAML -p ${CONDA_ENVS_PATH}/${ENV_NAME} || (echo "Error when creating VEBA environment: ${ENV_YAML}" ; exit 1) &> ${LOG_DIRECTORY}/${ENV_NAME}.log
 
     # Copy over files to environment bin/
     echo -e "\t*Copying VEBA modules into ${ENV_NAME} environment path"
-    cp -r ${VEBA_REPOSITORY_DIRECTORY}//bin/*.py ${CONDA_BASE}/envs/${ENV_NAME}/bin/
+    cp -r ${VEBA_REPOSITORY_DIRECTORY}/bin/*.py ${CONDA_ENVS_PATH}/${ENV_NAME}/bin/
     echo -e "\t*Copying VEBA utility scripts into ${ENV_NAME} environment path"
-    cp -r ${VEBA_REPOSITORY_DIRECTORY}/bin/scripts/ ${CONDA_BASE}/envs/${ENV_NAME}/bin/
+    cp -r ${VEBA_REPOSITORY_DIRECTORY}/bin/scripts/ ${CONDA_ENVS_PATH}/${ENV_NAME}/bin/
     # Symlink the utility scripts to bin/
     echo -e "\t*Symlinking VEBA utility scripts into ${ENV_NAME} environment path"
-    ln -sf ${CONDA_BASE}/envs/${ENV_NAME}/bin/scripts/* ${CONDA_BASE}/envs/${ENV_NAME}/bin/
+
+    DST=${CONDA_ENVS_PATH}/${ENV_NAME}/bin/
+    for SRC in ${CONDA_ENVS_PATH}/${ENV_NAME}/bin/scripts/*;
+        do
+        SRC=$(realpath --relative-to ${DST} ${SRC})
+        ln -sf ${SRC} ${DST}
+        done
 
     # Version
-    cp -rf ${VEBA_REPOSITORY_DIRECTORY}/VERSION ${CONDA_BASE}/envs/${ENV_NAME}/bin/VEBA_VERSION
-    cp -r ${VEBA_REPOSITORY_DIRECTORY}/bin/VEBA_SCRIPT_VERSIONS ${CONDA_BASE}/envs/${ENV_NAME}/bin/
+    cp -rf ${VEBA_REPOSITORY_DIRECTORY}/VERSION ${CONDA_ENVS_PATH}/${ENV_NAME}/bin/VEBA_VERSION
+    cp -r ${VEBA_REPOSITORY_DIRECTORY}/bin/VEBA_SCRIPT_VERSIONS ${CONDA_ENVS_PATH}/${ENV_NAME}/bin/
 
     done
 

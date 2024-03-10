@@ -13,7 +13,7 @@ from soothsayer_utils import *
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2024.1.4"
+__version__ = "2024.3.8"
 
 # Assembly
 def get_assembly_cmd( input_filepaths, output_filepaths, output_directory, directories, opts):
@@ -553,7 +553,7 @@ def main(args=None):
 
     # Assembler
     parser_assembler = parser.add_argument_group('Assembler arguments')
-    parser_assembler.add_argument("-P", "--program", type=str, default="flye", choices={"flye", "metaflye"}, help="Assembler |  {flye, metaflye}} [Default: 'flye']")
+    parser_assembler.add_argument("-P", "--program", type=str, default="metaflye", choices={"flye", "metaflye"}, help="Assembler |  {flye, metaflye}} [Default: 'metaflye']")
     parser_assembler.add_argument("-s", "--scaffold_prefix", type=str, default="NAME__", help="Assembler |  Special options:  Use NAME to use --name.  Use NONE to not include a prefix. [Default: 'NAME__']")
     parser_assembler.add_argument("-m", "--minimum_contig_length", type=int, default=1, help="Minimum contig length.  Should be lenient here because longer thresholds can be used for binning downstream. Recommended for metagenomes to use 1000 here. [Default: 1] ")
     parser_assembler.add_argument("-t", "--reads_type", type=str, default="nano-hq", choices={"nano-hq", "nano-corr", "nano-raw", "pacbio-hifi", "pacbio-corr", "pacbio-raw"}, help="Reads type for (meta)flye.  {nano-hq, nano-corr, nano-raw, pacbio-hifi, pacbio-corr, pacbio-raw} [Default: nano-hq] ")

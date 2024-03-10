@@ -32,7 +32,8 @@ ___________________________________________________________________
 
 ### Citation
 
-Espinoza JL, Dupont CL. VEBA: a modular end-to-end suite for in silico recovery, clustering, and analysis of prokaryotic, microeukaryotic, and viral genomes from metagenomes. BMC Bioinformatics. 2022 Oct 12;23(1):419. [doi: 10.1186/s12859-022-04973-8](https://doi.org/10.1186/s12859-022-04973-8). PMID: 36224545.
+* Espinoza JL, Phillips A, Prentic MB, Tan GS, Kamath PL, Lloyd KG, Dupont CL. Unveiling the Microbial Realm with VEBA 2.0: A modular bioinformatics suite for end-to-end genome-resolved prokaryotic, (micro)eukaryotic, and viral multi-omics from either short- or long-read sequencing. In review.
+* Espinoza JL, Dupont CL. VEBA: a modular end-to-end suite for in silico recovery, clustering, and analysis of prokaryotic, microeukaryotic, and viral genomes from metagenomes. BMC Bioinformatics. 2022 Oct 12;23(1):419. [doi: 10.1186/s12859-022-04973-8](https://doi.org/10.1186/s12859-022-04973-8). PMID: 36224545.
 
 Please cite the software dependencies described under the [*Dependency Citation Table*](CITATIONS.md).
 
@@ -42,25 +43,29 @@ ___________________________________________________________________
 
 ### Announcements
 
-* **What's new in `VEBA v1.5.0`?**
+* **New features and updates in`VEBA v2.0.0`?**
 
-* **`VEBA` Modules:**
+	* **`VEBA` Modules:**
+		* Expanded functionality, streamlined user-interface, and Docker containerization
+		* Fast and memory-efficient genome- and protein-level clustering
+		* Automatic calculation of feature compression ratios
+		* Large/complex metagenomes and long-read technology support
+		* Bioprospecting and natural product discovery support
+		* Ribosomal RNA, transfer RNA, and organelle support
+		* Genome-resolved taxonomic and pathway profiling
+		* Identification and classification of mobile genetic elements
+		* Native support for candidate phyla radiation quality assessment and memory- efficient genome classification
+		* Standalone support for generalized multi-split binning
+		* Automated phylogenomic functional category feature engineering support
+		* Visualizations of hierarchical data and phylogenies
 
-	* Added `VeryFastTree` to `phylogeny.py`
-	* Added `--blacklist` to `compile_eukaryotic_classifications.py`
-	* Added compatibility for `antismash_genbanks_to_table.py` to operate on `antiSMASH v7` genbanks
-	* Added `compile_phylogenomic_functional_categories.py` script which automates the methodology from [Espinoza et al. 2022 (doi:10.1093/pnasnexus/pgac239)](https://academic.oup.com/pnasnexus/article/1/5/pgac239/6762943)
-	* Fixed error in `annotations.protein_clusters.tsv` formatting from `annotate.py`
-	* Fixed situation where `unbinned.fasta` were not added in `binning-prokaryotic.py` and bad symlinks were created for GFF, rRNA, and tRNA when no genoems were detected.
-	* Fixed critical error where `classify_eukaryotic.py` was trying to access a deprecated database file from MicroEuk_v2.
+	* **`VEBA` Database (`VDB_v6`)**:
+
+		* Completely rebuilt `VEBA's Microeukaryotic Protein Database` to produce a clustered database `MicroEuk100/90/50` similar to `UniRef100/90/50`. Available on [doi:10.5281/zenodo.10139450](https://zenodo.org/records/10139451).
+		* Expanded protein annotation database
 
 
-* **`VEBA` Database (`VDB_v6`)**:
-
-	* Completely rebuilt `VEBA's Microeukaryotic Protein Database` to produce a clustered database `MicroEuk100/90/50` similar to `UniRef100/90/50`. Available on [doi:10.5281/zenodo.10139450](https://zenodo.org/records/10139451).
-
-
-Check out the [*VEBA* Change Log](CHANGELOG.md) for insight into what is being implemented in the upcoming version.
+Check out the [*VEBA* Change Log](CHANGELOG.md) for details between each update and insight into what is being implemented in the upcoming version.
 
 <p align="right"><a href="#readme-top">^__^</a></p>
 
@@ -69,7 +74,7 @@ ___________________________________________________________________
 
 ### Installation and databases
 
-**Current Stable Version:** [`v1.5.0`](https://github.com/jolespin/veba/releases/tag/v1.5.0)
+**Current Stable Version:** [`v2.0.0`](https://github.com/jolespin/veba/releases/tag/v2.0.0)
 
 **Current Database Version:** `VDB_v6`
 
