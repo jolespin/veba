@@ -32,7 +32,7 @@ ___________________________________________________________________
 
 ### Citation
 
-* Espinoza JL, Phillips A, Prentic MB, Tan GS, Kamath PL, Lloyd KG, Dupont CL. Unveiling the Microbial Realm with VEBA 2.0: A modular bioinformatics suite for end-to-end genome-resolved prokaryotic, (micro)eukaryotic, and viral multi-omics from either short- or long-read sequencing.  [BioRxiv Preprint: doi.org/10.1101/2024.03.08.583560](https://doi.org/10.1101/2024.03.08.583560). In review somewhere else.
+* Espinoza JL, Phillips A, Prentic MB, Tan GS, Kamath PL, Lloyd KG, Dupont CL. Unveiling the Microbial Realm with VEBA 2.0: A modular bioinformatics suite for end-to-end genome-resolved prokaryotic, (micro)eukaryotic, and viral multi-omics from either short- or long-read sequencing.  [BioRxiv Preprint: doi.org/10.1101/2024.03.08.583560v2](https://www.biorxiv.org/content/10.1101/2024.03.08.583560v2). In review somewhere else.
 * Espinoza JL, Dupont CL. VEBA: a modular end-to-end suite for in silico recovery, clustering, and analysis of prokaryotic, microeukaryotic, and viral genomes from metagenomes. BMC Bioinformatics. 2022 Oct 12;23(1):419. [doi: 10.1186/s12859-022-04973-8](https://doi.org/10.1186/s12859-022-04973-8). PMID: 36224545.
 
 Please cite the software dependencies described under the [*Dependency Citation Table*](CITATIONS.md).
