@@ -24,12 +24,9 @@ Espinoza, Josh (2022): Profile HMM marker sets. figshare. Dataset. https://doi.o
 VEBA’s Microeukaryotic Protein Database has been completely redesigned using the logic of UniRef and their clustered database.  The previous microeukaryotic protein database contained 48,006,918 proteins from 44,647 source organisms while the updated database, MicroEuk, contains 79,920,430 proteins from 52,495 source organisms.  As in the prior major release, MicroEuk concentrates on microeukaryotic organisms while excluding higher eukaryotes as these organisms are the primary eukaryotes targeted by shotgun metagenomics and metatranscriptomics.  Source organisms in this context are defined as organisms in which the proteins were derived.  
 
 **Number of sequences:**
-
  * MicroEuk100 = 79,920,431 (19 GB)
  * MicroEuk90  = 51,767,730 (13 GB)
  * MicroEuk50  = 29,898,853 (6.5 GB)
-
- 
 
 **Number of source organisms per dataset:**
 
@@ -232,7 +229,7 @@ VEBA’s Microeukaryotic Protein Database has been completely redesigned using t
 **Deprecated:**
 
 <details>
-	<summary> *VEBA Database* version: `VDB_v5.2` (243 GB) 
+	<summary> *VEBA Database* version: `VDB_v5.2` (243 GB) </summary>
 
 *  Added `MicrobeAnnotator-KEGG` [Zenodo: 10020074](https://zenodo.org/records/10020074) which includes KEGG module pathway information from [`MicrobeAnnotator`](https://doi.org/10.1186/s12859-020-03940-5).
 *  Added `CAZy` protein sequences from [`dbCAN2`](https://academic.oup.com/nar/article/46/W1/W95/4996582)

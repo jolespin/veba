@@ -1,5 +1,5 @@
 #!/bin/bash
-# __version__ = "2024.4.22"
+# __version__ = "2024.5.6"
 SCRIPT_PATH=$(realpath $0)
 SCRIPT_DIRECTORY=$(dirname $0)
 VEBA_REPOSITORY_DIRECTORY=$(realpath ${SCRIPT_DIRECTORY}/../)

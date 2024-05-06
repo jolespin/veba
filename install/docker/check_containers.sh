@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# __version__ = "2023.7.12"
+# __version__ = "2024.5.6"
 
-TAG="1.2.0"
+TAG="2.1.0"
 
 
 # Assembly

@@ -7,7 +7,7 @@ Check out the [walkthroughs](https://github.com/jolespin/veba/tree/main/walkthro
 
 #### It says the total database size is ~272G but I already have some of the databases downloaded. Can I use these preexisting databases with *VEBA* instead of having redundant databases?
 
-Yes! Just symlink them so it fits the database structure detailed out [here](https://github.com/jolespin/veba/tree/main/install#database-structure). The bulk of the database is the `Diamond` database of NCBI's NR proteins which your institute might already have on their servers.  Just make sure they compiled it with taxonomy information like *VEBA* does [here](https://github.com/jolespin/veba/blob/1755c762f3ea5626fb4cbd327b2d24e05dfc0a2f/install/download_databases.sh#L102).  Other large-ish databases you might be able to symlink are [GTDB-Tk](https://github.com/jolespin/veba/blob/1755c762f3ea5626fb4cbd327b2d24e05dfc0a2f/install/download_databases.sh#L32), [CheckV](https://github.com/jolespin/veba/blob/1755c762f3ea5626fb4cbd327b2d24e05dfc0a2f/install/download_databases.sh#L43), [CheckM2](https://github.com/jolespin/veba/blob/1755c762f3ea5626fb4cbd327b2d24e05dfc0a2f/install/download_databases.sh#L53), [KOFAM](https://github.com/jolespin/veba/blob/1755c762f3ea5626fb4cbd327b2d24e05dfc0a2f/install/download_databases.sh#L80), or [Pfam](https://github.com/jolespin/veba/blob/1755c762f3ea5626fb4cbd327b2d24e05dfc0a2f/install/download_databases.sh#L89).  Make sure your databases fall in line with the specifications in the [version notes](https://github.com/jolespin/veba/blob/main/install/README.md#version-notes). *However, if you do this option it will be difficult to diagnose errors so this should only be for advanced users.* 
+Yes! Just symlink them so it fits the database structure detailed out [here](https://github.com/jolespin/veba/tree/main/install#database-structure). Large-ish databases you might be able to symlink are GTDB-Tk, CheckV, CheckM2, KOFAM, or Pfam.  If you do this, make sure you have proper read permissions and your databases fall in line with the specifications in the [version notes](https://github.com/jolespin/veba/blob/main/install/README.md#version-notes). *However, if you do this option it will be difficult to diagnose errors so this should only be for advanced users.* 
 
 #### I already have genomes binned and/or genes modeled from another program or downloaded from a repository (e.g., NCBI), can I use them with *VEBA*?
 
@@ -15,11 +15,11 @@ Yes! *VEBA* isn't restrictive with the source of the data for most of the module
 
 #### How can I speed up the installation?
 
-You can replace all of the `conda` references to `mamba` but this hasn't been tested yet.   With `conda`, it takes ~1.5 hours to install all the environments and `mamba` only drops the time by ~10 minutes so it's not recommended. The databases take ~4.5 to download/configure.  **Please refer to the [documentation](https://github.com/jolespin/veba/blob/main/install/README.md)** to make sure you allocate enough resources to run `Diamond` and `MMSEQS2` in the backend of the database config.  If you have connection issues to your remote server, you can always use a screen so it doesn't lose your progress when you are installing VEBA (I tend to do this for large copy jobs).  Here is an example command to ssh into your remote server and launching a screen: `ssh -t [username]@[domain] 'screen -DR'`
+The databases take ~4.5 to download/configure.  **Please refer to the [documentation](https://github.com/jolespin/veba/blob/main/install/README.md)** to make sure you allocate enough resources to run `Diamond` and `MMSEQS2` in the backend of the database config.  If you have connection issues to your remote server, you can always use a screen so it doesn't lose your progress when you are installing VEBA (I tend to do this for large copy jobs).  Here is an example command to ssh into your remote server and launching a screen: `ssh -t [username]@[domain] 'screen -DR'`
 
 #### Are there any database versions that are mandatory?
 
-Yes, there a few and they are detailed out in the [version notes](https://github.com/jolespin/veba/blob/main/install/README.md#version-notes).
+Yes, there a few and they are detailed out in the [version notes](https://github.com/jolespin/veba/blob/main/install/README.md#version-notes).  The most notable would be `GTDB` which is specific to different `GTDB-Tk` versions and prebuilt mash screens VEBA provides.
 
 #### Why are there different conda environments for different modules and how do I know which one to use?
 
@@ -27,7 +27,7 @@ This is because there are SO MANY packages throughout all the workflows that it'
 
 #### What is [GenoPype](https://github.com/jolespin/genopype) and why does *VEBA* use it instead of Snakemake or NextFlow?
 
-`GenoPype` is a solution I developed to meet the needs for my personal pipelines.  It creates checkpoints, log files, intermediate directories, validates i/o, and everything under the sun.  Future versions may use `Snakemake` but right now `GenoPype` was designed specifically for *VEBA* and since its inception I've used it as the framework for many production-level pipelines.
+`GenoPype` is a solution I developed to meet the needs for my personal pipelines.  It creates checkpoints, log files, intermediate directories, validates i/o, and everything under the sun.  Future versions may use `Nextflow` but right now `GenoPype` was designed specifically for *VEBA* and since its inception I've used it as the framework for many production-level pipelines.
 
 #### Can I install this via Bioconda?
 
@@ -40,11 +40,8 @@ Currently, not directly but the install scripts are all built around conda so yo
 
 #### How do I report an issue or contribute?
 
-*VEBA* is currently under active development. If you are interested in requesting features or wish to report a bug, please post a GitHub issue prefixed with the tag `[Feature Request]` and `[Bug]`, respectively.  If you want to contribute or have any other inquiries, contact me at `jespinoz[A|T]jcvi[DOT]org`
+*VEBA* is currently under active development. If you are interested in requesting features, have questions, or wish to report a bug, please post a GitHub issue prefixed with the tag `[Feature Request]`, `[Question]`, and `[Bug]`, respectively.  If you want to contribute or have any other inquiries, contact me at `jespinoz[A|T]jcvi[DOT]org`
 
-#### During installation, I got *SafetyErrors* and *ClobberErrors*.  Does my *VEBA* installation work? ⚠️
-
-These are known errors that have to do with `CheckM` and `Perl` dependencies, respectively. In short, these are non-fatal errors and will not affect your installation.  For more details, check this section of the [installation manual](https://github.com/jolespin/veba/tree/main/install#common-installation-errors-that-do-not-affect-veba-functionality). 
 
 #### Why did I get a `KeyError: 'TMPDIR'`? ⚠️
 
@@ -140,13 +137,13 @@ While *VEBA* accounts for the most important parameters in the backend, it doesn
 
 When using this functionality, just make sure that the argument doesn't overlap with the specified arguments for *VEBA*.  For instance, in the case of *DAS Tool* we already hard-coded access to the `--search_engine` argument via the `--dastool_searchengine` so don't use `--dastool_options '--search_engine <value>'`. Again, be mindful when using this advanced usage.
 
-#### I got an error, how can I diagnose the issue?
+#### I got an error, how can I diagnose the issue with the internal logs from each step?
 
 *VEBA* is set up to produce log files for each step.  Most steps cannot proceed with an error but to allow for convergence on iterative binning errors are allowed in some steps of the `binning-prokaryotic.py` module.  If you are experiencing an error, look at the log files in the project directory.  For instance, if you are recieving an error for `binning-prokaryotic.py` look under the following directory: `veba_output/binning/prokaryotic/${ID}/logs/` where stderr and stdout are denoted by `.e` and `.o` extensions.  Also, check out the files in the corresponding intermediate directory.  
 
 For instance, if you received an error during `binning-prokaryotic.py` then look at these files to diagnose your issues. 
 
-**First check if there are any MAGs that made it pass the filters?**
+**Did any MAGs that made it pass the filters?**
 
 `cat veba_output/binning/prokaryotic/${ID}/intermediate/*__checkm2/filtered/checkm2_results.filtered.tsv`
 
@@ -169,9 +166,9 @@ If you can't figure it out, then submit a GitHub issue ticket and provide a zipp
 You can do this by using the `--restart_from_checkpoint <int>` argument which is available on all of the modules.  This goes through and removes all of the checkpoints and intermediate files from that step onwards. 
 
 
-#### What can I do if `MaxBin2` is taking magnitudes longer to run than `Metabat2` and `CONCOCT` in `binning-prokaryotic.py` module?
+#### What can I do if `MaxBin2` or `CONCOCT` is taking magnitudes longer to run than `Metabat2` in `binning-prokaryotic.py` module?
 
-If you have a lot of samples and a lot of contigs then `MaxBin2` is likely taking forever to run.  If this is the case, you can use the `--skip_maxbin2` flag because it takes MUCH longer to run. For the Plastisphere it was going to take 40 hours per `MaxBin2` run (there are 2 `MaxBin2` runs) per iteration. `Metabat2` and `CONCOCT` can do the heavy lifting much faster and often with better results so it's recommended to skip `MaxBin2` for larger datasets.
+If you have a lot of samples and a lot of contigs then `MaxBin2` is likely taking forever to run.  If this is the case, you can use the `--skip_maxbin2` flag because it takes MUCH longer to run. For the Plastisphere it was going to take 40 hours per `MaxBin2` run (there are 2 `MaxBin2` runs) per iteration. `Metabat2` and `CONCOCT` can do the heavy lifting much faster and often with better results so it's recommended to skip `MaxBin2` for larger datasets.  In cases where you have a lot of sample, `CONCOCT` can take a long time so you may want to use `--skip_concoct`. 
 
 #### The host for the microbiome I'm studying isn't human, but instead *[organism X]*.  How can I remove host contamination?
 
@@ -183,7 +180,7 @@ Here are a few shortcuts:
 * [*M. musculus* GRCm39](https://genome-idx.s3.amazonaws.com/bt/GRCm39.zip)
 * [*A. thaliana* TAIR10](https://genome-idx.s3.amazonaws.com/bt/TAIR10.zip)
 
-#### What's the difference between a coassembly and a pseudo-coassembly?
+#### What's the difference between a co-assembly and a pseudo-coassembly?
 
 Coassembly is when a user concatenates all forward reads into one file (e.g., `cat *_1.fastq.gz > concat_1.fastq.gz`) and all reverse reads into another file (e.g., `cat *_2.fastq.gz > concat_2.fastq.gz`) which is then input into an assembly algorithm (e.g., `metaSPAdes`) to perform "coassembly".  This is often performed when the samples are similar enough to contain similar strains of bacteria and the samples are not deep enough to yield high quality sample-specific assemblies. 
 

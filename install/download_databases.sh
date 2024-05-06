@@ -2,11 +2,14 @@
 # __version__ = "2024.5.6"
 # VEBA_DATABASE_VERSION = "VDB_v6"
 # MICROEUKAYROTIC_DATABASE_VERSION = "MicroEuk_v3"
+# usage: bash veba/download_databases.sh /path/to/veba_database_destination/ [optional positional argument: /path/to/conda_environments/]
 
-# Create database
+# Arguments
 DATABASE_DIRECTORY=${1:-"."}
 REALPATH_DATABASE_DIRECTORY=$(realpath $DATABASE_DIRECTORY)
 SCRIPT_DIRECTORY=$(dirname "$0")
+
+CONDA_ENVS_PATH=${2:-"$(conda info --base)/envs/"}
 
 # N_JOBS=$(2:-"1")
 
@@ -24,285 +27,34 @@ mkdir -vp ${DATABASE_DIRECTORY}/Classify
 DATE=$(date)
 echo $DATE > ${DATABASE_DIRECTORY}/ACCESS_DATE
 
-# NCBI Taxonomy
+# Databases
 echo ". .. ... ..... ........ ............."
-echo "i * Processing NCBITaxonomy"
+echo "Downloading and configuring database (markers)"
 echo ". .. ... ..... ........ ............."
-mkdir -v -p ${DATABASE_DIRECTORY}/Classify/NCBITaxonomy
-# wget -v -P ${DATABASE_DIRECTORY}/Classify/NCBITaxonomy https://ftp.ncbi.nlm.nih.gov/pub/taxonomy/accession2taxid/prot.accession2taxid.FULL.gz 
-wget -v -P ${DATABASE_DIRECTORY} https://ftp.ncbi.nlm.nih.gov/pub/taxonomy/taxdump.tar.gz
-# python -c 'import sys; from ete3 import NCBITaxa; NCBITaxa(taxdump_file="%s/taxdump.tar.gz"%(sys.argv[1]), dbfile="%s/Classify/NCBITaxonomy/taxa.sqlite"%(sys.argv[1]))' $DATABASE_DIRECTORY
-tar xzfv ${DATABASE_DIRECTORY}/taxdump.tar.gz -C ${DATABASE_DIRECTORY}/Classify/NCBITaxonomy/
-rm -rf ${DATABASE_DIRECTORY}/taxdump.tar.gz
-
-# GTDB-Tk
-echo ". .. ... ..... ........ ............."
-echo "ii * Processing GTDB-Tk"
-echo ". .. ... ..... ........ ............."
-
-# # GTDB r220 (For future VEBA ≥ 2.1.0, VDB_7)
-# Download from the mirror b/c it's way faster.  Need to test r220 (and build mash screen?)
-# wget https://data.ace.uq.edu.au/public/gtdb/data/releases/release220/220.0/auxillary_files/gtdbtk_package/full_package/gtdbtk_r220_data.tar.gz
-
-# GTDB r214.1
-# data.gtdb.ecogenomic.org is slower than the faster mirror (data.ace.uq.edu.au/)
-# wget -v -P ${DATABASE_DIRECTORY} https://data.gtdb.ecogenomic.org/releases/release214/214.1/auxillary_files/gtdbtk_r214_data.tar.gz
-wget -v -P ${DATABASE_DIRECTORY} https://data.ace.uq.edu.au/public/gtdb/data/releases/release214/214.1/auxillary_files/gtdbtk_r214_data.tar.gz
-tar xvzf ${DATABASE_DIRECTORY}/gtdbtk_r214_data.tar.gz -C ${DATABASE_DIRECTORY}
-mv ${DATABASE_DIRECTORY}/release214 ${DATABASE_DIRECTORY}/Classify/GTDB
-rm -rf ${DATABASE_DIRECTORY}/gtdbtk_r214_data.tar.gz
-
-# GTDB r214.1 mash sketch
-wget -v -O ${DATABASE_DIRECTORY}/gtdb_r214.msh https://zenodo.org/record/8048187/files/gtdb_r214.msh?download=1
-mv ${DATABASE_DIRECTORY}/gtdb_r214.msh ${DATABASE_DIRECTORY}/Classify/GTDB/mash/
-
-# CheckV
-echo ". .. ... ..... ........ ............."
-echo "iii * Processing CheckV"
-echo ". .. ... ..... ........ ............."
-rm -rf ${DATABASE_DIRECTORY}/Classify/CheckV
-wget -v -P ${DATABASE_DIRECTORY} https://portal.nersc.gov/CheckV/checkv-db-v1.5.tar.gz
-tar xvzf ${DATABASE_DIRECTORY}/checkv-db-v1.5.tar.gz -C ${DATABASE_DIRECTORY}
-mv ${DATABASE_DIRECTORY}/checkv-db-v1.5 ${DATABASE_DIRECTORY}/Classify/CheckV
-diamond makedb --in ${DATABASE_DIRECTORY}/Classify/CheckV/genome_db/checkv_reps.faa --db ${DATABASE_DIRECTORY}/Classify/CheckV/genome_db/checkv_reps.dmnd
-rm -rf ${DATABASE_DIRECTORY}/checkv-db-v1.5.tar.gz
-
-# geNomad
-mkdir -p ${DATABASE_DIRECTORY}/Classify/geNomad
-wget -v -O ${DATABASE_DIRECTORY}/genomad_db_v1.2.tar.gz https://zenodo.org/record/7586412/files/genomad_db_v1.2.tar.gz?download=1
-tar xvzf ${DATABASE_DIRECTORY}/genomad_db_v1.2.tar.gz -C ${DATABASE_DIRECTORY}/Classify/geNomad --strip-components=1
-rm -rf ${DATABASE_DIRECTORY}/genomad_db_v1.2.tar.gz
-
-# CheckM2
-echo ". .. ... ..... ........ ............."
-echo "iv * Processing CheckM2"
-echo ". .. ... ..... ........ ............."
-mkdir -v -p ${DATABASE_DIRECTORY}/Classify/CheckM2
-wget -v -P ${DATABASE_DIRECTORY} https://zenodo.org/api/files/fd3bc532-cd84-4907-b078-2e05a1e46803/checkm2_database.tar.gz
-tar xzfv ${DATABASE_DIRECTORY}/checkm2_database.tar.gz -C ${DATABASE_DIRECTORY}/Classify/CheckM2 --strip-components=1
-rm -rf ${DATABASE_DIRECTORY}/checkm2_database.tar.gz
-
-# Microeukaryotic 
-echo ". .. ... ..... ........ ............."
-echo "v * Processing Microeukaryotic MMSEQS2 database"
-echo ". .. ... ..... ........ ............."
-
-## Download v2.1 from Zenodo
-# wget -v -O ${DATABASE_DIRECTORY}/Microeukaryotic.tar.gz https://zenodo.org/record/7485114/files/VDB-Microeukaryotic_v2.tar.gz?download=1
-# mkdir -p ${DATABASE_DIRECTORY}/Classify/Microeukaryotic && tar -xvzf ${DATABASE_DIRECTORY}/Microeukaryotic.tar.gz -C ${DATABASE_DIRECTORY}/Classify/Microeukaryotic --strip-components=1
-# mmseqs createdb --compressed 1 ${DATABASE_DIRECTORY}/Classify/Microeukaryotic/reference.faa.gz ${DATABASE_DIRECTORY}/Classify/Microeukaryotic/microeukaryotic
-# rm -rf ${DATABASE_DIRECTORY}/Microeukaryotic.tar.gz
-
-# # eukaryota_odb10 subset of Microeukaryotic Protein Database
-# wget -v -O ${DATABASE_DIRECTORY}/Classify/Microeukaryotic/reference.eukaryota_odb10.list https://zenodo.org/record/7485114/files/reference.eukaryota_odb10.list?download=1
-# seqkit grep -f ${DATABASE_DIRECTORY}/Classify/Microeukaryotic/reference.eukaryota_odb10.list ${DATABASE_DIRECTORY}/Classify/Microeukaryotic/reference.faa.gz > ${DATABASE_DIRECTORY}/Classify/Microeukaryotic/reference.eukaryota_odb10.faa
-# mmseqs createdb --compressed 1 ${DATABASE_DIRECTORY}/Classify/Microeukaryotic/reference.eukaryota_odb10.faa ${DATABASE_DIRECTORY}/Classify/Microeukaryotic/microeukaryotic.eukaryota_odb10
-# rm -rf ${DATABASE_DIRECTORY}/Classify/Microeukaryotic/reference.eukaryota_odb10.faa
-# rm -rf ${DATABASE_DIRECTORY}/Classify/Microeukaryotic/reference.faa.gz # Comment this out if you want to keep the actual protein sequences
-
-# Download MicroEuk_v3 from Zenodo
-wget -v -O ${DATABASE_DIRECTORY}/MicroEuk_v3.tar.gz https://zenodo.org/records/10139451/files/MicroEuk_v3.tar.gz?download=1 
-tar xvzf ${DATABASE_DIRECTORY}/MicroEuk_v3.tar.gz -C ${DATABASE_DIRECTORY}
-mkdir -p ${DATABASE_DIRECTORY}/Classify/MicroEuk
-
-# Source Taxonomy
-cp -rf ${DATABASE_DIRECTORY}/MicroEuk_v3/source_taxonomy.tsv.gz ${DATABASE_DIRECTORY}/Classify/MicroEuk
-
-# MicroEuk100
-gzip -d ${DATABASE_DIRECTORY}/MicroEuk_v3/MicroEuk100.faa.gz
-mmseqs createdb --compressed 1 ${DATABASE_DIRECTORY}/MicroEuk_v3/MicroEuk100.faa ${DATABASE_DIRECTORY}/Classify/MicroEuk/MicroEuk100
-
-# MicroEuk100.eukaryota_odb10
-gzip -d ${DATABASE_DIRECTORY}/MicroEuk_v3/MicroEuk100.eukaryota_odb10.list.gz
-seqkit grep -f ${DATABASE_DIRECTORY}/MicroEuk_v3/MicroEuk100.eukaryota_odb10.list ${DATABASE_DIRECTORY}/MicroEuk_v3/MicroEuk100.faa | mmseqs createdb --compressed 1 stdin ${DATABASE_DIRECTORY}/Classify/MicroEuk/MicroEuk100.eukaryota_odb10
-
-# MicroEuk90
-gzip -d -c ${DATABASE_DIRECTORY}/MicroEuk_v3/MicroEuk90_clusters.tsv.gz | cut -f1 | sort -u > ${DATABASE_DIRECTORY}/MicroEuk_v3/MicroEuk90.list
-seqkit grep -f ${DATABASE_DIRECTORY}/MicroEuk_v3/MicroEuk90.list ${DATABASE_DIRECTORY}/MicroEuk_v3/MicroEuk100.faa | mmseqs createdb --compressed 1 stdin ${DATABASE_DIRECTORY}/Classify/MicroEuk/MicroEuk90
-
-# MicroEuk50
-gzip -d -c ${DATABASE_DIRECTORY}/MicroEuk_v3/MicroEuk50_clusters.tsv.gz | cut -f1 | sort -u > ${DATABASE_DIRECTORY}/MicroEuk_v3/MicroEuk50.list
-seqkit grep -f ${DATABASE_DIRECTORY}/MicroEuk_v3/MicroEuk50.list ${DATABASE_DIRECTORY}/MicroEuk_v3/MicroEuk100.faa | mmseqs createdb --compressed 1 stdin ${DATABASE_DIRECTORY}/Classify/MicroEuk/MicroEuk50
-
-# source_to_lineage.dict.pkl.gz
-build_source_to_lineage_dictionary.py -i ${DATABASE_DIRECTORY}/MicroEuk_v3/source_taxonomy.tsv.gz -o ${DATABASE_DIRECTORY}/Classify/MicroEuk/source_to_lineage.dict.pkl.gz
-
-# target_to_source.dict.pkl.gz
-build_target_to_source_dictionary.py -i ${DATABASE_DIRECTORY}/MicroEuk_v3/identifier_mapping.proteins.tsv.gz -o ${DATABASE_DIRECTORY}/Classify/MicroEuk/target_to_source.dict.pkl.gz
-
-# Remove intermediate files
-rm -rf ${DATABASE_DIRECTORY}/MicroEuk_v3/
-rm -rf ${DATABASE_DIRECTORY}/MicroEuk_v3.tar.gz
-
-# MarkerSets
-echo ". .. ... ..... ........ ............."
-echo "vi * Processing profile HMM marker sets"
-echo ". .. ... ..... ........ ............."
-wget -v -O ${DATABASE_DIRECTORY}/MarkerSets.tar.gz https://figshare.com/ndownloader/files/36201486
-tar xvzf ${DATABASE_DIRECTORY}/MarkerSets.tar.gz -C ${DATABASE_DIRECTORY}
-gzip ${DATABASE_DIRECTORY}/MarkerSets/*.hmm
-rm -rf ${DATABASE_DIRECTORY}/MarkerSets.tar.gz
-
-# KOFAMSCAN
-echo ". .. ... ..... ........ ............."
-echo "vii * Processing KEGG profile HMM marker sets"
-echo ". .. ... ..... ........ ............."
-mkdir -v -p ${DATABASE_DIRECTORY}/Annotate/KOFAM
-wget -v -O - ftp://ftp.genome.jp/pub/db/kofam/ko_list.gz | gzip -d > ${DATABASE_DIRECTORY}/Annotate/KOFAM/ko_list
-wget -v -c ftp://ftp.genome.jp/pub/db/kofam/profiles.tar.gz -O - |  tar -xz
-mv profiles ${DATABASE_DIRECTORY}/Annotate/KOFAM/
-
-wget -v -O ${DATABASE_DIRECTORY}/MicrobeAnnotator-KEGG.tar.gz https://zenodo.org/records/10020074/files/MicrobeAnnotator-KEGG.tar.gz?download=1
-tar xvzf ${DATABASE_DIRECTORY}/MicrobeAnnotator-KEGG.tar.gz -C ${DATABASE_DIRECTORY}/Annotate --no-xattrs
-rm -rf ${DATABASE_DIRECTORY}/Annotate/._MicrobeAnnotator-KEGG
-rm -rf ${DATABASE_DIRECTORY}/MicrobeAnnotator-KEGG.tar.gz
-
-# Pfam
-echo ". .. ... ..... ........ ............."
-echo "viii * Processing Pfam profile HMM marker sets"
-echo ". .. ... ..... ........ ............."
-mkdir -v -p ${DATABASE_DIRECTORY}/Annotate/Pfam
-wget -v -P ${DATABASE_DIRECTORY}/Annotate/Pfam http://ftp.ebi.ac.uk/pub/databases/Pfam/current_release/Pfam-A.hmm.gz
-wget -v -P ${DATABASE_DIRECTORY}/Annotate/Pfam http://ftp.ebi.ac.uk/pub/databases/Pfam/current_release/relnotes.txt
-
-# NCBIfam-AMRFinder
-echo ". .. ... ..... ........ ............."
-echo "ix * Processing NCBIfam-AMRFinder profile HMM marker sets"
-echo ". .. ... ..... ........ ............."
-mkdir -v -p ${DATABASE_DIRECTORY}/Annotate/NCBIfam-AMRFinder
-wget -v -P ${DATABASE_DIRECTORY}/Annotate/NCBIfam-AMRFinder https://ftp.ncbi.nlm.nih.gov/hmm/NCBIfam-AMRFinder/latest/NCBIfam-AMRFinder.changelog.txt
-wget -v -P ${DATABASE_DIRECTORY}/Annotate/NCBIfam-AMRFinder https://ftp.ncbi.nlm.nih.gov/hmm/NCBIfam-AMRFinder/latest/NCBIfam-AMRFinder.tsv
-wget -v -O ${DATABASE_DIRECTORY}/NCBIfam-AMRFinder.HMM.tar.gz https://ftp.ncbi.nlm.nih.gov/hmm/NCBIfam-AMRFinder/latest/NCBIfam-AMRFinder.HMM.tar.gz
-tar xzfv ${DATABASE_DIRECTORY}/NCBIfam-AMRFinder.HMM.tar.gz -C ${DATABASE_DIRECTORY}/Annotate/NCBIfam-AMRFinder --strip-components=1
-cat ${DATABASE_DIRECTORY}/Annotate/NCBIfam-AMRFinder/*.HMM | gzip > ${DATABASE_DIRECTORY}/Annotate/NCBIfam-AMRFinder/NCBIfam-AMRFinder.hmm.gz
-rm -rf ${DATABASE_DIRECTORY}/Annotate/NCBIfam-AMRFinder/*.HMM
-rm -rf ${DATABASE_DIRECTORY}/NCBIfam-AMRFinder.HMM.tar.gz
-
-# NCBI non-redundant
-# echo ". .. ... ..... ........ ............."
-# echo "x * Processing NCBI non-redundant diamond database"
-# echo ". .. ... ..... ........ ............."
-# mkdir -v -p ${DATABASE_DIRECTORY}/Annotate/nr
-# wget -v -P ${DATABASE_DIRECTORY} https://ftp.ncbi.nlm.nih.gov/blast/db/FASTA/nr.gz
-# diamond makedb --in ${DATABASE_DIRECTORY}/nr.gz --db ${DATABASE_DIRECTORY}/Annotate/nr/nr.dmnd --taxonmap ${DATABASE_DIRECTORY}/Classify/NCBITaxonomy/prot.accession2taxid.FULL.gz --taxonnodes ${DATABASE_DIRECTORY}/Classify/NCBITaxonomy/nodes.dmp --taxonnames ${DATABASE_DIRECTORY}/Classify/NCBITaxonomy/names.dmp
-# rm -rf ${DATABASE_DIRECTORY}/nr.gz
-
-# UniRef
-echo ". .. ... ..... ........ ............."
-echo "x * Processing UniRef diamond database"
-echo ". .. ... ..... ........ ............."
-mkdir -v -p ${DATABASE_DIRECTORY}/Annotate/UniRef
-
-wget -v -P ${DATABASE_DIRECTORY}/Annotate/UniRef/ https://ftp.uniprot.org/pub/databases/uniprot/current_release/uniref/uniref90/uniref90.release_note
-wget -v -P ${DATABASE_DIRECTORY} https://ftp.uniprot.org/pub/databases/uniprot/uniref/uniref90/uniref90.fasta.gz
-diamond makedb --in ${DATABASE_DIRECTORY}/uniref90.fasta.gz --db ${DATABASE_DIRECTORY}/Annotate/UniRef/uniref90.dmnd
-rm -rf ${DATABASE_DIRECTORY}/uniref90.fasta.gz
-
-wget -v -P ${DATABASE_DIRECTORY}/Annotate/UniRef/ https://ftp.uniprot.org/pub/databases/uniprot/current_release/uniref/uniref50/uniref50.release_note
-wget -v -P ${DATABASE_DIRECTORY} https://ftp.uniprot.org/pub/databases/uniprot/uniref/uniref50/uniref50.fasta.gz
-diamond makedb --in ${DATABASE_DIRECTORY}/uniref50.fasta.gz --db ${DATABASE_DIRECTORY}/Annotate/UniRef/uniref50.dmnd
-rm -rf ${DATABASE_DIRECTORY}/uniref50.fasta.gz
-
-#MiBIG
-mkdir -v -p ${DATABASE_DIRECTORY}/Annotate/MIBiG
-wget -v -P ${DATABASE_DIRECTORY} https://dl.secondarymetabolites.org/mibig/mibig_prot_seqs_3.1.fasta
-seqkit rmdup -s ${DATABASE_DIRECTORY}/mibig_prot_seqs_3.1.fasta > ${DATABASE_DIRECTORY}/mibig_prot_seqs_3.1.rmdup.fasta
-diamond makedb --in ${DATABASE_DIRECTORY}/mibig_prot_seqs_3.1.rmdup.fasta --db ${DATABASE_DIRECTORY}/Annotate/MIBiG/mibig_v3.1.dmnd
-rm -rf ${DATABASE_DIRECTORY}/mibig_prot_seqs_3.1.fasta
-rm -rf ${DATABASE_DIRECTORY}/mibig_prot_seqs_3.1.rmdup.fasta
-
-# #BiG-SLiCE
-# mkdir -v -p ${DATABASE_DIRECTORY}/Annotate/BiG-SLiCE
-# wget -v -P ${DATABASE_DIRECTORY} https://github.com/medema-group/bigslice/releases/download/v1.0.0/bigslice-models.2020-04-27.tar.gz
-# tar xzfv ${DATABASE_DIRECTORY}/bigslice-models.2020-04-27.tar.gz -C ${DATABASE_DIRECTORY}/Annotate/BiG-SLiCE
-# rm -rf ${DATABASE_DIRECTORY}/bigslice-models.2020-04-27.tar.gz
-
-# VFDB
-mkdir -v -p ${DATABASE_DIRECTORY}/Annotate/VFDB
-wget -v -P ${DATABASE_DIRECTORY} http://www.mgc.ac.cn/VFs/Down/VFDB_setA_pro.fas.gz
-wget -v -P ${DATABASE_DIRECTORY}/Annotate/VFDB/ http://www.mgc.ac.cn/VFs/Down/VFs.xls.gz
-diamond makedb --in ${DATABASE_DIRECTORY}/VFDB_setA_pro.fas.gz --db ${DATABASE_DIRECTORY}/Annotate/VFDB/VFDB_setA_pro.dmnd
-rm -rf ${DATABASE_DIRECTORY}/VFDB_setA_pro.fas.gz
-
-# CAZy
-mkdir -v -p ${DATABASE_DIRECTORY}/Annotate/CAZy
-wget -v -P ${DATABASE_DIRECTORY} https://bcb.unl.edu/dbCAN2/download/CAZyDB.07262023.fa
-diamond makedb --in ${DATABASE_DIRECTORY}/CAZyDB.07262023.fa --db ${DATABASE_DIRECTORY}/Annotate/CAZy/CAZyDB.07262023.dmnd
-rm -rf ${DATABASE_DIRECTORY}/CAZyDB.07262023.fa
-
-# Contamination
-echo ". .. ... ..... ........ ............."
-echo "xi * Processing contamination databases"
-echo ". .. ... ..... ........ ............."
-mkdir -v -p ${DATABASE_DIRECTORY}/Contamination
-
-# AntiFam
-mkdir -v -p ${DATABASE_DIRECTORY}/Contamination/AntiFam
-wget -v -O ${DATABASE_DIRECTORY}/Antifam.tar.gz https://ftp.ebi.ac.uk/pub/databases/Pfam/AntiFam/current/Antifam.tar.gz
-tar xzfv ${DATABASE_DIRECTORY}/Antifam.tar.gz -C ${DATABASE_DIRECTORY}/Contamination/AntiFam 
-rm ${DATABASE_DIRECTORY}/Contamination/AntiFam/AntiFam_*.hmm
-gzip ${DATABASE_DIRECTORY}/Contamination/AntiFam/*.hmm
-rm -rf ${DATABASE_DIRECTORY}/Antifam.tar.gz
-rm -rf ${DATABASE_DIRECTORY}/Contamination/AntiFam/*.seed
-
-# Ribokmers
-mkdir -v -p ${DATABASE_DIRECTORY}/Contamination/kmers
-wget -v -O ${DATABASE_DIRECTORY}/Contamination/kmers/ribokmers.fa.gz https://figshare.com/ndownloader/files/36220587
-
-# T2T-CHM13v2.0
-# Bowtie2 Index
-wget -v -P ${DATABASE_DIRECTORY} https://genome-idx.s3.amazonaws.com/bt/chm13v2.0.zip
-unzip -d ${DATABASE_DIRECTORY}/Contamination/ ${DATABASE_DIRECTORY}/chm13v2.0.zip
-rm -rf ${DATABASE_DIRECTORY}/chm13v2.0.zip
-
-# # MiniMap2 Index (Uncomment if you plan on using long reads (7.1 GB))
-# wget -v -P ${DATABASE_DIRECTORY} https://ftp.ncbi.nlm.nih.gov/genomes/refseq/vertebrate_mammalian/Homo_sapiens/latest_assembly_versions/GCF_009914755.1_T2T-CHM13v2.0/GCF_009914755.1_T2T-CHM13v2.0_genomic.fna.gz
-# minimap2 -d ${DATABASE_DIRECTORY}/Contamination/chm13v2.0/chm13v2.0.mmi ${DATABASE_DIRECTORY}/GCF_009914755.1_T2T-CHM13v2.0_genomic.fna.gz
-# rm -rf ${DATABASE_DIRECTORY}/GCF_009914755.1_T2T-CHM13v2.0_genomic.fna.gz
+bash ${SCRIPT_DIRECTORY}/download_databases-markers.sh | grep -v "\[partial-database\]"
 
 echo ". .. ... ..... ........ ............."
-echo "xii * Adding the following environment variable to VEBA environments: export VEBA_DATABASE=${REALPATH_DATABASE_DIRECTORY}"
-# CONDA_BASE=$(which conda | python -c "import sys; print('/'.join(sys.stdin.read().split('/')[:-2]))")
-CONDA_BASE=$(conda run -n base bash -c "echo \${CONDA_PREFIX}")
-
-# VEBA
-for ENV_PREFIX in ${CONDA_BASE}/envs/VEBA-*; do 
-    echo $ENV_PREFIX;
-    mkdir -v -p ${ENV_PREFIX}/etc/conda/activate.d/
-    mkdir -v -p ${ENV_PREFIX}/etc/conda/deactivate.d/
-    echo "export VEBA_DATABASE=${REALPATH_DATABASE_DIRECTORY}" > ${ENV_PREFIX}/etc/conda/activate.d/veba.sh
-    echo "unset VEBA_DATABASE" > ${ENV_PREFIX}/etc/conda/deactivate.d/veba.sh
-    done
-
-#CheckM2
+echo "Downloading and configuring database (preprocess)"
 echo ". .. ... ..... ........ ............."
-echo "xiii * Adding the following environment variable to VEBA environments: export CHECKM2DB=${REALPATH_DATABASE_DIRECTORY}/Classify/CheckM2/uniref100.KO.1.dmnd"
-for ENV_NAME in VEBA-binning-prokaryotic_env; do 
-    ENV_PREFIX=${CONDA_BASE}/envs/${ENV_NAME}
+bash ${SCRIPT_DIRECTORY}/download_databases-preprocess.sh | grep -v "\[partial-database\]"
 
-    # CheckM2
-    echo "export CHECKM2DB=${REALPATH_DATABASE_DIRECTORY}/Classify/CheckM2/uniref100.KO.1.dmnd" >> ${ENV_PREFIX}/etc/conda/activate.d/veba.sh
-    echo "unset CHECKM2DB" >> ${ENV_PREFIX}/etc/conda/deactivate.d/veba.sh    
-    done 
-
-#GTDB-Tk
 echo ". .. ... ..... ........ ............."
-echo "xiv * Adding the following environment variable to VEBA environments: export GTDBTK_DATA_PATH=${REALPATH_DATABASE_DIRECTORY}/Classify/GTDBTk/"
-for ENV_NAME in VEBA-classify_env; do 
-    ENV_PREFIX=${CONDA_BASE}/envs/${ENV_NAME}
-    # GTDB-Tk
-    echo "export GTDBTK_DATA_PATH=${REALPATH_DATABASE_DIRECTORY}/Classify/GTDBTk/" >> ${ENV_PREFIX}/etc/conda/activate.d/veba.sh
-    echo "unset GTDBTK_DATA_PATH" >> ${ENV_PREFIX}/etc/conda/deactivate.d/veba.sh
-    done 
-
-# CheckV
+echo "Downloading and configuring database (classify)"
 echo ". .. ... ..... ........ ............."
-echo "xv * Adding the following environment variable to VEBA environments: export CHECKVDB=${REALPATH_DATABASE_DIRECTORY}/Classify/CheckV/"
-for ENV_NAME in VEBA-binning-viral_env; do 
-    ENV_PREFIX=${CONDA_BASE}/envs/${ENV_NAME}
-    echo "export CHECKVDB=${REALPATH_DATABASE_DIRECTORY}/Classify/CheckV" >> ${ENV_PREFIX}/etc/conda/activate.d/veba.sh
-    echo "unset CHECKVDB" >> ${ENV_PREFIX}/etc/conda/deactivate.d/veba.sh
-    done
+echo "This might take a while depending on source database i/o speed..."
+bash ${SCRIPT_DIRECTORY}/download_databases-classify.sh | grep -v "\[partial-database\]"
+
+echo ". .. ... ..... ........ ............."
+echo "Downloading and configuring database (annotate)"
+echo ". .. ... ..... ........ ............."
+echo "This might take a while depending on source database i/o speed..."
+bash ${SCRIPT_DIRECTORY}/download_databases-annotate.sh | grep -v "\[partial-database\]"
+
+# Environment variables
+echo ". .. ... ..... ........ ............."
+echo "Configuring environment variables (CONDA_ENVS_PATH: ${CONDA_ENVS_PATH})"
+echo ". .. ... ..... ........ ............."
+bash ${SCRIPT_DIRECTORY}/update_environment_variables.sh ${REALPATH_DATABASE_DIRECTORY} ${CONDA_ENVS_PATH}
 
 echo -e " _    _ _______ ______  _______\n  \  /  |______ |_____] |_____|\n   \/   |______ |_____] |     |"
 echo -e "........................................."
