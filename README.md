@@ -97,14 +97,14 @@ ___________________________________________________________________
 
 e.g., Running `preprocess` module. 
 
-1) Available with `v1.4.0+`:
+1) Syntax compatible with Conda:
 
 ```
 source activate VEBA
 veba --module preprocess --params "{PARAMS}" 
 ```
 
-2) Available with `v1.0.0 - v1.4.0+`.  Syntax used with Docker containers:
+2) Syntax compatible with Conda and Docker/Singularity containers:
 
 ```
 source activate VEBA-preprocess_env
