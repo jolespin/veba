@@ -26,9 +26,10 @@ The *Viral Eukaryotic Bacterial Archaeal* (VEBA) is an open-source software suit
 
 VEBA's mission is to make robust (meta-)genomics/transcriptomics analysis effortless.  The philosophy of VEBA is that workflows should be modular, generalizable, and easy-to-use with minimal intermediate steps.  The approach implemented in VEBA is to (try and) think 2 steps ahead of what you may need to do and automate the task for you.
 
+[![Schematic](images/Schematic.png)](images/Schematic.pdf)
+
 <p align="right"><a href="#readme-top">^__^</a></p>
 
-[![Schematic](images/Schematic.png)](images/Schematic.pdf)
 ___________________________________________________________________
 
 ### Citation
