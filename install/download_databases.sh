@@ -1,5 +1,5 @@
 #!/bin/bash
-# __version__ = "2023.12.19"
+# __version__ = "2024.5.6"
 # VEBA_DATABASE_VERSION = "VDB_v6"
 # MICROEUKAYROTIC_DATABASE_VERSION = "MicroEuk_v3"
 
@@ -40,14 +40,14 @@ echo ". .. ... ..... ........ ............."
 echo "ii * Processing GTDB-Tk"
 echo ". .. ... ..... ........ ............."
 
-# # GTDB r207_v2
-# wget -v -P ${DATABASE_DIRECTORY} https://data.gtdb.ecogenomic.org/releases/release207/207.0/auxillary_files/gtdbtk_r207_v2_data.tar.gz
-# tar xvzf ${DATABASE_DIRECTORY}/gtdbtk_r207_v2_data.tar.gz -C ${DATABASE_DIRECTORY}
-# mv ${DATABASE_DIRECTORY}/release207_v2 ${DATABASE_DIRECTORY}/Classify/GTDBTk
-# rm -rf ${DATABASE_DIRECTORY}/gtdbtk_r207_v2_data.tar.gz
+# # GTDB r220 (For future VEBA ≥ 2.1.0, VDB_7)
+# Download from the mirror b/c it's way faster.  Need to test r220 (and build mash screen?)
+# wget https://data.ace.uq.edu.au/public/gtdb/data/releases/release220/220.0/auxillary_files/gtdbtk_package/full_package/gtdbtk_r220_data.tar.gz
 
 # GTDB r214.1
-wget -v -P ${DATABASE_DIRECTORY} https://data.gtdb.ecogenomic.org/releases/release214/214.1/auxillary_files/gtdbtk_r214_data.tar.gz
+# data.gtdb.ecogenomic.org is slower than the faster mirror (data.ace.uq.edu.au/)
+# wget -v -P ${DATABASE_DIRECTORY} https://data.gtdb.ecogenomic.org/releases/release214/214.1/auxillary_files/gtdbtk_r214_data.tar.gz
+wget -v -P ${DATABASE_DIRECTORY} https://data.ace.uq.edu.au/public/gtdb/data/releases/release214/214.1/auxillary_files/gtdbtk_r214_data.tar.gz
 tar xvzf ${DATABASE_DIRECTORY}/gtdbtk_r214_data.tar.gz -C ${DATABASE_DIRECTORY}
 mv ${DATABASE_DIRECTORY}/release214 ${DATABASE_DIRECTORY}/Classify/GTDB
 rm -rf ${DATABASE_DIRECTORY}/gtdbtk_r214_data.tar.gz
@@ -220,6 +220,7 @@ rm -rf ${DATABASE_DIRECTORY}/mibig_prot_seqs_3.1.rmdup.fasta
 # VFDB
 mkdir -v -p ${DATABASE_DIRECTORY}/Annotate/VFDB
 wget -v -P ${DATABASE_DIRECTORY} http://www.mgc.ac.cn/VFs/Down/VFDB_setA_pro.fas.gz
+wget -v -P ${DATABASE_DIRECTORY}/Annotate/VFDB/ http://www.mgc.ac.cn/VFs/Down/VFs.xls.gz
 diamond makedb --in ${DATABASE_DIRECTORY}/VFDB_setA_pro.fas.gz --db ${DATABASE_DIRECTORY}/Annotate/VFDB/VFDB_setA_pro.dmnd
 rm -rf ${DATABASE_DIRECTORY}/VFDB_setA_pro.fas.gz
 

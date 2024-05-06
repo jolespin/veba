@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-import sys, os, glob, argparse 
+import sys, os, glob, argparse, gzip
 from collections import defaultdict
 import pandas as pd
 

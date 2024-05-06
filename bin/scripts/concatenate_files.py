@@ -35,12 +35,6 @@ def main(args=None):
     opts.script_directory  = script_directory
     opts.script_filename = script_filename
 
-    # Output
-    if opts.output == "stdout":
-        f_output = sys.stdout
-    else:
-        f_output = open(opts.output, "w")
-
     # --filepaths
     if opts.filepaths:
         filepaths = list(filter(bool, map(lambda fp: fp.strip(), opts.filepaths)))
@@ -72,8 +66,18 @@ def main(args=None):
 
 
     # Copy filepaths into new file
+    number_of_gzipped_filepaths = 0
+    for fp in filepaths:
+        if fp.endswith(".gz"):
+            number_of_gzipped_filepaths += 1
     # Mixed file types
     if opts.mixed_decompressed_and_compressed_types:
+        # Output
+        if opts.output == "stdout":
+            f_output = sys.stdout
+        else:
+            f_output = open(opts.output, "w")
+
         for fp in tqdm(filepaths, total=len(filepaths), desc="Concatenting files"):
             if fp.endswith(".gz"):
                 f = gzip.open(fp, "rt")
@@ -84,18 +88,24 @@ def main(args=None):
 
     # Not mixed file types
     else:
-        number_of_gzipped_filepaths = 0
-        for fp in filepaths:
-            if fp.endswith(".gz"):
-                number_of_gzipped_filepaths += 1
-        if all([
-            number_of_gzipped_filepaths > 0,
-            number_of_gzipped_filepaths != len(filepaths),
-            ]):
-            warnings.warn("Mixed compressed and decompressed files exist which will result in a corrupted file.  If this is not desired, please select --mixed_decompressed_and_compressed_types")
-        for fp in tqdm(filepaths, total=len(filepaths), desc="Concatenting files"):
-            with open(fp,'rb') as f:
-                shutil.copyfileobj(f, f_output)
+        assert not all([number_of_gzipped_filepaths > 0, number_of_gzipped_filepaths != len(filepaths)]), "Mixed compressed and decompressed files exist which will result in a corrupted file. Please select --mixed_decompressed_and_compressed_types"
+        # Gzipped
+        if number_of_gzipped_filepaths > 0:
+            assert opts.output != "stdout", "Cannot send concatenated gzipped files.  Please use -o/--output /path/to/output_filepath instead of stdout"
+            f_output = open(opts.output, "wb")
+            for fp in tqdm(filepaths, total=len(filepaths), desc="Concatenting files"):
+                with open(fp,'rb') as f:
+                    shutil.copyfileobj(f, f_output)
+        else:
+            if opts.output == "stdout":
+                f_output = sys.stdout
+            else:
+                f_output = open(opts.output, "w")
+            for fp in tqdm(filepaths, total=len(filepaths), desc="Concatenting files"):
+                with open(fp,'r') as f:
+                    # try:
+                    shutil.copyfileobj(f, f_output)
+
 
     # Output
     if f_output != sys.stdout:

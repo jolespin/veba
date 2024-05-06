@@ -12,33 +12,62 @@ from soothsayer_utils import *
 
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.5.8"
+__version__ = "2024.3.12"
+
+def get_reformat_fasta_cmd(input_filepaths, output_filepaths, output_directory, directories, opts):
+    cmd = [
+    # Remove stop codon
+    os.environ["seqkit"],
+    "replace",
+    "--by-seq",
+    "-p '\*$'",
+    input_filepaths[0],
+    "|",
+    # Upper case
+    os.environ["seqkit"],
+    "seq",
+    "-u",
+    input_filepaths[0],
+    "|",
+    # Calculate md5hash
+    os.environ["seqkit"],
+    "fx2tab",
+    "-isQI",
+    "|",
+    os.environ["csvtk"],
+    "cut",
+    "-Ht",
+    "-f 3,2",
+    "|",
+    # Convert tabular to fasta
+    os.environ["seqkit"],
+    "tab2fx",
+    "-w 0",
+    ">",
+    output_filepaths[0],
+    ]
+
+    return cmd
 
 
-# MetaEuk
+# BUSCO
 def get_busco_cmd(input_filepaths, output_filepaths, output_directory, directories, opts):
 
     cmd = [
 
-        # Run MetaEuk
-        os.environ["metaeuk"],
-        "easy-predict",
-        "--threads {}".format(opts.n_jobs),
-        "-s {}".format(opts.metaeuk_sensitivity),
-        "-e {}".format(opts.metaeuk_evalue),
-        opts.metaeuk_options,
-        opts.fasta, # contigs
-        opts.metaeuk_database, # db
-        os.path.join(output_directory, "metaeuk"), # output prefix
-        os.path.join(directories["tmp"],"metaeuk"),
+        # Run BUSCO
+        os.environ["busco"],
+        "--force",
+        "-i {}".format(input_filepaths[0]),
+        "-o {}".format(output_filepaths[0]),
+        "-m protein",
+        "--auto-lineage-euk",
+        "-c {}".format(opts.n_jobs),
+        "--evalue {}".format(opts.busco_evalue),
 
-        # Convert MetaEuk identifiers
-        "&&",
-        os.environ["compile_metaeuk_identifiers.py"],
-        "--cds {}".format(os.path.join(output_directory, "metaeuk.codon.fas")),
-        "--protein {}".format(os.path.join(output_directory, "metaeuk.fas")),
-        "-o {}".format(output_directory),
-        "-b {}".format(opts.basename),
+
+
+
     ]
 
     # Remove temporary files
@@ -223,25 +252,22 @@ def main(args=None):
 
     # Pipeline
     parser_io = parser.add_argument_group('I/O arguments')
-    parser_io.add_argument("-f","--fasta", type=str, required=True, help = "path/to/scaffolds.fasta")
-    parser_io.add_argument("-d", "--metaeuk_database", type=str,  required=True, help=f"MetaEuk/MMSEQS2 database")
-    parser_io.add_argument("-o","--output_directory", type=str, default="metaeuk_output", help = "path/to/project_directory [Default: metaeuk_output]")
-    parser_io.add_argument("-i","--scaffolds_to_bins", type=str, required=False,  help = "path/to/scaffolds_to_bins.tsv, [Optional] Format: [id_scaffold]<tab>[id_bin], No header")
-    parser_io.add_argument("-b","--basename", type=str, default="gene_models", required=False,  help = "Basename for output files. [Default: gene_models]")
+    parser_io.add_argument("-f","--fasta", type=str, required=True, help = "path/to/proteins.fasta")
+    parser_io.add_argument("-n","--name", type=str,  required=True,  help = "Genome identifier")
+    parser_io.add_argument("-d","--offline_busco_database", type=str, help=f"path/to/busco_database/ if using offline mode. Recommended to use this if the database is already on your system.")
+    parser_io.add_argument("-o","--output_directory", type=str, default="busco_output", help = "path/to/project_directory [Default: busco_output]")
 
     # Utility
     parser_utility = parser.add_argument_group('Utility arguments')
     parser_utility.add_argument("--path_config", type=str,  default="CONDA_PREFIX", help="path/to/config.tsv [Default: CONDA_PREFIX]")  #site-packges in future
     parser_utility.add_argument("-p", "--n_jobs", type=int, default=1, help = "Number of threads [Default: 1]")
-    # parser_utility.add_argument("--random_state", type=int, default=0, help = "Random state [Default: 0]")
     parser_utility.add_argument("--restart_from_checkpoint", type=str, default=None, help = "Restart from a particular checkpoint [Default: None]")
     parser_utility.add_argument("-v", "--version", action='version', version="{} v{}".format(__program__, __version__))
 
-    # MetaEuk
-    parser_metaeuk = parser.add_argument_group('MetaEuk arguments')
-    parser_metaeuk.add_argument("--metaeuk_sensitivity", type=float, default=4.0, help="MetaEuk | Sensitivity: 1.0 faster; 4.0 fast; 7.5 sensitive  [Default: 4.0]")
-    parser_metaeuk.add_argument("--metaeuk_evalue", type=float, default=0.01, help="MetaEuk | List matches below this E-value (range 0.0-inf) [Default: 0.01]")
-    parser_metaeuk.add_argument("--metaeuk_options", type=str, default="", help="MetaEuk | More options (e.g. --arg 1 ) [Default: ''] https://github.com/soedinglab/metaeuk")
+    # BUSCO
+    parser_busco = parser.add_argument_group('BUSCO arguments')
+    parser_busco.add_argument("--busco_evalue", type=float, default=0.001, help="BUSCO | List matches below this E-value (range 0.0-inf) [Default: 0.001]")
+    parser_busco.add_argument("--busco_options", type=str, default="", help="BUSCO | More options (e.g. --arg 1 ) [Default: ''] https://gitlab.com/ezlab/busco")
 
     # Options
     opts = parser.parse_args()

@@ -426,10 +426,10 @@ There was a problem importing veba_output/misc/reads_table.tsv:
 
 **Definitely:**
 
+* Cluster `MicroEuk50` -> `MicroEuk30`
 * `busco_wrapper.py` that relabels all the genes, runs analysis, then converts output to tsv.
 * Script to update genome clusters
 * Script to update protein clusters
-* Script to get representative genome in a genome cluster based on `NetworkX` graph  (option for weighted degree or longest genome)
 * Script to add `Diamond` or `HMMSearch` annotations to `annotations.proteins.tsv.gz`
 * Add `convert_reads_long_to_short.py` which will take windows of 150 bp for the long reads.
 * Add option to `compile_custom_humann_database_from_annotations.py` to only output best hit of a UniRef identifier per genome.
@@ -470,6 +470,17 @@ ________________________________________________________________
 <details>
 	<summary> <b>Daily Change Log:</b> </summary>
 
+* [2024.4.30] - Added `concatenate_files.py` which can concatenate files (and mixed compressed/decompressed files) using either arguments, list file, or glob.  Reason for this is that unix has a limit of arguments that can be used (e.g., `cat *.fasta > output.fasta` where *.fasta results in 50k files will crash)
+* [2024.4.29] - Added `/volumes/workspace/` directory to Docker containers for situations when your input and output directories are the same. 
+* [2024.4.29] - `featureCounts` can only handle 64 threads at a time so added `min(64, opts.n_jobs)` for all the modules/scripts that use `featureCounts` commands.
+* [2024.4.23] - Added `uniprot_to_enzymes.py` which reformats tables and fasta from https://www.uniprot.org/uniprotkb?query=ec%3A* 
+* [2024.4.18] - Developed a faster implementation of `KofamScan` called [`PyKofamSearch`](https://github.com/jolespin/pykofamsearch) which leverage `PyHmmer`.  This will be used in future versions of VEBA.
+* [2024.3.26] - Added `--metaeuk_split_memory_limit` to `metaeuk_wrapper.py`.
+* [2024.3.26] - Added `-d/--genome_identifier_directory_index` to `scaffolds_to_bins.py` for directories that are structured `path/to/genomes/bin_a/reference.fasta` where you would use `-d -2`.
+* [2024.3.26] - Added `--minimum_af` to `edgelist_to_clusters.py` with an option to accept 4 column inputs `[id_1]<tab>[id_2]<tab>[weight]<tab>[alignment_fraction]`.  `global_clustering.py`, `local_clustering.py`, and `cluster.py` now use this by default `--af_threshold 30.0`.  If you want to retain previous behavior, just use `--af_threshold 0.0`.
+* [2024.3.18] - `edgelist_to_clusters.py` only includes edges where both nodes are in identifiers set.  If `--identifiers` are provided, then only those identifiers are used.  If not, then it includes all nodes.
+* [2024.3.18] - Added `--export_representatives` argument for `edgelist_to_clusters.py` to output table with `[id_node]<tab>[id_cluster]<tab>[intra-cluster_connectivity]<tab>[representative]`.  Also includes this information in `nx.Graph` objects.
+* [2024.3.18] - Changed singleton weight to `np.nan` instead of `np.inf` for `edgelist_to_clusters.py` to allow for representative calculations. 
 * [2024.3.8] - Changed default assembly algorithm to `metaflye` instead of `flye` in `assembly-long.py`
 * [2024.3.8] - Added `number_of_genomes`, `number_of_genome-clusters`, `number_of_proteins`, and `number_of_protein-clusters` to `feature_compression_ratios.tsv.gz` from `cluster.py`
 * [2024.3.5] - Added `-A/--from_antismash` in `biosynthetic.py` to use preexisting `antiSMASH` results.  Also changed `-i/--input` to `-i/--from_genomes`.

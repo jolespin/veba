@@ -253,6 +253,8 @@ Please refer to the [adapting commands for Docker walkthrough](https://github.co
 
 Docker containers are now available (starting with `v1.1.2`) for all modules via [DockerHub](https://hub.docker.com/repositories/jolespin)
 
+**Developer Note:** `VEBA v2.0.0` Docker images is built-on Apple Silicon emulating Linux AMD64 architecture.  If you experience any issues with these images, please post an issue on GitHub and use `VEBA v1.5.0` tags in the meantime. 
+
 
 ____________________________________________________________
 
