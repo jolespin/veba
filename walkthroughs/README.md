@@ -14,7 +14,7 @@ In the workflows that work on specific samples, there will be sample subdirector
 * e.g., `veba_output/preprocess/SRR17458603/output`, `veba_output/preprocess/SRR17458606/output `, ...
 * e.g., `veba_output/assembly/SRR17458603/output `, `veba_output/assembly/SRR17458606/output `, ...
 
-Many of these jobs should be run using a job scheduler like [SunGridEngine](https://docs.oracle.com/cd/E19279-01/820-3257-12/n1ge.html) or [SLURM](https://slurm.schedmd.com/documentation.html).  This [resource](https://www.miamioh.edu/research/research-computing-support/services/hpc-cluster/sbatch-translation/) is useful for converting commands between SunGridEnginer and SLURM. I've used both and these are adaptations of the submission commands you can use as a template:
+Many of these jobs should be run using a job scheduler like [SLURM](https://slurm.schedmd.com/documentation.html) or [SunGridEngine](https://docs.oracle.com/cd/E19279-01/820-3257-12/n1ge.html).  This [resource](https://www.miamioh.edu/research/research-computing-support/services/hpc-cluster/sbatch-translation/) is useful for converting commands between SunGridEnginer and SLURM. I've used both and these are adaptations of the submission commands you can use as a template:
 
 ```
 # Let's create some informative name. Remember we are going to create a lot of jobs and log files for the different workflows if you have multiple samples
@@ -68,6 +68,7 @@ sbatch -J ${N} -N 1 -c ${N_JOBS} --ntasks-per-node=1 -o logs/${N}.o -e logs/${N}
 
 * **[Adapting commands for Docker](docs/adapting_commands_for_docker.md)** - Explains how to download and use Docker for running VEBA.
 * **[Adapting commands for AWS](docs/adapting_commands_for_aws.md)** - Explains how to download and use Docker for running VEBA specifically on AWS.
+* **[Adapting commands for Singularity](docs/adapting_commands_for_singularity.md)** - Explains how to download and use Singularity for running VEBA.
 
 ___________________________________________
 

@@ -28,6 +28,7 @@ VEBA's mission is to make robust (meta-)genomics/transcriptomics analysis effort
 
 <p align="right"><a href="#readme-top">^__^</a></p>
 
+[![Schematic](images/Schematic.png)](images/Schematic.pdf)
 ___________________________________________________________________
 
 ### Citation
@@ -43,50 +44,47 @@ ___________________________________________________________________
 
 ### Announcements
 
-* **New features and updates in`VEBA v2.0.0`**
-
-	* **`VEBA` Modules:**
-		* Expanded functionality, streamlined user-interface, and Docker containerization
-		* Fast and memory-efficient genome- and protein-level clustering
-		* Automatic calculation of feature compression ratios
-		* Large/complex metagenomes and long-read technology support
-		* Bioprospecting and natural product discovery support
-		* Ribosomal RNA, transfer RNA, and organelle support
-		* Genome-resolved taxonomic and pathway profiling
-		* Identification and classification of mobile genetic elements
-		* Native support for candidate phyla radiation quality assessment and memory- efficient genome classification
-		* Standalone support for generalized multi-split binning
-		* Automated phylogenomic functional category feature engineering support
-		* Visualizations of hierarchical data and phylogenies
-
-	* **`VEBA` Database (`VDB_v6`)**:
-
-		* Completely rebuilt `VEBA's Microeukaryotic Protein Database` to produce a clustered database `MicroEuk100/90/50` similar to `UniRef100/90/50`. Available on [doi:10.5281/zenodo.10139450](https://zenodo.org/records/10139451).
-		* Expanded protein annotation database
-
-
-Check out the [*VEBA* Change Log](CHANGELOG.md) for details between each update and insight into what is being implemented in the upcoming version.
-
-<p align="right"><a href="#readme-top">^__^</a></p>
-
-___________________________________________________________________
-
-
-### Installation and databases
-
-**Current Stable Version:** [`v2.0.0`](https://github.com/jolespin/veba/releases/tag/v2.0.0)
+**Current Stable Version:** [`v2.1.0`](https://github.com/jolespin/veba/releases/tag/v2.1.0)
 
 **Current Database Version:** `VDB_v6`
 
-Please refer to the [*Installation and Database Configuration Guide*](install/README.md) for software installation and database configuration.
+<details>
+	<summary>New features and updates:</summary>
 
-Docker containers are now available (starting with `v1.1.2`) for all modules via [DockerHub](https://hub.docker.com/repositories/jolespin)
+* **`VEBA` Modules:**
+	* Expanded functionality, streamlined user-interface, and Docker containerization
+	* Fast and memory-efficient genome- and protein-level clustering
+	* Automatic calculation of feature compression ratios
+	* Large/complex metagenomes and long-read technology support
+	* Bioprospecting and natural product discovery support
+	* Ribosomal RNA, transfer RNA, and organelle support
+	* Genome-resolved taxonomic and pathway profiling
+	* Identification and classification of mobile genetic elements
+	* Native support for candidate phyla radiation quality assessment and memory- efficient genome classification
+	* Standalone support for generalized multi-split binning
+	* Automated phylogenomic functional category feature engineering support
+	* Visualizations of hierarchical data and phylogenies
+	* Added minimum alignment fraction threshold for genome clustering
+
+* **`VEBA` Database (`VDB_v6`)**:
+
+	* Completely rebuilt `VEBA's Microeukaryotic Protein Database` to produce a clustered database `MicroEuk100/90/50` similar to `UniRef100/90/50`. Available on [doi:10.5281/zenodo.10139450](https://zenodo.org/records/10139451).
+	* Expanded protein annotation database
+
+</details>
+
 
 <p align="right"><a href="#readme-top">^__^</a></p>
+
 
 ___________________________________________________________________
 
 ### Getting started with *VEBA*
+
+
+
+
+[*Installation and Database Configuration Guide*](install/README.md) for software installation and database configuration.
 
 [*Usage and Resource Requirements Guide*](bin/README.md) for parameters and module descriptions
 
@@ -96,7 +94,7 @@ ___________________________________________________________________
 
 **Usage Example:**
 
-Running `preprocess` module. 
+e.g., Running `preprocess` module. 
 
 1) Available with `v1.4.0+`:
 
@@ -105,24 +103,14 @@ source activate VEBA
 veba --module preprocess --params "{PARAMS}" 
 ```
 
-2) Available with `v1.0.0 - v1.4.0+`:
+2) Available with `v1.0.0 - v1.4.0+`.  Syntax used with Docker containers:
 
 ```
 source activate VEBA-preprocess_env
 preprocess.py "{PARAMS}"
 ```
 
-<p align="right"><a href="#readme-top">^__^</a></p>
-
-___________________________________________________________________
-
-### What does *VEBA* do?
-
-Please refer to the [*Modules*](bin/README.md) for a description of all *VEBA* modules and their functionality.
-
-If you wish *VEBA* did something that isn't implemented, please submit a [`[Feature Request Issue]`](https://github.com/jolespin/veba/issues/new/choose).
-
-[![Schematic](images/Schematic.png)](images/Schematic.pdf)
+Check out the [*VEBA* Change Log](CHANGELOG.md) for details between each update and insight into what is being implemented in the upcoming version.
 
 <p align="right"><a href="#readme-top">^__^</a></p>
 
@@ -132,7 +120,8 @@ ___________________________________________________________________
 ### Output structure
 *VEBA*'s is built on the [*GenoPype*](https://github.com/jolespin/genopype) archituecture which creates a reproducible and easy-to-navigate directory structure.  *GenoPype*'s philosophy is to use the same names for all files but to have sample names as subdirectories.  This makes it easier to glob files for grepping, concatenating, etc. *NextFlow* support is in the works...
 
-Example of *GenoPype*'s layout:
+<details>
+	<summary> Example of GenoPype layout: </summary>
 
 ```
 # Project directory
@@ -190,6 +179,7 @@ veba_output/binning/viral/${ID}/output/
 
 The above are default output locations but they can be customized.
 
+</details>
 
 <p align="right"><a href="#readme-top">^__^</a></p>
 
@@ -197,7 +187,7 @@ ___________________________________________________________________
 
 ### Frequently Asked Questions
 
-If perusing the [*Frequently Asked Questions*](FAQ.md) doesn't address your question, feel free to submit a [[`Question Issue`]](https://github.com/jolespin/veba/issues/new) 
+If perusing the [*Frequently Asked Questions*](FAQ.md) doesn't address your question, feel free to submit a [[`Question`]](https://github.com/jolespin/veba/issues/new) 
 
 <p align="right"><a href="#readme-top">^__^</a></p>
 
