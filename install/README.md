@@ -5,7 +5,7 @@ One issue with having large-scale pipeline suites with open-source software is t
 
 The basis for these environments is creating a separate environment for each module with the `VEBA-` prefix and `_env` as the suffix.  For example `VEBA-assembly_env` or `VEBA-binning-prokaryotic_env`.  Because of this, `VEBA` is currently not available as a `conda` package but each module will be in the near future.  In the meantime, please use the `veba/install/install.sh` script which installs each environment from the yaml files in `veba/install/environments/`. After installing the environments, use the `veba/install/download_databases.sh` script to download and configure the databases while also adding the environment variables to the activate/deactivate scripts in each environment.  
 
-**To install anything manually or use preexisting database, just read the scripts as they are well documented and refer to different URL and paths for specific installation options.**
+**For advanced users installing custom builds or using preexisting databases, please refer to the FAQ and read the well-documented scripts.**
 
 Each major version will be packaged as a [release](https://github.com/jolespin/veba/releases) which will include a log of module and script versions. 
 
