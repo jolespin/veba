@@ -125,6 +125,7 @@ bash install.sh path/to/log_directory/ path/to/conda_environments_directory/
 
 **Recommended resource allocatation:**  48 GB memory (time is dependent on I/O of database repositories)
 
+The databases are installed with a series scripts to allow for custom installations and database builds.  The easiest way to download and configure the databases is to just run main: `veba/install/download_databases.sh` which calls the 4 database scripts and the environment variable script. See FAQ for more details.  
 
 ⚠️ **This step should use ~48 GB memory** and should be run using a compute grid via `SLURM` or `SunGridEngine`.  **If this command is run on the head node it will likely fail or timeout if a connection is interrupted.** The most computationally intensive steps are creating a `Diamond` database of `UniRef` and a `MMSEQS2` database of the `MicroEuk100/90/50`.  The longest step is downloading and decompressing `GTDB`.  
 
@@ -240,6 +241,11 @@ or if you have your environments in a custom path:
 ```
 bash update_environment_variables.sh path/to/database/ path/to/conda_environments/
 ```
+
+#### Custom install of a single module and a subset of the database:
+
+See [FAQ for custom installation tutorial](https://github.com/jolespin/veba/blob/main/FAQ.md#how-can-i-install-just-a-single-module-and-a-subset-of-the-database-required-for-that-module). 
+
 ____________________________________________________________
 
 ### Uninstall:
