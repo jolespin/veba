@@ -228,7 +228,7 @@ VEBA’s Microeukaryotic Protein Database has been completely redesigned using t
 **Deprecated:**
 
 <details>
-	<summary> *VEBA Database* version: `VDB_v5.2` (243 GB) </summary>
+	<summary> VEBA Database* version: VDB_v5.2 (243 GB) </summary>
 
 *  Added `MicrobeAnnotator-KEGG` [Zenodo: 10020074](https://zenodo.org/records/10020074) which includes KEGG module pathway information from [`MicrobeAnnotator`](https://doi.org/10.1186/s12859-020-03940-5).
 *  Added `CAZy` protein sequences from [`dbCAN2`](https://academic.oup.com/nar/article/46/W1/W95/4996582)
@@ -391,7 +391,7 @@ tree -L 3 .
 </details>
 
 <details>
-	<summary> *VEBA Database* version: `VDB_v5.1` </summary>
+	<summary> VEBA Database version: VDB_v5.1 </summary>
 
 * `VDB_v5` → `VDB_v5.1` updates `GTDB` database from `r207_v2` → `r214`.  
 * Changes `${VEBA_DATABASE}/Classify/GTDBTk` → `${VEBA_DATABASE}/Classify/GTDB`.
@@ -538,7 +538,7 @@ tree -L 3 .
 </details>
 
 <details>
-	<summary> *VEBA Database* version: `VDB_v5` </summary>
+	<summary> VEBA Database version: VDB_v5 </summary>
 	
 `VDB_v4` → `VDB_v5` replaces `nr` with `UniRef90` and `UniRef50`.  Also includes `MiBIG` database.
 
@@ -680,7 +680,7 @@ tree -L 3 .
 </details>
 
 <details>
-	<summary> *VEBA Database* version: `VDB_v4` </summary>
+	<summary> VEBA Database version: VDB_v4 </summary>
 	
 
 `VDB_v4` is `VDB_v3.1` with the following changes: 1) `CheckM1` database swapped for `CheckM2` database;  includes `geNomad` database; and 3) updates `CheckV` database.  Refer to [development log](https://github.com/jolespin/veba/blob/main/DEVELOPMENT.md#release-v11-currently-testing-before-official-release) for specifics.
@@ -823,7 +823,7 @@ tree -L 3 .
 
 
 <details>
-	<summary>*VEBA Database* version: `VDB_v3.1`</summary>
+	<summary>VEBA Database* version: VDB_v3.1</summary>
 	
 The same as `VDB_v3` but updates `VDB-Microeukaryotic_v2` to `VDB-Microeukaryotic_v2.1` which has a `reference.eukaryota_odb10.list` containing only the subset of identifiers that core eukaryotic markers (useful for classification).
 	
@@ -933,7 +933,7 @@ tree -L 3 .
 
 
 <details>
-	<summary>*VEBA Database* version: `VDB_v3`</summary>
+	<summary>VEBA Database* version: VDB_v3</summary>
 
 ```
 tree -L 3 .
@@ -1031,7 +1031,7 @@ tree -L 3 .
 
 
 <details>
-	<summary>*VEBA Database* version: `VDB_v2`</summary>
+	<summary>VEBA Database* version: VDB_v2</summary>
 	
 * Compatible with *VEBA* version: `v1.0.2a+`
 	
@@ -1129,7 +1129,7 @@ tree -L 3 .
 
 
 <details>
-	<summary>*VEBA Database* version: `VDB_v1`</summary>
+	<summary>VEBA Database version: VDB_v1</summary>
 	
 
 * Compatible with *VEBA* version: `v1.0.0`, `v1.0.1`
