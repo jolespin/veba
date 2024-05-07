@@ -18,7 +18,6 @@ ____________________________________________________________
 
 ### Install via Conda (Recommended):
 
-
 Please download [miniconda distribution](https://docs.conda.io/projects/miniconda/en/latest/) (what I use) or the full [anaconda distribution](https://www.anaconda.com/products/distribution). 
 
 Currently, **Conda environments for VEBA are ONLY configured for Linux** and, due to the large databases, this software was designed to be used via HPC. 
@@ -281,6 +280,9 @@ If you are using containerized version via `Docker` you will need to make sure i
 Please refer to the [adapting commands for Docker walkthrough](https://github.com/jolespin/veba/blob/main/walkthroughs/adapting_commands_for_docker.md).
 
 Docker containers are now available (starting with `v1.1.2`) for all modules via [DockerHub](https://hub.docker.com/repositories/jolespin)
+
+____________________________________________________________
+
 
 **Developer Note:** `VEBA ≥ v2.0.0` Docker images is built-on Apple Silicon emulating Linux AMD64 architecture.  If you experience any issues with these images, please post an issue on GitHub. 
 
