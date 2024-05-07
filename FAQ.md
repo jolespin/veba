@@ -1,46 +1,85 @@
-#### Frequently Asked Questions
+## Frequently Asked Questions
+<a name="faq-top"></a>
 
+______________________
 #### *VEBA* has so many modules and capabilities, how can I get a feel for how to use it for my dataset(s)?
 
 Check out the [walkthroughs](https://github.com/jolespin/veba/tree/main/walkthroughs) where there are step-by-step workflows for different types of data.
 
+<p align="right"><a href="#faq-top">^__^</a></p>
+
+______________________
 #### The total database size is ~272G but I already have some of the databases downloaded. Can I use these preexisting databases with *VEBA* instead of having redundant databases?
 
 Yes! Just symlink them so it fits the database structure detailed out [here](https://github.com/jolespin/veba/tree/main/install#database-structure). Large-ish databases you might be able to symlink are GTDB-Tk, CheckV, CheckM2, KOFAM, or Pfam.  If you do this, make sure you have proper read permissions and your databases fall in line with the specifications in the [version notes](https://github.com/jolespin/veba/blob/main/install/README.md#version-notes). *However, if you do this option it will be difficult to diagnose errors so this should only be for advanced users.* 
+
+<p align="right"><a href="#faq-top">^__^</a></p>
+
+______________________
 
 #### I already have genomes binned and/or genes modeled from another program or downloaded from a repository (e.g., NCBI), can I use them with *VEBA*?
 
 Yes! *VEBA* isn't restrictive with the source of the data for most of the modules.  If you have genomes or gene models derived from another source, you can still use the following modules: `coverage.py`, `cluster.py`, `annotate.py`, `phylogeny.py`, `index.py`, `mapping.py`, and any of the [utility scripts](https://github.com/jolespin/veba/tree/main/src/scripts) that apply. 
 
+<p align="right"><a href="#faq-top">^__^</a></p>
+
+______________________
+
 #### How can I speed up the installation?
 
 The databases take ~4.5 to download/configure.  **Please refer to the [documentation](https://github.com/jolespin/veba/blob/main/install/README.md)** to make sure you allocate enough resources to run `Diamond` and `MMSEQS2` in the backend of the database config.  If you have connection issues to your remote server, you can always use a screen so it doesn't lose your progress when you are installing VEBA (I tend to do this for large copy jobs).  Here is an example command to ssh into your remote server and launching a screen: `ssh -t [username]@[domain] 'screen -DR'`
+
+<p align="right"><a href="#faq-top">^__^</a></p>
+
+______________________
 
 #### Are there any database versions that are mandatory?
 
 Yes, there a few and they are detailed out in the [version notes](https://github.com/jolespin/veba/blob/main/install/README.md#version-notes).  The most notable would be `GTDB` which is specific to different `GTDB-Tk` versions and prebuilt mash screens *VEBA* provides.
 
+<p align="right"><a href="#faq-top">^__^</a></p>
+
+______________________
+
 #### Why are there different conda environments for different modules and how do I know which one to use?
 
 This is because there are SO MANY packages throughout all the workflows that it's literally impossible to install all of them in one environment.  I tried to make the environments as straight forward as possible but I understand this could be confusing so I'm actively working on this.  The environment names are pretty straight forward (e.g., use `VEBA-annotate_env` for the `annotate.py` module) but if you have questions, they are listed out [here](https://github.com/jolespin/veba/blob/main/src/README.md).
+
+<p align="right"><a href="#faq-top">^__^</a></p>
+
+______________________
 
 #### What is [GenoPype](https://github.com/jolespin/genopype) and why does *VEBA* use it instead of Snakemake or NextFlow?
 
 `GenoPype` is a solution I developed to meet the needs for my personal pipelines.  It creates checkpoints, log files, intermediate directories, validates i/o, and everything under the sun.  Future versions may use `Nextflow` but right now `GenoPype` was designed specifically for *VEBA* and since its inception I've used it as the framework for many production-level pipelines.
 
+<p align="right"><a href="#faq-top">^__^</a></p>
+
+______________________
+
 #### Can I install this via Bioconda?
 
 Currently, not directly but the install scripts are all built around conda so you are essentially doing the same thing.  However, I will work on getting these up on bioconda soon.
 
+<p align="right"><a href="#faq-top">^__^</a></p>
+
+______________________
 
 #### Why does `preprocess.py` use [fastq_preprocessor](https://github.com/jolespin/fastq_preprocessor) instead of *KneadData*?
 
 `KneadData` is great and I've used it for years but it's a bit dated at the moment.  There are better tools available for the backend and I basically reimplemented the `KneadData` workflow using the following: `fastp` instead of `Trimmomatic`; automatic repairing with bbsuite's `repair.sh` (necessary for SPAdes assemblers); still uses `bowtie2`; bbsuite's `bbduk.sh` to quantify reads that match k-mers (e.g., ribosomal reads); and runs `seqkit stats` on all the steps for a full accounting of reads at the end.
 
+<p align="right"><a href="#faq-top">^__^</a></p>
+
+______________________
+
 #### How do I report an issue or contribute?
 
 *VEBA* is currently under active development. If you are interested in requesting features, have questions, or wish to report a bug, please post a GitHub issue prefixed with the tag `[Feature Request]`, `[Question]`, and `[Bug]`, respectively.  If you want to contribute or have any other inquiries, contact me at `jol.espinoz[A|T]gmail[DOT]com`
 
+<p align="right"><a href="#faq-top">^__^</a></p>
+
+______________________
 
 #### Why did I get a `KeyError: 'TMPDIR'`? ⚠️
 
@@ -52,9 +91,17 @@ Here's information about the canonical `TMPDIR` environment variable:
 >
 >Source - https://en.wikipedia.org/wiki/TMPDIR
 
+<p align="right"><a href="#faq-top">^__^</a></p>
+
+______________________
+
 #### Why did I get an `AssertionError` The following path does not exist /path/to/scaffolds\_to\_bins.tsv?
 
 This means that you don't have any MAGs that meet the quality threshold. This is typically an empty file that throws the error.  You could always lower the completeness or completion thresholds but this may yield lower quality results.
+
+<p align="right"><a href="#faq-top">^__^</a></p>
+
+______________________
 
 #### Why am I getting errors for `Kingfisher`?
  
@@ -86,8 +133,12 @@ Exception: No more specified download methods, cannot continue
 STDERR was: b'bash: fasterq-dump: command not found\n'STDOUT was: b''
 ```
 
-#### Why am I getting an error at the last step of `binning-prokaryotic.py`? 
+<p align="right"><a href="#faq-top">^__^</a></p>
 
+______________________
+
+
+#### Why am I getting an error at the last step of `binning-prokaryotic.py`? 
 
 You might not actually have any high quality bins.  To check this, manually inspect the `CheckM2` results from the intermediate results.  For example: 
 
@@ -112,6 +163,9 @@ for FP in veba_output/binning/prokaryotic/${ID}/intermediate/*__checkm2/quality_
 ```
 Are there any MAGs here? If so, how are the completeness values? What about the contamination values? Are they meeting the thresholds? If so, then submit a GitHub issue because they should pass.  If not, then you probably just have poor quality data.  If all of your samples are like this then consider doing a *bona fide* coassembly (not pseudo-coassembly).  [Here is a walkthrough to do that with VEBA.](https://github.com/jolespin/veba/blob/main/walkthroughs/setting_up_coassemblies.md). If that still doesn't yield results then assembly-centric metagenomics is likely not the way forward with your dataset and you should consider using a read-based profiling tool like [Kraken2](https://genomebiology.biomedcentral.com/articles/10.1186/s13059-019-1891-0) or [MetaPhlAn 4](https://huttenhower.sph.harvard.edu/metaphlan/), both of which are not implemented in *VEBA* but very easily be  used with *VEBA* intermediate files.  If you use an external profiling tool, [you can still use the preprocessed reads from *VEBA*](https://github.com/jolespin/veba/blob/main/walkthroughs/download_and_preprocess_reads.md#4-perform-qualityadapter-trimming-remove-human-contamination-and-count-the-ribosomal-reads-but-dont-remove-them).
 	
+<p align="right"><a href="#faq-top">^__^</a></p>
+
+______________________
 
 #### Why am I getting compatibility issues when creating my environments?
 
@@ -126,6 +180,9 @@ channels:
   - jolespin
 report_errors: true
 ```
+<p align="right"><a href="#faq-top">^__^</a></p>
+
+______________________
 
 #### How can I use options for backend programs that are not arguments in *VEBA*?
 
@@ -135,6 +192,10 @@ While *VEBA* accounts for the most important parameters in the backend, it doesn
 **^ Please note the usage of quotes here and the equal sign^** 
 
 When using this functionality, just make sure that the argument doesn't overlap with the specified arguments for *VEBA*.  For instance, in the case of *DAS Tool* we already hard-coded access to the `--search_engine` argument via the `--dastool_searchengine` so don't use `--dastool_options '--search_engine <value>'`. Again, be mindful when using this advanced usage.
+
+<p align="right"><a href="#faq-top">^__^</a></p>
+
+______________________
 
 #### I got an error, how can I diagnose the issue with the internal logs from each step?
 
@@ -159,14 +220,25 @@ For instance, if you received an error during `binning-prokaryotic.py` then look
 
 If you can't figure it out, then submit a GitHub issue ticket and provide a zipped directory of the log files. 
 
+<p align="right"><a href="#faq-top">^__^</a></p>
+
+______________________
+
 #### How can I restart a module from a specific step?
 
 You can do this by using the `--restart_from_checkpoint <int>` argument which is available on all of the modules.  This goes through and removes all of the checkpoints and intermediate files from that step onwards. 
 
+<p align="right"><a href="#faq-top">^__^</a></p>
+
+______________________
 
 #### What can I do if `MaxBin2` or `CONCOCT` is taking magnitudes longer to run than `Metabat2` in `binning-prokaryotic.py` module?
 
 If you have a lot of samples and a lot of contigs then `MaxBin2` is likely taking forever to run.  If this is the case, you can use the `--skip_maxbin2` flag because it takes MUCH longer to run. For the Plastisphere it was going to take 40 hours per `MaxBin2` run (there are 2 `MaxBin2` runs) per iteration. `Metabat2` and `CONCOCT` can do the heavy lifting much faster and often with better results so it's recommended to skip `MaxBin2` for larger datasets.  In cases where you have a lot of sample, `CONCOCT` can take a long time so you may want to use `--skip_concoct`. 
+
+<p align="right"><a href="#faq-top">^__^</a></p>
+
+______________________
 
 #### The host for the microbiome I'm studying isn't human, but instead *[organism X]*.  How can I remove host contamination?
 
@@ -178,6 +250,10 @@ Here are a few shortcuts:
 * [*M. musculus* GRCm39](https://genome-idx.s3.amazonaws.com/bt/GRCm39.zip)
 * [*A. thaliana* TAIR10](https://genome-idx.s3.amazonaws.com/bt/TAIR10.zip)
 
+<p align="right"><a href="#faq-top">^__^</a></p>
+
+______________________
+
 #### What's the difference between a co-assembly and a pseudo-coassembly?
 
 Coassembly is when a user concatenates all forward reads into one file (e.g., `cat *_1.fastq.gz > concat_1.fastq.gz`) and all reverse reads into another file (e.g., `cat *_2.fastq.gz > concat_2.fastq.gz`) which is then input into an assembly algorithm (e.g., `metaSPAdes`) to perform "coassembly".  This is often performed when the samples are similar enough to contain similar strains of bacteria and the samples are not deep enough to yield high quality sample-specific assemblies. 
@@ -186,9 +262,17 @@ For pseudo-coassembly binning, the user first assembles all of the samples indiv
 
 For more information on *bona fide* coassemblies and what they are, please refer to [AstrobioMike's Happy Belly Bioinformatics blogpost](https://astrobiomike.github.io/metagenomics/metagen_anvio#what-is-a-co-assembly).
 
+<p align="right"><a href="#faq-top">^__^</a></p>
+
+______________________
+
 #### What's the difference between a bin and a MAG?
 
 In the *VEBA* suite, we define bins as candidate genomes output by binning algorithms that have not been quality assessed and MAGs as genomes that have been quality filtered by *CheckM*, *BUSCO*, and *CheckV* for prokaryotes, eukaryotes, and viruses, respectively.
+
+<p align="right"><a href="#faq-top">^__^</a></p>
+
+______________________
 
 #### Error when installing environments through `conda` (or `mamba`) saying `Encountered problems while solving` and/or `Problem: nothing provides`?
 
@@ -210,10 +294,17 @@ channels:
 
 report_errors: true
 ```
+<p align="right"><a href="#faq-top">^__^</a></p>
+
+______________________
 
 #### How can I make minor updates instead of reinstalling everything?
 
 Use the `update_environment_scripts.sh` or `update_environment_variables.sh` scripts that are in `veba/install/`.  You may want to do this if there is a minor update to a script that doesn't change the versions or required databases.
+
+<p align="right"><a href="#faq-top">^__^</a></p>
+
+______________________
 
 #### While running `assembly.py` my job errored (e.g., timed out or ran out of memory), how can I resume the assembly without starting over?
 
@@ -226,6 +317,10 @@ If you're using a `SPAdes`-based program (e.g., `metaSPAdes`) you can use one of
 For example, the following `assembly.py` command: `source activate VEBA-assembly_env && assembly.py -1 ${R1} -2 ${R2} -n ${ID} -o ${OUT_DIR} -p ${N_JOBS} --assembler_options='--continue'`
 
 *VEBA* handles these edge case options and removes the other arguments.
+
+<p align="right"><a href="#faq-top">^__^</a></p>
+
+______________________
 
 #### My job errored in the middle of a step because of a minor issue, how can I continue from the middle of a step and created a checkpoint?
 
@@ -264,6 +359,10 @@ echo "Manual run: $(date)" > veba_output/assembly/SRR5720219/checkpoints/1__asse
 
 *VEBA* should register that step 1 is complete and will continue with step 2. 
 
+<p align="right"><a href="#faq-top">^__^</a></p>
+
+______________________
+
 #### How can I install a developmental module environment in my *VEBA* installation?
 
 Developmental/experimental environments can be installed separately.  They are not installed automatically because they use far more compute resources and time than the other environments.  These include the following: 
@@ -299,6 +398,9 @@ VEBA_DATABASE=/path/to/veba_database
 bash ${VEBA_REPOSITORY_DIRECTORY}/install/update_environment_variables.sh ${VEBA_DATABASE}
 ```
 
+<p align="right"><a href="#faq-top">^__^</a></p>
+
+______________________
 
 #### Why are my `unbinned.fasta` files missing or empty?
 
@@ -313,10 +415,18 @@ cat veba_output/assembly/${ID}/output/scaffolds.fasta | seqkit seq -m ${M} | gre
 
 # If the output is 0 then the explanation above holds.
 ```
-  
+
+<p align="right"><a href="#faq-top">^__^</a></p>
+
+______________________
+
 #### Does **VEBA** support Trinity for transcriptome assembly?
 
 I've considered adding this but it adds [A LOT of dependencies](https://github.com/bioconda/bioconda-recipes/blob/master/recipes/trinity/meta.yaml) including R dependencies (which usually complicate environments) and post-processing analysis tools which are out-of-scope.  As a result of this, *VEBA* will not support Trinity.  However, you can easily use Trinity-based transcripts with other *VEBA* modules but may need to generate the `mapped.sorted.bam` files yourself.
+
+<p align="right"><a href="#faq-top">^__^</a></p>
+
+______________________
 
 #### If I have counts (i.e., reads mapped) to a Species-Level Cluster (SLC), does that mean I have a corresponding MAG in the sample?
 
@@ -332,10 +442,17 @@ When we map the reads back using global mapping, we are mapping to ALL the MAGs 
 
 If this is NOT what you want, then use local mapping mode instead of global mapping.
 
+<p align="right"><a href="#faq-top">^__^</a></p>
+
+______________________
+
 ####  Why can't I run multiple instances of `transdecoder_wrapper.py` at the same time?
 
 In short, the tool forces the output files to be in the current working directory (even though an output directory is specified).  I've submitted a feature request issue on GitHub (https://github.com/TransDecoder/TransDecoder/issues/169).  I considered forking and making an unofficial update but I don't know Perl and further updating *VEBA* takes priority.
 
+<p align="right"><a href="#faq-top">^__^</a></p>
+
+______________________
 
 #### Why am I getting a (core dumped) error for `annotate.py` when running `hmmsearch`?
 
@@ -350,6 +467,10 @@ Target sequence length > 100K, over comparison pipeline limit.
 
 This is likely because you have [sequences longer than 100k](https://www.biostars.org/p/487110/).  In versions after `v1.1.0` this will be addressed in the backend but in the meantime you can do the following to not trigger this error: `seqkit seq -M 100000 proteins.faa > proteins.lt100k.faa` (assuming your fasta file is called `proteins.faa`).
 
+<p align="right"><a href="#faq-top">^__^</a></p>
+
+______________________
+
 #### I get an error when trying to use custom options (e.g., `--assembler_options`) saying it expected one argument even though one was given.
 
 Suppose your `assembly.py` job was prematurely canceled for some reason and you tried to use `--assembler_options '--continue'` to continue where the assembler left off.  
@@ -362,9 +483,17 @@ assembly.py: error: argument --assembler_options: expected one argument
 
 To get around this, use an equal sign when providing the argument values.  (i.e., `--assembler_options='--continue'`)
 
+<p align="right"><a href="#faq-top">^__^</a></p>
+
+______________________
+
 #### I get the following error when running `featureCounts`:  `ERROR: Paired-end reads were detected in single-end read library`
 
 This is happens with the update of `subread v2.0.1 -> v2.0.3` [issue/22](https://github.com/jolespin/veba/issues/22).  For v1.1.1, `binning-viral.py` uses `v2.0.3` before I realized they changed the functionality. The workaround was to use `--featurecounts_options='-p --countReadPairs'`.  In v1.1.2, `subread` has been updated to `v2.0.3` in `VEBA-assembly_env, VEBA-binning-*_env, and VEBA-mapping_env` which uses `-p --countReadPairs` flags as default and bypasses it if `--long_reads` flag is used. Read [this BioStars post](https://www.biostars.org/p/9561574/#9561663) for more information.
+
+<p align="right"><a href="#faq-top">^__^</a></p>
+
+______________________
 
 #### How can I reinstall just a single module or environment? 
 
@@ -384,6 +513,10 @@ bash veba/install/update_environment_scripts.sh veba/
 # Update the environment variables in the environments $PATH
 bash veba/install/update_environment_variables.sh /path/to/veba_database/
 ```
+
+<p align="right"><a href="#faq-top">^__^</a></p>
+
+______________________
 
 #### Why did the `DAS_Tool` step of `binning-prokaryotic.py` fail?
 
@@ -412,14 +545,21 @@ If you think this is an error, take a look at your assembly quality:
 
 Are there any large contigs? What's the N50? 
 
+<p align="right"><a href="#faq-top">^__^</a></p>
+
+______________________
+
 ### How can I use Docker or Singularity to run VEBA?
 
 Check out the [*VEBA* walkthroughs for Docker, Singularity, and AWS](https://github.com/jolespin/veba/tree/main/walkthroughs#containerization-and-aws).
 
+<p align="right"><a href="#faq-top">^__^</a></p>
+
+______________________
+
 ### How can I install just a single module and a subset of the database required for that module?
 
 This can be done easily with a custom installation.  For example, let's say you want to only use the annotation module. 
-
 
 ```bash
 # Download the release
@@ -438,8 +578,7 @@ bash veba/install/update_environment_scripts.sh veba/
 bash veba/install/download_databases-annotate.sh /path/to/veba_database/
 ```
 
-You should end up with a directory with the annotation database files and placeholders for the other directories. 
-
+You should end up with a directory with the annotation database files and placeholders for the other directories:
 
 ```
 |-- ACCESS_DATE
@@ -479,3 +618,7 @@ You should end up with a directory with the annotation database files and placeh
 |-- Contamination
 
 ```
+
+<p align="right"><a href="#faq-top">^__^</a></p>
+
+______________________
