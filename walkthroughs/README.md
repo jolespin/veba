@@ -67,8 +67,8 @@ sbatch -J ${N} -N 1 -c ${N_JOBS} --ntasks-per-node=1 -o logs/${N}.o -e logs/${N}
 ##### Containerization and AWS:
 
 * **[Adapting commands for Docker](docs/adapting_commands_for_docker.md)** - Explains how to download and use Docker for running VEBA.
-* **[Adapting commands for AWS](docs/adapting_commands_for_aws.md)** - Explains how to download and use Docker for running VEBA specifically on AWS.
 * **[Adapting commands for Singularity](docs/adapting_commands_for_singularity.md)** - Explains how to download and use Singularity for running VEBA.
+* **[Adapting commands for AWS](docs/adapting_commands_for_aws.md)** - Explains how to download and use Docker for running VEBA specifically on AWS.
 
 ___________________________________________
 
