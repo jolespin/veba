@@ -45,34 +45,34 @@ ___________________________________________________________________
 
 ### Announcements
 
-**Current Stable Version:** [`v2.1.0`](https://github.com/jolespin/veba/releases/tag/v2.1.0)
+* **Current Stable Version:** [`v2.1.0`](https://github.com/jolespin/veba/releases/tag/v2.1.0)
 
-**Current Database Version:** `VDB_v6`
+* **Current Database Version:** `VDB_v6`
 
-<details>
-	<summary>New features and updates:</summary>
+	<details>
+		<summary>New features and updates:</summary>
 
-* **`VEBA` Modules:**
-	* Expanded functionality, streamlined user-interface, and Docker containerization
-	* Fast and memory-efficient genome- and protein-level clustering
-	* Automatic calculation of feature compression ratios
-	* Large/complex metagenomes and long-read technology support
-	* Bioprospecting and natural product discovery support
-	* Ribosomal RNA, transfer RNA, and organelle support
-	* Genome-resolved taxonomic and pathway profiling
-	* Identification and classification of mobile genetic elements
-	* Native support for candidate phyla radiation quality assessment and memory- efficient genome classification
-	* Standalone support for generalized multi-split binning
-	* Automated phylogenomic functional category feature engineering support
-	* Visualizations of hierarchical data and phylogenies
-	* Added minimum alignment fraction threshold for genome clustering
+	* **`VEBA` Modules:**
+		* Expanded functionality, streamlined user-interface, and Docker containerization
+		* Fast and memory-efficient genome- and protein-level clustering
+		* Automatic calculation of feature compression ratios
+		* Large/complex metagenomes and long-read technology support
+		* Bioprospecting and natural product discovery support
+		* Ribosomal RNA, transfer RNA, and organelle support
+		* Genome-resolved taxonomic and pathway profiling
+		* Identification and classification of mobile genetic elements
+		* Native support for candidate phyla radiation quality assessment and memory- efficient genome classification
+		* Standalone support for generalized multi-split binning
+		* Automated phylogenomic functional category feature engineering support
+		* Visualizations of hierarchical data and phylogenies
+		* Added minimum alignment fraction threshold for genome clustering
 
-* **`VEBA` Database (`VDB_v6`)**:
+	* **`VEBA` Database (`VDB_v6`)**:
 
-	* Completely rebuilt `VEBA's Microeukaryotic Protein Database` to produce a clustered database `MicroEuk100/90/50` similar to `UniRef100/90/50`. Available on [doi:10.5281/zenodo.10139450](https://zenodo.org/records/10139451).
-	* Expanded protein annotation database
+		* Completely rebuilt `VEBA's Microeukaryotic Protein Database` to produce a clustered database `MicroEuk100/90/50` similar to `UniRef100/90/50`. Available on [doi:10.5281/zenodo.10139450](https://zenodo.org/records/10139451).
+		* Expanded protein annotation database
 
-</details>
+	</details>
 
 
 <p align="right"><a href="#readme-top">^__^</a></p>
