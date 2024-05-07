@@ -1,4 +1,4 @@
-### Adapting commands for use with Docker
+### Adapting commands for use with Singularity
 Containerization is a solution to using VEBA on any system and portability for resources such as AWS or Google Cloud.  To address this, I've been containerizing all of the modules.  Here is the guide for using these containers with `Singularity`.  For more detailed support on containers, please refer to the [Docker Walkthrough](adapting_commands_for_docker.md) for more details.
 
 **Disclaimer:** I am the *least* familiar with `Singularity` and can only provide limited support based on the default version available on our HPC.  This workflow is based on the following [conversation](https://github.com/jolespin/veba/issues/45).

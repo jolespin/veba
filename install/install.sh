@@ -11,9 +11,9 @@ CONDA_ENVS_PATH=${2:-"$(conda info --base)/envs/"}
 
 # Update permissions
 echo "Updating permissions for scripts in ${VEBA_REPOSITORY_DIRECTORY}/bin"
-chmod 755 ${VEBA_REPOSITORY_DIRECTORY}/bin/veba
-chmod 755 ${VEBA_REPOSITORY_DIRECTORY}/bin/*.py
-chmod 755 ${VEBA_REPOSITORY_DIRECTORY}/bin/scripts/*
+chmod 775 ${VEBA_REPOSITORY_DIRECTORY}/bin/veba
+chmod 775 ${VEBA_REPOSITORY_DIRECTORY}/bin/*.py
+chmod 775 ${VEBA_REPOSITORY_DIRECTORY}/bin/scripts/*
 
 # Install mamba
 conda install -c conda-forge mamba -y 

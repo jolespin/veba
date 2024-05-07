@@ -1,5 +1,5 @@
 #!/bin/bash
-# __version__ = "2024.5.6"
+# __version__ = "2024.5.7"
 # VEBA_DATABASE_VERSION = "VDB_v6"
 # MICROEUKAYROTIC_DATABASE_VERSION = "MicroEuk_v3"
 # usage: bash veba/download_databases.sh /path/to/veba_database_destination/ [optional positional argument: /path/to/conda_environments/]
@@ -31,24 +31,24 @@ echo $DATE > ${DATABASE_DIRECTORY}/ACCESS_DATE
 echo ". .. ... ..... ........ ............."
 echo "Downloading and configuring database (markers)"
 echo ". .. ... ..... ........ ............."
-bash ${SCRIPT_DIRECTORY}/download_databases-markers.sh | grep -v "\[partial-database\]"
+bash ${SCRIPT_DIRECTORY}/download_databases-markers.sh ${DATABASE_DIRECTORY} | grep -v "\[partial-database\]"
 
 echo ". .. ... ..... ........ ............."
-echo "Downloading and configuring database (preprocess)"
+echo "Downloading and configuring database (contamination)"
 echo ". .. ... ..... ........ ............."
-bash ${SCRIPT_DIRECTORY}/download_databases-preprocess.sh | grep -v "\[partial-database\]"
+bash ${SCRIPT_DIRECTORY}/download_databases-contamination.sh ${DATABASE_DIRECTORY} | grep -v "\[partial-database\]"
 
 echo ". .. ... ..... ........ ............."
 echo "Downloading and configuring database (classify)"
 echo ". .. ... ..... ........ ............."
 echo "This might take a while depending on source database i/o speed..."
-bash ${SCRIPT_DIRECTORY}/download_databases-classify.sh | grep -v "\[partial-database\]"
+bash ${SCRIPT_DIRECTORY}/download_databases-classify.sh ${DATABASE_DIRECTORY} | grep -v "\[partial-database\]"
 
 echo ". .. ... ..... ........ ............."
 echo "Downloading and configuring database (annotate)"
 echo ". .. ... ..... ........ ............."
 echo "This might take a while depending on source database i/o speed..."
-bash ${SCRIPT_DIRECTORY}/download_databases-annotate.sh | grep -v "\[partial-database\]"
+bash ${SCRIPT_DIRECTORY}/download_databases-annotate.sh ${DATABASE_DIRECTORY} | grep -v "\[partial-database\]"
 
 # Environment variables
 echo ". .. ... ..... ........ ............."

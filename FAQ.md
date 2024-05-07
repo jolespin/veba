@@ -9,9 +9,86 @@ Check out the [walkthroughs](https://github.com/jolespin/veba/tree/main/walkthro
 <p align="right"><a href="#faq-top">^__^</a></p>
 
 ______________________
-#### The total database size is ~272G but I already have some of the databases downloaded. Can I use these preexisting databases with *VEBA* instead of having redundant databases?
+#### I already have some of the databases downloaded. Can I use these preexisting databases with *VEBA* instead of having redundant databases?
 
 Yes! Just symlink them so it fits the database structure detailed out [here](https://github.com/jolespin/veba/tree/main/install#database-structure). Large-ish databases you might be able to symlink are GTDB-Tk, CheckV, CheckM2, KOFAM, or Pfam.  If you do this, make sure you have proper read permissions and your databases fall in line with the specifications in the [version notes](https://github.com/jolespin/veba/blob/main/install/README.md#version-notes). *However, if you do this option it will be difficult to diagnose errors so this should only be for advanced users.* 
+
+For example, let's say you have already downloaded Pfam for another tool or analysis.  Simply symlink it as follows: 
+
+```bash
+SOURCE="/path/to/source/Pfam-A.hmm.gz"
+DATABASE_DIRECTORY="/path/to/veba_database/"
+ln -sf ${SOURCE} ${DATABASE_DIRECTORY}/Annotate/Pfam/
+```
+
+Since this is more advanced usage, you'll have to go through and comment out the databases you are symlinking in the download scripts.
+
+<p align="right"><a href="#faq-top">^__^</a></p>
+
+______________________
+
+
+### How can I install just a single module and a subset of the database required for that module?
+
+This can be done easily with a custom installation.  For example, let's say you want to only use the `annotate.py` module.  You would go to the [module table](https://github.com/jolespin/veba/blob/main/bin/README.md) to see that `annotate.py` module uses the `VEBA-annotate_env` and the `Annotate` database.  Then you would install the custom build as follows:
+
+```bash
+# Download the release
+# Follow instructions here: https://github.com/jolespin/veba/tree/main/install
+
+# Specify environment
+ENV_NAME="VEBA-annotate_env"
+
+# Create a new environment with the required dependencies
+mamba env create -n ${ENV_NAME} -f veba/install/environments/${ENV_NAME}.yml
+
+# Update the scripts in the environments $PATH
+bash veba/install/update_environment_scripts.sh veba/
+
+# Configure the annotation database (this is going to run Diamond so you need at least 48GB of memory here)
+bash veba/install/download_databases-annotate.sh /path/to/veba_database/
+```
+
+You should end up with a directory with the annotation database files and placeholders for the other directories:
+
+```
+|-- ACCESS_DATE
+|-- Annotate
+|   |-- CAZy
+|   |   `-- CAZyDB.07262023.dmnd
+|   |-- KOFAM
+|   |   |-- ko_list
+|   |   `-- profiles
+|   |-- MIBiG
+|   |   `-- mibig_v3.1.dmnd
+|   |-- MicrobeAnnotator-KEGG
+|   |   |-- KEGG_Bifurcating_Module_Information.pkl
+|   |   |-- KEGG_Bifurcating_Module_Information.pkl.md5
+|   |   |-- KEGG_Module_Information.txt
+|   |   |-- KEGG_Module_Information.txt.md5
+|   |   |-- KEGG_Regular_Module_Information.pkl
+|   |   |-- KEGG_Regular_Module_Information.pkl.md5
+|   |   |-- KEGG_Structural_Module_Information.pkl
+|   |   `-- KEGG_Structural_Module_Information.pkl.md5
+|   |-- NCBIfam-AMRFinder
+|   |   |-- NCBIfam-AMRFinder.changelog.txt
+|   |   |-- NCBIfam-AMRFinder.hmm.gz
+|   |   `-- NCBIfam-AMRFinder.tsv
+|   |-- Pfam
+|   |   |-- Pfam-A.hmm.gz
+|   |   `-- relnotes.txt
+|   |-- UniRef
+|   |   |-- uniref50.dmnd
+|   |   |-- uniref50.release_note
+|   |   |-- uniref90.dmnd
+|   |   `-- uniref90.release_note
+|   `-- VFDB
+|       |-- VFDB_setA_pro.dmnd
+|       `-- VFs.xls.gz
+|-- Classify
+|-- Contamination
+
+```
 
 <p align="right"><a href="#faq-top">^__^</a></p>
 
@@ -249,6 +326,24 @@ Here are a few shortcuts:
 * [*H. sapiens* CHM13 v2 (T2T)](https://genome-idx.s3.amazonaws.com/bt/chm13v2.0.zip)
 * [*M. musculus* GRCm39](https://genome-idx.s3.amazonaws.com/bt/GRCm39.zip)
 * [*A. thaliana* TAIR10](https://genome-idx.s3.amazonaws.com/bt/TAIR10.zip)
+
+<p align="right"><a href="#faq-top">^__^</a></p>
+
+______________________
+
+#### I'm using long reads, how can I remove host contamination?
+
+If you are using human microbiomes, you can uncomment the minimap2 human T2T build when configuring your databases.  If you're already run the database configuration, simply copy those commands and run them manually to configure the database.  
+
+```bash
+DATABASE_DIRECTORY="path/to/veba_database/"
+wget -v -P ${DATABASE_DIRECTORY} https://ftp.ncbi.nlm.nih.gov/genomes/refseq/vertebrate_mammalian/Homo_sapiens/latest_assembly_versions/GCF_009914755.1_T2T-CHM13v2.0/GCF_009914755.1_T2T-CHM13v2.0_genomic.fna.gz
+minimap2 -d ${DATABASE_DIRECTORY}/Contamination/chm13v2.0/chm13v2.0.mmi ${DATABASE_DIRECTORY}/GCF_009914755.1_T2T-CHM13v2.0_genomic.fna.gz
+rm -rf ${DATABASE_DIRECTORY}/GCF_009914755.1_T2T-CHM13v2.0_genomic.fna.gz
+```
+
+If you have a different organism or genome build, simply use the minimap2 command with your genome build.
+
 
 <p align="right"><a href="#faq-top">^__^</a></p>
 
@@ -552,72 +647,6 @@ ______________________
 ### How can I use Docker or Singularity to run VEBA?
 
 Check out the [*VEBA* walkthroughs for Docker, Singularity, and AWS](https://github.com/jolespin/veba/tree/main/walkthroughs#containerization-and-aws).
-
-<p align="right"><a href="#faq-top">^__^</a></p>
-
-______________________
-
-### How can I install just a single module and a subset of the database required for that module?
-
-This can be done easily with a custom installation.  For example, let's say you want to only use the annotation module. 
-
-```bash
-# Download the release
-# Follow instructions here: https://github.com/jolespin/veba/tree/main/install
-
-# Specify environment
-ENV_NAME="VEBA-annotate_env"
-
-# Create a new environment with the required dependencies
-mamba env create -n ${ENV_NAME} -f veba/install/environments/${ENV_NAME}.yml
-
-# Update the scripts in the environments $PATH
-bash veba/install/update_environment_scripts.sh veba/
-
-# Configure the annotation database (this is going to run Diamond so you need at least 48GB of memory here)
-bash veba/install/download_databases-annotate.sh /path/to/veba_database/
-```
-
-You should end up with a directory with the annotation database files and placeholders for the other directories:
-
-```
-|-- ACCESS_DATE
-|-- Annotate
-|   |-- CAZy
-|   |   `-- CAZyDB.07262023.dmnd
-|   |-- KOFAM
-|   |   |-- ko_list
-|   |   `-- profiles
-|   |-- MIBiG
-|   |   `-- mibig_v3.1.dmnd
-|   |-- MicrobeAnnotator-KEGG
-|   |   |-- KEGG_Bifurcating_Module_Information.pkl
-|   |   |-- KEGG_Bifurcating_Module_Information.pkl.md5
-|   |   |-- KEGG_Module_Information.txt
-|   |   |-- KEGG_Module_Information.txt.md5
-|   |   |-- KEGG_Regular_Module_Information.pkl
-|   |   |-- KEGG_Regular_Module_Information.pkl.md5
-|   |   |-- KEGG_Structural_Module_Information.pkl
-|   |   `-- KEGG_Structural_Module_Information.pkl.md5
-|   |-- NCBIfam-AMRFinder
-|   |   |-- NCBIfam-AMRFinder.changelog.txt
-|   |   |-- NCBIfam-AMRFinder.hmm.gz
-|   |   `-- NCBIfam-AMRFinder.tsv
-|   |-- Pfam
-|   |   |-- Pfam-A.hmm.gz
-|   |   `-- relnotes.txt
-|   |-- UniRef
-|   |   |-- uniref50.dmnd
-|   |   |-- uniref50.release_note
-|   |   |-- uniref90.dmnd
-|   |   `-- uniref90.release_note
-|   `-- VFDB
-|       |-- VFDB_setA_pro.dmnd
-|       `-- VFs.xls.gz
-|-- Classify
-|-- Contamination
-
-```
 
 <p align="right"><a href="#faq-top">^__^</a></p>
 

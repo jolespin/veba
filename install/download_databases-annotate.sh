@@ -1,5 +1,5 @@
 #!/bin/bash
-# __version__ = "2024.5.6"
+# __version__ = "2024.5.7"
 # VEBA_DATABASE_VERSION = "VDB_v6"
 # MICROEUKAYROTIC_DATABASE_VERSION = "MicroEuk_v3"
 # usage: bash veba/download_databases-annotate.sh /path/to/veba_database_destination/
@@ -113,20 +113,6 @@ wget -v -P ${DATABASE_DIRECTORY} https://bcb.unl.edu/dbCAN2/download/CAZyDB.0726
 diamond makedb --in ${DATABASE_DIRECTORY}/CAZyDB.07262023.fa --db ${DATABASE_DIRECTORY}/Annotate/CAZy/CAZyDB.07262023.dmnd
 rm -rf ${DATABASE_DIRECTORY}/CAZyDB.07262023.fa
 
-# Contamination
-echo ". .. ... ..... ........ ............."
-echo " * Processing contamination databases"
-echo ". .. ... ..... ........ ............."
-mkdir -v -p ${DATABASE_DIRECTORY}/Contamination
-
-# AntiFam
-mkdir -v -p ${DATABASE_DIRECTORY}/Contamination/AntiFam
-wget -v -O ${DATABASE_DIRECTORY}/Antifam.tar.gz https://ftp.ebi.ac.uk/pub/databases/Pfam/AntiFam/current/Antifam.tar.gz
-tar xzfv ${DATABASE_DIRECTORY}/Antifam.tar.gz -C ${DATABASE_DIRECTORY}/Contamination/AntiFam 
-rm ${DATABASE_DIRECTORY}/Contamination/AntiFam/AntiFam_*.hmm
-gzip ${DATABASE_DIRECTORY}/Contamination/AntiFam/*.hmm
-rm -rf ${DATABASE_DIRECTORY}/Antifam.tar.gz
-rm -rf ${DATABASE_DIRECTORY}/Contamination/AntiFam/*.seed
 
 echo -e " _    _ _______ ______  _______\n  \  /  |______ |_____] |_____|\n   \/   |______ |_____] |     |"
 echo -e "...................................................."

@@ -1,6 +1,5 @@
 ### VEBA Database:
 
-
 #### Profile HMM Sources:
 Please cite the following sources if these marker sets are used in any way:
 
@@ -1328,16 +1327,13 @@ tree -L 3 .
 
 </details>
 
-
-____________________________________________________________
+___________________________________________________________
 
 #### Version Notes:
 
 * For the human contamination, if you use `KneadData` and already have a `Bowtie2` index for human then you can use that instead.  The only module that uses this is `preprocess.py` and you have to specify this directly when running (i.e., it's optional) so it doesn't matter if it's in the database directory or not (same with ribokmers.fa.gz). 
-* `CheckM2` only has 1 database version at this time so it isn't an issue. 
-* `KOFAM` and `Pfam` just uses these as annotations so any version should work perfectly.
+* `CheckV`, `GTDB-Tk`, and `geNomad` require specific versions so don't mess with those unless you know what you're doing.
 * If you are low on disk space and already have these installed then just symlink them with the structure above. If so, them just comment out those sections of `download_databases.sh`.  
-
 
 _______________________________________________________
 

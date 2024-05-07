@@ -1,5 +1,5 @@
 #!/bin/bash
-# __version__ = "2024.5.6"
+# __version__ = "2024.5.7"
 # VEBA_DATABASE_VERSION = "VDB_v6"
 # MICROEUKAYROTIC_DATABASE_VERSION = "MicroEuk_v3"
 # usage: bash veba/download_databases-classify.sh /path/to/veba_database_destination/
@@ -134,7 +134,6 @@ build_target_to_source_dictionary.py -i ${DATABASE_DIRECTORY}/MicroEuk_v3/identi
 # Remove intermediate files
 rm -rf ${DATABASE_DIRECTORY}/MicroEuk_v3/
 rm -rf ${DATABASE_DIRECTORY}/MicroEuk_v3.tar.gz
-
 
 echo -e " _    _ _______ ______  _______\n  \  /  |______ |_____] |_____|\n   \/   |______ |_____] |     |"
 echo -e "...................................................."

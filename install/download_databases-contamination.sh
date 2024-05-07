@@ -1,8 +1,8 @@
 #!/bin/bash
-# __version__ = "2024.5.6"
+# __version__ = "2024.5.7"
 # VEBA_DATABASE_VERSION = "VDB_v6"
 # MICROEUKAYROTIC_DATABASE_VERSION = "MicroEuk_v3"
-# usage: bash veba/download_databases-preprocess.sh /path/to/veba_database_destination/
+# usage: bash veba/download_databases-contamination.sh /path/to/veba_database_destination/
 
 # Create database
 DATABASE_DIRECTORY=${1:-"."}
@@ -27,7 +27,7 @@ echo $DATE > ${DATABASE_DIRECTORY}/ACCESS_DATE
 
 # Contamination
 echo ". .. ... ..... ........ ............."
-echo " * Processing preprocessing databases"
+echo " * Processing contamination databases"
 echo ". .. ... ..... ........ ............."
 mkdir -v -p ${DATABASE_DIRECTORY}/Contamination
 
@@ -52,10 +52,20 @@ rm -rf ${DATABASE_DIRECTORY}/chm13v2.0.zip
 # unzip -d ${DATABASE_DIRECTORY}/Contamination/ ${DATABASE_DIRECTORY}/GRCm39.zip
 # rm -rf ${DATABASE_DIRECTORY}/GRCm39.zip
 
+# Contamination
+# AntiFam
+mkdir -v -p ${DATABASE_DIRECTORY}/Contamination/AntiFam
+wget -v -O ${DATABASE_DIRECTORY}/Antifam.tar.gz https://ftp.ebi.ac.uk/pub/databases/Pfam/AntiFam/current/Antifam.tar.gz
+tar xzfv ${DATABASE_DIRECTORY}/Antifam.tar.gz -C ${DATABASE_DIRECTORY}/Contamination/AntiFam 
+rm ${DATABASE_DIRECTORY}/Contamination/AntiFam/AntiFam_*.hmm
+gzip ${DATABASE_DIRECTORY}/Contamination/AntiFam/*.hmm
+rm -rf ${DATABASE_DIRECTORY}/Antifam.tar.gz
+rm -rf ${DATABASE_DIRECTORY}/Contamination/AntiFam/*.seed
+
 
 echo -e " _    _ _______ ______  _______\n  \  /  |______ |_____] |_____|\n   \/   |______ |_____] |     |"
 echo -e "......................................................"
-echo -e "     (preprocess) Database Configuration Complete     "
+echo -e "     (contamination) Database Configuration Complete     "
 echo -e "......................................................"
 echo -e "[partial-database] If you are only installing individual databases you will need to set the following environment variable manually or use `update_environment_variables.sh` script:"
 echo -e "[partial-database] \tVEBA_DATABASE=${REALPATH_DATABASE_DIRECTORY}"

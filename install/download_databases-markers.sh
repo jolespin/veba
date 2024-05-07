@@ -1,5 +1,5 @@
 #!/bin/bash
-# __version__ = "2024.5.6"
+# __version__ = "2024.5.7"
 # VEBA_DATABASE_VERSION = "VDB_v6"
 # MICROEUKAYROTIC_DATABASE_VERSION = "MicroEuk_v3"
 # usage: bash veba/download_databases-preprocess.sh /path/to/veba_database_destination/
