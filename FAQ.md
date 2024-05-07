@@ -1,11 +1,10 @@
 #### Frequently Asked Questions
-⚠️ Indicates that it only applies to versions < 1.1.0
 
 #### *VEBA* has so many modules and capabilities, how can I get a feel for how to use it for my dataset(s)?
 
 Check out the [walkthroughs](https://github.com/jolespin/veba/tree/main/walkthroughs) where there are step-by-step workflows for different types of data.
 
-#### It says the total database size is ~272G but I already have some of the databases downloaded. Can I use these preexisting databases with *VEBA* instead of having redundant databases?
+#### The total database size is ~272G but I already have some of the databases downloaded. Can I use these preexisting databases with *VEBA* instead of having redundant databases?
 
 Yes! Just symlink them so it fits the database structure detailed out [here](https://github.com/jolespin/veba/tree/main/install#database-structure). Large-ish databases you might be able to symlink are GTDB-Tk, CheckV, CheckM2, KOFAM, or Pfam.  If you do this, make sure you have proper read permissions and your databases fall in line with the specifications in the [version notes](https://github.com/jolespin/veba/blob/main/install/README.md#version-notes). *However, if you do this option it will be difficult to diagnose errors so this should only be for advanced users.* 
 
@@ -19,7 +18,7 @@ The databases take ~4.5 to download/configure.  **Please refer to the [documenta
 
 #### Are there any database versions that are mandatory?
 
-Yes, there a few and they are detailed out in the [version notes](https://github.com/jolespin/veba/blob/main/install/README.md#version-notes).  The most notable would be `GTDB` which is specific to different `GTDB-Tk` versions and prebuilt mash screens VEBA provides.
+Yes, there a few and they are detailed out in the [version notes](https://github.com/jolespin/veba/blob/main/install/README.md#version-notes).  The most notable would be `GTDB` which is specific to different `GTDB-Tk` versions and prebuilt mash screens *VEBA* provides.
 
 #### Why are there different conda environments for different modules and how do I know which one to use?
 
@@ -40,12 +39,12 @@ Currently, not directly but the install scripts are all built around conda so yo
 
 #### How do I report an issue or contribute?
 
-*VEBA* is currently under active development. If you are interested in requesting features, have questions, or wish to report a bug, please post a GitHub issue prefixed with the tag `[Feature Request]`, `[Question]`, and `[Bug]`, respectively.  If you want to contribute or have any other inquiries, contact me at `jespinoz[A|T]jcvi[DOT]org`
+*VEBA* is currently under active development. If you are interested in requesting features, have questions, or wish to report a bug, please post a GitHub issue prefixed with the tag `[Feature Request]`, `[Question]`, and `[Bug]`, respectively.  If you want to contribute or have any other inquiries, contact me at `jol.espinoz[A|T]gmail[DOT]com`
 
 
 #### Why did I get a `KeyError: 'TMPDIR'`? ⚠️
 
-This is because CheckM can't handle long directory paths.  By default, the temporary directory is set to the TMPDIR environment variable.  If you don't have a TMPDIR environment variable for some reason, add a TMPDIR environment variable to your path either in the script or your ~/.bash_profile.  For example, `export TMPDIR=/path/to/temporary/directory/with/read/write/access.  
+This is because some programs can't handle long directory paths.  By default, the temporary directory is set to the TMPDIR environment variable.  If you don't have a TMPDIR environment variable for some reason, add a TMPDIR environment variable to your path either in the script or your ~/.bash_profile.  For example, `export TMPDIR=/path/to/temporary/directory/with/read/write/access.  
 
 Here's information about the canonical `TMPDIR` environment variable:
 
@@ -143,21 +142,20 @@ When using this functionality, just make sure that the argument doesn't overlap 
 
 For instance, if you received an error during `binning-prokaryotic.py` then look at these files to diagnose your issues. 
 
-**Did any MAGs that made it pass the filters?**
+  * Did any MAGs that made it pass the filters?**
 
-`cat veba_output/binning/prokaryotic/${ID}/intermediate/*__checkm2/filtered/checkm2_results.filtered.tsv`
+  `cat veba_output/binning/prokaryotic/${ID}/intermediate/*__checkm2/filtered/checkm2_results.filtered.tsv`
 
-If so, then you should check the last step.  If you have 10 iterations then it will be step 63.  If you have fewer iterations, then it will be a different step that is lower.
+  If so, then you should check the last step.  If you have 10 iterations then it will be step 63.  If you have fewer iterations, then it will be a different step that is lower.
 
-If not, then manually inspect the `CheckM2` results before filtering. 
+  If not, then manually inspect the `CheckM2` results before filtering. 
 
-`cat veba_output/binning/prokaryotic/${ID}/intermediate/*__checkm2/quality_report.tsv`
+  `cat veba_output/binning/prokaryotic/${ID}/intermediate/*__checkm2/quality_report.tsv`
 
-Do you have MAGs there? Do any of them look legit or are they poor quality? **If your MAGs are `≥ the --checkm_completeness` and `< the --checkm_contamination` thresholds but are not making it through the step**, then please submit a GitHub issue with your log files, scaffolds, and BAM file so I can reproduce and diagnose.
+  * Do you have MAGs there? Do any of them look legit or are they poor quality? **If your MAGs are `≥ the --checkm_completeness` and `< the --checkm_contamination` thresholds but are not making it through the step**, then please submit a GitHub issue with your log files, scaffolds, and BAM file so I can reproduce and diagnose.
 
-Work backwards, do you see anything in `7__dastool`? If not, were there are any bins in steps 3-6? 
+  Work backwards, do you see anything in `7__dastool`? If not, were there are any bins in steps 3-6? 
 
-See FAQ #15 for more details on this.  
 
 If you can't figure it out, then submit a GitHub issue ticket and provide a zipped directory of the log files. 
 
@@ -215,7 +213,7 @@ report_errors: true
 
 #### How can I make minor updates instead of reinstalling everything?
 
-Use the `update_environment_scripts.sh` or `update_environment_variables.sh` scripts that are in `veba/install/`
+Use the `update_environment_scripts.sh` or `update_environment_variables.sh` scripts that are in `veba/install/`.  You may want to do this if there is a minor update to a script that doesn't change the versions or required databases.
 
 #### While running `assembly.py` my job errored (e.g., timed out or ran out of memory), how can I resume the assembly without starting over?
 
@@ -271,9 +269,9 @@ echo "Manual run: $(date)" > veba_output/assembly/SRR5720219/checkpoints/1__asse
 Developmental/experimental environments can be installed separately.  They are not installed automatically because they use far more compute resources and time than the other environments.  These include the following: 
 
 * `VEBA-amplicon_env`
-* `VEBA-biosynthetic_env`
+* `VEBA-crispr_env`
 
-The below code shows how to install the `VEBA-biosynthetic_env` environment as an example:
+The below code shows how to install the `VEBA-crispr_env` environment as an example:
 
 1. Specify the path to the VEBA repository directory: 
 
@@ -284,7 +282,7 @@ VEBA_REPOSITORY_DIRECTORY=path/to/veba_repository_directory (e.g., a release or 
 2. Create the environment: 
 
 ```
-conda env create -n VEBA-biosynthetic_env -f veba/install/environments/devel/biosynthetic_env.yml
+conda env create -n VEBA-crispr_env -f veba/install/environments/devel/VEBA-crispr_env.yml
 ```
 
 3. Add the scripts to the environments: 
@@ -301,7 +299,6 @@ VEBA_DATABASE=/path/to/veba_database
 bash ${VEBA_REPOSITORY_DIRECTORY}/install/update_environment_variables.sh ${VEBA_DATABASE}
 ```
 
-For more information, please refer the the [patch update documentation](https://github.com/jolespin/veba/blob/main/install/PATCHES.md#patches).
 
 #### Why are my `unbinned.fasta` files missing or empty?
 
@@ -373,7 +370,20 @@ This is happens with the update of `subread v2.0.1 -> v2.0.3` [issue/22](https:/
 
 Perhaps you customized your environment and broke it or it just never installed correctly and you're just noticing it now.  Regardless, it's pretty easy to patch your installation. 
 
-[Just follow these steps from the PATCH guide.](https://github.com/jolespin/veba/blob/main/install/PATCHES.md#6-how-can-i-reinstall-just-a-single-module)
+Let's say you broke your assembly environment, all you have to do is the following: 
+
+```bash
+# Specify environment
+ENV_NAME="VEBA-annotate_env"
+# Remove the current environment
+mamba env remove -n ${ENV_NAME}
+# Create a new environment with the required dependencies
+mamba env create -n ${ENV_NAME} -f veba/install/environments/${ENV_NAME}.yml
+# Update the scripts in the environments $PATH
+bash veba/install/update_environment_scripts.sh veba/
+# Update the environment variables in the environments $PATH
+bash veba/install/update_environment_variables.sh /path/to/veba_database/
+```
 
 #### Why did the `DAS_Tool` step of `binning-prokaryotic.py` fail?
 
@@ -401,3 +411,71 @@ If you think this is an error, take a look at your assembly quality:
 `cat [fasta] | seqkit seq -m [minimum_threshold] -a`
 
 Are there any large contigs? What's the N50? 
+
+### How can I use Docker or Singularity to run VEBA?
+
+Check out the [*VEBA* walkthroughs for Docker, Singularity, and AWS](https://github.com/jolespin/veba/tree/main/walkthroughs#containerization-and-aws).
+
+### How can I install just a single module and a subset of the database required for that module?
+
+This can be done easily with a custom installation.  For example, let's say you want to only use the annotation module. 
+
+
+```bash
+# Download the release
+# Follow instructions here: https://github.com/jolespin/veba/tree/main/install
+
+# Specify environment
+ENV_NAME="VEBA-annotate_env"
+
+# Create a new environment with the required dependencies
+mamba env create -n ${ENV_NAME} -f veba/install/environments/${ENV_NAME}.yml
+
+# Update the scripts in the environments $PATH
+bash veba/install/update_environment_scripts.sh veba/
+
+# Configure the annotation database (this is going to run Diamond so you need at least 48GB of memory here)
+bash veba/install/download_databases-annotate.sh /path/to/veba_database/
+```
+
+You should end up with a directory with the annotation database files and placeholders for the other directories. 
+
+
+```
+|-- ACCESS_DATE
+|-- Annotate
+|   |-- CAZy
+|   |   `-- CAZyDB.07262023.dmnd
+|   |-- KOFAM
+|   |   |-- ko_list
+|   |   `-- profiles
+|   |-- MIBiG
+|   |   `-- mibig_v3.1.dmnd
+|   |-- MicrobeAnnotator-KEGG
+|   |   |-- KEGG_Bifurcating_Module_Information.pkl
+|   |   |-- KEGG_Bifurcating_Module_Information.pkl.md5
+|   |   |-- KEGG_Module_Information.txt
+|   |   |-- KEGG_Module_Information.txt.md5
+|   |   |-- KEGG_Regular_Module_Information.pkl
+|   |   |-- KEGG_Regular_Module_Information.pkl.md5
+|   |   |-- KEGG_Structural_Module_Information.pkl
+|   |   `-- KEGG_Structural_Module_Information.pkl.md5
+|   |-- NCBIfam-AMRFinder
+|   |   |-- NCBIfam-AMRFinder.changelog.txt
+|   |   |-- NCBIfam-AMRFinder.hmm.gz
+|   |   `-- NCBIfam-AMRFinder.tsv
+|   |-- Pfam
+|   |   |-- Pfam-A.hmm.gz
+|   |   `-- relnotes.txt
+|   |-- UniRef
+|   |   |-- uniref50.dmnd
+|   |   |-- uniref50.release_note
+|   |   |-- uniref90.dmnd
+|   |   `-- uniref90.release_note
+|   `-- VFDB
+|       |-- VFDB_setA_pro.dmnd
+|       `-- VFs.xls.gz
+|-- Classify
+|-- Contamination
+
+```
