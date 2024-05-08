@@ -94,7 +94,7 @@ In previous tutorials, we performed prokaryotic and eukaryotic binning first but
 
 Let's start the binning with viruses since this is performed on a per-contig bases (instead of a collection of contigs).  Iterative binning doesn't make sense here because *geNomad*, *VirFinder* and *CheckV* work on the contig level so we are only pulling out viruses that are on a single contig.  The criteria for high-quality viral genomes are described by the [*CheckV* author](https://scholar.google.com/citations?user=gmKnjNQAAAAJ&hl=en) [here in this Bitbucket Issue (#38)](https://bitbucket.org/berkeleylab/checkv/issues/38/recommended-cutoffs-for-analyzing-checkv).  Though, these values are quite stringent and can be lowered to recover more candidates.  
 
-**Recommended memory request:** `16 GB`
+**Recommended memory request:** `20 GB`
 
 
 ```

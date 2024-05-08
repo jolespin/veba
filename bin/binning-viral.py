@@ -14,7 +14,7 @@ from soothsayer_utils import *
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.11.30"
+__version__ = "2024.4.29"
 
 # geNomad
 def get_genomad_cmd(input_filepaths, output_filepaths, output_directory, directories, opts):
@@ -339,7 +339,7 @@ def get_featurecounts_cmd(input_filepaths, output_filepaths, output_directory, d
         "-o {}".format(os.path.join(output_directory, "featurecounts.orfs.tsv")),
         "-F GTF",
         "--tmpDir {}".format(os.path.join(directories["tmp"], "featurecounts")),
-        "-T {}".format(opts.n_jobs),
+        "-T {}".format(min(64, opts.n_jobs)), # The maximum number of threads featureCounts can use is 64 so any more will throw this error: "Value for argumant -T is out of range: 1 to 64"
         "-g gene_id",
         "-t CDS",
         "-L" if opts.long_reads else "-p --countReadPairs",

@@ -11,7 +11,7 @@ from genopype import *
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.5.15"
+__version__ = "2024.4.29"
 
 # STAR
 def get_star_cmd(input_filepaths, output_filepaths, output_directory, directories, opts):
@@ -36,7 +36,7 @@ def get_star_cmd(input_filepaths, output_filepaths, output_directory, directorie
         cmd += [ 
         "--readFilesCommand zcat",
         ]
-    ``
+    
     cmd += [
 
         "&&",
@@ -157,7 +157,7 @@ def get_featurecounts_cmd(input_filepaths, output_filepaths, output_directory, d
     "-F GTF",
     "-g transcript_id",
     "--tmpDir {}".format(os.path.join(directories["tmp"], "featurecounts")),
-    "-T {}".format(opts.n_jobs),
+    "-T {}".format(min(64, opts.n_jobs)), # The maximum number of threads featureCounts can use is 64 so any more will throw this error: "Value for argumant -T is out of range: 1 to 64"
     "-p --countReadPairs",
     opts.featurecounts_options,
     input_filepaths[0],
@@ -181,7 +181,7 @@ def get_featurecounts_cmd(input_filepaths, output_filepaths, output_directory, d
     "-F GTF",
     "-g gene_id",
     "--tmpDir {}".format(os.path.join(directories["tmp"], "featurecounts")),
-    "-T {}".format(opts.n_jobs),
+    "-T {}".format(min(64, opts.n_jobs)), # The maximum number of threads featureCounts can use is 64 so any more will throw this error: "Value for argumant -T is out of range: 1 to 64"
     "-p --countReadPairs",
     opts.featurecounts_options,
     input_filepaths[0],

@@ -1,29 +1,24 @@
-### Installation and Database Configuration Guide
+## Installation and Database Configuration Guide
 ____________________________________________________________
-#### Software installation
-One issue with having large-scale pipeline suites with open-source software is the issue of dependencies.  One solution for this is to have a modular software structure where each module has its own `conda` environment.  This allows for minimizing dependency constraints as this software suite uses an array of diverse packages from different developers. 
+### Software installation
+One issue with having large-scale pipeline suites with open-source software is the issue of dependencies.  One solution for this is to have a modular software structure where each module has its own `conda` environment (or `Docker` container).  This allows for minimizing dependency constraints as this software suite uses an array of diverse packages from different developers. 
 
-The basis for these environments is creating a separate environment for each module with the `VEBA-` prefix and `_env` as the suffix.  For example `VEBA-assembly_env` or `VEBA-binning-prokaryotic_env`.  Because of this, `VEBA` is currently not available as a `conda` package but each module will be in the near future.  In the meantime, please use the `veba/install/install.sh` script which installs each environment from the yaml files in `veba/install/environments/`. After installing the environments, use the `veba/install/download_databases.sh` script to download and configure the databases while also adding the environment variables to the activate/deactivate scripts in each environment.  To install anything manually, just read the scripts as they are well documented and refer to different URL and paths for specific installation options.
+The basis for these environments is creating a separate environment for each module with the `VEBA-` prefix and `_env` as the suffix.  For example `VEBA-assembly_env` or `VEBA-binning-prokaryotic_env`.  Because of this, `VEBA` is currently not available as a `conda` package but each module will be in the near future.  In the meantime, please use the `veba/install/install.sh` script which installs each environment from the yaml files in `veba/install/environments/`. After installing the environments, use the `veba/install/download_databases.sh` script to download and configure the databases while also adding the environment variables to the activate/deactivate scripts in each environment.  
 
-The majority of the time taken to build database is downloading/decompressing large archives (e.g., `UniRef` & `GTDB`), `Diamond` database creation of `UniRef`, and `MMSEQS2` database creation of `MicroEuk` database.
-
-Total size is `243 GB` but if you have certain databases installed already then you can just symlink them so the `VEBA_DATABASE` path has the correct structure.  Note, the exact size may vary as Pfam and UniRef are updated regularly.
+**For advanced users installing custom builds or using preexisting databases, please refer to the FAQ and read the well-documented scripts.**
 
 Each major version will be packaged as a [release](https://github.com/jolespin/veba/releases) which will include a log of module and script versions. 
-
-**Download Miniconda (or Anaconda):** 
-
-* [https://docs.conda.io/projects/miniconda/en/latest/](https://docs.conda.io/projects/miniconda/en/latest/) (Recommended)
-* [https://www.anaconda.com/products/distribution](https://www.anaconda.com/products/distribution)
 
 ____________________________________________________________
 
 ### VEBA Database: 
 
 Please refer to the [VEBA Database](DATABASE.md) documentation.
-___________________
+____________________________________________________________
 
-### Install:
+### Install via Conda (Recommended):
+
+Please download [miniconda distribution](https://docs.conda.io/projects/miniconda/en/latest/) (what I use) or the full [anaconda distribution](https://www.anaconda.com/products/distribution). 
 
 Currently, **Conda environments for VEBA are ONLY configured for Linux** and, due to the large databases, this software was designed to be used via HPC. 
 
@@ -85,7 +80,7 @@ The `VEBA` installation is going to configure some `conda` environments for you 
 ```
 # For stable version, download and decompress the tarball:
 
-VERSION="2.0.0"
+VERSION="2.1.0"
 wget https://github.com/jolespin/veba/archive/refs/tags/v${VERSION}.tar.gz
 tar -xvf v${VERSION}.tar.gz && mv veba-${VERSION} veba
 
@@ -97,9 +92,9 @@ tar -xvf v${VERSION}.tar.gz && mv veba-${VERSION} veba
 # git clone https://github.com/jolespin/veba/
 
 # Update the permissions
-chmod 755 veba/bin/*.py
-chmod 755 veba/bin/scripts/*
-chmod 755 veba/install/*.sh
+chmod 775 veba/bin/*.py
+chmod 775 veba/bin/scripts/*
+chmod 775 veba/install/*.sh
 
 # Go into the install directory
 cd veba/install
@@ -107,7 +102,7 @@ cd veba/install
 
 **2. Install VEBA environments**
 
-**Recommended resource allocatation:** 4 hours with 15 GB memory (include extra time for variable I/O speed for various hosts)
+**Recommended resource allocatation:** 4 hours with 16 GB memory (include extra time for variable I/O speed for various hosts)
 
 The update from `CheckM1` -> `CheckM2` and installation of `antiSMASH` require more memory and may require grid access if head node is limited.
 
@@ -129,27 +124,31 @@ bash install.sh path/to/log_directory/ path/to/conda_environments_directory/
 
 **Recommended resource allocatation:**  48 GB memory (time is dependent on I/O of database repositories)
 
-⚠️ **This step should use ~48 GB memory** and should be run using a compute grid via `SLURM` or `SunGridEngine`.  **If this command is run on the head node it will likely fail or timeout if a connection is interrupted.** The most computationally intensive steps are creating a `Diamond` database of `UniRef` and a `MMSEQS2` database of the `MicroEuk100/90/50`.  
+The databases are installed with a series scripts to allow for custom installations and database builds.  The easiest way to download and configure the databases is to just run main: `veba/install/download_databases.sh` which calls the 4 database scripts and the environment variable script. See FAQ for more details.  
 
-Note the duration will depend on several factors including your internet connection speed and the I/O of public repositories.
+⚠️ **This step should use ~48 GB memory** and should be run using a compute grid via `SLURM` or `SunGridEngine`.  **If this command is run on the head node it will likely fail or timeout if a connection is interrupted.** The most computationally intensive steps are creating a `Diamond` database of `UniRef` and a `MMSEQS2` database of the `MicroEuk100/90/50`.  The longest step is downloading and decompressing `GTDB`.  
 
-**Future releases will split the downloading and configuration to better make use of resources.**
+The duration will depend on several factors including your internet connection speed and the I/O of public repositories.
+
+Total size is `~270 GB` but if you have certain databases installed already then you can just symlink them so the `VEBA_DATABASE` path has the correct structure.  The exact size may vary as `Pfam` and `UniRef` are updated regularly.
 
 If issues arise, please [submit a GitHub issue](https://github.com/jolespin/veba/issues) prefixed with `[Database]`. We are here to help :)
 
-**If you are running an interactive queue:**
+**Running an interactive queue:**
 
 ```
 conda activate VEBA-database_env
 
-bash download_databases.sh /path/to/veba_database
+bash download_databases.sh /path/to/veba_database/
 ```
 
-**If you use job scheduling (e.g., sbatch or qsub):**
+**Running with a job scheduler (e.g., sbatch or qsub):**
 
-[If you're unfamiliar with SLURM or SunGridEnginer, we got you](https://github.com/jolespin/veba/blob/main/walkthroughs/README.md#basics).  
+[If you need a refresher on SLURM or SunGridEngine, we got you](https://github.com/jolespin/veba/blob/main/walkthroughs/README.md#basics).  If you've never heard of [SLURM](https://slurm.schedmd.com) or [SunGridEngine (e.g., qsub)](https://gridscheduler.sourceforge.net/htmlman/htmlman1/qsub.html) then you may need to contact your IT for consulting on how to use job scheduling on your system.
 
-Running `conda activate` on a compute server might prompt you to run `conda init` even if you've already initilized on the head node.  To get around this you can use `source activate [environment]`.  Using the `source activate` command requires you to be in `base` conda environment.  You can do this via `conda deactivate` or `conda activate base` before you submit your job.  
+Running `conda activate` on a compute server might prompt you to run `conda init` even if you've already initilized on the head node.  To get around this you can use `source activate ${ENV}` where `${ENV}` is the name or path of the `conda` environment.  
+
+Using the `source activate` command requires you to be in `base` conda environment.  You can do this via `conda deactivate` or `conda activate base` before you submit your job.  
 
 Below is an example of how to do this: 
 
@@ -168,7 +167,7 @@ mkdir -p logs/
 N="database_config"
 
 # Adapt your command to a one-liner
-CMD="source activate VEBA-database_env && bash download_databases.sh /path/to/veba_database"
+CMD="source activate VEBA-database_env && bash download_databases.sh /path/to/veba_database/"
 	
 # Note: You should either use SunGridEngine or SLURM not both. 
 # You might need to adapt slightly but these worked on our systems.
@@ -214,16 +213,11 @@ Future versions will have `bioconda` installation available.
 
 #### Updating environment executables/scripts:
 
-These are useful for path updates. 
-
-```
-bash update_environment_scripts.sh
-```
 
 Let's say you have a separate VEBA repository you want to install scripts from (e.g., you pulled the developmental from GitHub)
 
 ```
-bash update_environment_scripts.sh path/to/veba_repository
+bash update_environment_scripts.sh path/to/veba_repository/
 ```
 
 or if you have your `conda` environments in a separate directory than your base `conda`:
@@ -233,12 +227,12 @@ bash update_environment_scripts.sh path/to/veba_repository path/to/conda_environ
 ```
 
 
-#### Updating environment variables with configured database:
+#### Updating environment variables with pre-configured database:
 
 Let's say you moved your database directory or configured a new one somewhere else.  You can do the following:
 
 ```
-bash update_environment_variables.sh path/to/database/
+bash update_environment_variables.sh path/to/veba_database/
 ```
 
 or if you have your environments in a custom path:
@@ -247,12 +241,9 @@ or if you have your environments in a custom path:
 bash update_environment_variables.sh path/to/database/ path/to/conda_environments/
 ```
 
-**If you want to use containerized versions:**
+#### Custom install of a single module and a subset of the database:
 
-Please refer to the [adapting commands for Docker walkthrough](https://github.com/jolespin/veba/blob/main/walkthroughs/adapting_commands_for_docker.md).
-
-Docker containers are now available (starting with `v1.1.2`) for all modules via [DockerHub](https://hub.docker.com/repositories/jolespin)
-
+See [FAQ for custom installation tutorial](https://github.com/jolespin/veba/blob/main/FAQ.md#how-can-i-install-just-a-single-module-and-a-subset-of-the-database-required-for-that-module). 
 
 ____________________________________________________________
 
@@ -269,7 +260,7 @@ ____________________________________________________________
 bash uninstall.sh
 
 # Remove VEBA database
-rm -rfv /path/to/veba_database
+rm -rfv /path/to/veba_database/
 ```
 ____________________________________________________________
 
@@ -277,7 +268,24 @@ ____________________________________________________________
 
 There are currently 2 ways to update veba:
 
-1. Basic uninstall reinstall - You can uninstall and reinstall using the scripts in `veba/install/` directory.  It's recomended to do a fresh reinstall when updating from `v1.0.x` → `v1.2.x`.
-2. Patching existing installation - TBD Guide for updating specific modules in an installation.  
+1. Basic uninstall/reinstall - You can uninstall and reinstall using the scripts in `veba/install/` directory.  It's recommended to do a fresh reinstall when do a major update.
+2. Patching existing installation - Please post an issue if you have questions updating a previously installed version with a newer or developmental version. This is more advanced and should be done on a case-by-case basis.  
+
+____________________________________________________________
+
+### Install via Docker or Singularity:
+
+If you are using containerized version via `Docker` you will need to make sure it's installed on your system.  If you are using a shared HPC then you probably have access to `Singularity` since `Docker` needs root access which you probably don't have on your user account.  If you have your own machine, then you will probably be using `Docker`. 
+
+Please refer to the [adapting commands for Docker walkthrough](https://github.com/jolespin/veba/blob/main/walkthroughs/adapting_commands_for_docker.md).
+
+Docker containers are now available (starting with `v1.1.2`) for all modules via [DockerHub](https://hub.docker.com/repositories/jolespin)
+
+____________________________________________________________
+
+
+**Developer Note:** `VEBA ≥ v2.0.0` Docker images is built-on Apple Silicon emulating Linux AMD64 architecture.  If you experience any issues with these images, please post an issue on GitHub. 
+
+
 
 

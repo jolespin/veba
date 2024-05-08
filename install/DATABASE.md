@@ -1,6 +1,5 @@
 ### VEBA Database:
 
-
 #### Profile HMM Sources:
 Please cite the following sources if these marker sets are used in any way:
 
@@ -24,12 +23,9 @@ Espinoza, Josh (2022): Profile HMM marker sets. figshare. Dataset. https://doi.o
 VEBA’s Microeukaryotic Protein Database has been completely redesigned using the logic of UniRef and their clustered database.  The previous microeukaryotic protein database contained 48,006,918 proteins from 44,647 source organisms while the updated database, MicroEuk, contains 79,920,430 proteins from 52,495 source organisms.  As in the prior major release, MicroEuk concentrates on microeukaryotic organisms while excluding higher eukaryotes as these organisms are the primary eukaryotes targeted by shotgun metagenomics and metatranscriptomics.  Source organisms in this context are defined as organisms in which the proteins were derived.  
 
 **Number of sequences:**
-
  * MicroEuk100 = 79,920,431 (19 GB)
  * MicroEuk90  = 51,767,730 (13 GB)
  * MicroEuk50  = 29,898,853 (6.5 GB)
-
- 
 
 **Number of source organisms per dataset:**
 
@@ -232,7 +228,7 @@ VEBA’s Microeukaryotic Protein Database has been completely redesigned using t
 **Deprecated:**
 
 <details>
-	<summary> *VEBA Database* version: `VDB_v5.2` (243 GB) 
+	<summary> VEBA Database* version: VDB_v5.2 (243 GB) </summary>
 
 *  Added `MicrobeAnnotator-KEGG` [Zenodo: 10020074](https://zenodo.org/records/10020074) which includes KEGG module pathway information from [`MicrobeAnnotator`](https://doi.org/10.1186/s12859-020-03940-5).
 *  Added `CAZy` protein sequences from [`dbCAN2`](https://academic.oup.com/nar/article/46/W1/W95/4996582)
@@ -395,7 +391,7 @@ tree -L 3 .
 </details>
 
 <details>
-	<summary> *VEBA Database* version: `VDB_v5.1` </summary>
+	<summary> VEBA Database version: VDB_v5.1 </summary>
 
 * `VDB_v5` → `VDB_v5.1` updates `GTDB` database from `r207_v2` → `r214`.  
 * Changes `${VEBA_DATABASE}/Classify/GTDBTk` → `${VEBA_DATABASE}/Classify/GTDB`.
@@ -542,7 +538,7 @@ tree -L 3 .
 </details>
 
 <details>
-	<summary> *VEBA Database* version: `VDB_v5` </summary>
+	<summary> VEBA Database version: VDB_v5 </summary>
 	
 `VDB_v4` → `VDB_v5` replaces `nr` with `UniRef90` and `UniRef50`.  Also includes `MiBIG` database.
 
@@ -684,7 +680,7 @@ tree -L 3 .
 </details>
 
 <details>
-	<summary> *VEBA Database* version: `VDB_v4` </summary>
+	<summary> VEBA Database version: VDB_v4 </summary>
 	
 
 `VDB_v4` is `VDB_v3.1` with the following changes: 1) `CheckM1` database swapped for `CheckM2` database;  includes `geNomad` database; and 3) updates `CheckV` database.  Refer to [development log](https://github.com/jolespin/veba/blob/main/DEVELOPMENT.md#release-v11-currently-testing-before-official-release) for specifics.
@@ -827,7 +823,7 @@ tree -L 3 .
 
 
 <details>
-	<summary>*VEBA Database* version: `VDB_v3.1`</summary>
+	<summary>VEBA Database* version: VDB_v3.1</summary>
 	
 The same as `VDB_v3` but updates `VDB-Microeukaryotic_v2` to `VDB-Microeukaryotic_v2.1` which has a `reference.eukaryota_odb10.list` containing only the subset of identifiers that core eukaryotic markers (useful for classification).
 	
@@ -937,7 +933,7 @@ tree -L 3 .
 
 
 <details>
-	<summary>*VEBA Database* version: `VDB_v3`</summary>
+	<summary>VEBA Database* version: VDB_v3</summary>
 
 ```
 tree -L 3 .
@@ -1035,7 +1031,7 @@ tree -L 3 .
 
 
 <details>
-	<summary>*VEBA Database* version: `VDB_v2`</summary>
+	<summary>VEBA Database* version: VDB_v2</summary>
 	
 * Compatible with *VEBA* version: `v1.0.2a+`
 	
@@ -1133,7 +1129,7 @@ tree -L 3 .
 
 
 <details>
-	<summary>*VEBA Database* version: `VDB_v1`</summary>
+	<summary>VEBA Database version: VDB_v1</summary>
 	
 
 * Compatible with *VEBA* version: `v1.0.0`, `v1.0.1`
@@ -1331,16 +1327,13 @@ tree -L 3 .
 
 </details>
 
-
-____________________________________________________________
+___________________________________________________________
 
 #### Version Notes:
 
 * For the human contamination, if you use `KneadData` and already have a `Bowtie2` index for human then you can use that instead.  The only module that uses this is `preprocess.py` and you have to specify this directly when running (i.e., it's optional) so it doesn't matter if it's in the database directory or not (same with ribokmers.fa.gz). 
-* `CheckM2` only has 1 database version at this time so it isn't an issue. 
-* `KOFAM` and `Pfam` just uses these as annotations so any version should work perfectly.
+* `CheckV`, `GTDB-Tk`, and `geNomad` require specific versions so don't mess with those unless you know what you're doing.
 * If you are low on disk space and already have these installed then just symlink them with the structure above. If so, them just comment out those sections of `download_databases.sh`.  
-
 
 _______________________________________________________
 

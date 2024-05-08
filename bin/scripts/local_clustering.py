@@ -15,7 +15,7 @@ from soothsayer_utils import *
 
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2024.3.8"
+__version__ = "2024.3.26"
 
 def get_basename(x):
     _, fn = os.path.split(x)
@@ -146,13 +146,14 @@ def main(args=None):
     parser_genome_clustering = parser.add_argument_group('Genome clustering arguments')
     parser_genome_clustering.add_argument("-G", "--genome_clustering_algorithm", type=str,  choices={"fastani", "skani"}, default="skani", help="Program to use for ANI calculations.  `skani` is faster and more memory efficient. For v1.0.0 - v1.3.x behavior, use `fastani`. [Default: skani]")
     parser_genome_clustering.add_argument("-A", "--ani_threshold", type=float, default=95.0, help="Species-level cluster (SLC) ANI threshold (Range (0.0, 100.0]) [Default: 95.0]")
+    parser_genome_clustering.add_argument("-F", "--af_threshold", type=float, default=30.0, help="Species-level cluster (SLC) alignment fraction threshold. Only available if `skani` is used as --genome_clustering_algorithm. (Range (0.0, 100.0]) [Default: 30.0]")
     parser_genome_clustering.add_argument("--genome_cluster_prefix", type=str, default="SLC-", help="Cluster prefix [Default: 'SLC-")
     parser_genome_clustering.add_argument("--genome_cluster_suffix", type=str, default="", help="Cluster suffix [Default: '")
     parser_genome_clustering.add_argument("--genome_cluster_prefix_zfill", type=int, default=0, help="Cluster prefix zfill. Use 7 to match identifiers from OrthoFinder.  Use 0 to add no zfill. [Default: 0]") #7
 
     parser_skani = parser.add_argument_group('Skani triangle arguments')
     parser_skani.add_argument("--skani_target_ani",  type=float, default=80, help="skani | If you set --skani_target_ani to --ani_threshold, you may screen out genomes ANI ≥ --ani_threshold [Default: 80]")
-    parser_skani.add_argument("--skani_minimum_af",  type=float, default=15, help="skani | Minimum aligned fraction greater than this value [Default: 15]")
+    parser_skani.add_argument("--skani_minimum_af",  type=float, default=15, help="skani | Minimum aligned fraction greater than this value. If you set --skani_minimum_af to --af_threshold, you may screen out genomes AF ≥ --af_threshold [Default: 15]")
     parser_skani.add_argument("--skani_no_confidence_interval",  action="store_true", help="skani | Output [5,95] ANI confidence intervals using percentile bootstrap on the putative ANI distribution")
     # parser_skani.add_argument("--skani_low_memory", action="store_true", help="Skani | More options (e.g. --arg 1 ) https://github.com/bluenote-1577/skani [Default: '']")
 
@@ -205,6 +206,7 @@ def main(args=None):
     if not opts.no_representative_sequences:
         directories["pangenome_core_sequences"] = create_directory(os.path.join(directories["output"], "pangenome_core_sequences"))
     directories["serialization"] = create_directory(os.path.join(directories["output"], "serialization"))
+    directories["representatives"] = create_directory(os.path.join(directories["output"], "representatives"))
     directories["log"] = create_directory(os.path.join(directories["project"], "log"))
     directories["tmp"] = create_directory(os.path.join(directories["project"], "tmp"))
     directories["checkpoints"] = create_directory(os.path.join(directories["project"], "checkpoints"))
@@ -334,6 +336,7 @@ def main(args=None):
         id_sample =  fields[-2]
 
         os.makedirs(os.path.join(directories["serialization"], id_sample), exist_ok=True)
+        os.makedirs(os.path.join(directories["representatives"], id_sample), exist_ok=True)
 
         if opts.genome_clustering_algorithm == "skani":
             name = "skani__{}__{}".format(organism_type, id_sample)
@@ -381,13 +384,14 @@ def main(args=None):
                 "cat",
                 os.path.join(os.path.split(fp)[0], "skani_output.tsv"),
                 "|",
-                "cut -f1-3",
+                "cut -f1-4",
                 "|",
                 "tail -n +2",
                 "|",
                 os.environ["edgelist_to_clusters.py"],
                 "--basename",
                 "-t {}".format(opts.ani_threshold),
+                "-a {}".format(opts.af_threshold),
                 "--no_singletons" if bool(opts.no_singletons) else "",
                 "--cluster_prefix {}__{}{}".format(id_sample, organism_type[0].upper(), opts.genome_cluster_prefix),
                 "--cluster_suffix {}".format(opts.genome_cluster_suffix) if bool(opts.genome_cluster_suffix) else "",
@@ -396,6 +400,7 @@ def main(args=None):
                 "--identifiers {}".format(os.path.join(directories["intermediate"], organism_type, id_sample, "genome_identifiers.list")),
                 "--export_graph {}".format(os.path.join(directories["serialization"], id_sample, f"{organism_type}.networkx_graph.pkl")),
                 "--export_dict {}".format(os.path.join(directories["serialization"], id_sample, f"{organism_type}.dict.pkl")),
+                "--export_representatives {}".format(os.path.join(directories["representatives"], id_sample, f"{organism_type}.representatives.tsv")),
 
                     "&&",
 
@@ -438,6 +443,7 @@ def main(args=None):
                 "--identifiers {}".format(os.path.join(directories["intermediate"], organism_type, id_sample, "genome_identifiers.list")),
                 "--export_graph {}".format(os.path.join(directories["serialization"], id_sample, f"{organism_type}.networkx_graph.pkl")),
                 "--export_dict {}".format(os.path.join(directories["serialization"], id_sample, f"{organism_type}.dict.pkl")),
+                "--export_representatives {}".format(os.path.join(directories["representatives"], id_sample, f"{organism_type}.representatives.tsv")),
 
                     "&&",
 

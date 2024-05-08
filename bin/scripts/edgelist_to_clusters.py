@@ -8,7 +8,7 @@ from tqdm import tqdm
 from Bio.SeqIO.FastaIO import SimpleFastaParser
 
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.12.11"
+__version__ = "2024.3.26"
 
 def main(args=None):
     # Path info
@@ -24,12 +24,13 @@ def main(args=None):
     parser = argparse.ArgumentParser(description=description, usage=usage, epilog=epilog, formatter_class=argparse.RawTextHelpFormatter)
     # Pipeline
 
-    parser.add_argument("-i","--input", type=str, default="stdin", help = "path/to/edgelist.tsv, No header. [id_1]<tab>[id_2] or [id_1]<tab>[id_2]<tab>[weight] [Default: stdin]") #  
+    parser.add_argument("-i","--input", type=str, default="stdin", help = "path/to/edgelist.tsv, No header. [id_1]<tab>[id_2] or [id_1]<tab>[id_2]<tab>[weight] or [id_1]<tab>[id_2]<tab>[weight]<tab>[alignment_fraction][Default: stdin]") #  
     parser.add_argument("-o","--output", type=str, default="stdout", help = "path/to/clusters.tsv [Default: stdout]")
     parser.add_argument("-t","--threshold", type=float, default=0.0,  help = "Minimum weight threshold. [Default: 0.0]") 
+    parser.add_argument("-a","--minimum_af", type=float, default=0.0,  help = "Minimum alignment fraction. [Default: 0.0]") 
     parser.add_argument("-n", "--no_singletons", action="store_true", help = "Don't include self-interactions. Self-interactions will ensure unclustered genomes make it into the output")
     parser.add_argument("-b", "--basename", action="store_true", help = "Removes filepath prefix and extension.  Support for gzipped filepaths.")
-    parser.add_argument("--identifiers", type=str, help = "Identifiers to include.  If missing identifiers and singletons are allowed, then they will be included as singleton clusters with weight of np.inf")
+    parser.add_argument("--identifiers", type=str, help = "Identifiers to include.  If missing identifiers and singletons are allowed, then they will be included as singleton clusters with weight of np.nan")
 
     parser_labels = parser.add_argument_group('Label arguments')
     parser_labels.add_argument("-p", "--cluster_prefix", type=str, default="c", help="Cluster prefix [Default: 'c']")
@@ -42,9 +43,11 @@ def main(args=None):
     parser_fasta.add_argument("-x", "--output_fasta_extension", type=str, default="fasta", help = "path/to/clusters/cluster_x.[extension] [Default: fasta]")
 
 
+
     parser_export = parser.add_argument_group('Export arguments')
     parser_export.add_argument("-g", "--export_graph", type=str,   help = "prefix/to/graph pickled output files: nx.Graph suggested prefix is .graph.pkl")
     parser_export.add_argument("-d", "--export_dict", type=str,   help = "prefix/to/dict pickled output file: {id_cluster: {id_a, id_b, ...}} suggested prefix is .dict.pkl")
+    parser_export.add_argument("-r", "--export_representatives", type=str,   help = "prefix/to/representatives.tsv table")
 
     # parser.add_argument("--export_edgelist", type=str,   help = "prefix/to/edgelist output files")
 
@@ -68,14 +71,19 @@ def main(args=None):
     except pd.errors.EmptyDataError:
         df_edgelist = pd.DataFrame(columns=["query", "reference"])
 
-    assert df_edgelist.shape[1] in  {2,3}, "Must have 2 or 3 columns.  {} provided.".format(df_edgelist.shape[1])
+    assert df_edgelist.shape[1] in  {2,3,4}, "Must have 2, 3, or 4 columns.  {} provided.".format(df_edgelist.shape[1])
     if opts.basename:
         def get_basename(x):
             _, fn = os.path.split(x)
             if fn.endswith(".gz"):
                 fn = fn[:-3]
             return ".".join(fn.split(".")[:-1])
-        df_edgelist.iloc[:,:2] = df_edgelist.iloc[:,:2].applymap(get_basename)
+        
+        # Support for .map superceding .applymap
+        if hasattr(df_edgelist, "map"):
+            df_edgelist.iloc[:,:2] = df_edgelist.iloc[:,:2].map(get_basename)
+        else:
+            df_edgelist.iloc[:,:2] = df_edgelist.iloc[:,:2].applymap(get_basename)
 
     # Identifiers from edgelist
     if not df_edgelist.empty:
@@ -103,6 +111,7 @@ def main(args=None):
         for header, seq in tqdm(SimpleFastaParser(f), "Reading fasta file: {}".format(opts.fasta)):
             id = header.split(" ")[0]
             id_to_sequence[id] = seq 
+
         f.close()
         assert set(id_to_sequence.keys()) >= identifiers, "Not all of the sequences in --input are available in --fasta.  Either add the sequences to --fasta file or remove --fasta argument."
         os.makedirs(opts.output_fasta_directory, exist_ok=True)
@@ -113,35 +122,64 @@ def main(args=None):
     # Unweighted
     if df_edgelist.shape[1] == 2:
         for i, (id_query, id_target) in tqdm(df_edgelist.iterrows(), "Reading edgelist: {}".format(opts.input), total=df_edgelist.shape[0]):
-            graph.add_edge(id_query, id_target)
+            if {id_query, id_target}.issubset(all_identifiers):
+                graph.add_edge(id_query, id_target, weight=1)
         if not opts.no_singletons:
             for id in all_identifiers:
                 if id not in graph.nodes():
-                    graph.add_edge(id, id)
+                    graph.add_edge(id, id, weight=np.nan)
 
     # Weighted
     if df_edgelist.shape[1] == 3:
-        for i, (id_query, id_target, w) in tqdm(df_edgelist.iterrows(), "Reading edgelist: {}".format(opts.input), total=df_edgelist.shape[0]):
+        for i, (id_query, id_target, w) in tqdm(df_edgelist.iterrows(), "Reading edgelist with weights (≥ {}): {}".format(opts.threshold, opts.input), total=df_edgelist.shape[0]):
             if w >= opts.threshold:
-                graph.add_edge(id_query, id_target, weight=w)
+                if {id_query, id_target}.issubset(all_identifiers):
+                    graph.add_edge(id_query, id_target, weight=w)
         if not opts.no_singletons:
             for id in all_identifiers:
                 if id not in graph.nodes():
-                    graph.add_edge(id, id, weight=np.inf)
+                    graph.add_edge(id, id, weight=np.nan)
+
+    # Weighted with alignment fraction
+    if df_edgelist.shape[1] == 4:
+        for i, (id_query, id_target, w, af) in tqdm(df_edgelist.iterrows(), "Reading edgelist with weights (≥ {}) and alignment fractions (≥ {}): {}".format(opts.threshold, opts.minimum_af, opts.input, ), total=df_edgelist.shape[0]):
+            if all([
+                w >= opts.threshold,
+                af >= opts.minimum_af,
+                ]):
+                if {id_query, id_target}.issubset(all_identifiers):
+                    graph.add_edge(id_query, id_target, weight=w, alignment_fraction=af)
+        if not opts.no_singletons:
+            for id in all_identifiers:
+                if id not in graph.nodes():
+                    graph.add_edge(id, id, weight=np.nan, alignment_fraction=100.0)
             
     # Get connected components
     node_to_cluster = dict()
     cluster_to_nodes = dict()
 
-    for id_cluster, nodes in tqdm(enumerate(sorted(nx.connected_components(graph), key=len, reverse=True), start=1), "Organizing clusters"):
+    for id_cluster, nodes in tqdm(enumerate(sorted(nx.connected_components(graph), key=len, reverse=True), start=1), "Organizing clusters", unit=" clusters"):
         # Add cluster prefix and suffix
         if bool(opts.cluster_prefix):
             id_cluster =  "{}{}".format(opts.cluster_prefix, str(id_cluster).zfill(opts.cluster_prefix_zfill))
         if bool(opts.cluster_suffix):
             id_cluster =  "{}{}".format(id_cluster, opts.cluster_suffix)
+
+        # Get subgraph
+        if len(nodes) > 1:
+            subgraph = graph.subgraph(nodes)
+            node_to_degree = dict(nx.degree(subgraph, weight="weight"))
+            representative = max(node_to_degree, key=node_to_degree.get)
+        else:
+            node_to_degree = dict(zip(nodes, [np.nan]))
+            representative = list(nodes)[0]
+
         for id_node in nodes:
             node_to_cluster[id_node] = id_cluster
             graph.nodes[id_node]["id_cluster"] = id_cluster
+            graph.nodes[id_node]["intra-cluster_connectivity"] = node_to_degree[id_node]
+            graph.nodes[id_node]["representative"] = id_node == representative
+
         cluster_to_nodes[id_cluster] = set(nodes)
     node_to_cluster = pd.Series(node_to_cluster, name="Clusters")
     node_to_cluster.to_frame().to_csv(opts.output, sep="\t", header=None)
@@ -154,6 +192,27 @@ def main(args=None):
     if opts.export_dict is not None:
         with open("{}".format(opts.export_dict), "wb") as f:
             pickle.dump(cluster_to_nodes, f)
+
+    # Export representatives
+    if opts.export_representatives is not None:
+        if opts.export_representatives.endswith(".gz"):
+            f_representatives = gzip.open("{}".format(opts.export_representatives), "wt")
+        else:
+            f_representatives = open("{}".format(opts.export_representatives), "w")
+
+        print("id_node", "id_cluster", "intra-cluster_connectivity", "representative", sep="\t", file=f_representatives)
+        for id_node, node_metadata in graph.nodes(data=True):
+            k = node_metadata["intra-cluster_connectivity"]
+            print(
+                id_node, 
+                node_metadata["id_cluster"], 
+                k if pd.notnull(k) else "", 
+                node_metadata["representative"], 
+                sep="\t", 
+                file=f_representatives,
+            )
+        f_representatives.close()
+
 
     # # Export edgelist
     # if opts.export_edgelist is not None:

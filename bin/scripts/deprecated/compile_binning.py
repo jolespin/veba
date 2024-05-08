@@ -5,7 +5,7 @@ import numpy as np
 from collections import OrderedDict
 from tqdm import tqdm 
 
-THIS NEEDS TO COMPILE EUK, PROK, AND VIRAL BINNING
+#THIS NEEDS TO COMPILE EUK, PROK, AND VIRAL BINNING
 
 DATABASE_EUKARYOTIC="/usr/local/scratch/CORE/jespinoz/db/veba/v1.0/Classify/Eukaryotic/"
 

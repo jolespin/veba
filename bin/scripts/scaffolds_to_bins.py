@@ -5,7 +5,7 @@ import pandas as pd
 from tqdm import tqdm
 
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.5.11"
+__version__ = "2024.3.26"
 
 def main(args=None):
     # Path info
@@ -23,6 +23,7 @@ def main(args=None):
     parser.add_argument("-i","--binning_directory", type=str, help = "path/to/binning_directory [Cannot use with --genomes]")
     parser.add_argument("-g","--genomes", default="stdin", type=str, help = "path/to/genomes as either .list with each line as a path to genome.fasta or a table [id_genome]<tab>[path/to/fasta] [Cannot use with --binning_directory] [Default: stdin]")
     parser.add_argument("-x","--extension", default="fa", type=str, help = "Binning file extension [Default: fa]")
+    parser.add_argument("-d","--genome_identifier_directory_index", type=int, help = "Use directory index for genome identifier instead of filename (e.g., path/to/genomes/id_1/reference.fasta you can use either -2 or 3).  Cannot be used with --extension")
     parser.add_argument("--sep", type=str, default="\t",  help = "Seperator [Default: '\t'")
     parser.add_argument("--scaffold_column_name", type=str, default="Scaffold", help="Scaffold column name [Default: Scaffold]")
     parser.add_argument("--bin_column_name", type=str, default="Bin", help="Bin column name [Default: Bin]")
@@ -89,11 +90,20 @@ def main(args=None):
             # Convert list to table
             if df_genomes.shape[1] == 0:
                 bin_to_filepath = dict()
-                for line in df_genomes.index:
-                    filepath = line.strip()
-                    id_bin = filepath.split("/")[-1][:-1*(len(opts.extension)+1)]
-                    id_bin = "{}{}".format(opts.bin_prefix, id_bin)
-                    bin_to_filepath[id_bin] = filepath
+
+                if opts.genome_identifier_directory_index:
+                    for line in df_genomes.index:
+                        filepath = line.strip()
+                        id_bin = filepath.split("/")[opts.genome_identifier_directory_index]
+                        id_bin = "{}{}".format(opts.bin_prefix, id_bin)
+                        bin_to_filepath[id_bin] = filepath
+                else:
+                    for line in df_genomes.index:
+                        filepath = line.strip()
+                        id_bin = filepath.split("/")[-1][:-1*(len(opts.extension)+1)]
+                        id_bin = "{}{}".format(opts.bin_prefix, id_bin)
+                        bin_to_filepath[id_bin] = filepath
+                
                 df_genomes = pd.Series(bin_to_filepath).to_frame()
 
             # Read fasta files
