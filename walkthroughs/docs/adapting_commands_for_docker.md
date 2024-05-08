@@ -101,7 +101,7 @@ DOCKER_IMAGE="jolespin/veba_preprocess:${VERSION}"
 docker run \
     --name ${NAME} \
     --rm \
-    --volume ${LOCAL_OUTPUT_PARENT_DIRECTORY}:${CONTAINER_WORKING_DIRECTORY}:rw \
+    --volume ${LOCAL_WORKING_DIRECTORY}:${CONTAINER_WORKING_DIRECTORY}:rw \
     --volume ${LOCAL_DATABASE_DIRECTORY}:${CONTAINER_DATABASE_DIRECTORY}:ro \
     ${DOCKER_IMAGE} \
     ${CMD}
