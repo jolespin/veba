@@ -93,6 +93,9 @@ ___________________________________________________________________
 
 [*Quick Guides*](walkthroughs/docs/interpreting_module_outputs.md) for interpreting module outputs.
 
+[*Test Data*](data/README.md) for testing installation/methods.
+
+
 **Usage Example:**
 
 e.g., Running `preprocess` module. 
