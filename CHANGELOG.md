@@ -426,7 +426,7 @@ There was a problem importing veba_output/misc/reads_table.tsv:
 
 **Definitely:**
 
-* Cluster `MicroEuk50` -> `MicroEuk30`
+* Add `BiNI` biosynthetic novelty index to `biosynthetic.py`
 * `busco_wrapper.py` that relabels all the genes, runs analysis, then converts output to tsv.
 * Script to update genome clusters
 * Script to update protein clusters

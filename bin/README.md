@@ -6,11 +6,11 @@
 |   Status         |   Module                |   Environment                   |   Executable               |   Resources    |   Recommended Threads  |   Description  |    Database    |
 |------------------|-------------------------|---------------------------------|----------------------------|----------------|------------------------|------------------------|--------------------------------------------------------------------------------------------------------------------|
 |   Stable         |   [preprocess](#preprocesspy)            |   VEBA-preprocess_env           |   preprocess.py            |   4GB-16GB     |   4                    |   Fastq quality trimming, adapter removal, decontamination, and read statistics calculations (Short Reads)         |  Contamination  |
-|   Stable         |   preproces-long       |   VEBA-preprocess_env           |   preproces-long.py        |   4GB-16GB     |   4                    |   Fastq quality trimming, adapter removal, decontamination, and read statistics calculations (Long Reads)          |   Contamination  |
+|   Stable         |   [preproces-long](#preprocess-longpy)       |   VEBA-preprocess_env           |   preproces-long.py        |   4GB-16GB     |   4                    |   Fastq quality trimming, adapter removal, decontamination, and read statistics calculations (Long Reads)          |   Contamination  |
 |   Stable         |   [assembly](#assemblypy)              |   VEBA-assembly_env             |   assembly.py              |   32GB-128GB+  |   16                   |   Assemble short reads, align reads to assembly, and count mapped reads                                            |    |
-|   Stable         |   assembly-long         |   VEBA-assembly_env             |   assembly-long.py         |   32GB-128GB+  |   16                   |   Assemble long reads, align reads to assembly, and count mapped reads                                             |   |
+|   Stable         |   [assembly-long](#assembly-longpy)         |   VEBA-assembly_env             |   assembly-long.py         |   32GB-128GB+  |   16                   |   Assemble long reads, align reads to assembly, and count mapped reads                                             |   |
 |   Stable         |   [coverage](#coveragepy)              |   VEBA-assembly_env             |   coverage.py              |   24GB         |   16                   |   Align short reads to (concatenated) reference and counts mapped reads                                            |    |
-|   Stable         |   coverage-long         |   VEBA-assembly_env             |   coverage-long.py         |   24GB         |   16                   |   Align long reads to (concatenated) reference and counts mapped reads                                             |    |
+|   Stable         |   [coverage-long](#coverage-longpy)         |   VEBA-assembly_env             |   coverage-long.py         |   24GB         |   16                   |   Align long reads to (concatenated) reference and counts mapped reads                                             |    |
 |   Stable         |   [binning-prokaryotic](#binning-prokaryoticpy)   |   VEBA-binning-prokaryotic_env  |   binning-prokaryotic.py   |   16GB         |   4                    |   Iterative consensus binning for recovering prokaryotic genomes with lineage-specific quality assessment          |    Classify    |
 |   Stable         |   [binning-eukaryotic](#binning-eukaryoticpy)    |   VEBA-binning-eukaryotic_env   |   binning-eukaryotic.py    |   128GB        |   4                    |   Binning for recovering eukaryotic genomes with exon-aware gene modeling and lineage-specific quality assessment  |    Classify    |
 |   Stable         |   [binning-viral](#binning-viralpy)         |   VEBA-binning-viral_env        |   binning-viral.py         |   16GB         |   4                    |   Detection of viral genomes and quality assessment                                                                |    Classify    |
@@ -32,6 +32,8 @@
 <p align="right"><a href="#readme-top">^__^</a></p>
 
 ______________________
+______________________
+
 
 ### Stable
 
@@ -108,11 +110,94 @@ BBDuk arguments:
 
 **Output:**
 
-* cleaned_1.fastq.gz - Cleaned and trimmed fastq file (forward)
-* cleaned_2.fastq.gz - Cleaned and trimmed fastq file (reverse)
+* cleaned/trimmed_1.fastq.gz - Cleaned or trimmed fastq file (forward)
+* cleaned/trimmed_2.fastq.gz - Cleaned or trimmed fastq file (reverse)
 * seqkit_stats.concatenated.tsv - Concatenated read statistics for all intermediate steps (e.g., fastp, bowtie2 removal of contaminated reads if provided, bbduk.sh removal of contaminated reads if provided)
 
 <p align="right"><a href="#readme-top">^__^</a></p>
+
+______________________
+
+
+#### *preprocess-long.py*
+**Fastq quality trimming, adapter removal, decontamination, and read statistics calculations (Oxford Nanopore & PacBio)s**
+
+The preprocess-long module uses the approach from the original preprocess module and applies it to long-read technologies such as Oxford Nanopore and PacBio. More specifically, the following methodology is implemented: 1) reads are quality trimmed using NanoPack2 Chopper instead of fastp; 2) trimmed reads are aligned to a contamination database using minimap2 instead of Bowtie2; 3) BBTools’ BBDuk.sh for k-mer profiling (as in preprocess); and 4) SeqKit for read accounting purposes. As with the preprocess module, decontamination and k-mer quantification is optional.
+
+**Conda Environment:** `conda activate VEBA-preprocess_env`
+
+
+```
+usage: preprocess-long.py -i <reads.fq[.gz]> -n <name> -o <output_directory> |Optional| -x <reference_index> -k <kmer_database>
+
+    Running: preprocess-long.py v2023.12.12 via Python v3.9.16 | /expanse/projects/jcl110/miniconda3/envs/VEBA-preprocess_env/bin/python
+
+optional arguments:
+  -h, --help            show this help message and exit
+
+Required I/O arguments:
+  -i READS, --reads READS
+                        path/to/reads.fastq[.gz]
+  -n NAME, --name NAME  Name of sample
+  -o PROJECT_DIRECTORY, --project_directory PROJECT_DIRECTORY
+                        path/to/project_directory [Default: veba_output/preprocess]
+
+Utility arguments:
+  --path_config PATH_CONFIG
+                        path/to/config.tsv. Must have at least 2 columns [name, executable] [Default: CONDA_PREFIX]
+  -p N_JOBS, --n_jobs N_JOBS
+                        Number of threads [Default: 1]
+  --random_state RANDOM_STATE
+                        Random state [Default: 0]
+  --restart_from_checkpoint RESTART_FROM_CHECKPOINT
+                        Restart from a particular checkpoint
+  -v, --version         show program's version number and exit
+
+Chopper arguments:
+  -m MINIMUM_READ_LENGTH, --minimum_read_length MINIMUM_READ_LENGTH
+                        Chopper | Minimum read length [Default: 500]
+  -q MINIMUM_QUALITY_SCORE, --minimum_quality_score MINIMUM_QUALITY_SCORE
+                        Chopper | Minimum quality score [Default: 10]
+  --chopper_options CHOPPER_OPTIONS
+                        Chopper | More options (e.g. --arg 1 ) https://github.com/wdecoster/chopper [Default: '']
+
+MiniMap2 arguments:
+  -x CONTAMINATION_INDEX, --contamination_index CONTAMINATION_INDEX
+                        MiniMap2 | path/to/contamination_index
+                        (e.g., Human T2T assembly from https://ftp.ncbi.nlm.nih.gov/genomes/refseq/vertebrate_mammalian/Homo_sapiens/latest_assembly_versions/GCF_009914755.1_T2T-CHM13v2.0/GCF_009914755.1_T2T-CHM13v2.0_genomic.fna.gz)
+  --minimap2_preset MINIMAP2_PRESET
+                        MiniMap2 | MiniMap2 preset {map-pb, map-ont, map-hifi} [Default: map-ont]
+  --retain_trimmed_reads RETAIN_TRIMMED_READS
+                        Retain Chopper trimmed fastq after decontamination. 0=No, 1=yes [Default: 0]
+  --retain_contaminated_reads RETAIN_CONTAMINATED_READS
+                        Retain contaminated fastq after decontamination. 0=No, 1=yes [Default: 0]
+  --minimap2_options MINIMAP2_OPTIONS
+                        MiniMap2 | More options (e.g. --arg 1 ) [Default: '']
+                        https://github.com/lh3/minimap2
+
+BBDuk arguments:
+  -k KMER_DATABASE, --kmer_database KMER_DATABASE
+                        BBDuk | path/to/kmer_database
+                        (e.g., ribokmers.fa.gz from https://figshare.com/ndownloader/files/36220587)
+  --kmer_size KMER_SIZE
+                        BBDuk | k-mer size [Default: 31]
+  --retain_kmer_hits RETAIN_KMER_HITS
+                        Retain reads that map to k-mer database. 0=No, 1=yes [Default: 0]
+  --retain_non_kmer_hits RETAIN_NON_KMER_HITS
+                        Retain reads that do not map to k-mer database. 0=No, 1=yes [Default: 0]
+  --bbduk_options BBDUK_OPTIONS
+                        BBDuk | More options (e.g., --arg 1) [Default: '']
+
+```
+**Output:**
+
+* cleaned/trimmed.fastq.gz - Cleaned or trimmed fastq file (forward)
+* seqkit_stats.concatenated.tsv - Concatenated read statistics for all intermediate steps (e.g., fastp, bowtie2 removal of contaminated reads if provided, bbduk.sh removal of contaminated reads if provided)
+
+<p align="right"><a href="#readme-top">^__^</a></p>
+
+______________________
+
 
 #### *assembly.py*
 **Assemble reads, align reads to assembly, and count mapped reads**
@@ -192,6 +277,87 @@ featureCounts arguments:
 
 <p align="right"><a href="#readme-top">^__^</a></p>
 
+______________________
+
+#### *assembly-long.py*
+**Assemble reads, align reads to assembly, and count mapped reads (Oxford Nanopore & PacBio)**
+
+The assembly-long module uses a similar approach of the assembly module but using packages designed for long reads instead. For instance, instead of SPAdes-based assemblers the module uses Flye  and MetaFlye  where the sample name is prepended to the contigs. After (meta-)genomic assembly is finished and assembly statistics are computed with SeqKit, long reads are aligned back to the assembly using minimap2 and BAM files are sorted with Samtools. Sorted BAM files are counted using featureCounts in long reads mode.
+
+**Conda Environment**: `conda activate VEBA-assembly_env`
+
+```
+usage: assembly-long.py -i <reads.fq[.gz]> -n <name>  -o <output_directory>
+
+    Running: assembly-long.py v2024.4.29 via Python v3.9.16 | /expanse/projects/jcl110/miniconda3/envs/VEBA-preprocess_env/bin/python
+
+optional arguments:
+  -h, --help            show this help message and exit
+
+Required I/O arguments:
+  -i READS, --reads READS
+                        path/to/reads.fq[.gz]
+  -n NAME, --name NAME  Name of sample
+  -o PROJECT_DIRECTORY, --project_directory PROJECT_DIRECTORY
+                        path/to/project_directory [Default: veba_output/assembly]
+
+Utility arguments:
+  --path_config PATH_CONFIG
+                        path/to/config.tsv [Default: CONDA_PREFIX]
+  -p N_JOBS, --n_jobs N_JOBS
+                        Number of threads [Default: 1]
+  --random_state RANDOM_STATE
+                        Random state [Default: 0]
+  --restart_from_checkpoint RESTART_FROM_CHECKPOINT
+                        Restart from a particular checkpoint [Default: None]
+  -v, --version         show program's version number and exit
+  --tmpdir TMPDIR       Set temporary directory
+
+Assembler arguments:
+  -P {flye,metaflye}, --program {flye,metaflye}
+                        Assembler |  {flye, metaflye}} [Default: 'metaflye']
+  -s SCAFFOLD_PREFIX, --scaffold_prefix SCAFFOLD_PREFIX
+                        Assembler |  Special options:  Use NAME to use --name.  Use NONE to not include a prefix. [Default: 'NAME__']
+  -m MINIMUM_CONTIG_LENGTH, --minimum_contig_length MINIMUM_CONTIG_LENGTH
+                        Minimum contig length.  Should be lenient here because longer thresholds can be used for binning downstream. Recommended for metagenomes to use 1000 here. [Default: 1]
+  -t {pacbio-raw,nano-hq,nano-raw,pacbio-corr,nano-corr,pacbio-hifi}, --reads_type {pacbio-raw,nano-hq,nano-raw,pacbio-corr,nano-corr,pacbio-hifi}
+                        Reads type for (meta)flye.  {nano-hq, nano-corr, nano-raw, pacbio-hifi, pacbio-corr, pacbio-raw} [Default: nano-hq]
+  -g ESTIMATED_ASSEMBLY_SIZE, --estimated_assembly_size ESTIMATED_ASSEMBLY_SIZE
+                        Estimated assembly size (e.g., 5m, 2.6g)
+  --deterministic       Use deterministic mode.  This will result in a slower assembly and will not be threaded but should produce the same assembly each run.
+  --assembler_options ASSEMBLER_OPTIONS
+                        Assembler options for Flye-based programs (e.g. --arg 1 ) [Default: '']
+
+MiniMap2 arguments:
+  --minimap2_preset MINIMAP2_PRESET
+                        MiniMap2 | MiniMap2 preset {map-pb, map-ont, map-hifi} [Default: map-ont]
+  --minimap2_index_options MINIMAP2_INDEX_OPTIONS
+                        MiniMap2 | More options (e.g. --arg 1 ) [Default: '']
+                        https://github.com/lh3/minimap2
+  --minimap2_options MINIMAP2_OPTIONS
+                        MiniMap2 | More options (e.g. --arg 1 ) [Default: '']
+                        https://github.com/lh3/minimap2
+
+featureCounts arguments:
+  --featurecounts_options FEATURECOUNTS_OPTIONS
+                        featureCounts | More options (e.g. --arg 1 ) [Default: ''] | http://bioinf.wehi.edu.au/featureCounts/
+
+```
+
+**Output:**
+
+* featurecounts.tsv.gz - featureCounts output for contig-level counts
+* mapped.sorted.bam - Sorted BAM
+* mapped.sorted.bam.bai - Sorted BAM index
+* assembly.fasta - Assembly scaffolds
+* assembly.fasta.\*.bt2 - Bowtie2 index of scaffolds
+* assembly.fasta.saf - SAF formatted file for contig-level counts with featureCounts
+* seqkit_stats.tsv.gz - Assembly statistics
+
+<p align="right"><a href="#readme-top">^__^</a></p>
+
+______________________
+
 #### *coverage.py*
 **Align reads to (concatenated) reference and counts mapped reads**
 
@@ -256,6 +422,76 @@ featureCounts arguments:
 * seqkit_stats.tsv - Assembly statistics
 
 <p align="right"><a href="#readme-top">^__^</a></p>
+
+______________________
+
+#### *coverage-long.py*
+**Align reads to a (multi-sample) reference and counts mapped reads (Oxford Nanopore & PacBio)**
+
+The coverage-long module follows the adaptation strategy of preprocess-long and assembly-long in which Bowtie2 is replaced with minimap2. The approach for coverage- long is the same as coverage but with tools designed for long reads.
+
+**Conda Environment**: `conda activate VEBA-assembly_env`
+
+```
+usage: coverage-long.py -f <reference.fasta> -r <reads.tsv> -o <output_directory>
+
+    Running: coverage-long.py v2024.4.29 via Python v3.9.16 | /expanse/projects/jcl110/miniconda3/envs/VEBA-preprocess_env/bin/python
+
+optional arguments:
+  -h, --help            show this help message and exit
+
+Required I/O arguments:
+  -f FASTA, --fasta FASTA
+                        path/to/reference.fasta. Recommended usage is for merging unbinned contigs. [Required]
+  -r READS, --reads READS
+                        path/to/reads_table.tsv with the following format: [id_sample]<tab>[path/to/reads.fastq.gz], No header
+  -o OUTPUT_DIRECTORY, --output_directory OUTPUT_DIRECTORY
+                        path/to/project_directory [Default: veba_output/assembly/multisample]
+
+Utility arguments:
+  --path_config PATH_CONFIG
+                        path/to/config.tsv [Default: CONDA_PREFIX]
+  -p N_JOBS, --n_jobs N_JOBS
+                        Number of threads [Default: 1]
+  --random_state RANDOM_STATE
+                        Random state [Default: 0]
+  --restart_from_checkpoint RESTART_FROM_CHECKPOINT
+                        Restart from a particular checkpoint [Default: None]
+  -v, --version         show program's version number and exit
+  --tmpdir TMPDIR       Set temporary directory
+
+SeqKit seq arguments:
+  -m MINIMUM_CONTIG_LENGTH, --minimum_contig_length MINIMUM_CONTIG_LENGTH
+                        seqkit seq | Minimum contig length [Default: 1]
+  --seqkit_seq_options SEQKIT_SEQ_OPTIONS
+                        seqkit seq | More options (e.g. --arg 1 ) [Default: '']
+
+Minmap2 arguments:
+  --minimap2_preset MINIMAP2_PRESET
+                        MiniMap2 | MiniMap2 preset {map-pb, map-ont, map-hifi} [Default: map-ont]
+  --minimap2_index_options MINIMAP2_INDEX_OPTIONS
+                        Minimap2 | More options (e.g. --arg 1 ) [Default: '']
+  --minimap2_options MINIMAP2_OPTIONS
+                        Minimap2 | More options (e.g. --arg 1 ) [Default: '']
+
+featureCounts arguments:
+  --featurecounts_options FEATURECOUNTS_OPTIONS
+                        featureCounts | More options (e.g. --arg 1 ) [Default: ''] | http://bioinf.wehi.edu.au/featureCounts/
+
+```
+
+**Output:**
+
+* featurecounts.tsv.gz - featureCounts counts table of all samples
+* [sample_id]/mapped.sorted.bam - Sorted BAM file under a subdirectory for each sample
+* reference.fasta - Reference fasta (typically this would be the pseudo-coassembly of unbinned contigs)
+* reference.fasta.saf - SAF formatted file for contig-level counts with featureCounts
+* seqkit_stats.tsv - Assembly statistics
+
+<p align="right"><a href="#readme-top">^__^</a></p>
+
+______________________
+
 
 #### *binning-prokaryotic.py*
 **Iterative consensus binning for recovering prokaryotic genomes with lineage-specific quality assessment**
@@ -397,6 +633,9 @@ Domain classification arguments:
 * unbinned.list - List of unbinned contigs
 
 <p align="right"><a href="#readme-top">^__^</a></p>
+
+______________________
+
 
 #### *binning-eukaryotic.py*
 **Binning for recovering eukaryotic genomes with exon-aware gene modeling and lineage-specific quality assessment**
@@ -544,6 +783,9 @@ featureCounts arguments:
 
 <p align="right"><a href="#readme-top">^__^</a></p>
 
+______________________
+
+
 #### *binning-viral.py*
 **Detection of viral genomes and quality assessment**
 
@@ -669,6 +911,9 @@ featureCounts arguments:
 
 <p align="right"><a href="#readme-top">^__^</a></p>
 
+______________________
+
+
 #### *classify-prokaryotic.py*
 **Taxonomic classification of prokaryotic genomes**
 
@@ -733,7 +978,9 @@ Consensus genome classification arguments:
 
 <p align="right"><a href="#readme-top">^__^</a></p>
  
-                
+______________________
+
+
 #### *classify-eukaryotic.py*
 **Taxonomic classification of eukaryotic genomes**
 
@@ -807,6 +1054,9 @@ Consensus genome arguments:
 
 <p align="right"><a href="#readme-top">^__^</a></p>
 
+______________________
+
+
 #### *classify-viral.py*
 **Taxonomic classification for viral genomes**
 
@@ -860,6 +1110,9 @@ Consensus genome classification arguments:
 
 <p align="right"><a href="#readme-top">^__^</a></p>
 
+______________________
+
+
 #### *cluster.py*
 **Species-level clustering of genomes and lineage-specific orthogroup detection**
 
@@ -868,21 +1121,20 @@ To leverage intra-sample genome analysis in an inter-sample analytical paradigm,
 **Conda Environment**: `conda activate VEBA-cluster_env`
 
 ```
-usage: cluster.py -m <mags> -a <proteins> -o <output_directory> -t 95
+usage: cluster.py -i <genomes_table.tsv> -o <output_directory> -A 95 -a mmseqs-cluster
 
-    Running: cluster.py v2023.6.14 via Python v3.9.15 | /expanse/projects/jcl110/anaconda3/envs/VEBA-preprocess_env/bin/python
+    Running: cluster.py v2024.3.26 via Python v3.11.0 | /expanse/projects/jcl110/miniconda3/envs/VEBA-cluster_env/bin/python
 
-optional arguments:
+options:
   -h, --help            show this help message and exit
 
 Required I/O arguments:
-  -i INPUT, --input INPUT
-                        path/to/input.tsv, Format: Must include the follow columns (No header) [organism_type]<tab>[id\_sample]<tab>[id_mag]<tab>[genome]<tab>[proteins] but can include additional columns to the right (e.g., [cds]<tab>[gene_models]).  Suggested input is from `compile_genomes_table.py` script.
+  -i GENOMES_TABLE, --genomes_table GENOMES_TABLE
+                        path/to/genomes_table.tsv, Format: Must include the following columns (No header) [organism_type]<tab>[id_sample]<tab>[id_mag]<tab>[genome]<tab>[proteins]<tab>[cds] but can include additional columns to the right (e.g., [gene_models]).  Suggested input is from `compile_genomes_table.py` script. [Default: stdin]
   -o OUTPUT_DIRECTORY, --output_directory OUTPUT_DIRECTORY
                         path/to/project_directory [Default: veba_output/cluster]
-  -e, --no_singletons   Exclude singletons
-  --no_local_clustering
-                        Only do global clustering
+  -l, --local_clustering
+                        Perform local clustering after global clustering
 
 Utility arguments:
   --path_config PATH_CONFIG
@@ -893,25 +1145,59 @@ Utility arguments:
                         Restart from a particular checkpoint [Default: None]
   -v, --version         show program's version number and exit
 
-FastANI arguments:
+Genome clustering arguments:
+  -G {fastani,skani}, --genome_clustering_algorithm {fastani,skani}
+                        Program to use for ANI calculations.  `skani` is faster and more memory efficient. For v1.0.0 - v1.3.x behavior, use `fastani`. [Default: skani]
   -A ANI_THRESHOLD, --ani_threshold ANI_THRESHOLD
-                        FastANI | Species-level cluster (SLC) ANI threshold (Range (0.0, 100.0]) [Default: 95.0]
+                        Species-level cluster (SLC) ANI threshold (Range (0.0, 100.0]) [Default: 95.0]
+  -F AF_THRESHOLD, --af_threshold AF_THRESHOLD
+                        Species-level cluster (SLC) alignment fraction threshold. Only available if `skani` is used as --genome_clustering_algorithm. (Range (0.0, 100.0]) [Default: 30.0]
   --genome_cluster_prefix GENOME_CLUSTER_PREFIX
                         Cluster prefix [Default: 'SLC-
   --genome_cluster_suffix GENOME_CLUSTER_SUFFIX
                         Cluster suffix [Default: '
   --genome_cluster_prefix_zfill GENOME_CLUSTER_PREFIX_ZFILL
                         Cluster prefix zfill. Use 7 to match identifiers from OrthoFinder.  Use 0 to add no zfill. [Default: 0]
+
+Skani triangle arguments:
+  --skani_target_ani SKANI_TARGET_ANI
+                        skani | If you set --skani_target_ani to --ani_threshold, you may screen out genomes ANI ≥ --ani_threshold [Default: 80]
+  --skani_minimum_af SKANI_MINIMUM_AF
+                        skani | Minimum aligned fraction greater than this value. If you set --skani_minimum_af to --af_threshold, you may screen out genomes AF ≥ --af_threshold [Default: 15]
+  --skani_no_confidence_interval
+                        skani | Output [5,95] ANI confidence intervals using percentile bootstrap on the putative ANI distribution
+
+[Prokaryotic & Eukaryotic] Skani triangle arguments:
+  --skani_nonviral_preset {slow,none,medium,fast}
+                        skani [Prokaryotic & Eukaryotic]| Use `none` if you are setting skani -c (compression factor) {fast, medium, slow, none} [Default: medium]
+  --skani_nonviral_compression_factor SKANI_NONVIRAL_COMPRESSION_FACTOR
+                        skani [Prokaryotic & Eukaryotic]|  Compression factor (k-mer subsampling rate).	[Default: 125]
+  --skani_nonviral_marker_kmer_compression_factor SKANI_NONVIRAL_MARKER_KMER_COMPRESSION_FACTOR
+                        skani [Prokaryotic & Eukaryotic] | Marker k-mer compression factor. Markers are used for filtering. [Default: 1000]
+  --skani_nonviral_options SKANI_NONVIRAL_OPTIONS
+                        skani [Prokaryotic & Eukaryotic] | More options for `skani triangle` (e.g. --arg 1 ) [Default: '']
+
+[Viral] Skani triangle arguments:
+  --skani_viral_preset {slow,none,medium,fast}
+                        skani | Use `none` if you are setting skani -c (compression factor) {fast, medium, slow, none} [Default: slow]
+  --skani_viral_compression_factor SKANI_VIRAL_COMPRESSION_FACTOR
+                        skani [Viral] | Compression factor (k-mer subsampling rate).	[Default: 30]
+  --skani_viral_marker_kmer_compression_factor SKANI_VIRAL_MARKER_KMER_COMPRESSION_FACTOR
+                        skani [Viral] | Marker k-mer compression factor. Markers are used for filtering. Consider decreasing to ~200-300 if working with small genomes (e.g. plasmids or viruses). [Default: 200]
+  --skani_viral_options SKANI_VIRAL_OPTIONS
+                        skani [Viral] | More options for `skani triangle` (e.g. --arg 1 ) [Default: '']
+
+FastANI arguments:
   --fastani_options FASTANI_OPTIONS
                         FastANI | More options (e.g. --arg 1 ) [Default: '']
 
-MMSEQS2 arguments:
-  -a ALGORITHM, --algorithm ALGORITHM
-                        MMSEQS2 | {easy-cluster, easy-linclust} [Default: easy-cluster]
+Protein clustering arguments:
+  -P {mmseqs-linclust,mmseqs-cluster,diamond-linclust,diamond-cluster}, --protein_clustering_algorithm {mmseqs-linclust,mmseqs-cluster,diamond-linclust,diamond-cluster}
+                        Clustering algorithm | Diamond can only be used for clustering proteins {mmseqs-cluster, mmseqs-linclust, diamond-cluster, mmseqs-linclust} [Default: mmseqs-cluster]
   -t MINIMUM_IDENTITY_THRESHOLD, --minimum_identity_threshold MINIMUM_IDENTITY_THRESHOLD
-                        MMSEQS2 | SLC-Specific Protein Cluster (SSPC, previously referred to as SSO) percent identity threshold (Range (0.0, 100.0]) [Default: 50.0]
+                        Clustering | Percent identity threshold (Range (0.0, 100.0]) [Default: 50.0]
   -c MINIMUM_COVERAGE_THRESHOLD, --minimum_coverage_threshold MINIMUM_COVERAGE_THRESHOLD
-                        MMSEQS2 | SSPC coverage threshold (Range (0.0, 1.0]) [Default: 0.8]
+                        Clustering | Coverage threshold (Range (0.0, 1.0]) [Default: 0.8]
   --protein_cluster_prefix PROTEIN_CLUSTER_PREFIX
                         Cluster prefix [Default: 'SSPC-
   --protein_cluster_suffix PROTEIN_CLUSTER_SUFFIX
@@ -920,6 +1206,13 @@ MMSEQS2 arguments:
                         Cluster prefix zfill. Use 7 to match identifiers from OrthoFinder.  Use 0 to add no zfill. [Default: 0]
   --mmseqs2_options MMSEQS2_OPTIONS
                         MMSEQS2 | More options (e.g. --arg 1 ) [Default: '']
+  --diamond_options DIAMOND_OPTIONS
+                        Diamond | More options (e.g. --arg 1 ) [Default: '']
+
+Pangenome arguments:
+  --minimum_core_prevalence MINIMUM_CORE_PREVALENCE
+                        Minimum ratio of genomes detected in a SLC for a SSPC to be considered core (Range (0.0, 1.0]) [Default: 1.0]
+
 
 ```
 **Output:**
@@ -938,9 +1231,12 @@ MMSEQS2 arguments:
 * global/pangenome_tables/*.tsv.gz - Pangenome tables for each SLC with prevalence values
 * global/serialization/*.dict.pkl - Python dictionaries for clusters
 * global/serialization/*.networkx_graph.pkl - NetworkX graphs for clusters
-* local/* - If `--no_local_clustering` is not selected then all of the files are generated for local clustering
+* local/* - If `--local_clustering` is selected then all of the files are also generated for local clustering
 
 <p align="right"><a href="#readme-top">^__^</a></p>
+
+
+______________________
 
 
 #### *annotate.py*
@@ -1017,6 +1313,9 @@ KOFAMSCAN arguments:
 * module_completion_ratios.genome_clusters.tsv - KEGG module completion ratios for each genome clusters [Only if --identifier_mapping is provided]
 
 <p align="right"><a href="#readme-top">^__^</a></p>
+
+______________________
+
 
 #### *phylogeny.py*
 **Constructs phylogenetic trees given a marker set**
@@ -1106,6 +1405,9 @@ Tree arguments:
 
 <p align="right"><a href="#readme-top">^__^</a></p>
 
+______________________
+
+
 #### *index.py*
 **Builds local or global index for alignment to genomes**
 
@@ -1164,6 +1466,9 @@ Bowtie2 Index arguments:
 * [id\_sample]/reference.saf - SAF format for reference
 
 <p align="right"><a href="#readme-top">^__^</a></p>
+
+______________________
+
 
 #### *mapping.py*
 **Aligns reads to local or global index of genomes**
@@ -1254,6 +1559,9 @@ Identifier arguments:
 
 <p align="right"><a href="#readme-top">^__^</a></p>
 
+______________________
+
+
 #### *biosynthetic.py*
 **Identify biosynthetic gene clusters in prokaryotes and fungi**
 
@@ -1339,6 +1647,8 @@ Novelty score threshold arguments:
 
 <p align="right"><a href="#readme-top">^__^</a></p>
 
+______________________
+
 
 #### *profile-taxonomy.py*
 **Taxonomic profiling of *de novo* genomes**
@@ -1413,6 +1723,11 @@ Sylph profile arguments:
 * sylph\_profile.tsv.gz - Output of `sylph profile`
 * taxonomic_abundance.tsv.gz - Genome-level taxonomic abundance (No header)
 * taxonomic_abundance.clusters.tsv.gz - SLC-level taxonomic abundance (No header, if --genome_clusters wer provided)
+
+<p align="right"><a href="#readme-top">^__^</a></p>
+
+______________________
+
 
 #### *profile-pathway.py*
 **Pathway profiling of *de novo* genomes**
@@ -1495,7 +1810,14 @@ HUMAnN arguments:
 * humann\_genefamilies.tsv - Stratified abundance of taxa-specific gene families
 * humann\_diamond\_unaligned.fa.gz - Joined reads that did not align to database
 * humann\_diamond\_aligned.tsv.gz - Aligned reads from translated blast search to database (blast6 format)
-___________________________________________________________________
+
+<p align="right"><a href="#readme-top">^__^</a></p>
+
+
+______________________
+
+______________________
+
 ## Developmental
 
 
@@ -1575,78 +1897,5 @@ Copyright 2021 Josh L. Espinoza (jespinoz@jcvi.org)
 
 <p align="right"><a href="#readme-top">^__^</a></p>
 
+
 ___________________________________________________________________
-## Deprecated
-
-#### *assembly-sequential.py*
-**Assemble metagenomes sequentially**
-
-This method first uses biosyntheticSPAdes followed by either 1) [default] metaSPAdes; or 2) metaplasmidSPAdes and metaSPAdes.  The reads that are not mapped to the scaffolds in step N are used for assembly in step N+1. The contigs/scaffolds are concatenated for the finally assembly. The purpose of this module is to properly handle biosynthetic gene clusters in addition to metagenomes.
-
-```
-usage: assembly-sequential.py -1 <forward_reads.fq> -2 <reverse_reads.fq> -n <name> -o <output_directory>
-
-    Running: assembly-sequential.py v2022.11.14 via Python v3.9.7 | /Users/jespinoz/anaconda3/bin/python
-
-optional arguments:
-  -h, --help            show this help message and exit
-
-Required I/O arguments:
-  -1 FORWARD_READS, --forward_reads FORWARD_READS
-                        path/to/forward_reads.fq
-  -2 REVERSE_READS, --reverse_reads REVERSE_READS
-                        path/to/reverse_reads.fq
-  -n NAME, --name NAME  Name of sample
-  -o PROJECT_DIRECTORY, --project_directory PROJECT_DIRECTORY
-                        path/to/project_directory [Default: veba_output/assembly_sequential]
-
-Utility arguments:
-  --path_config PATH_CONFIG
-                        path/to/config.tsv [Default: CONDA_PREFIX]
-  -p N_JOBS, --n_jobs N_JOBS
-                        Number of threads [Default: 1]
-  --random_state RANDOM_STATE
-                        Random state [Default: 0]
-  --restart_from_checkpoint RESTART_FROM_CHECKPOINT
-                        Restart from a particular checkpoint [Default: None]
-  -v, --version         show program's version number and exit
-  --tmpdir TMPDIR       Set temporary directory
-  -S, --remove_intermediate_scaffolds
-                        Remove intermediate scaffolds.fasta.*. If this option is chosen, output files are not validated [Default is to keep]
-  -B, --remove_intermediate_bam
-                        Remove intermediate mapped.sorted.bam.*. If this option is chosen, output files are not validated [Default is to keep]
-
-SPAdes arguments:
-  --run_metaplasmidspades
-                        SPAdes | Run metaplasmidSPAdes.  This may sacrifice MAG completeness for plasmid completeness.
-  -m MEMORY, --memory MEMORY
-                        SPAdes | RAM limit in Gb (terminates if exceeded). [Default: 250]
-  --spades_options SPADES_OPTIONS
-                        SPAdes | More options (e.g. --arg 1 ) [Default: '']
-                        http://cab.spbu.ru/files/release3.11.1/manual.html
-
-Bowtie2 arguments:
-  --bowtie2_index_options BOWTIE2_INDEX_OPTIONS
-                        bowtie2-build | More options (e.g. --arg 1 ) [Default: '']
-  --bowtie2_options BOWTIE2_OPTIONS
-                        bowtie2 | More options (e.g. --arg 1 ) [Default: '']
-
-featureCounts arguments:
-  --featurecounts_options FEATURECOUNTS_OPTIONS
-                        featureCounts | More options (e.g. --arg 1 ) [Default: ''] | http://bioinf.wehi.edu.au/featureCounts/
-
-Copyright 2021 Josh L. Espinoza (jespinoz@jcvi.org)
-```
-
-**Output:**
-
-* featurecounts.tsv.gz - featureCounts output for contig-level counts
-* mapped.sorted.bam - Sorted BAM
-* mapped.sorted.bam.bai - Sorted BAM index
-* scaffolds.fasta - Assembly scaffolds (preferred over contigs by SPAdes documentation)
-* scaffolds.fasta.\*.bt2 - Bowtie2 index of scaffolds
-* scaffolds.fasta.saf - SAF formatted file for contig-level counts with featureCounts
-* seqkit_stats.tsv.gz - Assembly statistics
-
-<p align="right"><a href="#readme-top">^__^</a></p>
-

@@ -228,7 +228,7 @@ VEBA’s Microeukaryotic Protein Database has been completely redesigned using t
 **Deprecated:**
 
 <details>
-	<summary> VEBA Database* version: VDB_v5.2 (243 GB) </summary>
+	<summary> VEBA Database version: VDB_v5.2 (243 GB) </summary>
 
 *  Added `MicrobeAnnotator-KEGG` [Zenodo: 10020074](https://zenodo.org/records/10020074) which includes KEGG module pathway information from [`MicrobeAnnotator`](https://doi.org/10.1186/s12859-020-03940-5).
 *  Added `CAZy` protein sequences from [`dbCAN2`](https://academic.oup.com/nar/article/46/W1/W95/4996582)
@@ -823,7 +823,7 @@ tree -L 3 .
 
 
 <details>
-	<summary>VEBA Database* version: VDB_v3.1</summary>
+	<summary>VEBA Database version: VDB_v3.1</summary>
 	
 The same as `VDB_v3` but updates `VDB-Microeukaryotic_v2` to `VDB-Microeukaryotic_v2.1` which has a `reference.eukaryota_odb10.list` containing only the subset of identifiers that core eukaryotic markers (useful for classification).
 	
@@ -933,7 +933,7 @@ tree -L 3 .
 
 
 <details>
-	<summary>VEBA Database* version: VDB_v3</summary>
+	<summary>VEBA Database version: VDB_v3</summary>
 
 ```
 tree -L 3 .
@@ -1031,7 +1031,7 @@ tree -L 3 .
 
 
 <details>
-	<summary>VEBA Database* version: VDB_v2</summary>
+	<summary>VEBA Database version: VDB_v2</summary>
 	
 * Compatible with *VEBA* version: `v1.0.2a+`
 	
