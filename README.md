@@ -83,7 +83,9 @@ ___________________________________________________________________
 
 [*Usage and Resource Requirements Guide*](bin/README.md) for parameters and module descriptions
 
-[*Walkthrough Guides*](walkthroughs/README.md) for tutorials and workflows on how to get started
+[*Walkthrough Guides*](walkthroughs/README.md) for tutorials and workflows on how to use VEBA
+
+[*Visual Guides*](https://www.youtube.com/@VEBA-Multiomics) for video walkthroughs on how to use VEBA
 
 [*Quick Guides*](walkthroughs/docs/interpreting_module_outputs.md) for interpreting module outputs.
 
