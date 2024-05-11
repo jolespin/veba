@@ -15,18 +15,12 @@
 [issues-shield]: https://img.shields.io/github/issues/jolespin/veba.svg?style=for-the-badge
 [issues-url]: https://github.com/jolespin/veba/issues
 
-```
- _    _ _______ ______  _______
-  \  /  |______ |_____] |_____|
-   \/   |______ |_____] |     |
-```
+[![Schematic](images/graphical-abstract.png)](images/Schematic.pdf)
 
 ### What is VEBA? 
 The *Viral Eukaryotic Bacterial Archaeal* (VEBA) is an open-source software suite developed with all domains of microorganisms as the primary objective (not post hoc adjustments) including prokaryotic, eukaryotic, and viral organisms.  VEBA is an end-to-end metagenomics and bioprospecting software suite that can directly recover and analyze eukaryotic and viral genomes in addition to prokaryotic genomes with native support for candidate phyla radiation (CPR). VEBA implements a novel iterative binning procedure and an optional hybrid sample-specific/multi-sample framework that recovers more genomes than non-iterative methods.  To optimize the microeukaryotic gene calling and taxonomic classifications, VEBA includes a consensus microeukaryotic database containing protists and fungi compiled from several existing databases. VEBA also provides a unique clustering-based dereplication strategy allowing for sample-specific genomes and proteins to be directly compared across non-overlapping biological samples. VEBA also automates biosynthetic gene cluster identification and novelty scores for bioprospecting.
 
 VEBA's mission is to make robust (meta-)genomics/transcriptomics analysis effortless.  The philosophy of VEBA is that workflows should be modular, generalizable, and easy-to-use with minimal intermediate steps.  The approach implemented in VEBA is to (try and) think 2 steps ahead of what you may need to do and automate the task for you.
-
-[![Schematic](images/Schematic.png)](images/Schematic.pdf)
 
 <p align="right"><a href="#readme-top">^__^</a></p>
 
@@ -37,7 +31,7 @@ ___________________________________________________________________
 * Espinoza JL, Phillips A, Prentic MB, Tan GS, Kamath PL, Lloyd KG, Dupont CL. Unveiling the Microbial Realm with VEBA 2.0: A modular bioinformatics suite for end-to-end genome-resolved prokaryotic, (micro)eukaryotic, and viral multi-omics from either short- or long-read sequencing.  [BioRxiv Preprint: doi.org/10.1101/2024.03.08.583560v2](https://www.biorxiv.org/content/10.1101/2024.03.08.583560v2). In review somewhere else.
 * Espinoza JL, Dupont CL. VEBA: a modular end-to-end suite for in silico recovery, clustering, and analysis of prokaryotic, microeukaryotic, and viral genomes from metagenomes. BMC Bioinformatics. 2022 Oct 12;23(1):419. [doi: 10.1186/s12859-022-04973-8](https://doi.org/10.1186/s12859-022-04973-8). PMID: 36224545.
 
-Please cite the software dependencies described under the [*Dependency Citation Table*](CITATIONS.md).
+In addition to the above, please cite the software dependencies described under the [*Dependency Citation Table*](CITATIONS.md).
 
 <p align="right"><a href="#readme-top">^__^</a></p>
 
