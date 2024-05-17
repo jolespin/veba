@@ -94,6 +94,14 @@ You should end up with a directory with the annotation database files and placeh
 
 ______________________
 
+#### How can I use Docker or Singularity to run VEBA?
+
+Check out the [*VEBA* walkthroughs for Docker, Singularity, and AWS](https://github.com/jolespin/veba/tree/main/walkthroughs#containerization-and-aws).
+
+<p align="right"><a href="#faq-top">^__^</a></p>
+
+______________________
+
 #### I already have genomes binned and/or genes modeled from another program or downloaded from a repository (e.g., NCBI), can I use them with *VEBA*?
 
 Yes! *VEBA* isn't restrictive with the source of the data for most of the modules.  If you have genomes or gene models derived from another source, you can still use the following modules: `coverage.py`, `cluster.py`, `annotate.py`, `phylogeny.py`, `index.py`, `mapping.py`, and any of the [utility scripts](https://github.com/jolespin/veba/tree/main/src/scripts) that apply. 
@@ -644,9 +652,10 @@ Are there any large contigs? What's the N50?
 
 ______________________
 
-#### How can I use Docker or Singularity to run VEBA?
 
-Check out the [*VEBA* walkthroughs for Docker, Singularity, and AWS](https://github.com/jolespin/veba/tree/main/walkthroughs#containerization-and-aws).
+#### How was the MicroEuk_v3 database compiled from the source databases?
+
+Check out the [*VEBA* step-by-step guide on how the MicroEuk_v3 protein database was generated.](https://github.com/jolespin/veba/tree/main/data/MicroEuk_v3/README.md).
 
 <p align="right"><a href="#faq-top">^__^</a></p>
 
