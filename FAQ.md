@@ -4,7 +4,7 @@
 ______________________
 #### *VEBA* has so many modules and capabilities, how can I get a feel for how to use it for my dataset(s)?
 
-Check out the [walkthroughs](https://github.com/jolespin/veba/tree/main/walkthroughs) where there are step-by-step workflows for different types of data.
+Check out the [walkthroughs](https://github.com/jolespin/veba/tree/main/walkthroughs) where there are step-by-step workflows for different types of data.  For a visual walkthrough of the modules, watch the [Getting started with VEBA](https://www.youtube.com/watch?v=pqrIffWNuug) YouTube video. There are several video tutorials on our [YouTube Channel @VEBA-Multiomics](https://www.youtube.com/@VEBA-Multiomics) covering topics such as how to get started, how to install/configure databases, custom installations/databases, Docker usage on local machines, and the end-to-end walkthrough in real-ish time.
 
 <p align="right"><a href="#faq-top">^__^</a></p>
 
@@ -28,7 +28,7 @@ Since this is more advanced usage, you'll have to go through and comment out the
 ______________________
 
 
-### How can I install just a single module and a subset of the database required for that module?
+#### How can I install just a single module and a subset of the database required for that module?
 
 This can be done easily with a custom installation.  For example, let's say you want to only use the `annotate.py` module.  You would go to the [module table](https://github.com/jolespin/veba/blob/main/bin/README.md) to see that `annotate.py` module uses the `VEBA-annotate_env` and the `Annotate` database.  Then you would install the custom build as follows:
 
@@ -644,7 +644,7 @@ Are there any large contigs? What's the N50?
 
 ______________________
 
-### How can I use Docker or Singularity to run VEBA?
+#### How can I use Docker or Singularity to run VEBA?
 
 Check out the [*VEBA* walkthroughs for Docker, Singularity, and AWS](https://github.com/jolespin/veba/tree/main/walkthroughs#containerization-and-aws).
 

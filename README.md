@@ -15,7 +15,7 @@
 [issues-shield]: https://img.shields.io/github/issues/jolespin/veba.svg?style=for-the-badge
 [issues-url]: https://github.com/jolespin/veba/issues
 
-[![Schematic](images/graphical-abstract.png)](images/Schematic.pdf)
+[![Schematic](images/graphical-abstract.png)](images/graphical-abstract.pdf)
 
 ### What is VEBA? 
 The *Viral Eukaryotic Bacterial Archaeal* (VEBA) is an open-source software suite developed with all domains of microorganisms as the primary objective (not post hoc adjustments) including prokaryotic, eukaryotic, and viral organisms.  VEBA is an end-to-end metagenomics and bioprospecting software suite that can directly recover and analyze eukaryotic and viral genomes in addition to prokaryotic genomes with native support for candidate phyla radiation (CPR). VEBA implements a novel iterative binning procedure and an optional hybrid sample-specific/multi-sample framework that recovers more genomes than non-iterative methods.  To optimize the microeukaryotic gene calling and taxonomic classifications, VEBA includes a consensus microeukaryotic database containing protists and fungi compiled from several existing databases. VEBA also provides a unique clustering-based dereplication strategy allowing for sample-specific genomes and proteins to be directly compared across non-overlapping biological samples. VEBA also automates biosynthetic gene cluster identification and novelty scores for bioprospecting.
