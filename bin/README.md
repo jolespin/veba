@@ -1571,14 +1571,16 @@ The biosynthetic module is a wrapper around `antiSMASH`.  It produces a tabular 
 
 usage: biosynthetic.py -i <genomes_gene-models.tsv> -o <output_directory> -t bacteria | Suggested input is from `compile_genomes_table.py` script. Use cut -f3,4,7
 
-    Running: biosynthetic.py v2023.7.10 via Python v3.9.9 | /Users/jespinoz/anaconda3/bin/python
+    Running: biosynthetic.py v2024.3.5 via Python v3.8.15 | /expanse/projects/jcl110/miniconda3/envs/VEBA-biosynthetic_env/bin/python
 
 optional arguments:
   -h, --help            show this help message and exit
 
 Required I/O arguments:
-  -i INPUT, --input INPUT
-                        path/to/input.tsv, Format: Must include the follow columns (No header) [id_mag]<tab>[genome]<tab>[gene_models].  Suggested input is from `compile_genomes_table.py` script. Use cut -f3,4,7
+  -i FROM_GENOMES, --from_genomes FROM_GENOMES
+                        path/to/input.tsv. Cannot be used with -A/--from_antismash. Format: Must include the follow columns (No header) [id_genome]<tab>[genome]<tab>[gene_models].  Suggested input is from `compile_genomes_table.py` script. Use cut -f3,4,7
+  -A FROM_ANTISMASH, --from_antismash FROM_ANTISMASH
+                        path/to/input.tsv. Cannot be used with -i/--from_genomes. Format: Must include the follow columns (No header) [id_genome]<tab>[path/to/biosynthetic_results_directory/]
   -o OUTPUT_DIRECTORY, --output_directory OUTPUT_DIRECTORY
                         path/to/project_directory [Default: veba_output/biosynthetic]
 
@@ -1601,9 +1603,9 @@ antiSMASH arguments:
   -t TAXON, --taxon TAXON
                         Taxonomic classification of input sequence {bacteria,fungi} [Default: bacteria]
   --minimum_contig_length MINIMUM_CONTIG_LENGTH
-                        Minimum contig length.  [Default: 1500]
+                        Minimum contig length.  [Default: 1]
   -d ANTISMASH_DATABASE, --antismash_database ANTISMASH_DATABASE
-                        antiSMASH | Database directory path [Default: /Users/jespinoz/anaconda3/lib/python3.9/site-packages/antismash/databases]
+                        antiSMASH | Database directory path [Default: /expanse/projects/jcl110/miniconda3/envs/VEBA-biosynthetic_env/lib/python3.8/site-packages/antismash/databases]
   -s HMMDETECTION_STRICTNESS, --hmmdetection_strictness HMMDETECTION_STRICTNESS
                         antiSMASH | Defines which level of strictness to use for HMM-based cluster detection {strict,relaxed,loose}  [Default: relaxed]
   --tta_threshold TTA_THRESHOLD
@@ -1624,6 +1626,39 @@ Novelty score threshold arguments:
   --qcovhsp QCOVHSP     qcovhsp lower bound [float:0 ≤ x < 100] [Default: 0]
   --scovhsp SCOVHSP     scovhsp lower bound [float:0 ≤ x < 100] [Default: 0]
   --evalue EVALUE       e-value lower bound [float:0 < x < 1] [Default: 1e-3]
+
+MMSEQS2 arguments:
+  -a {mmseqs-linclust,mmseqs-cluster}, --algorithm {mmseqs-linclust,mmseqs-cluster}
+                        MMSEQS2 | {mmseqs-cluster, mmseqs-linclust} [Default: mmseqs-cluster]
+  -f REPRESENTATIVE_OUTPUT_FORMAT, --representative_output_format REPRESENTATIVE_OUTPUT_FORMAT
+                        Format of output for representative sequences: {table, fasta} [Default: fasta]
+  --protein_minimum_identity_threshold PROTEIN_MINIMUM_IDENTITY_THRESHOLD
+                        MMSEQS2 | Protein cluster percent identity threshold (Range (0.0, 100.0]) [Default: 50.0]
+  --protein_minimum_coverage_threshold PROTEIN_MINIMUM_COVERAGE_THRESHOLD
+                        MMSEQS2 | Protein coverage threshold (Range (0.0, 1.0]) [Default: 0.8]
+  --protein_cluster_prefix PROTEIN_CLUSTER_PREFIX
+                        Protein cluster prefix [Default: 'BGCPC-
+  --protein_cluster_suffix PROTEIN_CLUSTER_SUFFIX
+                        Protein cluster suffix [Default: '
+  --protein_cluster_prefix_zfill PROTEIN_CLUSTER_PREFIX_ZFILL
+                        Protein cluster prefix zfill. Use 7 to match identifiers from OrthoFinder.  Use 0 to add no zfill. [Default: 0]
+  --no_protein_clustering
+                        No protein clustering
+  --nucleotide_minimum_identity_threshold NUCLEOTIDE_MINIMUM_IDENTITY_THRESHOLD
+                        MMSEQS2 | Nucleotide cluster percent identity threshold (Range (0.0, 100.0]) [Default: 90.0]
+  --nucleotide_minimum_coverage_threshold NUCLEOTIDE_MINIMUM_COVERAGE_THRESHOLD
+                        MMSEQS2 | Nucleotide coverage threshold (Range (0.0, 1.0]) [Default: 0.8]
+  --nucleotide_cluster_prefix NUCLEOTIDE_CLUSTER_PREFIX
+                        Nucleotide cluster prefix [Default: 'BGCNC-
+  --nucleotide_cluster_suffix NUCLEOTIDE_CLUSTER_SUFFIX
+                        Nucleotide cluster suffix [Default: '
+  --nucleotide_cluster_prefix_zfill NUCLEOTIDE_CLUSTER_PREFIX_ZFILL
+                        Nucleotide cluster prefix zfill. Use 0 to add no zfill. [Default: 0]
+  --no_nucleotide_clustering
+                        No nucleotide clustering
+  --no_singletons       Exclude singletons (not recommended)
+  --mmseqs2_options MMSEQS2_OPTIONS
+                        MMSEQS2 | More options (e.g. --arg 1 ) [Default: '']
 
 ```
 
