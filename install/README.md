@@ -192,7 +192,9 @@ VEBA-binning-eukaryotic_env
 VEBA-binning-prokaryotic_env
 VEBA-binning-viral_env
 VEBA-biosynthetic_env
-VEBA-classify_env
+VEBA-classify-eukaryotic_env
+VEBA-classify-prokaryotic_env
+VEBA-classify-viral_env
 VEBA-cluster_env
 VEBA-database_env
 VEBA-mapping_env

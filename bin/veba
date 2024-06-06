@@ -1,5 +1,5 @@
 #!/bin/bash
-# v2024.2.17
+# v2024.6.6
 
 CONDA_ENVS_PATH=${CONDA_ENVS_PATH:-"$(conda info --base)/envs/"}
 
@@ -149,15 +149,15 @@ case $MODULE in
         biosynthetic.py $PARAMS
         ;;
     "classify-eukaryotic")
-        source "${CONDA_BASE}/bin/activate" ${CONDA_ENVS_PATH}/VEBA-classify_env
+        source "${CONDA_BASE}/bin/activate" ${CONDA_ENVS_PATH}/VEBA-classify-eukaryotic_env
         classify-eukaryotic.py $PARAMS
         ;;
     "classify-prokaryotic")
-        source "${CONDA_BASE}/bin/activate" ${CONDA_ENVS_PATH}/VEBA-classify_env
+        source "${CONDA_BASE}/bin/activate" ${CONDA_ENVS_PATH}/VEBA-classify-prokaryotic_env
         classify-prokaryotic.py $PARAMS
         ;;
     "classify-viral")
-        source "${CONDA_BASE}/bin/activate" ${CONDA_ENVS_PATH}/VEBA-classify_env
+        source "${CONDA_BASE}/bin/activate" ${CONDA_ENVS_PATH}/VEBA-classify-viral_env
         classify-viral.py $PARAMS
         ;;
     "cluster")

@@ -14,9 +14,9 @@
 |   Stable         |   [binning-prokaryotic](#binning-prokaryoticpy)   |   VEBA-binning-prokaryotic_env  |   binning-prokaryotic.py   |   16GB         |   4                    |   Iterative consensus binning for recovering prokaryotic genomes with lineage-specific quality assessment          |    Classify    |
 |   Stable         |   [binning-eukaryotic](#binning-eukaryoticpy)    |   VEBA-binning-eukaryotic_env   |   binning-eukaryotic.py    |   128GB        |   4                    |   Binning for recovering eukaryotic genomes with exon-aware gene modeling and lineage-specific quality assessment  |    Classify    |
 |   Stable         |   [binning-viral](#binning-viralpy)         |   VEBA-binning-viral_env        |   binning-viral.py         |   16GB         |   4                    |   Detection of viral genomes and quality assessment                                                                |    Classify    |
-|   Stable         |   [classify-prokaryotic](#classify-prokaryoticpy)  |   VEBA-classify_env             |   classify-prokaryotic.py  |   64GB         |   32                   |   Taxonomic classification of prokaryotic genomes                                                                  |    Classify    |
-|   Stable         |   [classify-eukaryotic](#classify-eukaryoticpy)   |   VEBA-classify_env             |   classify-eukaryotic.py   |   32GB         |   1                    |   Taxonomic classification of eukaryotic genomes                                                                   |    Classify    |
-|   Stable         |   [classify-viral](#classify-viralpy)        |   VEBA-classify_env             |   classify-viral.py        |   16GB         |   4                    |   Taxonomic classification of viral genomes                                                                        |    Classify    |
+|   Stable         |   [classify-prokaryotic](#classify-prokaryoticpy)  |   VEBA-classify-prokaryotic_env             |   classify-prokaryotic.py  |   [90GB](https://ecogenomics.github.io/GTDBTk/installing/index.html)         |   32                   |   Taxonomic classification of prokaryotic genomes                                                                  |    Classify    |
+|   Stable         |   [classify-eukaryotic](#classify-eukaryoticpy)   |   VEBA-classify-eukaryotic_env             |   classify-eukaryotic.py   |   32GB         |   1                    |   Taxonomic classification of eukaryotic genomes                                                                   |    Classify    |
+|   Stable         |   [classify-viral](#classify-viralpy)        |   VEBA-classify-viral_env             |   classify-viral.py        |   16GB         |   4                    |   Taxonomic classification of viral genomes                                                                        |    Classify    |
 |   Stable         |   [cluster](#clusterpy)               |   VEBA-cluster_env              |   cluster.py               |   32GB+        |   32                   |   Species-level clustering of genomes and lineage-specific orthogroup detection                                    |
 |   Stable         |   [annotate](#annotatepy)              |   VEBA-annotate_env             |   annotate.py              |   64GB         |   32                   |   Annotates translated gene calls                                                      |    Annotate    |
 |   Stable         |   [phylogeny](#phylogenypy)             |   VEBA-phylogeny_env            |   phylogeny.py             |   16GB+        |   32                   |   Constructs phylogenetic trees given a marker set                                                                 |
@@ -919,7 +919,7 @@ ______________________
 
 The prokaryotic classification module is a useful wrapper around `GTDB-Tk` which either combines the resulting archaea and bacteria summary tables or runs `GTDB-Tk lineage_wf` from the beginning.  If genome clusters are provided, then it performs consensus lineage classification.  `Krona` plots are generated showing taxonomic levels.
 
-**Conda Environment**: `conda activate VEBA-classify_env`
+**Conda Environment**: `conda activate VEBA-classify-prokaryotic_env`
 
 
 ```
@@ -986,7 +986,7 @@ ______________________
 
 The eukaryotic classification module can be performed on de novo genomes or utilize the target field of `MetaEuk` gene identifiers and the taxonomic lineage associated with each source genome.  The default marker set is `eukaryote_odb10` from `BUSCO` but custom marker sets are support along with the inclusion of all genes not just marker genes.  An option to include marker-specific noise cutoff scores is also available using the `--scores_cutoff` parameter which is default behavior with `BUSCO’s eukaryote_odb10` provided noise thresholds.  For each MAG, bitscores are accumulated for each taxonomic level and taxonomy is assigned with leniency specified by the leniency parameter with high leniency resulting higher order taxonomic assignments.  If genome clusters are provided, then it performs consensus lineage classification. `Krona` plots are generated showing taxonomic levels.
 
-**Conda Environment**: `conda activate VEBA-classify_env` 
+**Conda Environment**: `conda activate VEBA-classify-eukaryotic_env` 
 
 ```
 usage: classify-eukaryotic.py -i <eukaryotic_binning_directory>|-g <genomes.list> -o <output_directory>
@@ -1062,7 +1062,7 @@ ______________________
 
 Viral classification uses `geNomad's taxonomy` module. 
 
-**Conda Environment**: `conda activate VEBA-classify_env`
+**Conda Environment**: `conda activate VEBA-classify-viral_env`
 
 ```
 usage: classify-viral.py -i <viral_binning_directory>|-g <genomes.list>  -o <output_directory>

@@ -4,7 +4,7 @@ from collections import OrderedDict
 import pandas as pd
 
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.9.27"
+__version__ = "2024.6.5"
 
 def main(argv=None):
     # Path info
@@ -60,14 +60,14 @@ def main(argv=None):
     genome_to_weight = dict()
     genome_to_classification = dict()
     for id_genome, row in df_gtdbtk_results.iterrows():
-        classification, ani, msa = row[["classification", "fastani_ani", "msa_percent"]]
+        classification, ani, msa = row[["classification", "closest_genome_ani", "msa_percent"]]
         assert pd.notnull(classification), "Missing classification for `{}`".format(id_genome)
         genome_to_classification[id_genome] = classification
 
         ani_not_null = pd.notnull(ani)
         msa_not_null = pd.notnull(msa)
         if all([ani_not_null, msa_not_null]):
-            warnings.warn(f"`{id_genome}` has values for both `fastani_ani` and `msa_percent`. Prioritizing by `{opts.prioritize}`")
+            warnings.warn(f"`{id_genome}` has values for both `closest_genome_ani` and `msa_percent`. Prioritizing by `{opts.prioritize}`")
             if opts.prioritize == "msa":
                 genome_to_weight[id_genome] = msa
             if opts.prioritize == "ani":
@@ -85,7 +85,7 @@ def main(argv=None):
     if null_weights.sum() >= 1:
         warnings.warn("Missing weights for the following genomes: {}".format(null_weights.index[null_weights].tolist()))
         if not opts.fill_missing_weight:
-            raise Exception("Please ensure all genomes have a weight attribute for msa_percent or fastani_ani.  The alternative is to fill missing values with --fill_missing_weight")
+            raise Exception("Please ensure all genomes have a weight attribute for msa_percent or closest_genome_ani.  The alternative is to fill missing values with --fill_missing_weight")
         else:
             genome_to_weight[null_weights] = opts.fill_missing_weight
     

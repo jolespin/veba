@@ -1,5 +1,5 @@
 #!/bin/bash
-# __version__ = "2024.2.17"
+# __version__ = "2024.6.6"
 # usage: bash veba/update_environment_variables.sh /path/to/veba_database_destination/ [optional positional argument: /path/to/conda_environments/]
 
 # Create database
@@ -35,7 +35,7 @@ for ENV_NAME in VEBA-binning-prokaryotic_env; do
 # GTDB
 echo ". .. ... ..... ........ ............."
 echo " * Adding the following environment variable to VEBA environments: export GTDBTK_DATA_PATH=${REALPATH_DATABASE_DIRECTORY}/Classify/GTDB/"
-for ENV_NAME in VEBA-classify_env; do 
+for ENV_NAME in VEBA-classify-prokaryotic_env; do 
     ENV_PREFIX=${CONDA_ENVS_PATH}/${ENV_NAME}
     # GTDB
     echo "export GTDBTK_DATA_PATH=${REALPATH_DATABASE_DIRECTORY}/Classify/GTDB/" >> ${ENV_PREFIX}/etc/conda/activate.d/veba.sh

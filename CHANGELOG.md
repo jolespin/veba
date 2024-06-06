@@ -405,7 +405,7 @@ ________________________________________________________________
 
 ________________________________________________________________
 
-#### Path to `v2.0.0`:
+#### Path to `v3.0.0`:
 
 **Check:**
 
@@ -470,6 +470,11 @@ ________________________________________________________________
 <details>
 	<summary> <b>Daily Change Log:</b> </summary>
 
+* [2024.6.6] - Updating `GTDB-Tk` and `BUSCO` introduced conflicting dependencies.  To provide more flexibility for version updates, `VEBA-classify_env` has been split out into `VEBA-classify-eukaryotic_env`, `VEBA-classify-prokaryotic_env`, and `VEBA-classify-viral_env`.
+* [2024.6.5] - Update `GTDB` version from `r214.1` to `r220` in VEBA database version `VDB_v7` and in `classify-prokaryotic.py`.  Corresponding mash database for `r220` is available here: 
+* [2024.6.5] - Added `choose_fastest_mirror.py` to utility scripts which checks the speed of multiple urls and then outputs the fastest one.
+* [2024.6.5] - Removing version name from `GTDB` .msh file.  Previous versions included `gtdb_r214.msh` but now they will be `gtdb.sh`.
+* [2024.5.20] - Added `reformat_minpath_report.py` to reformat minpath reports.  `MinPath` isn't used directly by VEBA but it might be in the future.
 * [2024.4.30] - Added `concatenate_files.py` which can concatenate files (and mixed compressed/decompressed files) using either arguments, list file, or glob.  Reason for this is that unix has a limit of arguments that can be used (e.g., `cat *.fasta > output.fasta` where *.fasta results in 50k files will crash)
 * [2024.4.29] - Added `/volumes/workspace/` directory to Docker containers for situations when your input and output directories are the same. 
 * [2024.4.29] - `featureCounts` can only handle 64 threads at a time so added `min(64, opts.n_jobs)` for all the modules/scripts that use `featureCounts` commands.

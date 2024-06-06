@@ -15,7 +15,7 @@ from soothsayer_utils import *
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.12.21"
+__version__ = "2024.6.5"
 
 # GTDB-Tk
 def get_gtdbtk_cmd( input_filepaths, output_filepaths, output_directory, directories, opts):
@@ -81,7 +81,7 @@ def get_gtdbtk_cmd( input_filepaths, output_filepaths, output_directory, directo
 
     else:
         cmd += [
-        "--mash_db {}".format(os.path.join(opts.gtdbtk_database, "mash","gtdb_r214.msh")),
+        "--mash_db {}".format(os.path.join(opts.gtdbtk_database, "mash","gtdb.msh")),
         ]
         
 

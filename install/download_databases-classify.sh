@@ -1,6 +1,6 @@
 #!/bin/bash
-# __version__ = "2024.5.7"
-# VEBA_DATABASE_VERSION = "VDB_v6"
+# __version__ = "2024.6.5"
+# VEBA_DATABASE_VERSION = "VDB_v7"
 # MICROEUKAYROTIC_DATABASE_VERSION = "MicroEuk_v3"
 # usage: bash veba/download_databases-classify.sh /path/to/veba_database_destination/
 
@@ -41,38 +41,54 @@ echo ". .. ... ..... ........ ............."
 echo " * Processing GTDB-Tk"
 echo ". .. ... ..... ........ ............."
 
-# # GTDB r220 (For future VEBA ≥ 2.1.0, VDB_7)
-# Download from the mirror b/c it's way faster.  Need to test r220 (and build mash screen?)
-# wget https://data.ace.uq.edu.au/public/gtdb/data/releases/release220/220.0/auxillary_files/gtdbtk_package/full_package/gtdbtk_r220_data.tar.gz
+# # GTDB r220 (For future VEBA ≥ 2.2.0, VDB_7)
+# Download from the data.ace.uq.edu.au mirror b/c it's way faster than data.gtdb.ecogenomic.org.
+GTDB_VERSION="220"
+wget -v -P ${DATABASE_DIRECTORY} https://data.ace.uq.edu.au/public/gtdb/data/releases/release${GTDB_VERSION}/${GTDB_VERSION}.0/auxillary_files/gtdbtk_package/full_package/gtdbtk_r${GTDB_VERSION}_data.tar.gz
+tar xvzf ${DATABASE_DIRECTORY}/gtdbtk_r${GTDB_VERSION}_data.tar.gz -C ${DATABASE_DIRECTORY}
+mv ${DATABASE_DIRECTORY}/release${GTDB_VERSION} ${DATABASE_DIRECTORY}/Classify/GTDB
+echo "r${GTDB_VERSION}" > ${DATABASE_DIRECTORY}/Classify/GTDB/database_version
+wget -P ${DATABASE_DIRECTORY}/Classify/GTDB/ https://data.ace.uq.edu.au/public/gtdb/data/releases/release${GTDB_VERSION}/${GTDB_VERSION}.0/RELEASE_NOTES.txt 
+rm -rf ${DATABASE_DIRECTORY}/gtdbtk_r${GTDB_VERSION}_data.tar.gz
 
-# GTDB r214.1
-# data.gtdb.ecogenomic.org is slower than the faster mirror (data.ace.uq.edu.au/)
-# wget -v -P ${DATABASE_DIRECTORY} https://data.gtdb.ecogenomic.org/releases/release214/214.1/auxillary_files/gtdbtk_r214_data.tar.gz
-wget -v -P ${DATABASE_DIRECTORY} https://data.ace.uq.edu.au/public/gtdb/data/releases/release214/214.1/auxillary_files/gtdbtk_r214_data.tar.gz
-tar xvzf ${DATABASE_DIRECTORY}/gtdbtk_r214_data.tar.gz -C ${DATABASE_DIRECTORY}
-mv ${DATABASE_DIRECTORY}/release214 ${DATABASE_DIRECTORY}/Classify/GTDB
-rm -rf ${DATABASE_DIRECTORY}/gtdbtk_r214_data.tar.gz
+# GTDB r220 mash sketch
+GTDB_ZENODO_RECORD_ID="11494307"
+wget -v -O ${DATABASE_DIRECTORY}/gtdb_r${GTDB_VERSION}.msh https://zenodo.org/records/${GTDB_ZENODO_RECORD_ID}/files/gtdb_r${GTDB_VERSION}.msh?download=1
+mkdir -p ${DATABASE_DIRECTORY}/Classify/GTDB/mash/
+mv ${DATABASE_DIRECTORY}/gtdb_r${GTDB_VERSION}.msh ${DATABASE_DIRECTORY}/Classify/GTDB/mash/gtdb.msh
 
-# GTDB r214.1 mash sketch
-wget -v -O ${DATABASE_DIRECTORY}/gtdb_r214.msh https://zenodo.org/record/8048187/files/gtdb_r214.msh?download=1
-mv ${DATABASE_DIRECTORY}/gtdb_r214.msh ${DATABASE_DIRECTORY}/Classify/GTDB/mash/
+# # GTDB r214.1
+# # data.gtdb.ecogenomic.org is slower than the faster mirror (data.ace.uq.edu.au/)
+# # wget -v -P ${DATABASE_DIRECTORY} https://data.gtdb.ecogenomic.org/releases/release214/214.1/auxillary_files/gtdbtk_r214_data.tar.gz
+# wget -v -P ${DATABASE_DIRECTORY} https://data.ace.uq.edu.au/public/gtdb/data/releases/release214/214.1/auxillary_files/gtdbtk_r214_data.tar.gz
+# tar xvzf ${DATABASE_DIRECTORY}/gtdbtk_r214_data.tar.gz -C ${DATABASE_DIRECTORY}
+# mv ${DATABASE_DIRECTORY}/release214 ${DATABASE_DIRECTORY}/Classify/GTDB
+# rm -rf ${DATABASE_DIRECTORY}/gtdbtk_r214_data.tar.gz
+
+# # GTDB r214.1 mash sketch
+# wget -v -O ${DATABASE_DIRECTORY}/gtdb_r214.msh https://zenodo.org/record/8048187/files/gtdb_r214.msh?download=1
+# mkdir -p ${DATABASE_DIRECTORY}/Classify/GTDB/mash/
+# mv ${DATABASE_DIRECTORY}/gtdb_r214.msh ${DATABASE_DIRECTORY}/Classify/GTDB/mash/
 
 # CheckV
 echo ". .. ... ..... ........ ............."
 echo " * Processing CheckV"
 echo ". .. ... ..... ........ ............."
 rm -rf ${DATABASE_DIRECTORY}/Classify/CheckV
-wget -v -P ${DATABASE_DIRECTORY} https://portal.nersc.gov/CheckV/checkv-db-v1.5.tar.gz
-tar xvzf ${DATABASE_DIRECTORY}/checkv-db-v1.5.tar.gz -C ${DATABASE_DIRECTORY}
-mv ${DATABASE_DIRECTORY}/checkv-db-v1.5 ${DATABASE_DIRECTORY}/Classify/CheckV
+CHECKVDB_VERSION="v1.5"
+wget -v -P ${DATABASE_DIRECTORY} https://portal.nersc.gov/CheckV/checkv-db-${CHECKVDB_VERSION}.tar.gz
+tar xvzf ${DATABASE_DIRECTORY}/checkv-db-${CHECKVDB_VERSION}.tar.gz -C ${DATABASE_DIRECTORY}
+mv ${DATABASE_DIRECTORY}/checkv-db-${CHECKVDB_VERSION} ${DATABASE_DIRECTORY}/Classify/CheckV
+echo "${CHECKV_VERSION}" > ${DATABASE_DIRECTORY}/Classify/CheckV/database_version
 diamond makedb --in ${DATABASE_DIRECTORY}/Classify/CheckV/genome_db/checkv_reps.faa --db ${DATABASE_DIRECTORY}/Classify/CheckV/genome_db/checkv_reps.dmnd
-rm -rf ${DATABASE_DIRECTORY}/checkv-db-v1.5.tar.gz
+rm -rf ${DATABASE_DIRECTORY}/checkv-db-${CHECKVDB_VERSION}.tar.gz
 
 # geNomad
 mkdir -p ${DATABASE_DIRECTORY}/Classify/geNomad
-wget -v -O ${DATABASE_DIRECTORY}/genomad_db_v1.2.tar.gz https://zenodo.org/record/7586412/files/genomad_db_v1.2.tar.gz?download=1
-tar xvzf ${DATABASE_DIRECTORY}/genomad_db_v1.2.tar.gz -C ${DATABASE_DIRECTORY}/Classify/geNomad --strip-components=1
-rm -rf ${DATABASE_DIRECTORY}/genomad_db_v1.2.tar.gz
+GENOMADDB_VERSION="v1.2"
+wget -v -O ${DATABASE_DIRECTORY}/genomad_db_${GENOMADDB_VERSION}}.tar.gz https://zenodo.org/record/7586412/files/genomad_db_${GENOMADDB_VERSION}.tar.gz?download=1
+tar xvzf ${DATABASE_DIRECTORY}/genomad_db_${GENOMADDB_VERSION}.tar.gz -C ${DATABASE_DIRECTORY}/Classify/geNomad --strip-components=1
+rm -rf ${DATABASE_DIRECTORY}/genomad_db_${GENOMADDB_VERSION}.tar.gz
 
 # CheckM2
 echo ". .. ... ..... ........ ............."
