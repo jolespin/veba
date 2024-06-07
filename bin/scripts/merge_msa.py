@@ -5,7 +5,7 @@ from Bio.SeqIO.FastaIO import SimpleFastaParser
 from tqdm import tqdm
 
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2022.06.21"
+__version__ = "2022.6.21"
 
 def main(args=None):
     # Path info

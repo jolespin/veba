@@ -25,8 +25,7 @@ mkdir -vp ${DATABASE_DIRECTORY}/Classify
 DATE=$(date)
 echo $DATE > ${DATABASE_DIRECTORY}/ACCESS_DATE
 
-
-# KOFAMSCAN
+# KOfam
 echo ". .. ... ..... ........ ............."
 echo " * Processing KEGG profile HMM marker sets"
 echo ". .. ... ..... ........ ............."
@@ -47,6 +46,7 @@ echo ". .. ... ..... ........ ............."
 mkdir -v -p ${DATABASE_DIRECTORY}/Annotate/Pfam
 wget -v -P ${DATABASE_DIRECTORY}/Annotate/Pfam http://ftp.ebi.ac.uk/pub/databases/Pfam/current_release/Pfam-A.hmm.gz
 wget -v -P ${DATABASE_DIRECTORY}/Annotate/Pfam http://ftp.ebi.ac.uk/pub/databases/Pfam/current_release/relnotes.txt
+wget -v -P ${DATABASE_DIRECTORY}/Annotate/Pfam http://ftp.ebi.ac.uk/pub/databases/Pfam/current_release/Pfam-A.clans.tsv.gz
 
 # NCBIfam-AMRFinder
 echo ". .. ... ..... ........ ............."

@@ -14,7 +14,9 @@ from soothsayer_utils import *
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2024.1.2"
+__version__ = "2024.6.7"
+
+MARKER_SEPERATOR="|--|"
 
 # Assembly
 def preprocess( input_filepaths, output_filepaths, output_directory, directories, opts):
@@ -61,40 +63,33 @@ def preprocess( input_filepaths, output_filepaths, output_directory, directories
                 with open(path, "r") as f_in:
                     for header, seq in SimpleFastaParser(f_in):
                         id_record = header.split(" ")[0]
-                        print(">{}|--|{}\n{}".format(id_mag, id_record, seq), file=f_out)
+                        print(">{}{}{}\n{}".format(id_mag, MARKER_SEPERATOR, id_record, seq), file=f_out)
 
     return []
 
 
-# HMMSearch
-def get_hmmsearch_cmd( input_filepaths, output_filepaths, output_directory, directories, opts):
+# PyHMMSearch
+def get_pyhmmsearch_cmd( input_filepaths, output_filepaths, output_directory, directories, opts):
     # Command
+    cmd = [ 
+        os.environ["pyhmmsearch.py"],
+        "--n_jobs {}".format(opts.n_jobs),
+        "-m {}".format(opts.threshold_method),
+        "-e {}".format(opts.evalue),
+        "-f {}".format(opts.hmm_marker_field),
+        "-i {}".format(os.path.join(directories["tmp"], "proteins.faa")),
+        "-d {}".format(opts.database_hmm),
+        "-s {}".format(opts.scores_cutoff) if opts.scores_cutoff else "",
+        "-o {}".format(os.path.join(output_directory, "pyhmmsearch.score_filtered.tsv.gz")),
 
-    # Command
-    cmd = [
-        "(",
-        os.environ["hmmsearch"],
-        "--tblout {}".format(os.path.join(output_directory, "output.tsv")),
-        "--cpu {}".format(opts.n_jobs),
-        "--seed {}".format(opts.random_state + 1),
-        "--{}".format(opts.hmmsearch_threshold) if opts.hmmsearch_threshold == "e" else "-E {}".format(opts.hmmsearch_evalue),
-        opts.database_hmm,
-        os.path.join(directories["tmp"], "proteins.faa"),
-        "|",
-        'grep "^{}:"'.format({"accession":"Accession", "name":"Query"}[opts.hmm_marker_field]),
-        ")",
-        "&&",
-        os.environ["partition_hmmsearch.py"],
-        "-i {}".format(os.path.join(output_directory, "output.tsv")),
+            "&&",
+
+        os.environ["partition_pyhmmsearch.py"],
+        "-i {}".format(os.path.join(output_directory, "pyhmmsearch.score_filtered.tsv.gz")),
         "-a {}".format(os.path.join(directories["tmp"], "proteins.faa")),
         "-o {}".format(output_directory),
-        '-d "|--|"',
-        "-f {}".format(opts.hmm_marker_field),
+        '-d "{}"'.format(MARKER_SEPERATOR),
     ]
-    if opts.scores_cutoff:
-        cmd += [ 
-            "-s {}".format(opts.scores_cutoff),
-        ]
 
     return cmd
 
@@ -115,17 +110,17 @@ cut -f1 %s | %s -j %d 'echo "[ClipKIT] {}"  &&  %s %s/{}.msa -m %s -o %s/{}.msa.
 %s -i %s -x msa.clipkit -o %s/concatenated_alignment.fasta --minimum_genomes_aligned_ratio %f  --minimum_markers_aligned_ratio %f --prefiltered_alignment_table %s --boolean_alignment_table %s
 """%( 
     # MUSCLE
-    os.path.join(directories[("intermediate",  "1__hmmsearch")], "markers.tsv"),
+    os.path.join(directories[("intermediate",  "1__pyhmmsearch")], "markers.tsv"),
     os.environ["parallel"],
     opts.n_jobs,
     os.environ["muscle"],
     opts.alignment_algorithm,
-    directories[("intermediate",  "1__hmmsearch")],
+    directories[("intermediate",  "1__pyhmmsearch")],
     output_directory,
     opts.muscle_options,
 
     # ClipKIT
-    os.path.join(directories[("intermediate",  "1__hmmsearch")], "markers.tsv"),
+    os.path.join(directories[("intermediate",  "1__pyhmmsearch")], "markers.tsv"),
     os.environ["parallel"],
     opts.n_jobs,
     os.environ["clipkit"],
@@ -231,14 +226,14 @@ def add_executables_to_environment(opts):
     Adapted from Soothsayer: https://github.com/jolespin/soothsayer
     """
     accessory_scripts = set([ 
-        "partition_hmmsearch.py",
+        "partition_pyhmmsearch.py",
         "merge_msa.py",
     ])
 
     
     required_executables={
                 # 1
-                "hmmsearch",
+                "pyhmmsearch.py",
                 "muscle",
                 "clipkit",
                 "parallel",
@@ -329,24 +324,24 @@ def create_pipeline(opts, directories, f_cmds):
 
   
     # ==========
-    # HMMSearch
+    # PyHMMSearch
     # ==========
     step = 1
 
-    program = "hmmsearch"
+    program = "pyhmmsearch"
     program_label = "{}__{}".format(step, program)
     # Add to directories
     output_directory = directories[("intermediate",  program_label)] = create_directory(os.path.join(directories["intermediate"], program_label))
 
     # Info
-    description = "HMMSearch for proteins"
+    description = "PyHMMSearch to identify marker proteins"
 
 
     # i/o
     input_filepaths = [
         os.path.join(directories["tmp"], "proteins.faa"),
         ]
-    output_filenames = ["*.faa.gz", "markers.tsv"]
+    output_filenames = ["*.faa.gz", "markers.tsv",  "pyhmmsearch.score_filtered.tsv.gz"]
     output_filepaths = list(map(lambda filename: os.path.join(output_directory, filename), output_filenames))
 
     params = {
@@ -357,7 +352,7 @@ def create_pipeline(opts, directories, f_cmds):
         "directories":directories,
     }
 
-    cmd = get_hmmsearch_cmd(**params)
+    cmd = get_pyhmmsearch_cmd(**params)
 
     pipeline.add_step(
                 id=program,
@@ -386,7 +381,7 @@ def create_pipeline(opts, directories, f_cmds):
 
     # i/o
     input_filepaths = [
-        os.path.join(directories[("intermediate", "1__hmmsearch")], "markers.tsv"),
+        os.path.join(directories[("intermediate", "1__pyhmmsearch")], "markers.tsv"),
         ]
     output_filenames = ["concatenated_alignment.fasta",  "prefiltered_alignment_table.tsv.gz", "alignment_table.boolean.tsv.gz"]
     output_filepaths = list(map(lambda filename: os.path.join(output_directory, filename), output_filenames))
@@ -555,10 +550,6 @@ def create_pipeline(opts, directories, f_cmds):
 
 # Configure parameters
 def configure_parameters(opts, directories):
-    if opts.hmmsearch_threshold.lower() == "e":
-        opts.hmmsearch_threshold = None
-    assert_acceptable_arguments(opts.hmm_marker_field, {"accession", "name"})
-    assert_acceptable_arguments(opts.alignment_algorithm, {"align", "super5"})
     if opts.tree_algorithm == "fasttree":
         opts.tree_algorithm = "FastTree"
     if opts.tree_algorithm == "veryfasttree":
@@ -581,8 +572,8 @@ def main(args=None):
     parser = argparse.ArgumentParser(description=description, usage=usage, epilog=epilog, formatter_class=argparse.RawTextHelpFormatter)
     # Pipeline
     parser_io = parser.add_argument_group('Required I/O arguments')
-    parser_io.add_argument("-d", "--database_hmm", type=str,  help=f"path/to/HMM database of markers")
-    parser_io.add_argument("-a","--proteins", type=str, help = "Can be the following format: 1) Tab-seperated value table of [id_mag]<tab>[path/to/protein.fasta] (No header); 2) Files with list of filepaths [path/to/protein.fasta] (uses --extension); or 3) Directory of protein fasta  (uses --extension)")
+    parser_io.add_argument("-d", "--database_hmm", required=True, type=str,  help=f"path/to/HMM database of markers")
+    parser_io.add_argument("-a","--proteins", required=True, type=str, help = "Can be the following format: 1) Tab-seperated value table of [id_mag]<tab>[path/to/protein.fasta] (No header); 2) Files with list of filepaths [path/to/protein.fasta] (uses --extension); or 3) Directory of protein fasta  (uses --extension)")
     parser_io.add_argument("-o","--output_directory", type=str, default="veba_output/phylogeny", help = "path/to/project_directory [Default: veba_output/phylogeny]")
     parser_io.add_argument("-x", "--extension", type=str, default="faa", help = "Fasta file extension for proteins if a list is provided [Default: faa]")
 
@@ -594,17 +585,16 @@ def main(args=None):
     parser_utility.add_argument("--restart_from_checkpoint", type=str, default=None, help = "Restart from a particular checkpoint [Default: None]")
     parser_utility.add_argument("-v", "--version", action='version', version="{} v{}".format(__program__, __version__))
 
-    # HMMER
-    parser_hmmer = parser.add_argument_group('HMMSearch arguments')
-    parser_hmmer.add_argument("--hmmsearch_threshold", type=str, default="e", help="HMMER | Threshold {cut_ga, cut_nc, gut_tc, e} [Default:  e]")
-    parser_hmmer.add_argument("--hmmsearch_evalue", type=float, default=10.0, help="HMMER | E-Value [Default: 10.0]")
-    parser_hmmer.add_argument("--hmmsearch_options", type=str, default="", help="HMMER | More options (e.g. --arg 1 ) [Default: '']")
-    parser_hmmer.add_argument("-f", "--hmm_marker_field", default="accession", type=str, help="HMM reference type (accession, name) [Default: accession")
-    parser_hmmer.add_argument("-s","--scores_cutoff", type=str, help = "path/to/scores_cutoff.tsv. No header. [id_hmm]<tab>[score]")
+    # PyHMMSearch
+    parser_pyhmmsearch = parser.add_argument_group('PyHMMSearch arguments')
+    parser_pyhmmsearch.add_argument("-t", "--threshold_method", type=str, default="e",choices={"gathering", "noise", "trusted", "e"},  help="Cutoff threshold method [Default:  e]")
+    parser_pyhmmsearch.add_argument("-e","--evalue", type=float, default=10.0,  help = "E-value threshold [Default: 10.0]")
+    parser_pyhmmsearch.add_argument("-f", "--hmm_marker_field", default="accession", type=str, choices={"accession", "name"}, help="HMM reference type (accession, name) [Default: accession]")
+    parser_pyhmmsearch.add_argument("-s","--scores_cutoff", type=str, help = "path/to/scores_cutoff.tsv. No header. [id_hmm]<tab>[score]")
 
     # Muscle
     parser_alignment = parser.add_argument_group('Alignment arguments')
-    parser_alignment.add_argument("-A", "--alignment_algorithm", type=str,  default="align", help = "Muscle alignment algorithm.  Align large input using Super5 algorithm if -align is too expensive. {align,super5} [Default: align]")
+    parser_alignment.add_argument("-A", "--alignment_algorithm", type=str,  default="align", choices={"align","super5"}, help = "Muscle alignment algorithm.  Align large input using Super5 algorithm if -align is too expensive.  [Default: align]")
     parser_alignment.add_argument("-g", "--minimum_genomes_aligned_ratio", type=float,  default=0.95, help = "Minimum ratio of genomes include in alignment. This removes markers that are under represented. [Default: 0.95]")
     parser_alignment.add_argument("-m", "--minimum_markers_aligned_ratio", type=float,  default=0.2, help = "Minimum ratio of markers aligned. This removes genomes with few markers. Note, this is based on detected markers and NOT total markers in original HMM. [Default: 0.2]")
     parser_alignment.add_argument("--muscle_options", type=str, default="", help="MUSCLE | More options (e.g. --arg 1 ) [Default: '']")

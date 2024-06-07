@@ -1,5 +1,5 @@
 #!/bin/bash
-# __version__ = "2024.6.5"
+# __version__ = "2024.6.6"
 # VEBA_DATABASE_VERSION = "VDB_v7"
 # MICROEUKAYROTIC_DATABASE_VERSION = "MicroEuk_v3"
 # usage: bash veba/download_databases-classify.sh /path/to/veba_database_destination/
@@ -46,6 +46,7 @@ echo ". .. ... ..... ........ ............."
 GTDB_VERSION="220"
 wget -v -P ${DATABASE_DIRECTORY} https://data.ace.uq.edu.au/public/gtdb/data/releases/release${GTDB_VERSION}/${GTDB_VERSION}.0/auxillary_files/gtdbtk_package/full_package/gtdbtk_r${GTDB_VERSION}_data.tar.gz
 tar xvzf ${DATABASE_DIRECTORY}/gtdbtk_r${GTDB_VERSION}_data.tar.gz -C ${DATABASE_DIRECTORY}
+rm -rf ${DATABASE_DIRECTORY}/Classify/GTDB
 mv ${DATABASE_DIRECTORY}/release${GTDB_VERSION} ${DATABASE_DIRECTORY}/Classify/GTDB
 echo "r${GTDB_VERSION}" > ${DATABASE_DIRECTORY}/Classify/GTDB/database_version
 wget -P ${DATABASE_DIRECTORY}/Classify/GTDB/ https://data.ace.uq.edu.au/public/gtdb/data/releases/release${GTDB_VERSION}/${GTDB_VERSION}.0/RELEASE_NOTES.txt 

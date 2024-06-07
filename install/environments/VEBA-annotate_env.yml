@@ -1,4 +1,4 @@
-name: VEBA-annotate_env__v2024.6.6
+name: VEBA-annotate_env__v2024.6.8
 channels:
   - bioconda
   - conda-forge
@@ -7,6 +7,7 @@ channels:
 dependencies:
   - _libgcc_mutex=0.1=conda_forge
   - _openmp_mutex=4.5=2_gnu
+  - biopython=1.83=py312h98912ed_0
   - blast=2.15.0=pl5321h6f7f691_1
   - brotli-python=1.1.0=py312h30efb56_1
   - bz2file=0.98=py_0
@@ -108,5 +109,5 @@ dependencies:
   - zlib=1.2.13=h4ab18f5_6
   - zstd=1.5.6=ha6fb4c9_0
   - pip:
-      - pyhmmsearch==2024.4.25
-      - pykofamsearch==2024.4.18
+      - pyhmmsearch==2024.6.8
+      - pykofamsearch==2024.6.8
