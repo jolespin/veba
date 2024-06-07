@@ -661,7 +661,7 @@ Check out the [*VEBA* step-by-step guide](https://github.com/jolespin/veba/tree/
 
 ______________________
 
-#### How can I update the GTDB database from r214.1 to r220 to upgrade from VEBA v2.1.0 (VEBA Database: VDB_v6) to VEBA v2.2.0 (VEBA Database: VDB_v7)?
+#### How can I update the database from VEBA v2.1.0 (VEBA Database: VDB_v6) to VEBA v2.2.0 (VEBA Database: VDB_v7)?
 
 In `GTDB-Tk v2.3.x` the database used was `r214.1` but with `GTDB-Tk v2.4.x` the database used is `r220`.  This update is essential because it swaps out `FastANI` for `Skani` which is already used throughout VEBA. To do this, you can follow these steps: 
 
@@ -690,6 +690,12 @@ GTDB_ZENODO_RECORD_ID="11494307"
 wget -v -O ${DATABASE_DIRECTORY}/gtdb_r${GTDB_VERSION}.msh https://zenodo.org/records/${GTDB_ZENODO_RECORD_ID}/files/gtdb_r${GTDB_VERSION}.msh?download=1
 mkdir -p ${DATABASE_DIRECTORY}/Classify/GTDB/mash/
 mv ${DATABASE_DIRECTORY}/gtdb_r${GTDB_VERSION}.msh ${DATABASE_DIRECTORY}/Classify/GTDB/mash/gtdb.msh
+
+# 5. Download the Pfam clans
+wget -v -P ${DATABASE_DIRECTORY}/Annotate/Pfam http://ftp.ebi.ac.uk/pub/databases/Pfam/current_release/Pfam-A.clans.tsv.gz
+
+# 6. Change KOFAM to KOfam
+mv ${DATABASE_DIRECTORY}/Annotate/KOFAM ${DATABASE_DIRECTORY}/Annotate/KOfam
 ```
 
 After you have the databases downloaded, then you need to set up your environment variables for the `VEBA-classify-prokaryotic_env`:

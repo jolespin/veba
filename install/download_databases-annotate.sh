@@ -1,6 +1,6 @@
 #!/bin/bash
-# __version__ = "2024.5.7"
-# VEBA_DATABASE_VERSION = "VDB_v6"
+# __version__ = "2024.6.8"
+# VEBA_DATABASE_VERSION = "VDB_v7"
 # MICROEUKAYROTIC_DATABASE_VERSION = "MicroEuk_v3"
 # usage: bash veba/download_databases-annotate.sh /path/to/veba_database_destination/
 
@@ -29,10 +29,10 @@ echo $DATE > ${DATABASE_DIRECTORY}/ACCESS_DATE
 echo ". .. ... ..... ........ ............."
 echo " * Processing KEGG profile HMM marker sets"
 echo ". .. ... ..... ........ ............."
-mkdir -v -p ${DATABASE_DIRECTORY}/Annotate/KOFAM
-wget -v -O - ftp://ftp.genome.jp/pub/db/kofam/ko_list.gz | gzip -d > ${DATABASE_DIRECTORY}/Annotate/KOFAM/ko_list
+mkdir -v -p ${DATABASE_DIRECTORY}/Annotate/KOfam
+wget -v -O - ftp://ftp.genome.jp/pub/db/kofam/ko_list.gz | gzip -d > ${DATABASE_DIRECTORY}/Annotate/KOfam/ko_list
 wget -v -c ftp://ftp.genome.jp/pub/db/kofam/profiles.tar.gz -O - |  tar -xz
-mv profiles ${DATABASE_DIRECTORY}/Annotate/KOFAM/
+mv profiles ${DATABASE_DIRECTORY}/Annotate/KOfam/
 
 wget -v -O ${DATABASE_DIRECTORY}/MicrobeAnnotator-KEGG.tar.gz https://zenodo.org/records/10020074/files/MicrobeAnnotator-KEGG.tar.gz?download=1
 tar xvzf ${DATABASE_DIRECTORY}/MicrobeAnnotator-KEGG.tar.gz -C ${DATABASE_DIRECTORY}/Annotate --no-xattrs
