@@ -43,6 +43,8 @@ ___________________________________________________________________
 
 * **Current Database Version:** `VDB_v7`
 
+	If you are updating to v2.2.0 you will need to modify your existing database.  Please see [FAQs](https://github.com/jolespin/veba/blob/main/FAQ.md) for more details.
+
 	<details>
 		<summary>New features and updates:</summary>
 
