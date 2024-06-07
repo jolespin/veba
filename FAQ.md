@@ -663,9 +663,14 @@ ______________________
 
 #### How can I update the database from VEBA v2.1.0 (VEBA Database: VDB_v6) to VEBA v2.2.0 (VEBA Database: VDB_v7)?
 
-In `GTDB-Tk v2.3.x` the database used was `r214.1` but with `GTDB-Tk v2.4.x` the database used is `r220`.  This update is essential because it swaps out `FastANI` for `Skani` which is already used throughout VEBA. To do this, you can follow these steps: 
+After uninstalling and installing the new environments: 
 
+```
+bash veba/uninstall.sh
+bash veba/install.sh
+```
 
+Next you need to update the database. In `GTDB-Tk v2.3.x` the database used was `r214.1` but with `GTDB-Tk v2.4.x` the database used is `r220`.  This update is essential because it swaps out `FastANI` for `Skani` which is already used throughout `VEBA`. We have also changed some directory names and added a few more essential files. To do this, you can follow these steps: 
 
 ```bash
 # 1. Set VEBA database directory to the `DATABASE_DIRECTORY` variable in an interactive session or a script
