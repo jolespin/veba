@@ -426,6 +426,7 @@ There was a problem importing veba_output/misc/reads_table.tsv:
 
 **Definitely:**
 
+* Add a `--proteins` option to `classify-eukaryotic.py` which aligns proteins to `MicroEuk100.eukaryota_odb10` via `MMseqs2` and then proceeds with the pipeline.
 * Add `BiNI` biosynthetic novelty index to `biosynthetic.py`
 * `busco_wrapper.py` that relabels all the genes, runs analysis, then converts output to tsv.
 * Script to update genome clusters

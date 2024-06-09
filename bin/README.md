@@ -991,7 +991,7 @@ The eukaryotic classification module can be performed on de novo genomes or util
 ```
 usage: classify-eukaryotic.py -i <eukaryotic_binning_directory>|-g <genomes.list> -o <output_directory>
 
-    Running: classify-eukaryotic.py v2024.6.8 via Python v3.10.14 | /Users/jolespin/miniconda3/envs/test_env/bin/python
+    Running: classify-eukaryotic.py v2024.6.9 via Python v3.10.14 | /Users/jolespin/miniconda3/envs/test_env/bin/python
 
 options:
   -h, --help            show this help message and exit
@@ -1003,7 +1003,7 @@ I/O arguments:
                         path/to/output_directory [Default: veba_output/classify/eukaryotic]
   -x EXTENSION, --extension EXTENSION
                         path/to/output_directory.  Does not support gzipped. [Default: fa]
-  -m {auto,genomes,manual,directory}, --mode {auto,genomes,manual,directory}
+  -m {directory,auto,genomes,manual}, --mode {directory,auto,genomes,manual}
                         {directory, genomes, manual, auto} [Default: auto]
 
 [mode=binning_directory] arguments:
@@ -1036,6 +1036,16 @@ Utility arguments:
 Database arguments:
   --veba_database VEBA_DATABASE
                         VEBA database location.  [Default: $VEBA_DATABASE environment variable]
+
+MetaEuk arguments:
+  --metaeuk_sensitivity METAEUK_SENSITIVITY
+                        MetaEuk | Sensitivity: 1.0 faster; 4.0 fast; 7.5 sensitive  [Default: 4.0]
+  --metaeuk_evalue METAEUK_EVALUE
+                        MetaEuk | List matches below this E-value (range 0.0-inf) [Default: 0.01]
+  --metaeuk_split_memory_limit METAEUK_SPLIT_MEMORY_LIMIT
+                        MetaEuk | Set max memory per split. E.g. 800B, 5K, 10M, 1G. Use 0 to use all available system memory. (Default value is experimental) [Default: 36G]
+  --metaeuk_options METAEUK_OPTIONS
+                        MetaEuk | More options (e.g. --arg 1 ) [Default: ''] https://github.com/soedinglab/metaeuk
 
 Consensus genome arguments:
   -L LENIENCY_GENOME_CLASSIFICATION, --leniency_genome_classification LENIENCY_GENOME_CLASSIFICATION

@@ -14,7 +14,7 @@ from soothsayer_utils import *
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2024.6.8"
+__version__ = "2024.6.9"
 
 # Assembly
 def get_concatenate_cmd( input_filepaths, output_filepaths, output_directory, directories, opts):
@@ -94,6 +94,10 @@ def get_metaeuk_cmd( input_filepaths, output_filepaths, output_directory, direct
         "--metaeuk_database {}".format(os.path.join(opts.veba_database, "Classify", "MicroEuk", "MicroEuk100.eukaryota_odb10")),
         "--n_jobs {}".format(opts.n_jobs),
         "--scaffolds_to_bins {}".format(os.path.join(output_directory, "scaffolds_to_bins.tsv")),
+        "--metaeuk_sensitivity {}".format(opts.metaeuk_sensitivity),
+        "--metaeuk_evalue {}".format(opts.metaeuk_evalue),
+        "--metaeuk_split_memory_limit {}".format(opts.metaeuk_split_memory_limit),
+        "--metaeuk_options {}".format(opts.metaeuk_options) if opts.metaeuk_options else "",
 
             "&&",
 
@@ -780,6 +784,13 @@ def main(args=None):
     parser_databases = parser.add_argument_group('Database arguments')
     parser_databases.add_argument("--veba_database", type=str,  help=f"VEBA database location.  [Default: $VEBA_DATABASE environment variable]")
     # parser_databases.add_argument("--include_all_genes",  action="store_true", help="Use if you want to include all genes for taxonomy classification instead of only core markers from BUSCO's eukaryota_odb10")
+
+    # MetaEuk
+    parser_metaeuk = parser.add_argument_group('MetaEuk arguments')
+    parser_metaeuk.add_argument("--metaeuk_sensitivity", type=float, default=4.0, help="MetaEuk | Sensitivity: 1.0 faster; 4.0 fast; 7.5 sensitive  [Default: 4.0]")
+    parser_metaeuk.add_argument("--metaeuk_evalue", type=float, default=0.01, help="MetaEuk | List matches below this E-value (range 0.0-inf) [Default: 0.01]")
+    parser_metaeuk.add_argument("--metaeuk_split_memory_limit", type=str, default="36G", help="MetaEuk | Set max memory per split. E.g. 800B, 5K, 10M, 1G. Use 0 to use all available system memory. (Default value is experimental) [Default: 36G]")
+    parser_metaeuk.add_argument("--metaeuk_options", type=str, default="", help="MetaEuk | More options (e.g. --arg 1 ) [Default: ''] https://github.com/soedinglab/metaeuk")
 
     # Consensus genome classification
     parser_consensus= parser.add_argument_group('Consensus genome arguments')
