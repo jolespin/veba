@@ -1,0 +1,203 @@
+#!/bin/bash
+# v2024.6.6
+
+CONDA_ENVS_PATH=${CONDA_ENVS_PATH:-"$(conda info --base)/envs/"}
+
+
+# Define available modules
+AVAILABLE_MODULES=(
+"annotate"
+"assembly-long"
+"assembly"
+"binning-eukaryotic"
+"binning-prokaryotic"
+"binning-viral"
+"biosynthetic"
+"classify-eukaryotic"
+"classify-prokaryotic"
+"classify-viral"
+"cluster"
+"coverage-long"
+"coverage"
+"index"
+"mapping"
+"phylogeny"
+"preprocess-long"
+"preprocess"
+"profile-pathway"
+"profile-taxonomy"
+)
+
+# Conda base
+CONDA_BASE=$(conda info --base)
+
+# Script directory
+SCRIPT_DIRECTORY=$(dirname $0)
+
+# Function to display script usage
+show_help() {
+    echo -e "-------------------------------"
+    echo " "
+    echo -e " _    _ _______ ______  _______\n  \  /  |______ |_____] |_____|\n   \/   |______ |_____] |     |"
+    echo " "
+    echo -e "-------------------------------"
+
+    echo "Usage: $0 [-m <module>] [-o <options>] [-v|--version] [-h|--help]"
+    echo -e "Example: veba --module preprocess --params \"-1 S1_1.fq.gz -2 S1_2.fq.gz -n S1 -o veba_output/preprocess\""
+    echo -e "GitHub: https://github.com/jolespin"
+    echo -e "Developer: Josh L. Espinoza, PhD (ORCiD: 0000-0003-3447-3845)"
+    echo " "
+    echo "Options:"
+    echo "  -m, --module    Specify the module.  Available modules: ${AVAILABLE_MODULES[*]}"
+    echo "  -p, --params    Specify parameters to give to each module"
+    echo "  -v, --version   Display the version information"
+    echo "  -V, --full_versions   Display the full version information"
+    echo "  -h, --help      Display this help message"
+    exit 0
+}
+
+# Parse command-line arguments
+ARGS=$(getopt -o m:p:vVh --long module:,params:,version,full_versions,help -n "$0" -- "$@")
+
+# Exit if getopt encounters an error
+if [ $? -ne 0 ]; then
+    exit 1
+fi
+
+eval set -- "$ARGS"
+
+# Default values
+MODULE=""
+PARAMS="-h"
+
+# Process command-line options
+while true; do
+    case "$1" in
+        -m|--module)
+            MODULE="$2"
+            shift 2
+            ;;
+        -p|--params)
+            PARAMS="$2"
+            shift 2
+            ;;
+        -v|--version)
+            echo "VEBA Version:"
+            cat "${SCRIPT_DIRECTORY}/VEBA_VERSION"
+            exit 0
+            ;;
+        -V|--full_versions)
+            echo "VEBA Versions:"
+            cat "${SCRIPT_DIRECTORY}/VEBA_SCRIPT_VERSIONS"
+            exit 0
+            ;;
+        -h|--help)
+            show_help
+            ;;
+        --)
+            shift
+            break
+            ;;
+        *)
+            echo "Unknown option: $1"
+            exit 1
+            ;;
+    esac
+done
+
+# Validate required arguments
+if [ -z "$MODULE" ]; then
+    echo "Module is required. Use --module."
+    exit 1
+fi
+
+
+# Check if the specified module is valid
+if [[ ! " ${AVAILABLE_MODULES[@]} " =~ " $MODULE " ]]; then
+    echo "Invalid module. Must be one of: ${AVAILABLE_MODULES[*]}"
+    exit 1
+fi
+
+# Perform tasks based on the specified module
+case $MODULE in
+    "annotate")
+        source "${CONDA_BASE}/bin/activate" ${CONDA_ENVS_PATH}/VEBA-annotate_env
+        annotate.py $PARAMS
+        ;;
+    "assembly-long")
+        source "${CONDA_BASE}/bin/activate" ${CONDA_ENVS_PATH}/VEBA-assembly_env
+        assembly-long.py $PARAMS
+        ;;
+    "assembly")
+        source "${CONDA_BASE}/bin/activate" ${CONDA_ENVS_PATH}/VEBA-assembly_env
+        assembly.py $PARAMS
+        ;;
+    "binning-eukaryotic")
+        source "${CONDA_BASE}/bin/activate" ${CONDA_ENVS_PATH}/VEBA-binning-eukaryotic_env
+        binning-eukaryotic.py $PARAMS
+        ;;
+    "binning-prokaryotic")
+        source "${CONDA_BASE}/bin/activate" ${CONDA_ENVS_PATH}/VEBA-binning-prokaryotic_env
+        binning-prokaryotic.py $PARAMS
+        ;;
+    "binning-viral")
+        source "${CONDA_BASE}/bin/activate" ${CONDA_ENVS_PATH}/VEBA-binning-viral_env
+        binning-viral.py $PARAMS
+        ;;
+    "biosynthetic")
+        source "${CONDA_BASE}/bin/activate" ${CONDA_ENVS_PATH}/VEBA-biosynthetic_env
+        biosynthetic.py $PARAMS
+        ;;
+    "classify-eukaryotic")
+        source "${CONDA_BASE}/bin/activate" ${CONDA_ENVS_PATH}/VEBA-classify-eukaryotic_env
+        classify-eukaryotic.py $PARAMS
+        ;;
+    "classify-prokaryotic")
+        source "${CONDA_BASE}/bin/activate" ${CONDA_ENVS_PATH}/VEBA-classify-prokaryotic_env
+        classify-prokaryotic.py $PARAMS
+        ;;
+    "classify-viral")
+        source "${CONDA_BASE}/bin/activate" ${CONDA_ENVS_PATH}/VEBA-classify-viral_env
+        classify-viral.py $PARAMS
+        ;;
+    "cluster")
+        source "${CONDA_BASE}/bin/activate" ${CONDA_ENVS_PATH}/VEBA-cluster_env
+        cluster.py $PARAMS
+        ;;
+    "coverage-long")
+        source "${CONDA_BASE}/bin/activate" ${CONDA_ENVS_PATH}/VEBA-assembly_env
+        coverage-long.py $PARAMS
+        ;;
+    "coverage")
+        source "${CONDA_BASE}/bin/activate" ${CONDA_ENVS_PATH}/VEBA-assembly_env
+        coverage.py $PARAMS
+        ;;
+    "index")
+        source "${CONDA_BASE}/bin/activate" ${CONDA_ENVS_PATH}/VEBA-mapping_env
+        index.py $PARAMS
+        ;;
+    "mapping")
+        source "${CONDA_BASE}/bin/activate" ${CONDA_ENVS_PATH}/VEBA-mapping_env
+        mapping.py $PARAMS
+        ;;
+    "phylogeny")
+        source "${CONDA_BASE}/bin/activate" ${CONDA_ENVS_PATH}/VEBA-phylogeny_env
+        phylogeny.py $PARAMS
+        ;;
+    "preprocess-long")
+        source "${CONDA_BASE}/bin/activate" ${CONDA_ENVS_PATH}/VEBA-preprocess_env
+        preprocess-long.py $PARAMS
+        ;;
+    "preprocess")
+        source "${CONDA_BASE}/bin/activate" ${CONDA_ENVS_PATH}/VEBA-preprocess_env
+        preprocess.py $PARAMS
+        ;;
+    "profile-pathway")
+        source "${CONDA_BASE}/bin/activate" ${CONDA_ENVS_PATH}/VEBA-profile_env
+        profile-pathway.py $PARAMS
+        ;;
+    "profile-taxonomy")
+        source "${CONDA_BASE}/bin/activate" ${CONDA_ENVS_PATH}/VEBA-profile_env
+        profile-taxonomy.py $PARAMS
+        ;;
+esac

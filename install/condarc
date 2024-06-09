@@ -1,0 +1,9 @@
+channel_priority: flexible
+channels:
+  - conda-forge
+  - bioconda
+  - jolespin
+  - defaults
+  - qiime2
+
+report_errors: true
