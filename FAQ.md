@@ -700,8 +700,12 @@ mv ${DATABASE_DIRECTORY}/gtdb_r${GTDB_VERSION}.msh ${DATABASE_DIRECTORY}/Classif
 wget -v -P ${DATABASE_DIRECTORY}/Annotate/Pfam http://ftp.ebi.ac.uk/pub/databases/Pfam/current_release/Pfam-A.clans.tsv.gz
 
 # 6. Change KOFAM to KOfam
+
+```
 mv ${DATABASE_DIRECTORY}/Annotate/KOFAM ${DATABASE_DIRECTORY}/Annotate/KOfam
 ```
+
+GitHub doesn't push case change on files so you might have to update this manually: https://github.com/desktop/desktop/issues/5537#
 
 After you have the databases downloaded, then you need to set up your environment variables for the `VEBA-classify-prokaryotic_env`:
 
