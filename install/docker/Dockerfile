@@ -1,4 +1,4 @@
-# v2024.4.29
+# v2024.6.10
 # =================================
 FROM --platform=linux/amd64 mambaorg/micromamba:latest
 
@@ -38,6 +38,10 @@ ARG MAMBA_NO_LOW_SPEED_LIMIT=1
 # RUN echo "  - conda-forge" >> ~/.condarc
 # RUN echo "  - bioconda" >> ~/.condarc
 # RUN echo "  - jolespin" >> ~/.condarc
+
+# Clean locks
+# error libmamba Could not set lock
+RUN micromamba clean --locks
 
 # Install dependencies
 RUN micromamba install -y -n base -f veba/install/environments/${ENV_NAME}.yml && \ 
