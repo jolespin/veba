@@ -15,7 +15,10 @@ from soothsayer_utils.soothsayer_utils import assert_acceptable_arguments
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2024.1.8"
+__version__ = "2024.6.7"
+
+DIAMOND_HEADER_FIELDS = "qseqid sseqid stitle pident evalue bitscore qcovhsp scovhsp"
+
 
 def get_preprocess_cmd( input_filepaths, output_filepaths, output_directory, directories, opts, program):
     cmd = [
@@ -46,7 +49,7 @@ def get_diamond_cmd( input_filepaths, output_filepaths, output_directory, direct
         "--db {}".format(input_filepaths[1]),
         "--query {}".format(input_filepaths[0]),
         "--threads {}".format(opts.n_jobs),
-        "-f 6 qseqid sseqid stitle pident length mismatch qlen qstart qend slen sstart send evalue bitscore qcovhsp scovhsp",
+        "-f 6 {}".format(DIAMOND_HEADER_FIELDS),
         "--evalue {}".format(opts.diamond_evalue),
         "-o {}".format(os.path.join(output_directory, "output.tsv")),
         "--max-target-seqs 1",
@@ -77,62 +80,94 @@ def get_diamond_cmd( input_filepaths, output_filepaths, output_directory, direct
 
 
 # HMMER
-def get_hmmsearch_cmd( input_filepaths, output_filepaths, output_directory, directories, opts):
+# def get_hmmsearch_cmd( input_filepaths, output_filepaths, output_directory, directories, opts):
+
+#     # Command
+#     cmd = [
+#         "(",
+#         os.environ["hmmsearch"],
+#         "--tblout {}".format(os.path.join(output_directory, "output.tsv")),
+#         "--cut_ga",
+#         "--cpu {}".format(opts.n_jobs),
+#         "--seed {}".format(opts.random_state + 1),
+#         input_filepaths[1],
+#         input_filepaths[0],
+#         ">",
+#         "/dev/null",
+#         ")",
+
+#             "&&",
+
+#         "pigz",
+#         "-f",
+#         "-p {}".format(opts.n_jobs),
+#         os.path.join(output_directory, "output.tsv"),
+        
+#     ]    
+#     return cmd
+
+# PyHMMSearch
+def get_pyhmmsearch_cmd( input_filepaths, output_filepaths, output_directory, directories, opts):
 
     # Command
     cmd = [
-        "(",
-        os.environ["hmmsearch"],
-        "--tblout {}".format(os.path.join(output_directory, "output.tsv")),
-        "--cut_ga",
-        "--cpu {}".format(opts.n_jobs),
-        "--seed {}".format(opts.random_state + 1),
-        input_filepaths[1],
-        input_filepaths[0],
-        ">",
-        "/dev/null",
-        ")",
+        os.environ["pyhmmsearch.py"],
+        "-i {}".format(input_filepaths[0]),
+        "-d {}".format(input_filepaths[1]),
+        "-m gathering",
+        "--n_jobs {}".format(opts.n_jobs),
+        "|",
+        os.environ["reformat_pyhmmsearch.py"],
+        "-o {}".format(os.path.join(output_directory, "output.tsv.gz")),
 
-            "&&",
-
-        "pigz",
-        "-f",
-        "-p {}".format(opts.n_jobs),
-        os.path.join(output_directory, "output.tsv"),
-        
     ]    
     return cmd
 
-# KOFAMSCAN
-def get_kofamscan_cmd( input_filepaths, output_filepaths, output_directory, directories, opts):
+# # KofamScan
+# def get_kofamscan_cmd( input_filepaths, output_filepaths, output_directory, directories, opts):
+
+#     # Command
+#     cmd = [
+#         "(",
+
+
+#         os.environ["exec_annotation"],
+#         "--cpu {}".format(opts.n_jobs),
+#         "-f detail-tsv",
+#         "-p {}".format(input_filepaths[1]),
+#         "-k {}".format(input_filepaths[2]),
+#         "--tmp-dir {}".format(os.path.join(directories["tmp"], "kofamscan")),
+#         opts.kofamscan_options,
+#         input_filepaths[0],
+#         "|",
+#         'grep "*"',
+#         ">",
+#         os.path.join(output_directory, "output.tsv"),
+#         ")",
+
+#             "&&",
+
+#         "pigz",
+#         "-f",
+#         "-p {}".format(opts.n_jobs),
+#         os.path.join(output_directory, "output.tsv"),
+#     ]    
+#     return cmd
+
+# PyKofamSearch
+def get_pykofamsearch_cmd( input_filepaths, output_filepaths, output_directory, directories, opts):
 
     # Command
     cmd = [
-        "(",
-        "mkdir -p {}".format(os.path.join(directories["tmp"], "kofamscan")),
-
-            "&&",
-
-        os.environ["exec_annotation"],
-        "--cpu {}".format(opts.n_jobs),
-        "-f detail-tsv",
-        "-p {}".format(input_filepaths[1]),
-        "-k {}".format(input_filepaths[2]),
-        "--tmp-dir {}".format(os.path.join(directories["tmp"], "kofamscan")),
-        opts.kofamscan_options,
-        input_filepaths[0],
+        
+        os.environ["pykofamsearch.py"],
+        "-i {}".format(input_filepaths[0]),
+        "-d {}".format(input_filepaths[1]),
+        "--n_jobs {}".format(opts.n_jobs),
         "|",
-        'grep "*"',
-        ">",
-        os.path.join(output_directory, "output.tsv"),
-        ")",
+        os.environ["reformat_pykofamsearch.py"],
+        "-o {}".format(os.path.join(output_directory, "output.tsv.gz")),
 
-            "&&",
-
-        "pigz",
-        "-f",
-        "-p {}".format(opts.n_jobs),
-        os.path.join(output_directory, "output.tsv"),
     ]    
     return cmd
 
@@ -145,10 +180,11 @@ def get_merge_annotations_cmd( input_filepaths, output_filepaths, output_directo
         "--diamond_mibig {}".format(input_filepaths[1]),
         "--diamond_vfdb {}".format(input_filepaths[2]),
         "--diamond_cazy {}".format(input_filepaths[3]),
-        "--hmmsearch_pfam {}".format(input_filepaths[4]),
-        "--hmmsearch_amr {}".format(input_filepaths[5]),
-        "--hmmsearch_antifam {}".format(input_filepaths[6]),
-        "--kofam {}".format(input_filepaths[7]),
+        "--pyhmmsearch_pfam {}".format(input_filepaths[4]),
+        "--pyhmmsearch_amr {}".format(input_filepaths[5]),
+        "--pyhmmsearch_antifam {}".format(input_filepaths[6]),
+        "--pykofamsearch {}".format(input_filepaths[7]),
+        "--pfam_clans {}".format(input_filepaths[8]),
         # "--veba_database {}".format(opts.veba_database),
         "--fasta {}".format(opts.proteins),
         "-o {}".format(output_directory),
@@ -230,9 +266,12 @@ def add_executables_to_environment(opts):
                 # 1
                 "diamond",
                 # 2 
-                "hmmsearch",
+                "pyhmmsearch.py",
+                "reformat_pyhmmsearch.py",
                 # 3
-                "exec_annotation",
+                "pykofamsearch.py",
+                "reformat_pykofamsearch.py",
+                
 
      } | accessory_scripts
 
@@ -494,13 +533,13 @@ def create_pipeline(opts, directories, f_cmds):
     # ==========
     step = 5
 
-    program = "hmmsearch-pfam"
+    program = "pyhmmsearch-pfam"
     program_label = "{}__{}".format(step, program)
     # Add to directories
     output_directory = directories[("intermediate",  program_label)] = create_directory(os.path.join(directories["intermediate"], program_label))
 
     # Info
-    description = "HMMSearch [PFAM]"
+    description = "PyHMMSearch [Pfam]"
 
     # i/o
     input_filepaths = [
@@ -518,7 +557,7 @@ def create_pipeline(opts, directories, f_cmds):
         "directories":directories,
     }
 
-    cmd = get_hmmsearch_cmd(**params)
+    cmd = get_pyhmmsearch_cmd(**params)
 
     pipeline.add_step(
                 id=program,
@@ -536,13 +575,13 @@ def create_pipeline(opts, directories, f_cmds):
     # =============
     step = 6
 
-    program = "hmmsearch-amr"
+    program = "pyhmmsearch-amr"
     program_label = "{}__{}".format(step, program)
     # Add to directories
     output_directory = directories[("intermediate",  program_label)] = create_directory(os.path.join(directories["intermediate"], program_label))
 
     # Info
-    description = "HMMSearch [NCBIfam-AMR]"
+    description = "PyHMMSearch [NCBIfam-AMR]"
 
     # i/o
     input_filepaths = [
@@ -560,7 +599,7 @@ def create_pipeline(opts, directories, f_cmds):
         "directories":directories,
     }
 
-    cmd = get_hmmsearch_cmd(**params)
+    cmd = get_pyhmmsearch_cmd(**params)
 
     pipeline.add_step(
                 id=program,
@@ -578,13 +617,13 @@ def create_pipeline(opts, directories, f_cmds):
     # =================
     step = 7
 
-    program = "hmmsearch-antifam"
+    program = "pyhmmsearch-antifam"
     program_label = "{}__{}".format(step, program)
     # Add to directories
     output_directory = directories[("intermediate",  program_label)] = create_directory(os.path.join(directories["intermediate"], program_label))
 
     # Info
-    description = "HMMSearch [AntiFam]"
+    description = "PyHMMSearch [AntiFam]"
 
     # i/o
     input_filepaths = [
@@ -602,7 +641,7 @@ def create_pipeline(opts, directories, f_cmds):
         "directories":directories,
     }
 
-    cmd = get_hmmsearch_cmd(**params)
+    cmd = get_pyhmmsearch_cmd(**params)
 
     pipeline.add_step(
                 id=program,
@@ -619,18 +658,17 @@ def create_pipeline(opts, directories, f_cmds):
     # ==========
     step = 8
 
-    program = "kofamscan"
+    program = "pykofamsearch"
     program_label = "{}__{}".format(step, program)
     # Add to directories
     output_directory = directories[("intermediate",  program_label)] = create_directory(os.path.join(directories["intermediate"], program_label))
 
     # Info
-    description = "KOFAMSCAN [KOFAM]"
+    description = "PyKofamSearch [KOfam]"
     # i/o
     input_filepaths = [
         opts.proteins, 
-        os.path.join(opts.veba_database, "Annotate", "KOFAM", "profiles"),
-        os.path.join(opts.veba_database, "Annotate", "KOFAM", "ko_list"),
+        os.path.join(opts.veba_database, "Annotate", "KOfam"),
         ]
     output_filenames = ["output.tsv.gz"]
     output_filepaths = list(map(lambda filename: os.path.join(output_directory, filename), output_filenames))
@@ -643,7 +681,7 @@ def create_pipeline(opts, directories, f_cmds):
         "directories":directories,
     }
 
-    cmd = get_kofamscan_cmd(**params)
+    cmd = get_pykofamsearch_cmd(**params)
 
     pipeline.add_step(
                 id=program,
@@ -675,12 +713,11 @@ def create_pipeline(opts, directories, f_cmds):
         os.path.join(directories[("intermediate",  "2__diamond-mibig")], "output.tsv.gz"),
         os.path.join(directories[("intermediate",  "3__diamond-vfdb")], "output.tsv.gz"),
         os.path.join(directories[("intermediate",  "4__diamond-cazy")], "output.tsv.gz"),
-        os.path.join(directories[("intermediate",  "5__hmmsearch-pfam")], "output.tsv.gz"),
-        os.path.join(directories[("intermediate",  "6__hmmsearch-amr")], "output.tsv.gz"),
-        os.path.join(directories[("intermediate",  "7__hmmsearch-antifam")], "output.tsv.gz"),
-        os.path.join(directories[("intermediate",  "8__kofamscan")], "output.tsv.gz"),
-
-
+        os.path.join(directories[("intermediate",  "5__pyhmmsearch-pfam")], "output.tsv.gz"),
+        os.path.join(directories[("intermediate",  "6__pyhmmsearch-amr")], "output.tsv.gz"),
+        os.path.join(directories[("intermediate",  "7__pyhmmsearch-antifam")], "output.tsv.gz"),
+        os.path.join(directories[("intermediate",  "8__pykofamsearch")], "output.tsv.gz"),
+        os.path.join(opts.veba_database, "Annotate", "Pfam", "Pfam-A.clans.tsv.gz"),
     ]
     output_filenames = ["annotations.proteins.tsv.gz"]
 
@@ -817,7 +854,7 @@ def main(args=None):
     parser_utility.add_argument("--random_state", type=int, default=0, help = "Random state [Default: 0]")
     parser_utility.add_argument("--restart_from_checkpoint", type=str, default=None, help = "Restart from a particular checkpoint [Default: None]")
     parser_utility.add_argument("--keep_temporary_directory", action="store_true",  help = "Keep temporary directory [Default is to remove]")
-    parser_utility.add_argument("--no_check_protein_lengths", action="store_true",  help = "Do not check protein sequence lengths.  Not recommended.  Sequences must be < 100k or else HMMSearch will fail.")
+    parser_utility.add_argument("--no_check_protein_lengths", action="store_true",  help = "Do not check protein sequence lengths.  Not recommended.  Sequences must be < 100k or else PyHMMSearch will fail.")
     parser_utility.add_argument("-v", "--version", action='version', version="{} v{}".format(__program__, __version__))
 
     # Databases
@@ -831,16 +868,7 @@ def main(args=None):
     parser_diamond.add_argument("--diamond_evalue", type=float, default=0.001, help="Diamond | E-Value [Default: 0.001]")
     parser_diamond.add_argument("--diamond_options", type=str, default="", help="Diamond | More options (e.g. --arg 1 ) [Default: '']")
 
-    # HMMER
-    parser_hmmer = parser.add_argument_group('HMMSearch arguments')
-    # parser_hmmer.add_argument("--hmmsearch_threshold", type=str, default="cut_ga", help="HMMSearch | Threshold {cut_ga, cut_nc, gut_tc} [Default:  cut_ga]")
-    # parser_hmmer.add_argument("--hmmsearch_evalue", type=float, default=10.0, help="Diamond | E-Value [Default: 10.0]")
-    parser_hmmer.add_argument("--hmmsearch_options", type=str, default="", help="Diamond | More options (e.g. --arg 1 ) [Default: '']")
-
-    # KOFAMSCAN
-    parser_kofamscan = parser.add_argument_group('KOFAMSCAN arguments')
-    parser_kofamscan.add_argument("--kofamscan_options", type=str, default="", help="Diamond | More options (e.g. --arg 1 ) [Default: '']")
-
+    # Composite
     parser_composite = parser.add_argument_group('Composite arguments')
     parser_composite.add_argument("-j", "--composite_name_joiner", type=str, required=False,  default=";", help = "Composite label separator [Default: ; ]")
 

@@ -14,9 +14,9 @@
 |   Stable         |   [binning-prokaryotic](#binning-prokaryoticpy)   |   VEBA-binning-prokaryotic_env  |   binning-prokaryotic.py   |   16GB         |   4                    |   Iterative consensus binning for recovering prokaryotic genomes with lineage-specific quality assessment          |    Classify    |
 |   Stable         |   [binning-eukaryotic](#binning-eukaryoticpy)    |   VEBA-binning-eukaryotic_env   |   binning-eukaryotic.py    |   128GB        |   4                    |   Binning for recovering eukaryotic genomes with exon-aware gene modeling and lineage-specific quality assessment  |    Classify    |
 |   Stable         |   [binning-viral](#binning-viralpy)         |   VEBA-binning-viral_env        |   binning-viral.py         |   16GB         |   4                    |   Detection of viral genomes and quality assessment                                                                |    Classify    |
-|   Stable         |   [classify-prokaryotic](#classify-prokaryoticpy)  |   VEBA-classify_env             |   classify-prokaryotic.py  |   64GB         |   32                   |   Taxonomic classification of prokaryotic genomes                                                                  |    Classify    |
-|   Stable         |   [classify-eukaryotic](#classify-eukaryoticpy)   |   VEBA-classify_env             |   classify-eukaryotic.py   |   32GB         |   1                    |   Taxonomic classification of eukaryotic genomes                                                                   |    Classify    |
-|   Stable         |   [classify-viral](#classify-viralpy)        |   VEBA-classify_env             |   classify-viral.py        |   16GB         |   4                    |   Taxonomic classification of viral genomes                                                                        |    Classify    |
+|   Stable         |   [classify-prokaryotic](#classify-prokaryoticpy)  |   VEBA-classify-prokaryotic_env             |   classify-prokaryotic.py  |   [90GB](https://ecogenomics.github.io/GTDBTk/installing/index.html)         |   32                   |   Taxonomic classification of prokaryotic genomes                                                                  |    Classify    |
+|   Stable         |   [classify-eukaryotic](#classify-eukaryoticpy)   |   VEBA-classify-eukaryotic_env             |   classify-eukaryotic.py   |   32GB         |   1                    |   Taxonomic classification of eukaryotic genomes                                                                   |    Classify    |
+|   Stable         |   [classify-viral](#classify-viralpy)        |   VEBA-classify-viral_env             |   classify-viral.py        |   16GB         |   4                    |   Taxonomic classification of viral genomes                                                                        |    Classify    |
 |   Stable         |   [cluster](#clusterpy)               |   VEBA-cluster_env              |   cluster.py               |   32GB+        |   32                   |   Species-level clustering of genomes and lineage-specific orthogroup detection                                    |
 |   Stable         |   [annotate](#annotatepy)              |   VEBA-annotate_env             |   annotate.py              |   64GB         |   32                   |   Annotates translated gene calls                                                      |    Annotate    |
 |   Stable         |   [phylogeny](#phylogenypy)             |   VEBA-phylogeny_env            |   phylogeny.py             |   16GB+        |   32                   |   Constructs phylogenetic trees given a marker set                                                                 |
@@ -919,7 +919,7 @@ ______________________
 
 The prokaryotic classification module is a useful wrapper around `GTDB-Tk` which either combines the resulting archaea and bacteria summary tables or runs `GTDB-Tk lineage_wf` from the beginning.  If genome clusters are provided, then it performs consensus lineage classification.  `Krona` plots are generated showing taxonomic levels.
 
-**Conda Environment**: `conda activate VEBA-classify_env`
+**Conda Environment**: `conda activate VEBA-classify-prokaryotic_env`
 
 
 ```
@@ -986,27 +986,41 @@ ______________________
 
 The eukaryotic classification module can be performed on de novo genomes or utilize the target field of `MetaEuk` gene identifiers and the taxonomic lineage associated with each source genome.  The default marker set is `eukaryote_odb10` from `BUSCO` but custom marker sets are support along with the inclusion of all genes not just marker genes.  An option to include marker-specific noise cutoff scores is also available using the `--scores_cutoff` parameter which is default behavior with `BUSCO’s eukaryote_odb10` provided noise thresholds.  For each MAG, bitscores are accumulated for each taxonomic level and taxonomy is assigned with leniency specified by the leniency parameter with high leniency resulting higher order taxonomic assignments.  If genome clusters are provided, then it performs consensus lineage classification. `Krona` plots are generated showing taxonomic levels.
 
-**Conda Environment**: `conda activate VEBA-classify_env` 
+**Conda Environment**: `conda activate VEBA-classify-eukaryotic_env` 
 
 ```
 usage: classify-eukaryotic.py -i <eukaryotic_binning_directory>|-g <genomes.list> -o <output_directory>
 
-    Running: classify-eukaryotic.py v2023.6.12 via Python v3.9.15 | /expanse/projects/jcl110/anaconda3/envs/VEBA-preprocess_env/bin/python
+    Running: classify-eukaryotic.py v2024.6.9 via Python v3.10.14 | /Users/jolespin/miniconda3/envs/test_env/bin/python
 
-optional arguments:
+options:
   -h, --help            show this help message and exit
 
-Required I/O arguments:
-  -i EUKARYOTIC_BINNING_DIRECTORY, --eukaryotic_binning_directory EUKARYOTIC_BINNING_DIRECTORY
-                        path/to/eukaryotic_binning_directory [Cannot be used with --genomes]
-  -g GENOMES, --genomes GENOMES
-                        path/to/genomes.list where each line is a path to a genome.fasta [Cannot be ued with --eukaryotic_binning_directory]
+I/O arguments:
   -c CLUSTERS, --clusters CLUSTERS
                         path/to/clusters.tsv, Format: [id_mag]<tab>[id_cluster], No header.
   -o OUTPUT_DIRECTORY, --output_directory OUTPUT_DIRECTORY
                         path/to/output_directory [Default: veba_output/classify/eukaryotic]
   -x EXTENSION, --extension EXTENSION
                         path/to/output_directory.  Does not support gzipped. [Default: fa]
+  -m {directory,auto,genomes,manual}, --mode {directory,auto,genomes,manual}
+                        {directory, genomes, manual, auto} [Default: auto]
+
+[mode=binning_directory] arguments:
+  -i EUKARYOTIC_BINNING_DIRECTORY, --eukaryotic_binning_directory EUKARYOTIC_BINNING_DIRECTORY
+                        path/to/eukaryotic_binning_directory [Cannot be used with --mode genomes or manual]
+
+[mode=genomes] arguments:
+  -g GENOMES, --genomes GENOMES
+                        path/to/genomes.list where each line is a path to a genome.fasta [Cannot be used with --mode binning_directory or manual]
+
+[mode=manual] arguments:
+  -a PROTEINS, --proteins PROTEINS
+                        path/to/concatenated_proteins.faa  [Cannot be used with --model _binning_directory or genomes]
+  -t IDENTIFIER_MAPPING_METAEUK, --identifier_mapping_metaeuk IDENTIFIER_MAPPING_METAEUK
+                        path/to/identifier_mapping.metaeuk.tsv  [Cannot be used with --model _binning_directory or genomes]
+  -s SCAFFOLDS_TO_BINS, --scaffolds_to_bins SCAFFOLDS_TO_BINS
+                        path/to/scaffolds_to_bins.tsv  [Cannot be used with --model _binning_directory or genomes]
 
 Utility arguments:
   --path_config PATH_CONFIG
@@ -1019,21 +1033,25 @@ Utility arguments:
                         Restart from a particular checkpoint [Default: None]
   -v, --version         show program's version number and exit
 
-HMMSearch arguments:
-  --hmmsearch_threshold HMMSEARCH_THRESHOLD
-                        HMMSearch | Threshold {cut_ga, cut_nc, gut_tc, e} [Default:  e]
-  --hmmsearch_evalue HMMSEARCH_EVALUE
-                        HMMSearch | E-Value [Default: 10.0]
-  --hmmsearch_options HMMSEARCH_OPTIONS
-                        HMMSearch | More options (e.g. --arg 1 ) [Default: '']
-
 Database arguments:
   --veba_database VEBA_DATABASE
                         VEBA database location.  [Default: $VEBA_DATABASE environment variable]
 
+MetaEuk arguments:
+  --metaeuk_sensitivity METAEUK_SENSITIVITY
+                        MetaEuk | Sensitivity: 1.0 faster; 4.0 fast; 7.5 sensitive  [Default: 4.0]
+  --metaeuk_evalue METAEUK_EVALUE
+                        MetaEuk | List matches below this E-value (range 0.0-inf) [Default: 0.01]
+  --metaeuk_split_memory_limit METAEUK_SPLIT_MEMORY_LIMIT
+                        MetaEuk | Set max memory per split. E.g. 800B, 5K, 10M, 1G. Use 0 to use all available system memory. (Default value is experimental) [Default: 36G]
+  --metaeuk_options METAEUK_OPTIONS
+                        MetaEuk | More options (e.g. --arg 1 ) [Default: ''] https://github.com/soedinglab/metaeuk
+
 Consensus genome arguments:
+  -L LENIENCY_GENOME_CLASSIFICATION, --leniency_genome_classification LENIENCY_GENOME_CLASSIFICATION
+                        Leniency parameter for genomes. Lower value means more conservative weighting. A value of 1 indiciates no weight bias. A value greater than 1 puts higher weight on higher level taxonomic assignments. A value less than 1 puts lower weights on higher level taxonomic assignments.  [Default: 1.0]
   -l LENIENCY, --leniency LENIENCY
-                        Leniency parameter. Lower value means more conservative weighting. A value of 1 indiciates no weight bias. A value greater than 1 puts higher weight on higher level taxonomic assignments. A value less than 1 puts lower weights on higher level taxonomic assignments.  [Default: 1.382]
+                        Leniency parameter for genome cluster. Lower value means more conservative weighting. A value of 1 indiciates no weight bias. A value greater than 1 puts higher weight on higher level taxonomic assignments. A value less than 1 puts lower weights on higher level taxonomic assignments.  [Default: 1.0]
   --similarity_threshold SIMILARITY_THRESHOLD
                         Threshold for similarity analysis [Default: 0.8]
   --retain_unannotated RETAIN_UNANNOTATED
@@ -1042,6 +1060,8 @@ Consensus genome arguments:
                         Weight for unannotations (i.e., blank functions) in the scording system? [Default: 0.382]
   --representative_threshold REPRESENTATIVE_THRESHOLD
                         Score to consider as representative [Default: 0.618]
+  -b BLACKLIST, --blacklist BLACKLIST
+                        Comma-separated list of [taxon_level]:[blacklisted label]. Use 'NONE' for no black listed taxa. [Default: species:uncultured eukaryote]
 
 ``` 
 
@@ -1062,7 +1082,7 @@ ______________________
 
 Viral classification uses `geNomad's taxonomy` module. 
 
-**Conda Environment**: `conda activate VEBA-classify_env`
+**Conda Environment**: `conda activate VEBA-classify-viral_env`
 
 ```
 usage: classify-viral.py -i <viral_binning_directory>|-g <genomes.list>  -o <output_directory>
@@ -1248,25 +1268,24 @@ Annotation is performed using best hit annotations and profile HMMs. Proteins ar
 **Conda Environment**: `conda activate VEBA-annotate_env`
 
 ```
-usage: annotate.py -a <proteins> -o <output_directory> |Optional: -i <identifier_mapping or -c <protein_clusters>]
-Warnings:Proteins >100k will cause HMMSearch to crash.  Please prefilter using `seqkit seq -M 100000`
+usage: annotate.py -a <proteins> -o <output_directory> |Optional: -i <identifier_mapping]
 
-    Running: annotate.py v2023.6.20 via Python v3.9.15 | /expanse/projects/jcl110/anaconda3/envs/VEBA-preprocess_env/bin/python
+    Running: annotate.py v2024.6.7 via Python v3.10.14 | /Users/jolespin/miniconda3/envs/test_env/bin/python
 
-optional arguments:
+options:
   -h, --help            show this help message and exit
 
 Required I/O arguments:
   -a PROTEINS, --proteins PROTEINS
-                        Either path/to/proteins.faa or a directory of fasta files using [-x]
+                        path/to/proteins.faa fasta to annotate
   -o OUTPUT_DIRECTORY, --output_directory OUTPUT_DIRECTORY
                         path/to/project_directory [Default: veba_output/annotation]
   -i IDENTIFIER_MAPPING, --identifier_mapping IDENTIFIER_MAPPING
-                        Tab-seperated value table of [id_protein]<tab>[id\_contig]<tab>[id\_genome], No header.  Cannot be used with --protein_clusters
-  -c PROTEIN_CLUSTERS, --protein_clusters PROTEIN_CLUSTERS
-                        Tab-seperated value table of [id_protein]<tab>[id_protein_cluster].  Use this if the --proteins are representative sequences.  Cannot be used with --identifier_mapping
+                        Tab-seperated value table (identifier_mapping.proteins.tsv created by cluster.py)  Requirements: 1) contain headers; 2) first column must be protein identifiers; and 3) contains these columns to the right in any order. Format: [id_protein]<tab>[organism_type]<tab>[id_genome]<tab>[sample_of_origin]<tab>[id_genome_cluster]<tab>[id_protein_cluster] with headers [Optional]
   -x EXTENSION, --extension EXTENSION
-                        Fasta file extension for proteins if a directory is provided for --proteins [Default: faa]
+                        Fasta file extension for proteins if a directory is provided for --proteins (Can be gzipped) [Default: faa]
+  -M MAXIMUM_PROTEIN_LENGTH, --maximum_protein_length MAXIMUM_PROTEIN_LENGTH
+                        Proteins ≥ 100k will cause HMMSearch to crash and will use more resources [Default: 99999]
 
 Utility arguments:
   --path_config PATH_CONFIG
@@ -1279,11 +1298,13 @@ Utility arguments:
                         Restart from a particular checkpoint [Default: None]
   --keep_temporary_directory
                         Keep temporary directory [Default is to remove]
+  --no_check_protein_lengths
+                        Do not check protein sequence lengths.  Not recommended.  Sequences must be < 100k or else PyHMMSearch will fail.
   -v, --version         show program's version number and exit
 
 Database arguments:
   -u UNIREF, --uniref UNIREF
-                        UniRef database to use {uniref90, uniref50}.  uniref90 receommended for well-characterized systems and uniref50 for less characterized systems [Default: uniref90]
+                        UniRef database to use {uniref90, uniref50}.  uniref90 receommended for well-characterized systems and uniref50 for less characterized systems [Default: uniref50]
   --veba_database VEBA_DATABASE
                         VEBA database location.  [Default: $VEBA_DATABASE environment variable]
 
@@ -1295,20 +1316,16 @@ Diamond arguments:
   --diamond_options DIAMOND_OPTIONS
                         Diamond | More options (e.g. --arg 1 ) [Default: '']
 
-HMMSearch arguments:
-  --hmmsearch_options HMMSEARCH_OPTIONS
-                        Diamond | More options (e.g. --arg 1 ) [Default: '']
-
-KOFAMSCAN arguments:
-  --kofamscan_options KOFAMSCAN_OPTIONS
-                        Diamond | More options (e.g. --arg 1 ) [Default: '']
+Composite arguments:
+  -j COMPOSITE_NAME_JOINER, --composite_name_joiner COMPOSITE_NAME_JOINER
+                        Composite label separator [Default: ; ]
 
 ```
 
 **Output:**
 
-* annotations.tsv.gz - Concatenated annotations from Diamond (UniRef, MiBIG, VFDB), HMMSearch (Pfam, AntiFam), and KOFAMSCAN (KEGG)
-* annotations.proteins.tsv.gz - Propogated annotations if clusters are provided
+* annotations.proteins.tsv.gz - Concatenated annotations from Diamond (UniRef, MiBIG, VFDB, CAZy), PyHMMSearch (Pfam, NCBIfam-AMR, AntiFam), and PyKofamSearch (KEGG)
+* annotations.protein_clusters.tsv.gz - Propogated annotations if clusters are provided
 * module_completion_ratios.genomes.tsv - KEGG module completion ratios for each genomes [Only if --identifier_mapping is provided]
 * module_completion_ratios.genome_clusters.tsv - KEGG module completion ratios for each genome clusters [Only if --identifier_mapping is provided]
 
@@ -1320,7 +1337,7 @@ ______________________
 #### *phylogeny.py*
 **Constructs phylogenetic trees given a marker set**
 
-The phylogeny module is a tool used for phylogenetic inference and constructing phylogenetic trees for genomes given a reference marker set. This is performed by the following method: 1) identifying marker proteins using `HMMSearch` from the `HMMER3` suite; 2) creating protein alignments for each marker identified `MUSCLE`; 3) trimming the alignments using `ClipKIT`; 4) concatenating the alignments; 5) approximately-maximum-likelihood phylogenetic inference using `FastTree2` ; and 6) optional maximum likelihood phylogenetic inference using `IQ-TREE2`.  An option to include marker-specific noise cutoff scores is also available using the `--scores_cutoff` parameter.  Poor-quality genomes that do not meet a threshold in the proportion of markers in the reference are removed using the `--minimum_markers_aligned_ratio` parameter.  Similarly, non-informative markers that are not prevalent in the query genomes are removed using the `--minimum_genomes_aligned_ratio` parameter.
+The phylogeny module is a tool used for phylogenetic inference and constructing phylogenetic trees for genomes given a reference marker set. This is performed by the following method: 1) identifying marker proteins using `PyHMMSearch`; 2) creating protein alignments for each marker identified `MUSCLE`; 3) trimming the alignments using `ClipKIT`; 4) concatenating the alignments; 5) approximately-maximum-likelihood phylogenetic inference using `FastTree2` ; and 6) optional maximum likelihood phylogenetic inference using `IQ-TREE2`.  An option to include marker-specific noise cutoff scores is also available using the `--scores_cutoff` parameter.  Poor-quality genomes that do not meet a threshold in the proportion of markers in the reference are removed using the `--minimum_markers_aligned_ratio` parameter.  Similarly, non-informative markers that are not prevalent in the query genomes are removed using the `--minimum_genomes_aligned_ratio` parameter.
 
 **Conda Environment**: `conda activate VEBA-phylogeny_env`
 
@@ -1328,7 +1345,7 @@ The phylogeny module is a tool used for phylogenetic inference and constructing 
 ```
 usage: phylogeny.py -d <database_hmms> -a <proteins> -o <output_directory>
 
-    Running: phylogeny.py v2023.6.12 via Python v3.11.0 | /expanse/projects/jcl110/anaconda3/envs/VEBA-phylogeny_env/bin/python
+    Running: phylogeny.py v2024.6.7 via Python v3.10.14 | /Users/jolespin/miniconda3/envs/test_env/bin/python
 
 options:
   -h, --help            show this help message and exit
@@ -1354,21 +1371,19 @@ Utility arguments:
                         Restart from a particular checkpoint [Default: None]
   -v, --version         show program's version number and exit
 
-HMMSearch arguments:
-  --hmmsearch_threshold HMMSEARCH_THRESHOLD
-                        HMMER | Threshold {cut_ga, cut_nc, gut_tc, e} [Default:  e]
-  --hmmsearch_evalue HMMSEARCH_EVALUE
-                        HMMER | E-Value [Default: 10.0]
-  --hmmsearch_options HMMSEARCH_OPTIONS
-                        HMMER | More options (e.g. --arg 1 ) [Default: '']
-  -f HMM_MARKER_FIELD, --hmm_marker_field HMM_MARKER_FIELD
-                        HMM reference type (accession, name) [Default: accession
+PyHMMSearch arguments:
+  -t {gathering,noise,e,trusted}, --threshold_method {gathering,noise,e,trusted}
+                        Cutoff threshold method [Default:  e]
+  -e EVALUE, --evalue EVALUE
+                        E-value threshold [Default: 10.0]
+  -f {name,accession}, --hmm_marker_field {name,accession}
+                        HMM reference type (accession, name) [Default: accession]
   -s SCORES_CUTOFF, --scores_cutoff SCORES_CUTOFF
                         path/to/scores_cutoff.tsv. No header. [id_hmm]<tab>[score]
 
 Alignment arguments:
-  -A ALIGNMENT_ALGORITHM, --alignment_algorithm ALIGNMENT_ALGORITHM
-                        Muscle alignment algorithm.  Align large input using Super5 algorithm if -align is too expensive. {align,super5} [Default: align]
+  -A {align,super5}, --alignment_algorithm {align,super5}
+                        Muscle alignment algorithm.  Align large input using Super5 algorithm if -align is too expensive.  [Default: align]
   -g MINIMUM_GENOMES_ALIGNED_RATIO, --minimum_genomes_aligned_ratio MINIMUM_GENOMES_ALIGNED_RATIO
                         Minimum ratio of genomes include in alignment. This removes markers that are under represented. [Default: 0.95]
   -m MINIMUM_MARKERS_ALIGNED_RATIO, --minimum_markers_aligned_ratio MINIMUM_MARKERS_ALIGNED_RATIO
@@ -1381,8 +1396,12 @@ Alignment arguments:
                         ClipKIT | More options (e.g. --arg 1 ) [Default: '']
 
 Tree arguments:
+  -T {fasttree,veryfasttree}, --tree_algorithm {fasttree,veryfasttree}
+                        Tree inference algorithm to use {fasttree, veryfasttree} [Default: fasttree]
   --fasttree_options FASTTREE_OPTIONS
                         FastTree | More options (e.g. --arg 1 ) [Default: '']
+  --veryfasttree_options VERYFASTTREE_OPTIONS
+                        VeryFastTree | More options (e.g. --arg 1 ) [Default: '']
   --no_iqtree           IQTree | Don't run IQTree
   --iqtree_model IQTREE_MODEL
                         IQTree | Model finder [Default: MFP]
@@ -1392,6 +1411,9 @@ Tree arguments:
                         IQTree | Bootstraps [Default: 1000]
   --iqtree_options IQTREE_OPTIONS
                         IQTree | More options (e.g. --arg 1 ) [Default: '']
+  --no_show_support     ETE3 | Don't show branch bootstrap/support values
+  --no_show_branch_length
+                        ETE3 | Don't show branch lengths
 
 ```
 

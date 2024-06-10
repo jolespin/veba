@@ -80,7 +80,7 @@ The `VEBA` installation is going to configure some `conda` environments for you 
 ```
 # For stable version, download and decompress the tarball:
 
-VERSION="2.1.0"
+VERSION="2.2.0"
 wget https://github.com/jolespin/veba/archive/refs/tags/v${VERSION}.tar.gz
 tar -xvf v${VERSION}.tar.gz && mv veba-${VERSION} veba
 
@@ -89,7 +89,9 @@ tar -xvf v${VERSION}.tar.gz && mv veba-${VERSION} veba
 # unzip -d veba v${VERSION}.zip
 
 # For developmental version, clone the repository:
-# git clone https://github.com/jolespin/veba/
+# Note: This is not recommended because between v2.1.0 and v2.2.0, case changes were introduced (KOFAM -> KOfam)
+# and these changes are not updating on GitHub.  Please use official releases instead of pulling the repo:
+# git clone --branch devel https://github.com/jolespin/veba.git
 
 # Update the permissions
 chmod 775 veba/bin/*.py
@@ -130,7 +132,7 @@ The databases are installed with a series scripts to allow for custom installati
 
 The duration will depend on several factors including your internet connection speed and the I/O of public repositories.
 
-Total size is `~270 GB` but if you have certain databases installed already then you can just symlink them so the `VEBA_DATABASE` path has the correct structure.  The exact size may vary as `Pfam` and `UniRef` are updated regularly.
+Total size is `~300 GB` but if you have certain databases installed already then you can just symlink them so the `VEBA_DATABASE` path has the correct structure.  The exact size may vary as `Pfam` and `UniRef` are updated regularly. 
 
 If issues arise, please [submit a GitHub issue](https://github.com/jolespin/veba/issues) prefixed with `[Database]`. We are here to help :)
 
@@ -192,7 +194,9 @@ VEBA-binning-eukaryotic_env
 VEBA-binning-prokaryotic_env
 VEBA-binning-viral_env
 VEBA-biosynthetic_env
-VEBA-classify_env
+VEBA-classify-eukaryotic_env
+VEBA-classify-prokaryotic_env
+VEBA-classify-viral_env
 VEBA-cluster_env
 VEBA-database_env
 VEBA-mapping_env

@@ -9,7 +9,7 @@ from tqdm import tqdm
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.10.23"
+__version__ = "2024.6.7"
 
 
 def main(args=None):
@@ -52,7 +52,7 @@ def main(args=None):
     df_annotations = pd.read_csv(opts.annotation_results, sep="\t", index_col=0, header=[0,1])
 
     output = list()
-    for id_protein, (id_organism, ko_ids) in tqdm(df_annotations.loc[:,[level_field, ("KOFAM", "ids")]].iterrows(), "Compiling KO identifiers", total=df_annotations.shape[0]):
+    for id_protein, (id_organism, ko_ids) in tqdm(df_annotations.loc[:,[level_field, ("KOfam", "ids")]].iterrows(), "Compiling KO identifiers", total=df_annotations.shape[0]):
         ko_ids = eval(ko_ids)
         if len(ko_ids):
             for id_ko in ko_ids:

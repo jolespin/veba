@@ -405,7 +405,7 @@ ________________________________________________________________
 
 ________________________________________________________________
 
-#### Path to `v2.0.0`:
+#### Path to `v3.0.0`:
 
 **Check:**
 
@@ -426,6 +426,7 @@ There was a problem importing veba_output/misc/reads_table.tsv:
 
 **Definitely:**
 
+* Add a `--proteins` option to `classify-eukaryotic.py` which aligns proteins to `MicroEuk100.eukaryota_odb10` via `MMseqs2` and then proceeds with the pipeline.
 * Add `BiNI` biosynthetic novelty index to `biosynthetic.py`
 * `busco_wrapper.py` that relabels all the genes, runs analysis, then converts output to tsv.
 * Script to update genome clusters
@@ -437,9 +438,9 @@ There was a problem importing veba_output/misc/reads_table.tsv:
 * Create a taxdump for `MicroEuk`
 * Reimplement `compile_eukaryotic_classifications.py`
 * Add representative to `identifier_mapping.proteins.tsv.gz`
-* Split `download_databases.sh`  into `download_databases.sh` (low memory, high threads) and `configure_databases.sh` (high memory, low-to-mid threads).  Use `aria2` in parallel instead of `wget`.
+* Use `aria2` in parallel instead of `wget`.
 * Add support for `Salmon` in `mapping.py` and `index.py`.  This can be used instead of `STAR` which will require adding the `exon` field to `Prodigal` GFF file (`MetaEuk` modified GFF files already have exon ids). 
-* [Optional] Number of plasmids (via geNomad) for each MAG.
+* [Optional] Number of plasmids (via `geNomad`) for each MAG.
 
 
 **Eventually (Yes)?:**
@@ -449,20 +450,16 @@ There was a problem importing veba_output/misc/reads_table.tsv:
 * Install each module via `bioconda`
 * Consistent usage of the following terms: 1) dataframe vs. table; 2) protein-cluster vs. orthogroup.  Dataframes should refer to generic tables while tables refer to specifics like "genomes table".
 * Add coding density to GFF files
-* Phylogenetic tree of `MicroEuk100`
-* Convert HMMs to `MMSEQS2` (https://github.com/soedinglab/MMseqs2/wiki#how-to-create-a-target-profile-database-from-pfam)?
 * Run `cmsearch` before `tRNAscan-SE`
 * DN/DS from pangeome analysis
-* Add [iPHoP](https://bitbucket.org/srouxjgi/iphop/src/main/) to `binning-viral.py`.
 * Add a `metabolic.py` module	
-* Swap [`TransDecoder`](https://github.com/TransDecoder/TransDecoder) for [`TransSuite`](https://github.com/anonconda/TranSuite)
 * For viral binning, contigs that are not identified as viral via `geNomad -> CheckV` use with `vRhyme`.
 * Add `vRhyme` to `binning_wrapper.py` and support `vRhyme` in `binning-viral.py`.
 
 
 **...Maybe (Not)?**
 
-* Modify behavior of `annotate.py` to allow for skipping Pfam and/or KOFAM since they take a long time. 
+* Swap [`TransDecoder`](https://github.com/TransDecoder/TransDecoder) for [`TransSuite`](https://github.com/anonconda/TranSuite)
 
 ________________________________________________________________
 
@@ -470,6 +467,15 @@ ________________________________________________________________
 <details>
 	<summary> <b>Daily Change Log:</b> </summary>
 
+* [2024.6.7] - Adapted `phylogeny.py` and `partition_pyhmmsearch.py` to use `pyhmmsearch` instead of `hmmsearch` and `Kofam_Scan`.
+* [2024.6.7] - Adapted `annotate.py`, `merge_annotations.py`, and `compile_ko_from_annotations.py` to use `pyhmmsearch` and `pykofamsearch` instead of `hmmsearch` and `Kofam_Scan`.
+* [2024.6.6] - Changed `Diamond` output format from `-f 6 qseqid sseqid stitle pident length mismatch qlen qstart qend slen sstart send evalue bitscore qcovhsp scovhsp` to `-f 6 qseqid sseqid stitle pident evalue bitscore qcovhsp scovhsp`
+* [2024.6.6] - Adapted `classify-eukaryotic.py` to use `pyhmmsearch` instead of `hmmsearch`.
+* [2024.6.6] - Updating `GTDB-Tk` and `BUSCO` introduced conflicting dependencies.  To provide more flexibility for version updates, `VEBA-classify_env` has been split out into `VEBA-classify-eukaryotic_env`, `VEBA-classify-prokaryotic_env`, and `VEBA-classify-viral_env`.
+* [2024.6.5] - Update `GTDB` version from `r214.1` to `r220` in VEBA database version `VDB_v7` and in `classify-prokaryotic.py`.  Corresponding mash database for `r220` is available here: 
+* [2024.6.5] - Added `choose_fastest_mirror.py` to utility scripts which checks the speed of multiple urls and then outputs the fastest one.
+* [2024.6.5] - Removing version name from `GTDB` .msh file.  Previous versions included `gtdb_r214.msh` but now they will be `gtdb.sh`.
+* [2024.5.20] - Added `reformat_minpath_report.py` to reformat minpath reports.  `MinPath` isn't used directly by VEBA but it might be in the future.
 * [2024.4.30] - Added `concatenate_files.py` which can concatenate files (and mixed compressed/decompressed files) using either arguments, list file, or glob.  Reason for this is that unix has a limit of arguments that can be used (e.g., `cat *.fasta > output.fasta` where *.fasta results in 50k files will crash)
 * [2024.4.29] - Added `/volumes/workspace/` directory to Docker containers for situations when your input and output directories are the same. 
 * [2024.4.29] - `featureCounts` can only handle 64 threads at a time so added `min(64, opts.n_jobs)` for all the modules/scripts that use `featureCounts` commands.
