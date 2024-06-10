@@ -28,7 +28,7 @@ ___________________________________________________________________
 
 ### Citation
 
-* Espinoza JL, Phillips A, Prentic MB, Tan GS, Kamath PL, Lloyd KG, Dupont CL. Unveiling the Microbial Realm with VEBA 2.0: A modular bioinformatics suite for end-to-end genome-resolved prokaryotic, (micro)eukaryotic, and viral multi-omics from either short- or long-read sequencing.  [bioRxiv Preprint: doi.org/10.1101/2024.03.08.583560v2](https://www.biorxiv.org/content/10.1101/2024.03.08.583560v2). In review somewhere else.
+* Espinoza JL, Phillips A, Prentic MB, Tan GS, Kamath PL, Lloyd KG, Dupont CL. Unveiling the Microbial Realm with VEBA 2.0: A modular bioinformatics suite for end-to-end genome-resolved prokaryotic, (micro)eukaryotic, and viral multi-omics from either short- or long-read sequencing.  [bioRxiv Preprint: doi.org/10.1101/2024.03.08.583560v2](https://www.biorxiv.org/content/10.1101/2024.03.08.583560v2). Accepted in *Nucleic Acids Research* (Publication Coming Soon).
 * Espinoza JL, Dupont CL. VEBA: a modular end-to-end suite for in silico recovery, clustering, and analysis of prokaryotic, microeukaryotic, and viral genomes from metagenomes. BMC Bioinformatics. 2022 Oct 12;23(1):419. [doi: 10.1186/s12859-022-04973-8](https://doi.org/10.1186/s12859-022-04973-8). PMID: 36224545.
 
 In addition to the above, please cite the software dependencies described under the [*Dependency Citation Table*](CITATIONS.md).
@@ -43,7 +43,8 @@ ___________________________________________________________________
 
 * **Current Database Version:** `VDB_v7`
 
-	If you are updating to v2.2.0 you will need to modify your existing database.  Please see [FAQs](FAQ.md#how-can-i-update-the-database-from-veba-v210-veba-database-vdb_v6-to-veba-v220-veba-database-vdb_v7) for more details.
+	If you are updating to v2.2.0 you will need to modify your existing database.  
+	Please see [FAQs](FAQ.md#how-can-i-update-the-database-from-veba-v210-veba-database-vdb_v6-to-veba-v220-veba-database-vdb_v7) for more details.
 
 	<details>
 		<summary>New features and updates:</summary>
