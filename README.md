@@ -37,6 +37,16 @@ In addition to the above, please cite the software dependencies described under 
 
 ___________________________________________________________________
 
+### Tell developers what you do and what you need
+
+The objective of VEBA is to provide high-quality metagenomics and metatranscriptomics workflows to the community.  Understanding the user-base's needs will help me develop VEBA so it can make your research life easier.  
+
+Your insight matters, if you have 30 seconds to spare please fill out [this quick 4 question Google Form](https://forms.gle/AVVsY35ZrfS3jgVL7) (no e-mail needed). 
+
+<p align="right"><a href="#readme-top">^__^</a></p>
+
+___________________________________________________________________
+
 ### Announcements
 
 * **Current Stable Version:** [`v2.2.0`](https://github.com/jolespin/veba/releases/tag/v2.2.0)
