@@ -467,6 +467,7 @@ ________________________________________________________________
 <details>
 	<summary> <b>Daily Change Log:</b> </summary>
 
+* [2024.6.20] - Added `-m/--include_mrna` to `compile_metaeuk_identifiers.py` for [Issue #110](https://github.com/jolespin/veba/issues/110)
 * [2024.6.7] - Adapted `phylogeny.py` and `partition_pyhmmsearch.py` to use `pyhmmsearch` instead of `hmmsearch` and `Kofam_Scan`.
 * [2024.6.7] - Adapted `annotate.py`, `merge_annotations.py`, and `compile_ko_from_annotations.py` to use `pyhmmsearch` and `pykofamsearch` instead of `hmmsearch` and `Kofam_Scan`.
 * [2024.6.6] - Changed `Diamond` output format from `-f 6 qseqid sseqid stitle pident length mismatch qlen qstart qend slen sstart send evalue bitscore qcovhsp scovhsp` to `-f 6 qseqid sseqid stitle pident evalue bitscore qcovhsp scovhsp`
