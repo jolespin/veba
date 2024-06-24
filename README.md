@@ -28,7 +28,7 @@ ___________________________________________________________________
 
 ### Citation
 
-* Espinoza JL, Phillips A, Prentic MB, Tan GS, Kamath PL, Lloyd KG, Dupont CL. Unveiling the Microbial Realm with VEBA 2.0: A modular bioinformatics suite for end-to-end genome-resolved prokaryotic, (micro)eukaryotic, and viral multi-omics from either short- or long-read sequencing.  [bioRxiv Preprint: doi.org/10.1101/2024.03.08.583560v2](https://www.biorxiv.org/content/10.1101/2024.03.08.583560v2). Accepted in *Nucleic Acids Research* (Publication Coming Soon).
+* Espinoza JL, Phillips A, Prentice MB, Tan GS, Kamath PL, Lloyd KG, Dupont CL. Unveiling the microbial realm with VEBA 2.0: a modular bioinformatics suite for end-to-end genome-resolved prokaryotic, (micro)eukaryotic and viral multi-omics from either short- or long-read sequencing. Nucleic Acids Res. 2024 Jun 22:gkae528. [doi: 10.1093/nar/gkae528](https://doi.org/10.1093/nar/gkae528). PMID: 38909293.
 * Espinoza JL, Dupont CL. VEBA: a modular end-to-end suite for in silico recovery, clustering, and analysis of prokaryotic, microeukaryotic, and viral genomes from metagenomes. BMC Bioinformatics. 2022 Oct 12;23(1):419. [doi: 10.1186/s12859-022-04973-8](https://doi.org/10.1186/s12859-022-04973-8). PMID: 36224545.
 
 In addition to the above, please cite the software dependencies described under the [*Dependency Citation Table*](CITATIONS.md).
@@ -41,7 +41,7 @@ ___________________________________________________________________
 
 The objective of VEBA is to provide high-quality metagenomics and metatranscriptomics workflows to the community.  Understanding the user-base's needs will help me develop VEBA so it can make your research life easier.  
 
-Your insight matters, if you have 30 seconds to spare please fill out [this quick 4 question Google Form](https://forms.gle/AVVsY35ZrfS3jgVL7) (no e-mail needed). 
+Your insight matters, if you have 30 seconds to spare please fill out [this quick 5 question Google Form](https://forms.gle/AVVsY35ZrfS3jgVL7) (no e-mail needed). 
 
 <p align="right"><a href="#readme-top">^__^</a></p>
 
@@ -51,7 +51,7 @@ ___________________________________________________________________
 
 * **Current Stable Version:** [`v2.2.0`](https://github.com/jolespin/veba/releases/tag/v2.2.0)
 
-* **Current Database Version:** `VDB_v7`
+* **Current Database Version:** [`VDB_v7`](install/DATABASE.md)
 
 	If you are updating to v2.2.0 you will need to modify your existing database.  
 	Please see [FAQs](FAQ.md#how-can-i-update-the-database-from-veba-v210-veba-database-vdb_v6-to-veba-v220-veba-database-vdb_v7) for more details.
