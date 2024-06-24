@@ -7,7 +7,7 @@ from Bio.SeqIO.FastaIO import SimpleFastaParser
 from tqdm import tqdm
 
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2022.12.07"
+__version__ = "2024.6.20"
 
 def parse_header(header:str, include_strand_in_geneid=True, strand_notation="+/-"):
     """
@@ -153,7 +153,8 @@ def main(argv=None):
 
     # GFF
     parser_gff = parser.add_argument_group('GFF arguments')
-    parser.add_argument("-e", "--exon_coordinate_type", type=str, default="low/high", help = "Exon coordinate type {'low/high', 'taken_low/high'} [Default: low/high]")
+    parser_gff.add_argument("-e", "--exon_coordinate_type", type=str, default="low/high", help = "Exon coordinate type {'low/high', 'taken_low/high'} [Default: low/high]")
+    parser_gff.add_argument("-m", "--include_mrna", action="store_true", help="Include mRNA feature in GFF output")
 
     # GeneID
     parser_geneid = parser.add_argument_group('Gene identifier arguments')
@@ -304,6 +305,8 @@ def main(argv=None):
                 id_gene,
             )
             mrna_fields = [id_contig, "MetaEuk", "mRNA", start_gene, end_gene, bitscore, strand, ".", mrna_description]
+            if opts.include_mrna:
+                gff_output.append(mrna_fields)
 
             # CDS
             cds_fields = [id_contig, "MetaEuk", "CDS", start_gene, end_gene, bitscore, strand, ".", mrna_description]
