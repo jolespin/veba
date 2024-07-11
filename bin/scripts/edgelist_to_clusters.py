@@ -8,7 +8,7 @@ from tqdm import tqdm
 from Bio.SeqIO.FastaIO import SimpleFastaParser
 
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2024.3.26"
+__version__ = "2024.7.11"
 
 def main(args=None):
     # Path info
@@ -28,6 +28,7 @@ def main(args=None):
     parser.add_argument("-o","--output", type=str, default="stdout", help = "path/to/clusters.tsv [Default: stdout]")
     parser.add_argument("-t","--threshold", type=float, default=0.0,  help = "Minimum weight threshold. [Default: 0.0]") 
     parser.add_argument("-a","--minimum_af", type=float, default=0.0,  help = "Minimum alignment fraction. [Default: 0.0]") 
+    parser.add_argument("-m","--af_mode", type=str, default="relaxed",  choices={"relaxed", "strict"}, help = "Minimum alignment fraction mode with either `relaxed = max([AF_ref, AF_query]) > minimum_af` or `strict = (AF_ref > minimum_af) & (AF_query > minimum_af)` [Default: relaxed]") 
     parser.add_argument("-n", "--no_singletons", action="store_true", help = "Don't include self-interactions. Self-interactions will ensure unclustered genomes make it into the output")
     parser.add_argument("-b", "--basename", action="store_true", help = "Removes filepath prefix and extension.  Support for gzipped filepaths.")
     parser.add_argument("--identifiers", type=str, help = "Identifiers to include.  If missing identifiers and singletons are allowed, then they will be included as singleton clusters with weight of np.nan")
@@ -71,7 +72,7 @@ def main(args=None):
     except pd.errors.EmptyDataError:
         df_edgelist = pd.DataFrame(columns=["query", "reference"])
 
-    assert df_edgelist.shape[1] in  {2,3,4}, "Must have 2, 3, or 4 columns.  {} provided.".format(df_edgelist.shape[1])
+    assert df_edgelist.shape[1] in  {2,3,4, 5}, "Must have 2, 3, 4, or 5 columns.  {} provided.".format(df_edgelist.shape[1])
     if opts.basename:
         def get_basename(x):
             _, fn = os.path.split(x)
@@ -142,13 +143,39 @@ def main(args=None):
 
     # Weighted with alignment fraction
     if df_edgelist.shape[1] == 4:
-        for i, (id_query, id_target, w, af) in tqdm(df_edgelist.iterrows(), "Reading edgelist with weights (≥ {}) and alignment fractions (≥ {}): {}".format(opts.threshold, opts.minimum_af, opts.input, ), total=df_edgelist.shape[0]):
+        for i, (id_query, id_target, w, af) in tqdm(df_edgelist.iterrows(), "Reading edgelist with weights (≥ {}) and alignment fractions (≥ {}): {}".format(opts.threshold, opts.minimum_af, opts.input), total=df_edgelist.shape[0]):
             if all([
                 w >= opts.threshold,
                 af >= opts.minimum_af,
                 ]):
                 if {id_query, id_target}.issubset(all_identifiers):
                     graph.add_edge(id_query, id_target, weight=w, alignment_fraction=af)
+        if not opts.no_singletons:
+            for id in all_identifiers:
+                if id not in graph.nodes():
+                    graph.add_edge(id, id, weight=np.nan, alignment_fraction=100.0)
+                    
+    # Weighted with alignment fraction
+    if df_edgelist.shape[1] == 5:
+        if opts.af_mode == "relaxed":
+            for i, (id_query, id_target, w, af_ref, af_query) in tqdm(df_edgelist.iterrows(), "Reading edgelist with weights (≥ {}) and alignment fractions (≥ {}) using {} mode: {}".format(opts.threshold, opts.minimum_af, opts.af_mode, opts.input), total=df_edgelist.shape[0]):
+                if all([
+                    w >= opts.threshold,
+                    max([af_ref, af_query]) >= opts.minimum_af,
+                    ]):
+                    if {id_query, id_target}.issubset(all_identifiers):
+                        graph.add_edge(id_query, id_target, weight=w, alignment_fraction_reference=af_ref, alignment_fraction_query=af_query)
+                        
+        if opts.af_mode == "strict":
+            for i, (id_query, id_target, w, af_ref, af_query) in tqdm(df_edgelist.iterrows(), "Reading edgelist with weights (≥ {}) and alignment fractions (≥ {}) using {} mode: {}".format(opts.threshold, opts.minimum_af, opts.af_mode, opts.input), total=df_edgelist.shape[0]):
+                if all([
+                    w >= opts.threshold,
+                    af_ref >= opts.minimum_af,
+                    af_query >= opts.minimum_af,
+                    ]):
+                    if {id_query, id_target}.issubset(all_identifiers):
+                        graph.add_edge(id_query, id_target, weight=w, alignment_fraction_reference=af_ref, alignment_fraction_query=af_query)
+                        
         if not opts.no_singletons:
             for id in all_identifiers:
                 if id not in graph.nodes():

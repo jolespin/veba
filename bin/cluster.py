@@ -13,7 +13,7 @@ from soothsayer_utils import *
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2024.3.26"
+__version__ = "2024.7.11"
 
 # Global clustering
 def get_global_clustering_cmd( input_filepaths, output_filepaths, output_directory, directories, opts):
@@ -29,6 +29,7 @@ def get_global_clustering_cmd( input_filepaths, output_filepaths, output_directo
         "--genome_clustering_algorithm {}".format(opts.genome_clustering_algorithm),
         "--ani_threshold {}".format(opts.ani_threshold),
         "--af_threshold {}".format(opts.af_threshold),
+        "--af_mode {}".format(opts.af_mode),
         "--genome_cluster_prefix {}".format(opts.genome_cluster_prefix) if bool(opts.genome_cluster_prefix) else "",
         "--genome_cluster_suffix {}".format(opts.genome_cluster_suffix) if bool(opts.genome_cluster_suffix) else "",
         "--genome_cluster_prefix_zfill {}".format(opts.genome_cluster_prefix_zfill) if bool(opts.genome_cluster_prefix_zfill) else "",
@@ -82,6 +83,7 @@ def get_local_clustering_cmd( input_filepaths, output_filepaths, output_director
         "--genome_clustering_algorithm {}".format(opts.genome_clustering_algorithm),
         "--ani_threshold {}".format(opts.ani_threshold),
         "--af_threshold {}".format(opts.af_threshold),
+        "--af_mode {}".format(opts.af_mode),
         "--genome_cluster_prefix {}".format(opts.genome_cluster_prefix) if bool(opts.genome_cluster_prefix) else "",
         "--genome_cluster_suffix {}".format(opts.genome_cluster_suffix) if bool(opts.genome_cluster_suffix) else "",
         "--genome_cluster_prefix_zfill {}".format(opts.genome_cluster_prefix_zfill) if bool(opts.genome_cluster_prefix_zfill) else "",
@@ -347,6 +349,7 @@ def main(args=None):
     parser_genome_clustering.add_argument("-G", "--genome_clustering_algorithm", type=str,  choices={"fastani", "skani"}, default="skani", help="Program to use for ANI calculations.  `skani` is faster and more memory efficient. For v1.0.0 - v1.3.x behavior, use `fastani`. [Default: skani]")
     parser_genome_clustering.add_argument("-A", "--ani_threshold", type=float, default=95.0, help="Species-level cluster (SLC) ANI threshold (Range (0.0, 100.0]) [Default: 95.0]")
     parser_genome_clustering.add_argument("-F", "--af_threshold", type=float, default=30.0, help="Species-level cluster (SLC) alignment fraction threshold. Only available if `skani` is used as --genome_clustering_algorithm. (Range (0.0, 100.0]) [Default: 30.0]")
+    parser_genome_clustering.add_argument("--af_mode", type=str, default="relaxed",  choices={"relaxed", "strict"}, help = "Minimum alignment fraction mode with either `relaxed = max([AF_ref, AF_query]) > minimum_af` or `strict = (AF_ref > minimum_af) & (AF_query > minimum_af)` [Default: relaxed]") 
     parser_genome_clustering.add_argument("--genome_cluster_prefix", type=str, default="SLC-", help="Cluster prefix [Default: 'SLC-")
     parser_genome_clustering.add_argument("--genome_cluster_suffix", type=str, default="", help="Cluster suffix [Default: '")
     parser_genome_clustering.add_argument("--genome_cluster_prefix_zfill", type=int, default=0, help="Cluster prefix zfill. Use 7 to match identifiers from OrthoFinder.  Use 0 to add no zfill. [Default: 0]") #7

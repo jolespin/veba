@@ -416,13 +416,6 @@ ________________________________________________________________
 * Don't load all genomes, proteins, and cds into memory for clustering.
 * Genome checkpoints in `tRNAscan-SE` aren't working properly.
 * Dereplicate CDS sequences in GFF from `MetaEuk` for `antiSMASH` to work for eukaryotic genomes
-* Error with `amplicon.py` that works when run manually... (Developmental module)
-
-```
-There was a problem importing veba_output/misc/reads_table.tsv:
-
-  Missing one or more files for SingleLanePerSamplePairedEndFastqDirFmt: '.+_.+_L[0-9][0-9][0-9]_R[12]_001\\.fastq\\.gz'
-```
 
 **Definitely:**
 
@@ -439,13 +432,12 @@ There was a problem importing veba_output/misc/reads_table.tsv:
 * Reimplement `compile_eukaryotic_classifications.py`
 * Add representative to `identifier_mapping.proteins.tsv.gz`
 * Use `aria2` in parallel instead of `wget`.
-* Add support for `Salmon` in `mapping.py` and `index.py`.  This can be used instead of `STAR` which will require adding the `exon` field to `Prodigal` GFF file (`MetaEuk` modified GFF files already have exon ids). 
+* Add support for `Salmon` in `mapping.py` and `index.py`.  This can be used instead of `STAR` which will require adding the `exon` field to `Pyrodigal` GFF file (`MetaEuk` modified GFF files already have exon ids). 
 * [Optional] Number of plasmids (via `geNomad`) for each MAG.
 
 
 **Eventually (Yes)?:**
 
-* Support for `MAFFT` instead of `MUSCLE` as it performs especially well for multidomain protein with variable domain architectures.
 * `NextFlow` support
 * Install each module via `bioconda`
 * Consistent usage of the following terms: 1) dataframe vs. table; 2) protein-cluster vs. orthogroup.  Dataframes should refer to generic tables while tables refer to specifics like "genomes table".
@@ -461,12 +453,26 @@ There was a problem importing veba_output/misc/reads_table.tsv:
 
 * Swap [`TransDecoder`](https://github.com/TransDecoder/TransDecoder) for [`TransSuite`](https://github.com/anonconda/TranSuite)
 
+
+**Developmental:**
+
+* Error with `amplicon.py` that works when run manually... (Developmental module)
+
+```
+There was a problem importing veba_output/misc/reads_table.tsv:
+
+  Missing one or more files for SingleLanePerSamplePairedEndFastqDirFmt: '.+_.+_L[0-9][0-9][0-9]_R[12]_001\\.fastq\\.gz'
+```
+
 ________________________________________________________________
 
 
 <details>
 	<summary> <b>Daily Change Log:</b> </summary>
 
+* [2024.7.11] - * Alignment fraction threshold for genome clustering only applied to reference but should also apply to query.  Added `--af_mode` with either `relaxed = max([Alignment_fraction_ref, Alignment_fraction_query]) > minimum_af` or `strict = (Alignment_fraction_ref > minimum_af) & (Alignment_fraction_query > minimum_af)` to `edgelist_to_clusters.py`, `global_clustering.py`, `local_clustering.py`, and `cluster.py`.
+* [2024.7.3] - Added `pigz` to `VEBA-annotate_env` which isn't a problem with most `conda` installations but needed for `docker` containers.
+* [2024.6.21] - Changed `choose_fastest_mirror.py` to `determine_fastest_mirror.py`
 * [2024.6.20] - Added `-m/--include_mrna` to `compile_metaeuk_identifiers.py` for [Issue #110](https://github.com/jolespin/veba/issues/110)
 * [2024.6.7] - Adapted `phylogeny.py` and `partition_pyhmmsearch.py` to use `pyhmmsearch` instead of `hmmsearch` and `Kofam_Scan`.
 * [2024.6.7] - Adapted `annotate.py`, `merge_annotations.py`, and `compile_ko_from_annotations.py` to use `pyhmmsearch` and `pykofamsearch` instead of `hmmsearch` and `Kofam_Scan`.
