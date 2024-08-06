@@ -15,7 +15,7 @@ from soothsayer_utils import *
 
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2024.3.26"
+__version__ = "2024.7.11"
 
 def get_basename(x):
     _, fn = os.path.split(x)
@@ -147,6 +147,7 @@ def main(args=None):
     parser_genome_clustering.add_argument("-G", "--genome_clustering_algorithm", type=str,  choices={"fastani", "skani"}, default="skani", help="Program to use for ANI calculations.  `skani` is faster and more memory efficient. For v1.0.0 - v1.3.x behavior, use `fastani`. [Default: skani]")
     parser_genome_clustering.add_argument("-A", "--ani_threshold", type=float, default=95.0, help="Species-level cluster (SLC) ANI threshold (Range (0.0, 100.0]) [Default: 95.0]")
     parser_genome_clustering.add_argument("-F", "--af_threshold", type=float, default=30.0, help="Species-level cluster (SLC) alignment fraction threshold. Only available if `skani` is used as --genome_clustering_algorithm. (Range (0.0, 100.0]) [Default: 30.0]")
+    parser_genome_clustering.add_argument("--af_mode", type=str, default="relaxed",  choices={"relaxed", "strict"}, help = "Minimum alignment fraction mode with either `relaxed = max([AF_ref, AF_query]) > minimum_af` or `strict = (AF_ref > minimum_af) & (AF_query > minimum_af)` [Default: relaxed]") 
     parser_genome_clustering.add_argument("--genome_cluster_prefix", type=str, default="SLC-", help="Cluster prefix [Default: 'SLC-")
     parser_genome_clustering.add_argument("--genome_cluster_suffix", type=str, default="", help="Cluster suffix [Default: '")
     parser_genome_clustering.add_argument("--genome_cluster_prefix_zfill", type=int, default=0, help="Cluster prefix zfill. Use 7 to match identifiers from OrthoFinder.  Use 0 to add no zfill. [Default: 0]") #7
@@ -384,7 +385,7 @@ def main(args=None):
                 "cat",
                 os.path.join(os.path.split(fp)[0], "skani_output.tsv"),
                 "|",
-                "cut -f1-4",
+                "cut -f1-5",
                 "|",
                 "tail -n +2",
                 "|",
@@ -392,6 +393,7 @@ def main(args=None):
                 "--basename",
                 "-t {}".format(opts.ani_threshold),
                 "-a {}".format(opts.af_threshold),
+                "--af_mode {}".format(opts.af_mode),
                 "--no_singletons" if bool(opts.no_singletons) else "",
                 "--cluster_prefix {}__{}{}".format(id_sample, organism_type[0].upper(), opts.genome_cluster_prefix),
                 "--cluster_suffix {}".format(opts.genome_cluster_suffix) if bool(opts.genome_cluster_suffix) else "",

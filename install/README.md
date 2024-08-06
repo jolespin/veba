@@ -81,12 +81,12 @@ The `VEBA` installation is going to configure some `conda` environments for you 
 # For stable version, download and decompress the tarball:
 
 VERSION="2.2.0"
-wget https://github.com/jolespin/veba/archive/refs/tags/v${VERSION}.tar.gz
-tar -xvf v${VERSION}.tar.gz && mv veba-${VERSION} veba
+# wget https://github.com/jolespin/veba/archive/refs/tags/v${VERSION}.tar.gz # The .tar.gz is out of date in this release
+# tar -xvf v${VERSION}.tar.gz && mv veba-${VERSION} veba
 
 # Alternative download
-# wget https://github.com/jolespin/veba/releases/download/v${VERSION}/v${VERSION}.zip
-# unzip -d veba v${VERSION}.zip
+wget https://github.com/jolespin/veba/releases/download/v${VERSION}/v${VERSION}.zip
+unzip -d veba v${VERSION}.zip
 
 # For developmental version, clone the repository:
 # Note: This is not recommended because between v2.1.0 and v2.2.0, case changes were introduced (KOFAM -> KOfam)
