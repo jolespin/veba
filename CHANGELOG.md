@@ -419,6 +419,8 @@ ________________________________________________________________
 
 **Definitely:**
 
+* Add `TIGRFAM/PGAP` https://ftp.ncbi.nlm.nih.gov/hmm/current/hmm_PGAP.HMM/ to `annotate.py`
+* Minimum genome set for pangenome that includes all of the protein clusters in a prevalence table (based on some % of recovery).
 * Add a `--proteins` option to `classify-eukaryotic.py` which aligns proteins to `MicroEuk100.eukaryota_odb10` via `MMseqs2` and then proceeds with the pipeline.
 * Add `BiNI` biosynthetic novelty index to `biosynthetic.py`
 * `busco_wrapper.py` that relabels all the genes, runs analysis, then converts output to tsv.
