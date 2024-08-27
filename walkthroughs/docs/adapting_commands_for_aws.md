@@ -38,7 +38,7 @@ This job definition pulls the [jolespin/veba_preprocess](https://hub.docker.com/
   "jobDefinitionName": "preprocess__S1",
   "type": "container",
   "containerProperties": {
-    "image": "jolespin/veba_preprocess:2.0.0",
+    "image": "jolespin/veba_preprocess:2.2.0",
     "command": [
       "preprocess.py",
       "-1",
@@ -121,9 +121,6 @@ This job definition pulls the [jolespin/veba_preprocess](https://hub.docker.com/
       "sizeInGiB": 40
     }
   },
-  "tags": {
-    "Name": "preprocess__S1"
-  },
   "platformCapabilities": [
     "FARGATE"
   ]
@@ -142,5 +139,7 @@ aws batch register-job-definition --cli-input-json file://${FILE}
 Next step is to submit the job to the queue.
 
 ```
-aws batch submit-job --job-definition ${JOB} --job-name ${JOB} --job-queue ${QUEUE}
+QUEUE="some-aws-job-queue-name"
+JOB_NAME="preprocess__S1"
+aws batch submit-job --job-definition ${JOB_NAME} --job-name ${JOB_NAME} --job-queue ${QUEUE}
 ```
