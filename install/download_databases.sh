@@ -1,8 +1,9 @@
 #!/bin/bash
-# __version__ = "2024.5.7"
-# VEBA_DATABASE_VERSION = "VDB_v6"
+# __version__ = "2024.8.29"
 # MICROEUKAYROTIC_DATABASE_VERSION = "MicroEuk_v3"
 # usage: bash veba/download_databases.sh /path/to/veba_database_destination/ [optional positional argument: /path/to/conda_environments/]
+# Version
+VEBA_DATABASE_VERSION="VDB_v7"
 
 # Arguments
 DATABASE_DIRECTORY=${1:-"."}
@@ -26,6 +27,7 @@ mkdir -vp ${DATABASE_DIRECTORY}/Classify
 # Versions
 DATE=$(date)
 echo $DATE > ${DATABASE_DIRECTORY}/ACCESS_DATE
+echo $VEBA_DATABASE_VERSION > ${DATABASE_DIRECTORY}/VERSION
 
 # Databases
 echo ". .. ... ..... ........ ............."
