@@ -12,7 +12,7 @@ from soothsayer_utils import *
 
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.5.8"
+__version__ = "2024.8.29"
 
 
 # TransDecoder
@@ -149,7 +149,7 @@ def get_transdecoder_predict_cmd(input_filepaths, output_filepaths, output_direc
 
             "&&",
 
-        "rm -f pipeliner.*.cmds",
+        "rm -rf pipeliner.*.cmds",
     ]
     return cmd
 

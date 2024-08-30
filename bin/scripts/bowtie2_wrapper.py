@@ -12,7 +12,7 @@ from soothsayer_utils import *
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2024.4.29"
+__version__ = "2024.8.29"
 
 
 # Bowtie2
@@ -145,7 +145,7 @@ def get_featurecounts_cmd(input_filepaths, output_filepaths, output_directory, d
     else:
         cmd += [
             "&&",
-        "rm {}".format(os.path.join(output_directory, "featurecounts.tsv")),
+        "rm -rf {}".format(os.path.join(output_directory, "featurecounts.tsv")),
         ]
 
     return cmd

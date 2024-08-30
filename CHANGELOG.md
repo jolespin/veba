@@ -413,14 +413,14 @@ ________________________________________________________________
 
 **Critical:**
 
+* Return code for `cluster.py` when it fails during global and local clustering is 0 but should be 1.
 * Don't load all genomes, proteins, and cds into memory for clustering.
 * Genome checkpoints in `tRNAscan-SE` aren't working properly.
 * Dereplicate CDS sequences in GFF from `MetaEuk` for `antiSMASH` to work for eukaryotic genomes
 
 **Definitely:**
 
-* Add `TIGRFAM/PGAP` https://ftp.ncbi.nlm.nih.gov/hmm/current/hmm_PGAP.HMM/ to `annotate.py`
-* Minimum genome set for pangenome that includes all of the protein clusters in a prevalence table (based on some % of recovery).
+* Add number of unique protein clusters to `identifier_mapping.genomes.tsv.gz` in `cluster.py` to assess most metabolicly diverse representative.
 * Add a `--proteins` option to `classify-eukaryotic.py` which aligns proteins to `MicroEuk100.eukaryota_odb10` via `MMseqs2` and then proceeds with the pipeline.
 * Add `BiNI` biosynthetic novelty index to `biosynthetic.py`
 * `busco_wrapper.py` that relabels all the genes, runs analysis, then converts output to tsv.
@@ -472,7 +472,8 @@ ________________________________________________________________
 <details>
 	<summary> <b>Daily Change Log:</b> </summary>
 
-* [2024.7.11] - * Alignment fraction threshold for genome clustering only applied to reference but should also apply to query.  Added `--af_mode` with either `relaxed = max([Alignment_fraction_ref, Alignment_fraction_query]) > minimum_af` or `strict = (Alignment_fraction_ref > minimum_af) & (Alignment_fraction_query > minimum_af)` to `edgelist_to_clusters.py`, `global_clustering.py`, `local_clustering.py`, and `cluster.py`.
+* [2024.8.29] - Added `VERSION` file created in `download_databases.sh`
+* [2024.7.11] - Alignment fraction threshold for genome clustering only applied to reference but should also apply to query.  Added `--af_mode` with either `relaxed = max([Alignment_fraction_ref, Alignment_fraction_query]) > minimum_af` or `strict = (Alignment_fraction_ref > minimum_af) & (Alignment_fraction_query > minimum_af)` to `edgelist_to_clusters.py`, `global_clustering.py`, `local_clustering.py`, and `cluster.py`.
 * [2024.7.3] - Added `pigz` to `VEBA-annotate_env` which isn't a problem with most `conda` installations but needed for `docker` containers.
 * [2024.6.21] - Changed `choose_fastest_mirror.py` to `determine_fastest_mirror.py`
 * [2024.6.20] - Added `-m/--include_mrna` to `compile_metaeuk_identifiers.py` for [Issue #110](https://github.com/jolespin/veba/issues/110)

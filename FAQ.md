@@ -661,7 +661,17 @@ Check out the [*VEBA* step-by-step guide](https://github.com/jolespin/veba/tree/
 
 ______________________
 
-#### How can I update the database from VEBA v2.1.0 (VEBA Database: VDB_v6) to VEBA v2.2.0 (VEBA Database: VDB_v7)?
+#### Why is GTDB-Tk taking so long to download?
+
+This is a known issue and seems to be dependent on which region you're in so check out [GTDB-Tk Issue #522](https://github.com/Ecogenomics/GTDBTk/issues/522#issuecomment-2182847947)
+I developed a script in `veba/bin/scripts/determine_fastest_mirror.py` (formerly `choose_fastest_mirror.py`) where you can give both URL mirrors and it will tell you which ones faster.
+
+<p align="right"><a href="#faq-top">^__^</a></p>
+
+______________________
+
+
+#### How can I update the database from VEBA v2.1.0 (VEBA Database: VDB_v6) to VEBA ≥v2.2.0 (VEBA Database: VDB_v7)?
 
 After uninstalling and installing the new environments: 
 
