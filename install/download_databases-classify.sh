@@ -1,5 +1,5 @@
 #!/bin/bash
-# __version__ = "2024.6.8.1"
+# __version__ = "2024.8.30"
 # VEBA_DATABASE_VERSION = "VDB_v7"
 # MICROEUKAYROTIC_DATABASE_VERSION = "MicroEuk_v3"
 # usage: bash veba/download_databases-classify.sh /path/to/veba_database_destination/
@@ -9,7 +9,8 @@ DATABASE_DIRECTORY=${1:-"."}
 REALPATH_DATABASE_DIRECTORY=$(realpath $DATABASE_DIRECTORY)
 SCRIPT_DIRECTORY=$(dirname "$0")
 
-# N_JOBS=$(2:-"1")
+MAXIMUM_NUMBER_OF_CPU=$(python -c "from multiprocessing import cpu_count; print(cpu_count())")
+N_JOBS=$(2:-${MAXIMUM_NUMBER_OF_CPU})
 
 # Database structure
 echo ". .. ... ..... ........ ............."
@@ -81,7 +82,7 @@ wget -v -P ${DATABASE_DIRECTORY} https://portal.nersc.gov/CheckV/checkv-db-${CHE
 tar xvzf ${DATABASE_DIRECTORY}/checkv-db-${CHECKVDB_VERSION}.tar.gz -C ${DATABASE_DIRECTORY}
 mv ${DATABASE_DIRECTORY}/checkv-db-${CHECKVDB_VERSION} ${DATABASE_DIRECTORY}/Classify/CheckV
 echo "${CHECKV_VERSION}" > ${DATABASE_DIRECTORY}/Classify/CheckV/database_version
-diamond makedb --in ${DATABASE_DIRECTORY}/Classify/CheckV/genome_db/checkv_reps.faa --db ${DATABASE_DIRECTORY}/Classify/CheckV/genome_db/checkv_reps.dmnd
+diamond makedb --in ${DATABASE_DIRECTORY}/Classify/CheckV/genome_db/checkv_reps.faa --db ${DATABASE_DIRECTORY}/Classify/CheckV/genome_db/checkv_reps.dmnd --threads ${N_JOBS}
 rm -rf ${DATABASE_DIRECTORY}/checkv-db-${CHECKVDB_VERSION}.tar.gz
 
 # geNomad
@@ -128,19 +129,19 @@ cp -rf ${DATABASE_DIRECTORY}/MicroEuk_v3/source_taxonomy.tsv.gz ${DATABASE_DIREC
 
 # MicroEuk100
 gzip -d ${DATABASE_DIRECTORY}/MicroEuk_v3/MicroEuk100.faa.gz
-mmseqs createdb --compressed 1 ${DATABASE_DIRECTORY}/MicroEuk_v3/MicroEuk100.faa ${DATABASE_DIRECTORY}/Classify/MicroEuk/MicroEuk100
+mmseqs createdb --threads ${N_JOBS} --compressed 1 ${DATABASE_DIRECTORY}/MicroEuk_v3/MicroEuk100.faa ${DATABASE_DIRECTORY}/Classify/MicroEuk/MicroEuk100
 
 # MicroEuk100.eukaryota_odb10
 gzip -d ${DATABASE_DIRECTORY}/MicroEuk_v3/MicroEuk100.eukaryota_odb10.list.gz
-seqkit grep -f ${DATABASE_DIRECTORY}/MicroEuk_v3/MicroEuk100.eukaryota_odb10.list ${DATABASE_DIRECTORY}/MicroEuk_v3/MicroEuk100.faa | mmseqs createdb --compressed 1 stdin ${DATABASE_DIRECTORY}/Classify/MicroEuk/MicroEuk100.eukaryota_odb10
+seqkit grep -f ${DATABASE_DIRECTORY}/MicroEuk_v3/MicroEuk100.eukaryota_odb10.list ${DATABASE_DIRECTORY}/MicroEuk_v3/MicroEuk100.faa | mmseqs createdb --threads ${N_JOBS} --compressed 1 stdin ${DATABASE_DIRECTORY}/Classify/MicroEuk/MicroEuk100.eukaryota_odb10
 
 # MicroEuk90
 gzip -d -c ${DATABASE_DIRECTORY}/MicroEuk_v3/MicroEuk90_clusters.tsv.gz | cut -f1 | sort -u > ${DATABASE_DIRECTORY}/MicroEuk_v3/MicroEuk90.list
-seqkit grep -f ${DATABASE_DIRECTORY}/MicroEuk_v3/MicroEuk90.list ${DATABASE_DIRECTORY}/MicroEuk_v3/MicroEuk100.faa | mmseqs createdb --compressed 1 stdin ${DATABASE_DIRECTORY}/Classify/MicroEuk/MicroEuk90
+seqkit grep -f ${DATABASE_DIRECTORY}/MicroEuk_v3/MicroEuk90.list ${DATABASE_DIRECTORY}/MicroEuk_v3/MicroEuk100.faa | mmseqs createdb --threads ${N_JOBS} --compressed 1 stdin ${DATABASE_DIRECTORY}/Classify/MicroEuk/MicroEuk90
 
 # MicroEuk50
 gzip -d -c ${DATABASE_DIRECTORY}/MicroEuk_v3/MicroEuk50_clusters.tsv.gz | cut -f1 | sort -u > ${DATABASE_DIRECTORY}/MicroEuk_v3/MicroEuk50.list
-seqkit grep -f ${DATABASE_DIRECTORY}/MicroEuk_v3/MicroEuk50.list ${DATABASE_DIRECTORY}/MicroEuk_v3/MicroEuk100.faa | mmseqs createdb --compressed 1 stdin ${DATABASE_DIRECTORY}/Classify/MicroEuk/MicroEuk50
+seqkit grep -f ${DATABASE_DIRECTORY}/MicroEuk_v3/MicroEuk50.list ${DATABASE_DIRECTORY}/MicroEuk_v3/MicroEuk100.faa | mmseqs createdb --threads ${N_JOBS} --compressed 1 stdin ${DATABASE_DIRECTORY}/Classify/MicroEuk/MicroEuk50
 
 # source_to_lineage.dict.pkl.gz
 build_source_to_lineage_dictionary.py -i ${DATABASE_DIRECTORY}/MicroEuk_v3/source_taxonomy.tsv.gz -o ${DATABASE_DIRECTORY}/Classify/MicroEuk/source_to_lineage.dict.pkl.gz
