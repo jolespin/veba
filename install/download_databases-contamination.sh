@@ -10,7 +10,7 @@ REALPATH_DATABASE_DIRECTORY=$(realpath $DATABASE_DIRECTORY)
 SCRIPT_DIRECTORY=$(dirname "$0")
 
 MAXIMUM_NUMBER_OF_CPU=$(python -c "from multiprocessing import cpu_count; print(cpu_count())")
-N_JOBS=$(2:-${MAXIMUM_NUMBER_OF_CPU})
+N_JOBS=${3:-${MAXIMUM_NUMBER_OF_CPU}}
 
 # Database structure
 echo ". .. ... ..... ........ ............."
