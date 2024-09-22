@@ -1,5 +1,5 @@
 #!/bin/bash
-# __version__ = "2024.6.8.1"
+# __version__ = "2024.8.30"
 # VEBA_DATABASE_VERSION = "VDB_v7"
 # MICROEUKAYROTIC_DATABASE_VERSION = "MicroEuk_v3"
 # usage: bash veba/download_databases-classify.sh /path/to/veba_database_destination/
@@ -9,7 +9,8 @@ DATABASE_DIRECTORY=${1:-"."}
 REALPATH_DATABASE_DIRECTORY=$(realpath $DATABASE_DIRECTORY)
 SCRIPT_DIRECTORY=$(dirname "$0")
 
-# N_JOBS=$(2:-"1")
+MAXIMUM_NUMBER_OF_CPU=$(python -c "from multiprocessing import cpu_count; print(cpu_count())")
+N_JOBS=${3:-${MAXIMUM_NUMBER_OF_CPU}}
 
 # Database structure
 echo ". .. ... ..... ........ ............."
@@ -81,7 +82,7 @@ wget -v -P ${DATABASE_DIRECTORY} https://portal.nersc.gov/CheckV/checkv-db-${CHE
 tar xvzf ${DATABASE_DIRECTORY}/checkv-db-${CHECKVDB_VERSION}.tar.gz -C ${DATABASE_DIRECTORY}
 mv ${DATABASE_DIRECTORY}/checkv-db-${CHECKVDB_VERSION} ${DATABASE_DIRECTORY}/Classify/CheckV
 echo "${CHECKV_VERSION}" > ${DATABASE_DIRECTORY}/Classify/CheckV/database_version
-diamond makedb --in ${DATABASE_DIRECTORY}/Classify/CheckV/genome_db/checkv_reps.faa --db ${DATABASE_DIRECTORY}/Classify/CheckV/genome_db/checkv_reps.dmnd
+diamond makedb --in ${DATABASE_DIRECTORY}/Classify/CheckV/genome_db/checkv_reps.faa --db ${DATABASE_DIRECTORY}/Classify/CheckV/genome_db/checkv_reps.dmnd --threads ${N_JOBS}
 rm -rf ${DATABASE_DIRECTORY}/checkv-db-${CHECKVDB_VERSION}.tar.gz
 
 # geNomad

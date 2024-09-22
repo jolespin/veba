@@ -472,6 +472,7 @@ ________________________________________________________________
 <details>
 	<summary> <b>Daily Change Log:</b> </summary>
 
+* [2024.8.30] - Added ${N_JOBS} to download scripts with default set to maximum threads available
 * [2024.8.29] - Added `VERSION` file created in `download_databases.sh`
 * [2024.7.11] - Alignment fraction threshold for genome clustering only applied to reference but should also apply to query.  Added `--af_mode` with either `relaxed = max([Alignment_fraction_ref, Alignment_fraction_query]) > minimum_af` or `strict = (Alignment_fraction_ref > minimum_af) & (Alignment_fraction_query > minimum_af)` to `edgelist_to_clusters.py`, `global_clustering.py`, `local_clustering.py`, and `cluster.py`.
 * [2024.7.3] - Added `pigz` to `VEBA-annotate_env` which isn't a problem with most `conda` installations but needed for `docker` containers.
