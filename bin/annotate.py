@@ -228,7 +228,7 @@ def get_mcr_cmd( input_filepaths, output_filepaths, output_directory, directorie
             "&&",
             
         "mv",
-        os.path.join(output_directory, "pathway_coverage.pkl.gz"),
+        os.path.join(output_directory, "pathway_output.pkl.gz"),
         os.path.join(output_directory, "module_completion_ratios.genomes.pkl.gz"),
 
             "&&",
@@ -256,7 +256,7 @@ def get_mcr_cmd( input_filepaths, output_filepaths, output_directory, directorie
             "&&",
             
         "mv",
-        os.path.join(output_directory, "pathway_coverage.pkl.gz"),
+        os.path.join(output_directory, "pathway_output.pkl.gz"),
         os.path.join(output_directory, "module_completion_ratios.genome_clusters.pkl.gz"),
     ]
         
