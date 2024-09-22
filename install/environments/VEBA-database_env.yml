@@ -1,4 +1,4 @@
-name: VEBA-database_env__v2023.11.30
+name: VEBA-database_env__v2024.9.21
 channels:
   - conda-forge
   - bioconda
@@ -14,8 +14,8 @@ dependencies:
   - bz2file=0.98=py_0
   - bzip2=1.0.8=h7f98852_4
   - c-ares=1.19.1=hd590300_0
-  - ca-certificates=2023.11.17=hbcca054_0
-  - certifi=2023.11.17=pyhd8ed1ab_0
+  - ca-certificates=2024.8.30=hbcca054_0
+  - certifi=2024.8.30=pyhd8ed1ab_0
   - charset-normalizer=3.1.0=pyhd8ed1ab_0
   - colorama=0.4.6=pyhd8ed1ab_0
   - coreutils=9.3=h0b41bf4_0
@@ -41,10 +41,12 @@ dependencies:
   - libev=4.33=h516909a_1
   - libexpat=2.5.0=hcb278e6_1
   - libffi=3.4.2=h7f98852_5
-  - libgcc-ng=13.1.0=he5830b7_0
-  - libgfortran-ng=13.1.0=h69a702a_0
-  - libgfortran5=13.1.0=h15d22d2_0
-  - libgomp=13.1.0=he5830b7_0
+  - libgcc=14.1.0=h77fa898_1
+  - libgcc-ng=14.1.0=h69a702a_1
+  - libgfortran=14.1.0=h69a702a_1
+  - libgfortran-ng=14.1.0=h69a702a_1
+  - libgfortran5=14.1.0=hc5f4f2c_1
+  - libgomp=14.1.0=h77fa898_1
   - libiconv=1.17=h166bdaf_0
   - libidn2=2.3.4=h166bdaf_0
   - liblapack=3.9.0=17_linux64_openblas
@@ -61,8 +63,9 @@ dependencies:
   - minimap2=2.26=he4a0461_2
   - mmseqs2=14.7e284=pl5321h6a68c12_2
   - ncurses=6.4=hcb278e6_0
+  - networkx=3.3=pyhd8ed1ab_1
   - numpy=1.25.0=py311h64a7726_0
-  - openssl=3.2.0=hd590300_1
+  - openssl=3.3.2=hb9d3cd8_0
   - pandas=2.0.2=py311h320fe9a_0
   - pathlib2=2.3.7.post1=py311h38be061_2
   - pcre=8.45=h9c3ff4c_0
@@ -97,6 +100,7 @@ dependencies:
   - readline=8.2=h8228510_1
   - requests=2.31.0=pyhd8ed1ab_0
   - scandir=1.10.0=py311hd4cff14_6
+  - scipy=1.14.1=py311he1f765f_0
   - seqkit=2.4.0=h9ee0642_0
   - setuptools=67.7.2=pyhd8ed1ab_0
   - six=1.16.0=pyh6c4a22f_0
@@ -113,3 +117,5 @@ dependencies:
   - xz=5.2.6=h166bdaf_0
   - zlib=1.2.13=hd590300_5
   - zstd=1.5.2=h3eb15da_6
+  - pip:
+      - kegg-pathway-profiler==2024.9.21

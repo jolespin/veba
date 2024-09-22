@@ -35,10 +35,15 @@ wget -v -O - ftp://ftp.genome.jp/pub/db/kofam/ko_list.gz | gzip -d > ${DATABASE_
 wget -v -c ftp://ftp.genome.jp/pub/db/kofam/profiles.tar.gz -O - |  tar -xz
 mv profiles ${DATABASE_DIRECTORY}/Annotate/KOfam/
 
-wget -v -O ${DATABASE_DIRECTORY}/MicrobeAnnotator-KEGG.tar.gz https://zenodo.org/records/10020074/files/MicrobeAnnotator-KEGG.tar.gz?download=1
-tar xvzf ${DATABASE_DIRECTORY}/MicrobeAnnotator-KEGG.tar.gz -C ${DATABASE_DIRECTORY}/Annotate --no-xattrs
-rm -rf ${DATABASE_DIRECTORY}/Annotate/._MicrobeAnnotator-KEGG
-rm -rf ${DATABASE_DIRECTORY}/MicrobeAnnotator-KEGG.tar.gz
+## KEGG MicrobeAnnotator
+#wget -v -O ${DATABASE_DIRECTORY}/MicrobeAnnotator-KEGG.tar.gz https://zenodo.org/records/10020074/files/MicrobeAnnotator-KEGG.tar.gz?download=1
+#tar xvzf ${DATABASE_DIRECTORY}/MicrobeAnnotator-KEGG.tar.gz -C ${DATABASE_DIRECTORY}/Annotate --no-xattrs
+#rm -rf ${DATABASE_DIRECTORY}/Annotate/._MicrobeAnnotator-KEGG
+#rm -rf ${DATABASE_DIRECTORY}/MicrobeAnnotator-KEGG.tar.gz
+
+# KEGG Pathway Profiler
+mkdir -p ${DATABASE_DIRECTORY}/Annotate/KEGG-Pathway-Profiler/
+build-pathway-database.py --force --download --intermediate_directory ${DATABASE_DIRECTORY}/Annotate/KEGG-Pathway-Profiler/ --database ${DATABASE_DIRECTORY}/Annotate/KEGG-Pathway-Profiler/database.pkl.gz
 
 # Pfam
 echo ". .. ... ..... ........ ............."

@@ -421,7 +421,7 @@ ________________________________________________________________
 **Definitely:**
 
 * Add number of unique protein clusters to `identifier_mapping.genomes.tsv.gz` in `cluster.py` to assess most metabolicly diverse representative.
-* Add a `--proteins` option to `classify-eukaryotic.py` which aligns proteins to `MicroEuk100.eukaryota_odb10` via `MMseqs2` and then proceeds with the pipeline.
+* Add `--proteins` option to `classify-eukaryotic.py` which aligns proteins to `MicroEuk100.eukaryota_odb10` via `MMseqs2` and then proceeds with the pipeline.
 * Add `BiNI` biosynthetic novelty index to `biosynthetic.py`
 * `busco_wrapper.py` that relabels all the genes, runs analysis, then converts output to tsv.
 * Script to update genome clusters
@@ -472,6 +472,7 @@ ________________________________________________________________
 <details>
 	<summary> <b>Daily Change Log:</b> </summary>
 
+* [2024.9.21] - Added `KEGG Pathway Profiler` to `VEBA-database_env` and `VEBA-annotate_env` which replaces `MicrobeAnnotator-KEGG` for module completion ratios.  Replacing `${VEBA_DATABASE}/Annotate/MicrobeAnnotator-KEGG` with `${VEBA_DATABASE}/Annotate/KEGG-Pathway-Profiler/` database files.
 * [2024.8.30] - Added ${N_JOBS} to download scripts with default set to maximum threads available
 * [2024.8.29] - Added `VERSION` file created in `download_databases.sh`
 * [2024.7.11] - Alignment fraction threshold for genome clustering only applied to reference but should also apply to query.  Added `--af_mode` with either `relaxed = max([Alignment_fraction_ref, Alignment_fraction_query]) > minimum_af` or `strict = (Alignment_fraction_ref > minimum_af) & (Alignment_fraction_query > minimum_af)` to `edgelist_to_clusters.py`, `global_clustering.py`, `local_clustering.py`, and `cluster.py`.

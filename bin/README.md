@@ -550,8 +550,8 @@ Binning arguments:
                         CONCOCT | Fragment length [Default: 10000]
   --concoct_overlap_length CONCOCT_OVERLAP_LENGTH
                         CONCOCT | Fragment overlap length [Default: 0]
-  --skip_maxbin2        MaxBin2 | Skip MaxBin2. Useful for large datasets
-  --skip_concoct        CONCOCT | Skip CONCOCT. Useful when there's a lot of samples
+  --skip_maxbin2        MaxBin2 | Skip MaxBin2. Useful when there's many contigs/scaffolds
+  --skip_concoct        CONCOCT | Skip CONCOCT. Skip CONCOCT. Useful when there's many BAM files
   --maxbin2_options MAXBIN2_OPTIONS
                         MaxBin2 | More options (e.g. --arg 1 ) [Default: ''] | https://sourceforge.net/projects/maxbin/
   --metabat2_options METABAT2_OPTIONS
