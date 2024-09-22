@@ -15,7 +15,7 @@ from soothsayer_utils.soothsayer_utils import assert_acceptable_arguments
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2024.6.7"
+__version__ = "2024.9.21"
 
 DIAMOND_HEADER_FIELDS = "qseqid sseqid stitle pident evalue bitscore qcovhsp scovhsp"
 
@@ -204,6 +204,8 @@ def get_mcr_cmd( input_filepaths, output_filepaths, output_directory, directorie
 
     # Command
     cmd = [
+        
+        # Genomes
         os.environ["compile_ko_from_annotations.py"],
         "-i {}".format(input_filepaths[0]),
         "-o {}".format(os.path.join(output_directory, "kos.genomes.tsv")),
@@ -211,26 +213,53 @@ def get_mcr_cmd( input_filepaths, output_filepaths, output_directory, directorie
 
             "&&",
         
-        os.environ["module_completion_ratios.py"],
+        os.environ["profile-pathway-coverage.py"],
         "-i {}".format(os.path.join(output_directory, "kos.genomes.tsv")),
-        "-o {}".format(os.path.join(output_directory, "module_completion_ratios.genomes.tsv")),
-        "--database_directory {}".format(os.path.join(opts.veba_database, "Annotate", "MicrobeAnnotator-KEGG")),
+        "-o {}".format(output_directory),
+        "-d {}".format(os.path.join(opts.veba_database, "Annotate", "KEGG-Pathway-Profiler", "database.pkl.gz")),
+        "--index_name id_genome",
+        
+            "&&",
+            
+        "mv",
+        os.path.join(output_directory, "pathway_coverage.tsv.gz"),
+        os.path.join(output_directory, "module_completion_ratios.genomes.tsv.gz"),
+        
+            "&&",
+            
+        "mv",
+        os.path.join(output_directory, "pathway_output.pkl.gz"),
+        os.path.join(output_directory, "module_completion_ratios.genomes.pkl.gz"),
 
             "&&",
-
+            
+        # Genome Clusters
         os.environ["compile_ko_from_annotations.py"],
         "-i {}".format(input_filepaths[0]),
         "-o {}".format(os.path.join(output_directory, "kos.genome_clusters.tsv")),
         "-l genome_cluster",
 
             "&&",
-        
-        os.environ["module_completion_ratios.py"],
+            
+        os.environ["profile-pathway-coverage.py"],
         "-i {}".format(os.path.join(output_directory, "kos.genome_clusters.tsv")),
-        "-o {}".format(os.path.join(output_directory, "module_completion_ratios.genome_clusters.tsv")),
-        "--database_directory {}".format(os.path.join(opts.veba_database, "Annotate", "MicrobeAnnotator-KEGG")),
-        ]
-
+        "-o {}".format(output_directory),
+        "-d {}".format(os.path.join(opts.veba_database, "Annotate", "KEGG-Pathway-Profiler", "database.pkl.gz")),
+        "--index_name id_genome_cluster",
+        
+            "&&",
+            
+        "mv",
+        os.path.join(output_directory, "pathway_coverage.tsv.gz"),
+        os.path.join(output_directory, "module_completion_ratios.genome_clusters.tsv.gz"),
+        
+            "&&",
+            
+        "mv",
+        os.path.join(output_directory, "pathway_output.pkl.gz"),
+        os.path.join(output_directory, "module_completion_ratios.genome_clusters.pkl.gz"),
+    ]
+        
     return cmd
 
 # def get_propagate_annotations_cmd( input_filepaths, output_filepaths, output_directory, directories, opts):
@@ -257,7 +286,7 @@ def add_executables_to_environment(opts):
                 "merge_annotations.py",
                 # "propagate_annotations_from_representatives.py",
                 "compile_ko_from_annotations.py",
-                "module_completion_ratios.py",
+                # "module_completion_ratios.py",
                 "merge_annotations.py",
                 "compile_custom_humann_database_from_annotations.py",
                 }
@@ -271,6 +300,7 @@ def add_executables_to_environment(opts):
                 # 3
                 "pykofamsearch.py",
                 "reformat_pykofamsearch.py",
+                "profile-pathway-coverage.py",
                 
 
      } | accessory_scripts
@@ -765,7 +795,7 @@ def create_pipeline(opts, directories, f_cmds):
         input_filepaths = [
             os.path.join(directories["output"], "annotations.proteins.tsv.gz"),
         ]
-        output_filenames = ["kos.genomes.tsv", "kos.genome_clusters.tsv", "module_completion_ratios.genomes.tsv", "module_completion_ratios.genome_clusters.tsv"]
+        output_filenames = ["kos.genomes.tsv", "kos.genome_clusters.tsv", "module_completion_ratios.genomes.tsv.gz", "module_completion_ratios.genome_clusters.tsv.gz"]
         output_filepaths = list(map(lambda filename: os.path.join(output_directory, filename), output_filenames))
 
         params = {

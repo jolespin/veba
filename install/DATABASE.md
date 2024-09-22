@@ -53,6 +53,182 @@ VEBA’s Microeukaryotic Protein Database has been completely redesigned using t
 
 **Current:**
 
+ *VEBA Database* version: `VDB_v8` (~300 GB)
+ 
+* Replaced [MicrobeAnnotator-KEGG](https://zenodo.org/records/10020074) reimplementation with [KEGG Pathway Profiler](https://github.com/jolespin/kegg_pathway_profiler) database
+
+```
+├── ACCESS_DATE
+├── Annotate
+│   ├── CAZy
+│   │   └── CAZyDB.07262023.dmnd
+│   ├── KEGG-Pathway-Profiler
+│   │   ├── database.pkl.gz
+│   │   ├── database.tsv
+│   │   ├── database.version
+│   │   ├── pathway_names.tsv.gz
+│   │   └── pathways
+│   ├── KOfam
+│   │   ├── ko_list
+│   │   └── profiles
+│   ├── MIBiG
+│   │   └── mibig_v3.1.dmnd
+│   ├── NCBIfam-AMRFinder
+│   │   ├── NCBIfam-AMRFinder.changelog.txt
+│   │   ├── NCBIfam-AMRFinder.changelog.txt.1
+│   │   ├── NCBIfam-AMRFinder.hmm.gz
+│   │   ├── NCBIfam-AMRFinder.tsv
+│   │   └── NCBIfam-AMRFinder.tsv.1
+│   ├── Pfam
+│   │   ├── Pfam-A.clans.tsv.gz
+│   │   ├── Pfam-A.clans.tsv.gz.1
+│   │   ├── Pfam-A.hmm.gz
+│   │   ├── Pfam-A.hmm.gz.1
+│   │   ├── relnotes.txt
+│   │   └── relnotes.txt.1
+│   ├── UniRef
+│   │   ├── uniref50.dmnd
+│   │   ├── uniref50.release_note
+│   │   ├── uniref90.dmnd
+│   │   ├── uniref90.release_note
+│   │   └── uniref90.release_note.1
+│   └── VFDB
+│       ├── VFDB_setA_pro.dmnd
+│       └── VFs.xls.gz
+├── Classify
+│   ├── CheckM2
+│   │   └── uniref100.KO.1.dmnd
+│   ├── CheckV
+│   │   ├── database_version
+│   │   ├── genome_db
+│   │   ├── hmm_db
+│   │   └── README.txt
+│   ├── geNomad
+│   │   ├── genomad_db
+│   │   ├── genomad_db.dbtype
+│   │   ├── genomad_db_h
+│   │   ├── genomad_db_h.dbtype
+│   │   ├── genomad_db_h.index
+│   │   ├── genomad_db.index
+│   │   ├── genomad_db.lookup
+│   │   ├── genomad_db_mapping
+│   │   ├── genomad_db.source
+│   │   ├── genomad_db_taxonomy
+│   │   ├── genomad_integrase_db
+│   │   ├── genomad_integrase_db.dbtype
+│   │   ├── genomad_integrase_db_h
+│   │   ├── genomad_integrase_db_h.dbtype
+│   │   ├── genomad_integrase_db_h.index
+│   │   ├── genomad_integrase_db.index
+│   │   ├── genomad_integrase_db.lookup
+│   │   ├── genomad_integrase_db.source
+│   │   ├── genomad_marker_metadata.tsv
+│   │   ├── genomad_mini_db
+│   │   ├── genomad_mini_db.dbtype
+│   │   ├── genomad_mini_db_h
+│   │   ├── genomad_mini_db_h.dbtype
+│   │   ├── genomad_mini_db_h.index
+│   │   ├── genomad_mini_db.index
+│   │   ├── genomad_mini_db.lookup
+│   │   ├── genomad_mini_db_mapping
+│   │   ├── genomad_mini_db.source
+│   │   ├── genomad_mini_db_taxonomy
+│   │   ├── mini_set_ids
+│   │   ├── names.dmp
+│   │   ├── nodes.dmp
+│   │   ├── plasmid_hallmark_annotation.txt
+│   │   ├── version.txt
+│   │   └── virus_hallmark_annotation.txt
+│   ├── GTDB
+│   │   ├── database_version
+│   │   ├── markers
+│   │   ├── mash
+│   │   ├── masks
+│   │   ├── metadata
+│   │   ├── mrca_red
+│   │   ├── msa
+│   │   ├── pplacer
+│   │   ├── radii
+│   │   ├── RELEASE_NOTES.txt
+│   │   ├── skani
+│   │   ├── split
+│   │   └── taxonomy
+│   ├── MicroEuk
+│   │   ├── MicroEuk100
+│   │   ├── MicroEuk100.dbtype
+│   │   ├── MicroEuk100.eukaryota_odb10
+│   │   ├── MicroEuk100.eukaryota_odb10.dbtype
+│   │   ├── MicroEuk100.eukaryota_odb10_h
+│   │   ├── MicroEuk100.eukaryota_odb10_h.dbtype
+│   │   ├── MicroEuk100.eukaryota_odb10_h.index
+│   │   ├── MicroEuk100.eukaryota_odb10.index
+│   │   ├── MicroEuk100.eukaryota_odb10.lookup
+│   │   ├── MicroEuk100.eukaryota_odb10.source
+│   │   ├── MicroEuk100_h
+│   │   ├── MicroEuk100_h.dbtype
+│   │   ├── MicroEuk100_h.index
+│   │   ├── MicroEuk100.index
+│   │   ├── MicroEuk100.lookup
+│   │   ├── MicroEuk100.source
+│   │   ├── MicroEuk50
+│   │   ├── MicroEuk50.dbtype
+│   │   ├── MicroEuk50_h
+│   │   ├── MicroEuk50_h.dbtype
+│   │   ├── MicroEuk50_h.index
+│   │   ├── MicroEuk50.index
+│   │   ├── MicroEuk50.lookup
+│   │   ├── MicroEuk50.source
+│   │   ├── MicroEuk90
+│   │   ├── MicroEuk90.dbtype
+│   │   ├── MicroEuk90_h
+│   │   ├── MicroEuk90_h.dbtype
+│   │   ├── MicroEuk90_h.index
+│   │   ├── MicroEuk90.index
+│   │   ├── MicroEuk90.lookup
+│   │   ├── MicroEuk90.source
+│   │   ├── source_taxonomy.tsv.gz
+│   │   ├── source_to_lineage.dict.pkl.gz
+│   │   └── target_to_source.dict.pkl.gz
+│   └── NCBITaxonomy
+│       ├── citations.dmp
+│       ├── delnodes.dmp
+│       ├── division.dmp
+│       ├── gc.prt
+│       ├── gencode.dmp
+│       ├── images.dmp
+│       ├── merged.dmp
+│       ├── names.dmp
+│       ├── nodes.dmp
+│       └── readme.txt
+├── Contamination
+│   ├── AntiFam
+│   │   ├── AntiFam.hmm.gz
+│   │   ├── relnotes
+│   │   └── version
+│   ├── chm13v2.0
+│   │   ├── chm13v2.0.1.bt2
+│   │   ├── chm13v2.0.2.bt2
+│   │   ├── chm13v2.0.3.bt2
+│   │   ├── chm13v2.0.4.bt2
+│   │   ├── chm13v2.0.rev.1.bt2
+│   │   └── chm13v2.0.rev.2.bt2
+│   └── kmers
+│       └── ribokmers.fa.gz
+├── MarkerSets
+│   ├── Archaea_76.hmm.gz
+│   ├── Bacteria_71.hmm.gz
+│   ├── CPR_43.hmm.gz
+│   ├── eukaryota_odb10.hmm.gz
+│   ├── eukaryota_odb10.scores_cutoff.tsv.gz
+│   ├── Fungi_593.hmm.gz
+│   ├── Protista_83.hmm.gz
+│   └── README
+├── VDB_v8.db_size
+└── VERSION
+```
+
+**Current:**
+
  *VEBA Database* version: `VDB_v7` (301 GB)
  
 * Updated GTDB r214.1 -> r220

@@ -49,12 +49,12 @@ ___________________________________________________________________
 
 ### Announcements
 
-* **Current Stable Version:** [`v2.2.1`](https://github.com/jolespin/veba/releases/tag/v2.2.1)
+* **Current Stable Version:** [`v2.3.0`](https://github.com/jolespin/veba/releases/tag/v2.3.0)
 
-* **Current Database Version:** [`VDB_v7`](install/DATABASE.md)
+* **Current Database Version:** [`VDB_v8`](install/DATABASE.md)
 
 	If you are updating to ≥v2.2.0 you will need to modify your existing database.  
-	Please see [FAQs](FAQ.md#how-can-i-update-the-database-from-veba-v210-veba-database-vdb_v6-to-veba-v220-veba-database-vdb_v7) for more details.
+	Please see [FAQs](FAQ.md#how-can-i-update-the-database-from-veba-v210-veba-database-vdb_v6-to-veba-v230-veba-database-vdb_v8) for more details.
 
 	<details>
 		<summary>New features and updates:</summary>
@@ -74,12 +74,16 @@ ___________________________________________________________________
 		* Visualizations of hierarchical data and phylogenies
 		* Added minimum alignment fraction threshold for genome clustering
 		* Faster HMM protein annotations with PyHMMER
+		* Replaced [MicrobeAnnotator-KEGG](https://zenodo.org/records/10020074) reimplementation with [KEGG Pathway Profiler](https://github.com/jolespin/kegg_pathway_profiler)
 
-	* **`VEBA` Database (`VDB_v7`)**:
+
+	* **`VEBA` Database (`VDB_v8`)**:
 
 		* Completely rebuilt `VEBA's Microeukaryotic Protein Database` to produce a clustered database `MicroEuk100/90/50` similar to `UniRef100/90/50`. Available on [doi:10.5281/zenodo.10139450](https://zenodo.org/records/10139451).
 		* Expanded protein annotation database
 		* Updated `GTDB r214.1` to `GTDB r220`
+		* Replaced [MicrobeAnnotator-KEGG](https://zenodo.org/records/10020074) reimplementation with [KEGG Pathway Profiler](https://github.com/jolespin/kegg_pathway_profiler) database
+
 
 	</details>
 

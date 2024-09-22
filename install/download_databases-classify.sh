@@ -1,6 +1,6 @@
 #!/bin/bash
-# __version__ = "2024.8.30"
-# VEBA_DATABASE_VERSION = "VDB_v7"
+# __version__ = "2024.9.21"
+# VEBA_DATABASE_VERSION = "VDB_v8"
 # MICROEUKAYROTIC_DATABASE_VERSION = "MicroEuk_v3"
 # usage: bash veba/download_databases-classify.sh /path/to/veba_database_destination/
 
