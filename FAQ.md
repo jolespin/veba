@@ -2,6 +2,24 @@
 <a name="faq-top"></a>
 
 ______________________
+
+#### What version do I have installed?
+
+If you have the full Conda build (with the `VEBA` controlled environment installed)) you can do: 
+```
+# Activate controller VEBA environment
+conda activate VEBA
+veba --version
+```
+
+If you have either a partial Conda build installed (without the `VEBA` controller environment installed) or a full Conda build:
+```
+# Activate any VEBA environment (e.g., VEBA-preprocess_env)
+conda activate VEBA-preprocess_env
+cat ${CONDA_PREFIX}/bin/VEBA_VERSION
+```
+
+______________________
 #### *VEBA* has so many modules and capabilities, how can I get a feel for how to use it for my dataset(s)?
 
 Check out the [walkthroughs](https://github.com/jolespin/veba/tree/main/walkthroughs) where there are step-by-step workflows for different types of data.  For a visual walkthrough of the modules, watch the [Getting started with VEBA](https://www.youtube.com/watch?v=pqrIffWNuug) YouTube video. There are several video tutorials on our [YouTube Channel @VEBA-Multiomics](https://www.youtube.com/@VEBA-Multiomics) covering topics such as how to get started, how to install/configure databases, custom installations/databases, Docker usage on local machines, and the end-to-end walkthrough in real-ish time.
@@ -671,7 +689,7 @@ I developed a script in `veba/bin/scripts/determine_fastest_mirror.py` (formerly
 ______________________
 
 
-#### How can I update the database from VEBA v2.1.0 (VEBA Database: VDB_v6) to VEBA ≥v2.2.0 (VEBA Database: VDB_v7)?
+#### How can I update the database from VEBA v2.1.0 (VEBA Database: VDB_v6) to VEBA ≥v2.3.0 (VEBA Database: VDB_v8)?
 
 After uninstalling and installing the new environments: 
 
@@ -711,6 +729,12 @@ wget -v -P ${DATABASE_DIRECTORY}/Annotate/Pfam http://ftp.ebi.ac.uk/pub/database
 
 # 6. Change KOFAM to KOfam
 mv ${DATABASE_DIRECTORY}/Annotate/KOFAM ${DATABASE_DIRECTORY}/Annotate/KOfam
+
+# 7. Replace MicrobeAnnotator-KEGG with KEGG Pathway Profiler database 
+# Note: build-pathway-database.py is from the KEGG Pathway Profiler package installed with VEBA-database_env and VEBA-annotate_env v2024.9.21+
+rm -rf ${DATABASE_DIRECTORY}/Annotate/MicrobeAnnotator-KEGG/
+mkdir -p ${DATABASE_DIRECTORY}/Annotate/KEGG-Pathway-Profiler/
+build-pathway-database.py --force --download --intermediate_directory ${DATABASE_DIRECTORY}/Annotate/KEGG-Pathway-Profiler/ --database ${DATABASE_DIRECTORY}/Annotate/KEGG-Pathway-Profiler/database.pkl.gz
 ```
 
 GitHub doesn't push case change on files so you might have to update this manually: https://github.com/desktop/desktop/issues/5537#
@@ -721,7 +745,8 @@ After you have the databases downloaded, then you need to set up your environmen
 bash veba/install/update_environment_variables.sh /path/to/veba_database
 ```
 
-For more details on this last step, see [how to update environment variables with pre-configured database](https://github.com/jolespin/veba/tree/main/install#updating-environment-variables-with-pre-configured-database).
+For more details on **Step 6**, see [how to update environment variables with pre-configured database](https://github.com/jolespin/veba/tree/main/install#updating-environment-variables-with-pre-configured-database).
+
 
 <p align="right"><a href="#faq-top">^__^</a></p>
 

@@ -1,9 +1,9 @@
 #!/bin/bash
-# __version__ = "2024.8.30"
+# __version__ = "2024.9.21"
 # MICROEUKAYROTIC_DATABASE_VERSION = "MicroEuk_v3"
 # usage: bash veba/download_databases.sh /path/to/veba_database_destination/ [optional positional argument: /path/to/conda_environments/ number_of_threads]
 # Version
-VEBA_DATABASE_VERSION="VDB_v7"
+VEBA_DATABASE_VERSION="VDB_v8"
 
 # Arguments
 DATABASE_DIRECTORY=${1:-"."}
