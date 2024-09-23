@@ -90,10 +90,6 @@ RELATIVE_OUTPUT_DIRECTORY=veba_output/preprocess/
 # Command
 CMD="preprocess.py -1 ${CONTAINER_WORKING_DIRECTORY}/${R1} -2 ${CONTAINER_WORKING_DIRECTORY}/${R2} -n ${ID} -o ${CONTAINER_WORKING_DIRECTORY}/${RELATIVE_OUTPUT_DIRECTORY} -x ${CONTAINER_DATABASE_DIRECTORY}/Contamination/chm13v2.0/chm13v2.0"
 
-# Docker
-# Version
-VERSION=2.3.0
-
 # Image
 DOCKER_IMAGE="jolespin/veba_preprocess:${VERSION}"
 
@@ -139,10 +135,6 @@ RELATIVE_OUTPUT_DIRECTORY=veba_output/preprocess/
 
 # Command
 CMD="preprocess.py -1 ${CONTAINER_INPUT_DIRECTORY}/${R1} -2 ${CONTAINER_INPUT_DIRECTORY}/${R2} -n ${ID} -o ${CONTAINER_OUTPUT_DIRECTORY}/${RELATIVE_OUTPUT_DIRECTORY} -x ${CONTAINER_DATABASE_DIRECTORY}/Contamination/chm13v2.0/chm13v2.0"
-
-# Docker
-# Version
-VERSION=2.3.0
 
 # Image
 DOCKER_IMAGE="jolespin/veba_preprocess:${VERSION}"
@@ -206,10 +198,6 @@ R2=veba_output/preprocess/${ID}/output/cleaned_2.fastq.gz
 # Command
 CMD="assembly.py -1 ${CONTAINER_WORKING_DIRECTORY}/${R1} -2 ${CONTAINER_WORKING_DIRECTORY}/${R2} -n ${ID} -o ${CONTAINER_WORKING_DIRECTORY}/${RELATIVE_OUTPUT_DIRECTORY} -p=-1"
 
-# Docker
-# Version
-VERSION=2.3.0
-
 # Image
 DOCKER_IMAGE="jolespin/veba_assembly:${VERSION}"
 
@@ -245,10 +233,6 @@ RELATIVE_OUTPUT_DIRECTORY=veba_output/binning/prokaryotic/
 
 # Command
 CMD="binning-prokaryotic.py -f ${CONTAINER_WORKING_DIRECTORY}/${FASTA} -b ${CONTAINER_WORKING_DIRECTORY}/${BAM} -n ${ID} -o ${CONTAINER_WORKING_DIRECTORY}/${RELATIVE_OUTPUT_DIRECTORY} -p=-1 --veba_database ${CONTAINER_DATABASE_DIRECTORY}"
-
-# Docker
-# Version
-VERSION=2.3.0
 
 # Image
 DOCKER_IMAGE="jolespin/veba_binning-prokaryotic:${VERSION}"

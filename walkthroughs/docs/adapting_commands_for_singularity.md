@@ -71,10 +71,10 @@ We mount these with the `--volume` argument so any file in the `LOCAL_WORKING_DI
 
 ```bash
 # Local directories
-VEBA_DATABASE=${VEBA_DATABASE} # path/to/veba_database/
+VEBA_DATABASE=path/to/veba_database/
 LOCAL_WORKING_DIRECTORY=$(pwd)
 LOCAL_WORKING_DIRECTORY=$(realpath -m ${LOCAL_WORKING_DIRECTORY})
-LOCAL_DATABASE_DIRECTORY=${VEBA_DATABASE} # /path/to/VEBA_DATABASE/
+LOCAL_DATABASE_DIRECTORY=${VEBA_DATABASE}
 LOCAL_DATABASE_DIRECTORY=$(realpath -m ${LOCAL_DATABASE_DIRECTORY})
 
 # Container directories
@@ -86,7 +86,7 @@ BAM=${CONTAINER_WORKING_DIRECTORY}/veba_output/assembly/S1/output/mapped.sorted.
 OUTPUT_DIRECTORY=${CONTAINER_WORKING_DIRECTORY}/veba_output/binning/prokaryotic/
 NAME="S1"
 
-SINGULARITY_IMAGE="containers/veba_binning-prokaryotic__2.1.0.sif"
+SINGULARITY_IMAGE="containers/veba_binning-prokaryotic__${VERSION}.sif"
 singularity exec \
     --bind ${LOCAL_WORKING_DIRECTORY}:${CONTAINER_WORKSPACE_DIRECTORY},${LOCAL_DATABASE_DIRECTORY}:${CONTAINER_DATABASE_DIRECTORY} \
      ${SINGULARITY_IMAGE} \
