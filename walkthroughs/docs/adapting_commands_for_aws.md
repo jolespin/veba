@@ -62,7 +62,7 @@ This job definition pulls the [jolespin/veba_preprocess](https://hub.docker.com/
         "efsVolumeConfiguration": {
           "fileSystemId": "fs-xxx",
           "transitEncryption": "ENABLED",
-          "rootDirectory": "databases/veba/VDB_v6/"
+          "rootDirectory": "databases/veba/VDB_v8/"
         }
       },
       {
