@@ -6,7 +6,7 @@ import numpy as np
 from soothsayer_utils import read_hmmer, pv, get_file_object, assert_acceptable_arguments, format_header, flatten
 
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2024.6.7"
+__version__ = "2024.11.15"
 
 DIAMOND_HEADER_FIELDS = "qseqid sseqid stitle pident evalue bitscore qcovhsp scovhsp"
 DIAMOND_COLUMNS = list(filter(bool, DIAMOND_HEADER_FIELDS.split(" ")))
@@ -37,7 +37,7 @@ def parse_uniref(stitle):
     # Print the four fields
     return [field1, field2, field3, field4]
 
-def compile_identifiers(df, id_protein_cluster):
+def compile_identifiers(df):
     # Organism type
     organism_types = set(df["organism_type"])
     if len(organism_types) == 1:
@@ -56,37 +56,43 @@ def compile_identifiers(df, id_protein_cluster):
     data = [genome_clusters, organism_types]#, genomes, samples]
     return data
 
-def compile_uniref(df, id_protein_cluster):
+def compile_uniref(df):
     df = df.dropna(how="all", axis=0)
     unique_identifiers = list(df["sseqid"].unique())
     data = [df.shape[0], len(unique_identifiers), unique_identifiers, list(df["product"].unique())]
     return data
 
-def compile_nonuniref_diamond(df, id_protein_cluster, label):
+def compile_nonuniref_diamond(df):
     df = df.dropna(how="all", axis=0)
     unique_identifiers = set(df["sseqid"].unique())
     data = [df.shape[0], len(unique_identifiers), list(unique_identifiers)]
 
     return data
 
-def compile_pfam(df, id_protein_cluster, label):
+def compile_pfam(df):
     df = df.dropna(how="all", axis=0).query("number_of_hits > 0")
     unique_identifiers = flatten(df["ids"], into=list, unique=True)   
     unique_names = flatten(df["names"], unique=True)
     data = [df.shape[0], len(unique_identifiers), unique_identifiers, unique_names]
     return data
 
-def compile_nonpfam_pyhmmsearch(df, id_protein_cluster, label):
+def compile_nonpfam_pyhmmsearch(df):
     df = df.dropna(how="all", axis=0).query("number_of_hits > 0")
     unique_identifiers = flatten(df["ids"], into=list, unique=True)    
     data = [df.shape[0], len(unique_identifiers), unique_identifiers]
     return data
 
-def compile_pykofamsearch(df, id_protein_cluster, label):
+def compile_pykofamsearch(df):
     df = df.dropna(how="all", axis=0).query("number_of_hits > 0")
     unique_identifiers = flatten(df["ids"], into=list, unique=True)
     unique_names = flatten(df["names"], unique=True)
     data = [df.shape[0], len(unique_identifiers), unique_identifiers, unique_names]
+    return data
+
+def compile_enzymes(df):
+    df = df.dropna(how="all", axis=0).query("number_of_hits > 0")
+    unique_identifiers = flatten(df["ids"], into=list, unique=True)
+    data = [df.shape[0], len(unique_identifiers), unique_identifiers]
     return data
 
 
@@ -165,11 +171,11 @@ def main(args=None):
 
     
     # try:
-    df_diamond_uniref = pd.read_csv(opts.diamond_uniref, sep="\t", index_col=None, header=None)
+    df_diamond_uniref = pd.read_csv(opts.diamond_uniref, sep="\t", index_col=0)
     # except pd.errors.EmptyDataError:
     #     df_diamond_uniref = pd.DataFrame(columns=columns)
     
-    df_diamond_uniref.columns = DIAMOND_COLUMNS
+    # df_diamond_uniref.columns = DIAMOND_COLUMNS
     df_diamond_uniref = df_diamond_uniref.set_index("qseqid")
 
     # Remove ID from stitle
@@ -189,30 +195,27 @@ def main(args=None):
 
     print(" * Reading Diamond table [MIBiG]: {}".format(opts.diamond_mibig), file=sys.stderr)
     try:
-        df_diamond_mibig = pd.read_csv(opts.diamond_mibig, sep="\t", index_col=None, header=None)
+        df_diamond_mibig = pd.read_csv(opts.diamond_mibig, sep="\t", index_col=0)
     except pd.errors.EmptyDataError:
         df_diamond_mibig = pd.DataFrame(columns=DIAMOND_COLUMNS)
-    df_diamond_mibig.columns = DIAMOND_COLUMNS
     df_diamond_mibig = df_diamond_mibig.set_index("qseqid")
     df_diamond_mibig = df_diamond_mibig.drop(["stitle"], axis=1)
     proteins = proteins | set(df_diamond_mibig.index)
 
     print(" * Reading Diamond table [VFDB]: {}".format(opts.diamond_mibig), file=sys.stderr)
     try:
-        df_diamond_vfdb = pd.read_csv(opts.diamond_vfdb, sep="\t", index_col=None, header=None)
+        df_diamond_vfdb = pd.read_csv(opts.diamond_vfdb, sep="\t", index_col=0)
     except pd.errors.EmptyDataError:
         df_diamond_vfdb = pd.DataFrame(columns=DIAMOND_COLUMNS)
-    df_diamond_vfdb.columns = DIAMOND_COLUMNS
     df_diamond_vfdb = df_diamond_vfdb.set_index("qseqid")
     df_diamond_vfdb = df_diamond_vfdb.drop(["stitle"], axis=1)
     proteins = proteins | set(df_diamond_vfdb.index)
 
     print(" * Reading Diamond table [CAZy]: {}".format(opts.diamond_cazy), file=sys.stderr)
     try:
-        df_diamond_cazy = pd.read_csv(opts.diamond_cazy, sep="\t", index_col=None, header=None)
+        df_diamond_cazy = pd.read_csv(opts.diamond_cazy, sep="\t", index_col=0)
     except pd.errors.EmptyDataError:
         df_diamond_cazy = pd.DataFrame(columns=DIAMOND_COLUMNS)
-    df_diamond_cazy.columns = DIAMOND_COLUMNS
     df_diamond_cazy = df_diamond_cazy.set_index("qseqid")
     df_diamond_cazy = df_diamond_cazy.drop(["stitle"], axis=1)
     proteins = proteins | set(df_diamond_cazy.index)
@@ -225,7 +228,6 @@ def main(args=None):
     # ===========
     # PyHMMSearch
     # ===========
-    
     print(" * Reading PyHMMSearch table [Pfam]: {}".format(opts.pyhmmsearch_pfam), file=sys.stderr)
     df_hmms_pfam = pd.read_csv(opts.pyhmmsearch_pfam, sep="\t", index_col=0)
     if not df_hmms_pfam.empty:
@@ -264,17 +266,28 @@ def main(args=None):
         print(" *!* PyHMMSearch table [AntiFam] is empty", file=sys.stderr)
 
     # ===========
-    # PyKofamSearch
+    # PyKOfamSearch
     # ===========
     print(" * Reading PyKofamSearch table [KEGG]: {}".format(opts.pykofamsearch), file=sys.stderr)
     df_hmms_kofam = pd.read_csv(opts.pykofamsearch, sep="\t", index_col=0)
+    # Process enzymes
+    df_enzymes = df_hmms_kofam.pop("enzyme_commissions").to_frame("ids")
+
     if not df_hmms_kofam.empty:
         for field in ["ids", "names", "evalues", "scores"]:
             df_hmms_kofam[field] = df_hmms_kofam[field].map(eval)
         proteins = proteins | set(df_hmms_kofam.index)
 
     else:
-        print(" *!* PyKofamSearch table [KEGG] is empty", file=sys.stderr)
+        print(" *!* PyKofamSearch table [KOfam] is empty", file=sys.stderr)
+        
+    if not df_enzymes.empty:
+        for field in ["ids"]:
+            df_enzymes[field] = df_enzymes[field].map(eval)
+        # proteins = proteins | set(df_enzymes.index)
+
+    else:
+        print(" *!* PyKofamSearch table [Enzymes] is empty", file=sys.stderr)
 
     # All proteins
     proteins = sorted(proteins)
@@ -283,39 +296,45 @@ def main(args=None):
     # Reindex Diamond
     df_diamond_uniref = df_diamond_uniref.reindex(proteins)
 
- 
     # Reindex HMMSearch Results
+    # Pfam
     df_hmms_pfam = df_hmms_pfam.reindex(proteins)
-    # df_hmms_pfam = df_hmms_pfam.applymap(lambda x: x if isinstance(x,list) else [])
     for field in ["ids", "names", "evalues", "scores"]:
         df_hmms_pfam[field] = df_hmms_pfam[field].map(lambda x: x if isinstance(x,list) else [])
     df_hmms_pfam["number_of_hits"] = df_hmms_pfam["number_of_hits"].fillna(0).astype(int)
     df_hmms_pfam.index.name = "id_protein"
 
+    # AMR
     df_hmms_amr = df_hmms_amr.reindex(proteins)
-    # df_hmms_amr = df_hmms_amr.applymap(lambda x: x if isinstance(x,list) else [])
     for field in ["ids", "evalues", "scores"]:
         df_hmms_amr[field] = df_hmms_amr[field].map(lambda x: x if isinstance(x,list) else [])
     df_hmms_amr["number_of_hits"] = df_hmms_amr["number_of_hits"].fillna(0).astype(int)
     df_hmms_amr.index.name = "id_protein"
         
+    # AntiFam
     df_hmms_antifam = df_hmms_antifam.reindex(proteins)
-    # df_hmms_antifam = df_hmms_antifam.applymap(lambda x: x if isinstance(x,list) else [])
     for field in ["ids", "evalues", "scores"]:
         df_hmms_antifam[field] = df_hmms_antifam[field].map(lambda x: x if isinstance(x,list) else [])
     df_hmms_antifam["number_of_hits"] = df_hmms_antifam["number_of_hits"].fillna(0).astype(int)
     df_hmms_antifam.index.name = "id_protein"
 
+    # KOfam
     df_hmms_kofam = df_hmms_kofam.reindex(proteins)
-    # df_hmms_kofam = df_hmms_kofam.applymap(lambda x: x if isinstance(x,list) else [])
     for field in ["ids", "names", "evalues", "scores"]:
         df_hmms_kofam[field] = df_hmms_kofam[field].map(lambda x: x if isinstance(x,list) else [])
     df_hmms_kofam["number_of_hits"] = df_hmms_kofam["number_of_hits"].fillna(0).astype(int)
     df_hmms_kofam.index.name = "id_protein"
-   
+    
+    # Enzymes
+    df_enzymes = df_enzymes.reindex(proteins)
+    for field in ["ids"]:
+        df_enzymes[field] = df_enzymes[field].map(lambda x: x if isinstance(x,list) else [])
+    df_enzymes["number_of_hits"] = df_enzymes["ids"].map(len).fillna(0).astype(int)
+    df_enzymes.index.name = "id_protein"
+       
     # Output table
     dataframes = list()
-    for (name, df) in zip([ "UniRef", "MIBiG", "VFDB", "CAZy", "Pfam", "NCBIfam-AMR", "AntiFam", "KOfam"],[df_diamond_uniref, df_diamond_mibig, df_diamond_vfdb, df_diamond_cazy, df_hmms_pfam, df_hmms_amr, df_hmms_antifam, df_hmms_kofam]):
+    for (name, df) in zip([ "UniRef", "MIBiG", "VFDB", "CAZy", "Pfam", "NCBIfam-AMR",  "KOfam", "Enzymes", "AntiFam"],[df_diamond_uniref, df_diamond_mibig, df_diamond_vfdb, df_diamond_cazy, df_hmms_pfam, df_hmms_amr, df_hmms_kofam, df_enzymes, df_hmms_antifam]):
         df = df.copy()
         df.columns = df.columns.map(lambda x: (name,x))
         dataframes.append(df)
@@ -370,6 +389,7 @@ def main(args=None):
                   *["Pfam"]*4,
                   *["NCBIfam-AMR"]*3,
                   *["KOfam"]*4,
+                  *["Enzymes"]*3,
                   *["AntiFam"]*3,
                   sep="\t", file=f)
 
@@ -384,6 +404,7 @@ def main(args=None):
                 *["number_of_proteins", "number_of_unique_hits", "ids", "names"], # Pfam
                 *["number_of_proteins", "number_of_unique_hits", "ids"], # NCBIfam-AMR
                 *["number_of_proteins", "number_of_unique_hits", "ids","names"], # KOfam
+                *["number_of_proteins", "number_of_unique_hits", "ids"], # Enzymes
                 *["number_of_proteins", "number_of_unique_hits", "ids"], # AntiFam
                 sep="\t",
                 file=f,
@@ -393,31 +414,34 @@ def main(args=None):
             protein_cluster_annotations = list()
             for id_protein_cluster, df in pv(df_annotations.groupby(protein_to_proteincluster), description="Compiling consensus annotations for protein clusters", total=protein_to_proteincluster.nunique(), unit=" Protein Clusters"):
                 # Identifiers
-                data_identifiers = compile_identifiers(df["Identifiers"], id_protein_cluster)
+                data_identifiers = compile_identifiers(df["Identifiers"])
                 
                 # UniRef
-                data_uniref = compile_uniref(df["UniRef"], id_protein_cluster)
+                data_uniref = compile_uniref(df["UniRef"])
                 
                 # MIBiG
-                data_mibig = compile_nonuniref_diamond(df["MIBiG"], id_protein_cluster, "MIBiG")
+                data_mibig = compile_nonuniref_diamond(df["MIBiG"])
 
                 # VFDB
-                data_vfdb = compile_nonuniref_diamond(df["VFDB"], id_protein_cluster, "VFDB")
+                data_vfdb = compile_nonuniref_diamond(df["VFDB"])
 
                 # CAZy
-                data_cazy = compile_nonuniref_diamond(df["CAZy"], id_protein_cluster, "CAZy")
+                data_cazy = compile_nonuniref_diamond(df["CAZy"])
 
                 # Pfam
-                data_pfam = compile_pfam(df["Pfam"], id_protein_cluster, "Pfam")
+                data_pfam = compile_pfam(df["Pfam"])
 
                 # NCBIfam-AMR
-                data_amr = compile_nonpfam_pyhmmsearch(df["NCBIfam-AMR"], id_protein_cluster, "NCBIfam-AMR")
+                data_amr = compile_nonpfam_pyhmmsearch(df["NCBIfam-AMR"])
 
-                # KOFAM
-                data_kofam = compile_pykofamsearch(df["KOfam"], id_protein_cluster, "KOfam")
+                # KOfam
+                data_kofam = compile_pykofamsearch(df["KOfam"])
+                
+                # Enzymes
+                data_enzymes = compile_enzymes(df["Enzymes"])
                 
                 # AntiFam
-                data_antifam = compile_nonpfam_pyhmmsearch(df["AntiFam"], id_protein_cluster, "AntiFam")
+                data_antifam = compile_nonpfam_pyhmmsearch(df["AntiFam"])
 
                 # Composite name
                 composite_name = list()
@@ -441,14 +465,12 @@ def main(args=None):
                     *data_pfam,
                     *data_amr,
                     *data_kofam,
+                    *data_enzymes,
                     *data_antifam,
                     sep="\t", 
                     file=f,
                     )
                 
-
-
-
 if __name__ == "__main__":
     main()
     

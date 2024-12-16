@@ -13,7 +13,7 @@ from soothsayer_utils import *
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2024.9.2"
+__version__ = "2024.12.10"
 
 # Assembly
 def get_coverage_cmd( input_filepaths, output_filepaths, output_directory, directories, opts):
@@ -1597,9 +1597,10 @@ def main(args=None):
     # Binning
     parser_binning = parser.add_argument_group('Binning arguments')
     parser_binning.add_argument("-m", "--minimum_contig_length", type=int, default=1500, help="Minimum contig length.  Anything under 2500 will default to 2500 for MetaBat2 [Default: 1500] ")
-    parser_binning.add_argument("-s", "--minimum_genome_length", type=int, default=150000, help="Minimum genome length.  [Default: 150000]")
+    parser_binning.add_argument("-s", "--minimum_genome_length", type=int, default=200000, help="Minimum genome length.  [Default: 200000]")
     parser_binning.add_argument("--concoct_fragment_length", type=int, default=10000, help="CONCOCT | Fragment length [Default: 10000] ")
     parser_binning.add_argument("--concoct_overlap_length", type=int, default=0, help="CONCOCT | Fragment overlap length [Default: 0] ")
+    # parser_binning.add_argument("--skip_metacoag", action="store_true", help="MaxBin2 | Skip MaxBin2. Useful when there's many contigs/scaffolds")
     parser_binning.add_argument("--skip_maxbin2", action="store_true", help="MaxBin2 | Skip MaxBin2. Useful when there's many contigs/scaffolds")
     parser_binning.add_argument("--skip_concoct", action="store_true", help="CONCOCT | Skip CONCOCT. Useful when there's many BAM files")
     parser_binning.add_argument("--maxbin2_options", type=str, default="", help="MaxBin2 | More options (e.g. --arg 1 ) [Default: ''] | https://sourceforge.net/projects/maxbin/")

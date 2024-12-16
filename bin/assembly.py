@@ -13,7 +13,7 @@ from soothsayer_utils import *
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2024.4.29"
+__version__ = "2024.12.11"
 
 # Assembly
 def get_assembly_cmd( input_filepaths, output_filepaths, output_directory, directories, opts):
@@ -42,7 +42,18 @@ def get_assembly_cmd( input_filepaths, output_filepaths, output_directory, direc
         opts.assembler_options,
         ")",
         "&&",
-        "echo 'Renaming final.contigs.fa -> scaffolds.fasta' && mv {} {}".format(os.path.join(output_directory, "final.contigs.fa"), os.path.join(output_directory, "scaffolds.fasta")),
+        "echo 'Renaming final.contigs.fa -> scaffolds.fasta'" 
+        "&&",
+        "mv {} {}".format(os.path.join(output_directory, "final.contigs.fa"), os.path.join(output_directory, "scaffolds.fasta")),
+        "&&",
+        "echo 'Creating GFA file -> assembly_graph_with_scaffolds.gfa'",
+        "&&",
+        os.environ["gfastats"],
+        "-o gfa",
+        "-f",
+        os.path.join(output_directory, "scaffolds.fasta"),
+        ">",
+        os.path.join(output_directory, "assembly_graph_with_scaffolds.gfa"),
         ]
     # SPAdes-based assemblers
     else:
@@ -63,6 +74,21 @@ def get_assembly_cmd( input_filepaths, output_filepaths, output_directory, direc
             "--tmp-dir {}".format(os.path.join(directories["tmp"], "assembly")),
             "--threads {}".format(opts.n_jobs),
             "--memory {}".format(opts.spades_memory),
+        ]
+            
+        cmd += [
+            "&&",
+            "echo 'Adding prefixes to scaffolds.paths'",
+            "&&",
+            os.environ["prepend_de-bruijn_path.py"],
+            "-i {}".format(os.path.join(output_directory, "scaffolds.path")),
+            "-o {}".format(os.path.join(output_directory, "scaffolds.prefixed.path")),
+            "--prefix {}".format(opts.scaffold_prefix),
+            "--program spades",
+            "&&",
+            "mv",
+            os.path.join(output_directory, "scaffolds.prefixed.path"),
+            os.path.join(output_directory, "scaffolds.path"),
         ]
 
     # Filter out small scaffolds/transcripts, add prefix (if applicable), and create SAF file
@@ -329,6 +355,7 @@ def add_executables_to_environment(opts):
     Adapted from Soothsayer: https://github.com/jolespin/soothsayer
     """
     accessory_scripts = {
+                "prepend_de-bruijn_path.py",
                 "fasta_to_saf.py",
                 "transcripts_to_genes.py",
                 }
@@ -336,6 +363,7 @@ def add_executables_to_environment(opts):
     required_executables={
  
                 opts.program,
+                "gfastats",
                 "bowtie2-build",
                 "bowtie2",
                 "samtools",
@@ -401,7 +429,10 @@ def create_pipeline(opts, directories, f_cmds):
     if opts.program == "rnaspades.py":
         output_filenames = ["transcripts.fasta", "transcripts.fasta.saf", "genes_to_transcripts.tsv"]
     else:
-        output_filenames = ["scaffolds.fasta", "scaffolds.fasta.saf"]
+        output_filenames = ["scaffolds.fasta", "scaffolds.fasta.saf", "assembly_graph_with_scaffolds.gfa"]
+    if "spades" in opts.program:
+        output_filenames.append("scaffolds.paths")
+        
     output_filepaths = list(map(lambda filename: os.path.join(output_directory, filename), output_filenames))
 
     params = {
@@ -608,8 +639,8 @@ def create_pipeline(opts, directories, f_cmds):
         ]
     else:
         input_filepaths = [ 
-            os.path.join(directories[("intermediate", "1__assembly")], "scaffolds.fasta"),
-            os.path.join(directories[("intermediate", "1__assembly")], "scaffolds.fasta.*"),
+            os.path.join(directories[("intermediate", "1__assembly")], "scaffolds.*"),
+            os.path.join(directories[("intermediate", "1__assembly")], "assembly_graph_with_scaffolds.gfa"),
         ] 
     input_filepaths += [
             os.path.join(directories[("intermediate", "2__alignment")], "mapped.sorted.bam"),

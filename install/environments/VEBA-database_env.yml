@@ -1,4 +1,4 @@
-name: VEBA-database_env__v2024.9.21
+name: VEBA-database_env__v2024.11.7
 channels:
   - conda-forge
   - bioconda
@@ -119,3 +119,6 @@ dependencies:
   - zstd=1.5.2=h3eb15da_6
   - pip:
       - kegg-pathway-profiler==2024.9.21
+      - psutil==5.9.8
+      - pyhmmer==0.10.15
+      - pykofamsearch==2024.11.8.post1

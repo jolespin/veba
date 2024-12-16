@@ -14,7 +14,7 @@ from soothsayer_utils import *
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2024.6.7"
+__version__ = "2024.11.7"
 
 MARKER_SEPERATOR="|--|"
 
@@ -72,7 +72,7 @@ def preprocess( input_filepaths, output_filepaths, output_directory, directories
 def get_pyhmmsearch_cmd( input_filepaths, output_filepaths, output_directory, directories, opts):
     # Command
     cmd = [ 
-        os.environ["pyhmmsearch.py"],
+        os.environ["pyhmmsearch"],
         "--n_jobs {}".format(opts.n_jobs),
         "-m {}".format(opts.threshold_method),
         "-e {}".format(opts.evalue),
@@ -233,7 +233,7 @@ def add_executables_to_environment(opts):
     
     required_executables={
                 # 1
-                "pyhmmsearch.py",
+                "pyhmmsearch",
                 "muscle",
                 "clipkit",
                 "parallel",

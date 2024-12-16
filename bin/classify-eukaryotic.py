@@ -14,7 +14,7 @@ from soothsayer_utils import *
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2024.6.9"
+__version__ = "2024.11.7"
 
 # Assembly
 def get_concatenate_cmd( input_filepaths, output_filepaths, output_directory, directories, opts):
@@ -171,7 +171,7 @@ def get_symlink_cmd( input_filepaths, output_filepaths, output_directory, direct
 
 def get_pyhmmsearch_cmd( input_filepaths, output_filepaths, output_directory, directories, opts):
     cmd = [ 
-        os.environ["pyhmmsearch.py"],
+        os.environ["pyhmmsearch"],
         "--n_jobs {}".format(opts.n_jobs),
         "-m e",
         "-f name",
@@ -302,7 +302,7 @@ def add_executables_to_environment(opts):
     Adapted from Soothsayer: https://github.com/jolespin/soothsayer
     """
     required_executables = {
-        "pyhmmsearch.py",
+        "pyhmmsearch",
         "seqkit",
         "ktImportText",
 
@@ -439,14 +439,14 @@ def create_pipeline(opts, directories, f_cmds):
                     validate_outputs=True,
         )
 
-    if opts.mode == "manual":
+    if opts.mode == "metaeuk":
         program = "symlink"
         program_label = "{}__{}".format(step, program)
         # Add to directories
         output_directory = directories["intermediate"]
 
         # Info
-        description = "Symlinking manual MetaEuk run"
+        description = "Symlinking preexisting MetaEuk run"
 
 
         # i/o
@@ -728,12 +728,12 @@ def configure_parameters(opts, directories):
         bool(opts.identifier_mapping_metaeuk),
         bool(opts.scaffolds_to_bins)
     ]):
-        assert not bool(opts.eukaryotic_binning_directory), "Cannot use --eukaryotic_binning_directory with --mode manual"
-        assert not bool(opts.genomes), "Cannot use --genomes with --mode manual"
-        assert bool(opts.proteins),  "Must provide --proteins, --identifier_mapping_metaeuk, and --scaffolds_to_bins with --mode manual"
-        assert bool(opts.identifier_mapping_metaeuk),  "Must provide --proteins, --identifier_mapping_metaeuk, and --scaffolds_to_bins with --mode manual"
-        assert bool(opts.scaffolds_to_bins),  "Must provide --proteins, --identifier_mapping_metaeuk, and --scaffolds_to_bins with --mode manual"
-        inferred_mode = "manual"
+        assert not bool(opts.eukaryotic_binning_directory), "Cannot use --eukaryotic_binning_directory with --mode metaeuk"
+        assert not bool(opts.genomes), "Cannot use --genomes with --mode metaeuk"
+        assert bool(opts.proteins),  "Must provide --proteins, --identifier_mapping_metaeuk, and --scaffolds_to_bins with --mode metaeuk"
+        assert bool(opts.identifier_mapping_metaeuk),  "Must provide --proteins, --identifier_mapping_metaeuk, and --scaffolds_to_bins with --mode metaeuk"
+        assert bool(opts.scaffolds_to_bins),  "Must provide --proteins, --identifier_mapping_metaeuk, and --scaffolds_to_bins with --mode metaeuk"
+        inferred_mode = "metaeuk"
     if opts.mode == "auto":
         opts.mode = inferred_mode
         print("Automatically determined mode = {}".format(opts.mode), file=sys.stdout)
@@ -759,18 +759,18 @@ def main(args=None):
     parser_io.add_argument("-c","--clusters", type=str, help = "path/to/clusters.tsv, Format: [id_mag]<tab>[id_cluster], No header.")
     parser_io.add_argument("-o","--output_directory", type=str, default="veba_output/classify/eukaryotic", help = "path/to/output_directory [Default: veba_output/classify/eukaryotic]")
     parser_io.add_argument("-x","--extension", type=str, default="fa", help = "path/to/output_directory.  Does not support gzipped. [Default: fa]")
-    parser_io.add_argument("-m","--mode", type=str, default="auto", choices={"directory", "genomes", "manual", "auto"}, help = "{directory, genomes, manual, auto} [Default: auto]")
+    parser_io.add_argument("-m","--mode", type=str, default="auto", choices={"directory", "genomes", "metaeuk", "auto"}, help = "{directory, genomes, metaeuk, auto} [Default: auto]")
 
     parser_binning_directory = parser.add_argument_group('[mode=binning_directory] arguments')
-    parser_binning_directory.add_argument("-i","--eukaryotic_binning_directory", type=str, help = "path/to/eukaryotic_binning_directory [Cannot be used with --mode genomes or manual]")
+    parser_binning_directory.add_argument("-i","--eukaryotic_binning_directory", type=str, help = "path/to/eukaryotic_binning_directory [Cannot be used with --mode genomes or metaeuk]")
 
     parser_genomes = parser.add_argument_group('[mode=genomes] arguments')
-    parser_genomes.add_argument("-g","--genomes", type=str, help = "path/to/genomes.list where each line is a path to a genome.fasta [Cannot be used with --mode binning_directory or manual]")
+    parser_genomes.add_argument("-g","--genomes", type=str, help = "path/to/genomes.list where each line is a path to a genome.fasta [Cannot be used with --mode binning_directory or metaeuk]")
 
-    parser_manual = parser.add_argument_group('[mode=manual] arguments')
-    parser_manual.add_argument("-a","--proteins", type=str, help = "path/to/concatenated_proteins.faa  [Cannot be used with --model _binning_directory or genomes]")
-    parser_manual.add_argument("-t","--identifier_mapping_metaeuk", type=str, help = "path/to/identifier_mapping.metaeuk.tsv  [Cannot be used with --model _binning_directory or genomes]")
-    parser_manual.add_argument("-s","--scaffolds_to_bins", type=str, help = "path/to/scaffolds_to_bins.tsv  [Cannot be used with --model _binning_directory or genomes]")
+    parser_metaeuk = parser.add_argument_group('[mode=metaeuk] arguments')
+    parser_metaeuk.add_argument("-a","--proteins", type=str, help = "path/to/concatenated_proteins.faa  [Cannot be used with --model _binning_directory or genomes]")
+    parser_metaeuk.add_argument("-t","--identifier_mapping_metaeuk", type=str, help = "path/to/identifier_mapping.metaeuk.tsv  [Cannot be used with --model _binning_directory or genomes]")
+    parser_metaeuk.add_argument("-s","--scaffolds_to_bins", type=str, help = "path/to/scaffolds_to_bins.tsv  [Cannot be used with --model _binning_directory or genomes]")
 
     # Utility
     parser_utility = parser.add_argument_group('Utility arguments')

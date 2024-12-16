@@ -15,7 +15,7 @@ from soothsayer_utils.soothsayer_utils import assert_acceptable_arguments
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2024.9.21"
+__version__ = "2024.11.15"
 
 DIAMOND_HEADER_FIELDS = "qseqid sseqid stitle pident evalue bitscore qcovhsp scovhsp"
 
@@ -54,6 +54,7 @@ def get_diamond_cmd( input_filepaths, output_filepaths, output_directory, direct
         "-o {}".format(os.path.join(output_directory, "output.tsv")),
         "--max-target-seqs 1",
         "--tmpdir {}".format(tmp),
+        "--header simple",
     ]
     if bool(opts.diamond_sensitivity):
         cmd += [ 
@@ -111,13 +112,13 @@ def get_pyhmmsearch_cmd( input_filepaths, output_filepaths, output_directory, di
 
     # Command
     cmd = [
-        os.environ["pyhmmsearch.py"],
+        os.environ["pyhmmsearch"],
         "-i {}".format(input_filepaths[0]),
         "-d {}".format(input_filepaths[1]),
         "-m gathering",
         "--n_jobs {}".format(opts.n_jobs),
         "|",
-        os.environ["reformat_pyhmmsearch.py"],
+        os.environ["reformat_pyhmmsearch"],
         "-o {}".format(os.path.join(output_directory, "output.tsv.gz")),
 
     ]    
@@ -160,12 +161,12 @@ def get_pykofamsearch_cmd( input_filepaths, output_filepaths, output_directory, 
     # Command
     cmd = [
         
-        os.environ["pykofamsearch.py"],
+        os.environ["pykofamsearch"],
         "-i {}".format(input_filepaths[0]),
-        "-d {}".format(input_filepaths[1]),
+        "-b {}".format(input_filepaths[1]),
         "--n_jobs {}".format(opts.n_jobs),
         "|",
-        os.environ["reformat_pykofamsearch.py"],
+        os.environ["reformat_pykofamsearch"],
         "-o {}".format(os.path.join(output_directory, "output.tsv.gz")),
 
     ]    
@@ -295,11 +296,11 @@ def add_executables_to_environment(opts):
                 # 1
                 "diamond",
                 # 2 
-                "pyhmmsearch.py",
-                "reformat_pyhmmsearch.py",
+                "pyhmmsearch",
+                "reformat_pyhmmsearch",
                 # 3
-                "pykofamsearch.py",
-                "reformat_pykofamsearch.py",
+                "pykofamsearch",
+                "reformat_pykofamsearch",
                 "profile-pathway-coverage.py",
                 
 
@@ -698,7 +699,7 @@ def create_pipeline(opts, directories, f_cmds):
     # i/o
     input_filepaths = [
         opts.proteins, 
-        os.path.join(opts.veba_database, "Annotate", "KOfam"),
+        os.path.join(opts.veba_database, "Annotate", "KOfam", "database.pkl.gz"),
         ]
     output_filenames = ["output.tsv.gz"]
     output_filepaths = list(map(lambda filename: os.path.join(output_directory, filename), output_filenames))

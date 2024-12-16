@@ -13,7 +13,7 @@ from soothsayer_utils import *
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2024.7.11"
+__version__ = "2024.11.18"
 
 # Global clustering
 def get_global_clustering_cmd( input_filepaths, output_filepaths, output_directory, directories, opts):
@@ -33,6 +33,8 @@ def get_global_clustering_cmd( input_filepaths, output_filepaths, output_directo
         "--genome_cluster_prefix {}".format(opts.genome_cluster_prefix) if bool(opts.genome_cluster_prefix) else "",
         "--genome_cluster_suffix {}".format(opts.genome_cluster_suffix) if bool(opts.genome_cluster_suffix) else "",
         "--genome_cluster_prefix_zfill {}".format(opts.genome_cluster_prefix_zfill) if bool(opts.genome_cluster_prefix_zfill) else "",
+        "--cluster_label_mode {}".format(opts.cluster_label_mode),
+        
         "--skani_target_ani {}".format(opts.skani_target_ani),
         "--skani_minimum_af {}".format(opts.skani_minimum_af),
         "--skani_no_confidence_interval" if opts.skani_no_confidence_interval else "",
@@ -87,6 +89,9 @@ def get_local_clustering_cmd( input_filepaths, output_filepaths, output_director
         "--genome_cluster_prefix {}".format(opts.genome_cluster_prefix) if bool(opts.genome_cluster_prefix) else "",
         "--genome_cluster_suffix {}".format(opts.genome_cluster_suffix) if bool(opts.genome_cluster_suffix) else "",
         "--genome_cluster_prefix_zfill {}".format(opts.genome_cluster_prefix_zfill) if bool(opts.genome_cluster_prefix_zfill) else "",
+        "--cluster_label_mode {}".format(opts.cluster_label_mode),
+
+
         "--skani_target_ani {}".format(opts.skani_target_ani),
         "--skani_minimum_af {}".format(opts.skani_minimum_af),
         "--skani_no_confidence_interval" if opts.skani_no_confidence_interval else "",
@@ -348,11 +353,12 @@ def main(args=None):
     parser_genome_clustering = parser.add_argument_group('Genome clustering arguments')
     parser_genome_clustering.add_argument("-G", "--genome_clustering_algorithm", type=str,  choices={"fastani", "skani"}, default="skani", help="Program to use for ANI calculations.  `skani` is faster and more memory efficient. For v1.0.0 - v1.3.x behavior, use `fastani`. [Default: skani]")
     parser_genome_clustering.add_argument("-A", "--ani_threshold", type=float, default=95.0, help="Species-level cluster (SLC) ANI threshold (Range (0.0, 100.0]) [Default: 95.0]")
-    parser_genome_clustering.add_argument("-F", "--af_threshold", type=float, default=30.0, help="Species-level cluster (SLC) alignment fraction threshold. Only available if `skani` is used as --genome_clustering_algorithm. (Range (0.0, 100.0]) [Default: 30.0]")
+    parser_genome_clustering.add_argument("-F", "--af_threshold", type=float, default=50.0, help="Species-level cluster (SLC) alignment fraction threshold. Only available if `skani` is used as --genome_clustering_algorithm.  Recommended settings: 15 (relaxed), 30 (OceanDNA), and 50 (GTDB-Tk). The higher the value the more singleton clusters will be returned.  (Range (0.0, 100.0]) [Default: 50.0]")
     parser_genome_clustering.add_argument("--af_mode", type=str, default="relaxed",  choices={"relaxed", "strict"}, help = "Minimum alignment fraction mode with either `relaxed = max([AF_ref, AF_query]) > minimum_af` or `strict = (AF_ref > minimum_af) & (AF_query > minimum_af)` [Default: relaxed]") 
     parser_genome_clustering.add_argument("--genome_cluster_prefix", type=str, default="SLC-", help="Cluster prefix [Default: 'SLC-")
     parser_genome_clustering.add_argument("--genome_cluster_suffix", type=str, default="", help="Cluster suffix [Default: '")
     parser_genome_clustering.add_argument("--genome_cluster_prefix_zfill", type=int, default=0, help="Cluster prefix zfill. Use 7 to match identifiers from OrthoFinder.  Use 0 to add no zfill. [Default: 0]") #7
+    parser_genome_clustering.add_argument("--cluster_label_mode", type=str, default="md5", choices={"numeric", "random", "pseudo-random", "md5", "nodes"}, help="Cluster label. [Default: 'md5']")
 
     parser_skani = parser.add_argument_group('Skani triangle arguments')
     parser_skani.add_argument("--skani_target_ani",  type=float, default=80, help="skani | If you set --skani_target_ani to --ani_threshold, you may screen out genomes ANI ≥ --ani_threshold [Default: 80]")

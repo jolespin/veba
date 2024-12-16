@@ -1,4 +1,4 @@
-name: VEBA-annotate_env__v2024.9.21
+name: VEBA-annotate_env__v2024.11.7
 channels:
   - bioconda
   - conda-forge
@@ -114,5 +114,5 @@ dependencies:
   - zstd=1.5.6=ha6fb4c9_0
   - pip:
       - kegg-pathway-profiler==2024.9.21
-      - pyhmmsearch==2024.6.8
-      - pykofamsearch==2024.6.8
+      - pyhmmsearch==2024.10.20
+      - pykofamsearch==2024.11.8.post1
