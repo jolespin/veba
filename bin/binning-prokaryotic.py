@@ -217,6 +217,17 @@ def get_concoct_null_cmd( input_filepaths, output_filepaths, output_directory, d
     return cmd
 
 
+# Binette
+def get_binette_cmd(input_filepaths, output_filepaths, output_directory, directories, opts):
+    cmd = [
+        # Run Binnette
+        os.environ["binette"],
+        # Scaffolds to Bins
+        # Remove bin directory
+        # Add filtered directory
+    ]
+    return cmd
+    
 # DAS_Tool
 def get_dastool_cmd(input_filepaths, output_filepaths, output_directory, directories, opts):
     
@@ -1485,44 +1496,19 @@ def add_executables_to_environment(opts):
                 }
 
     required_executables={
-                # 1
                 "coverm",
-                # 2
-                "metabat2",
-                # 6
-                # 6
-                "DAS_Tool",
-                # 7
+                "binette",
                 "pyrodigal",
-                # 8
                 "checkm2",
-                # 9 
                 "seqkit",
-                # 10 
                 "featureCounts",
-                # 11
-                "tiara",
-                # 12
                 "barrnap",
-                # 13
                 "tRNAscan-SE",
  
      } | accessory_scripts
 
-    if not opts.skip_maxbin2:
-        # 3-4
-        required_executables |= {
-            "run_MaxBin.pl",
-            }
-    if not opts.skip_concoct:
-        # 5
-        required_executables |= { 
-            "cut_up_fasta.py",
-            "concoct_coverage_table.py",
-            "concoct",
-            "merge_cutup_clustering.py",
-            "extract_fasta_bins.py",
-            }
+    
+    for algorithm in opts.algorithms:
 
     if opts.path_config == "CONDA_PREFIX":
         executables = dict()
@@ -1556,6 +1542,9 @@ def add_executables_to_environment(opts):
 # Configure parameters
 def configure_parameters(opts, directories):
     # Set environment variables
+    opts.algorithms = set(map(str.strip, opts.algorithms.split(",")))
+    choices = {"metabat2", "semibin2", "metadecoder", "metacoag"}
+    assert opts.algorithms <= choices, "Unrecognized algorithm(s): {}".format(opts.algorithms - choices)
     add_executables_to_environment(opts=opts)
 
 def main(args=None):
@@ -1596,32 +1585,50 @@ def main(args=None):
 
     # Binning
     parser_binning = parser.add_argument_group('Binning arguments')
+    parser_binning.add_argument("-a", "--algorithms", type=str, default="metabat2,semibin2,metadecoder,metacoag", help='Comma separated list of binning algorithms.  Choose from {"metabat2", "semibin2", "metadecoder", "metacoag"} [Default: metabat2,semibin2,metadecoder,metacoag]')
     parser_binning.add_argument("-m", "--minimum_contig_length", type=int, default=1500, help="Minimum contig length.  Anything under 2500 will default to 2500 for MetaBat2 [Default: 1500] ")
     parser_binning.add_argument("-s", "--minimum_genome_length", type=int, default=200000, help="Minimum genome length.  [Default: 200000]")
-    parser_binning.add_argument("--concoct_fragment_length", type=int, default=10000, help="CONCOCT | Fragment length [Default: 10000] ")
-    parser_binning.add_argument("--concoct_overlap_length", type=int, default=0, help="CONCOCT | Fragment overlap length [Default: 0] ")
-    # parser_binning.add_argument("--skip_metacoag", action="store_true", help="MaxBin2 | Skip MaxBin2. Useful when there's many contigs/scaffolds")
-    parser_binning.add_argument("--skip_maxbin2", action="store_true", help="MaxBin2 | Skip MaxBin2. Useful when there's many contigs/scaffolds")
-    parser_binning.add_argument("--skip_concoct", action="store_true", help="CONCOCT | Skip CONCOCT. Useful when there's many BAM files")
-    parser_binning.add_argument("--maxbin2_options", type=str, default="", help="MaxBin2 | More options (e.g. --arg 1 ) [Default: ''] | https://sourceforge.net/projects/maxbin/")
-    parser_binning.add_argument("--metabat2_options", type=str, default="", help="MetaBat2 | More options (e.g. --arg 1 ) [Default: ''] | https://bitbucket.org/berkeleylab/metabat/src/master/")
-    parser_binning.add_argument("--concoct_options", type=str, default="", help="CONCOCT | More options (e.g. --arg 1 ) [Default: '']")
-    # parser_binning.add_argument("--vamb_options", type=str, default="", help="vamb | More options (e.g. --arg 1 ) [Default: '']")
-    # parser_binning.add_argument("--metacoag_options", type=str, default="", help="metacoag | More options (e.g. --arg 1 ) [Default: '']")
+    parser_binning.add_argument("--retain_intermediate_bins",action="store_true",help='Retain intermediate bins in fasta.')
 
+    # Metabat2
+    parser_metabat2 = parser.add_argument_group('Metabat2 arguments')
+    parser_metabat2.add_argument("--metabat2_options", type=str, default="", help="MetaBat2 | More options (e.g. --arg 1 ) [Default: ''] | https://bitbucket.org/berkeleylab/metabat/src/master/")
+
+    # SemiBin2
+    parser_semibin2 = parser.add_argument_group('SemiBin2 arguments')
+    parser_semibin2.add_argument("--semibin2_biome", type=str, choices={'ocean', 'wastewater', 'global', 'pig_gut', 'human_oral', 'cat_gut', 'soil', 'chicken_caecum', 'human_gut', 'built_environment', 'dog_gut', 'mouse_gut', 'NONE'}, default="global", help="SemiBin2 | Biome/environment for the built-in model.  Use 'NONE' to implement Semi-Supervised training (takes longer with more compute) [Default: global]")
+    parser_semibin2.add_argument("--semibin2_engine", type=str, choices={'auto', 'cpu', 'gpu'}, default="auto", help="SemiBin2 | Device used to train the model [Default: auto]")
+    parser_semibin2.add_argument("--semibin2_options", type=str, default="", help="SemiBin2 | More options (e.g. --arg 1 ) [Default: ''] | https://github.com/BigDataBiology/SemiBin")
+
+    # MetaDecoder
+    parser_metadecoder = parser.add_argument_group('MetaDecoder arguments')
+    parser_metadecoder.add_argument("--metadecoder_coverage_options", type=str, default="", help="MetaDecoder | More options (e.g. --arg 1 ) [Default: ''] | https://github.com/jolespin/metadecoder-nal")
+    parser_metadecoder.add_argument("--metadecoder_cluster_options", type=str, default="", help="MetaDecoder | More options (e.g. --arg 1 ) [Default: ''] | https://github.com/jolespin/metadecoder-nal")
+
+    # MetaCoAG
+    parser_metacoag = parser.add_argument_group('MetaCoAG arguments')
+    parser_metacoag.add_argument("--metacoag_assembler", type=str, choices={"auto", "spades", "megahit", "flye"}, default="auto", help="MeteaCoAG | Assembler used during assembly [Required if MetaCoAG is used]")
+    parser_metacoag.add_argument("--metacoag_graph", default="auto", type=str, help="MetaCoAG | de Bruijn graph from SPAdes, MEGAHIT, or metaFlye [Required if MetaCoAG is used, if `auto` then assembly graphs will be looked]")
+    parser_metacoag.add_argument("--metacoag_paths", default="auto", type=str, help="MetaCoAG | de Bruijn graph paths from SPAdes or metaFlye [Required if MetaCoAG is used with SPAdes or metaFlye]")
+    parser_metacoag.add_argument("--metacoag_options", type=str, default="", help="MetaCoAG | More options (e.g. --arg 1 ) [Default: ''] | https://github.com/jolespin/metacoag-nal")
+
+    # Gene models
     parser_genemodels = parser.add_argument_group('Gene model arguments')
     parser_genemodels.add_argument("--pyrodigal_minimum_gene_length", type=int, default=90, help="Pyrodigal | Minimum gene length [Default: 90]")
     parser_genemodels.add_argument("--pyrodigal_minimum_edge_gene_length", type=int, default=60, help="Pyrodigal | Minimum edge gene length [Default: 60]")
     parser_genemodels.add_argument("--pyrodigal_maximum_gene_overlap_length", type=int, default=60, help="Pyrodigal | Maximum gene overlap length [Default: 60]")
     parser_genemodels.add_argument("--pyrodigal_genetic_code", type=int, default=11, help="Pyrodigal -g translation table [Default: 11]")
 
-    parser_evaluation = parser.add_argument_group('Evaluation arguments')
-    parser_evaluation.add_argument("--dastool_searchengine", type=str, default="diamond", help="DAS_Tool searchengine. [Default: diamond] | https://github.com/cmks/DAS_Tool")
-    parser_evaluation.add_argument("--dastool_minimum_score", type=float, default=0.1, help="DAS_Tool score_threshold. Score threshold until selection algorithm will keep selecting bins. This is set to a relaxed setting because CheckM2 is run post hoc. [Default: 0.1] | https://github.com/cmks/DAS_Tool")
-    parser_evaluation.add_argument("--dastool_options", type=str, default="", help="DAS_Tool | More options (e.g. --arg 1 ) [Default: ''] | https://github.com/cmks/DAS_Tool")
-    parser_evaluation.add_argument("--checkm2_completeness", type=float, default=50.0, help="CheckM2 completeness threshold [Default: 50.0]")
-    parser_evaluation.add_argument("--checkm2_contamination", type=float, default=10.0, help="CheckM2 contamination threshold [Default: 10.0]")
-    parser_evaluation.add_argument("--checkm2_options", type=str, default="", help="CheckM lineage_wf | More options (e.g. --arg 1 ) [Default: '']")
+    parser_binrefinement = parser.add_argument_group('Bin refinement arguments')
+    parser_binrefinement.add_argument("--binnette_contamination_weight", type=float, default=2.0, help="Binette | Contamination weight [Default: 2]")
+    parser_binrefinement.add_argument("--binnette_options", type=str, default="", help="Binette | More options (e.g. --arg 1 ) [Default: 'https://github.com/genotoul-bioinfo/Binette']")
+    
+    parser_quality = parser.add_argument_group('Quality assessment arguments')
+    parser_quality.add_argument("--checkm2_completeness", type=float, default=50.0, help="CheckM2 completeness threshold [Default: 50.0]")
+    parser_quality.add_argument("--checkm2_contamination", type=float, default=10.0, help="CheckM2 contamination threshold [Default: 10.0]")
+    parser_quality.add_argument("--checkm2_low_memory",action='store_true',help="CheckM2 low-memory mode")
+
+    # parser_evaluation.add_argument("--checkm2_options", type=str, default="", help="CheckM lineage_wf | More options (e.g. --arg 1 ) [Default: '']")
 
     # rRNA
     parser_barrnap = parser.add_argument_group('barrnap arguments')
@@ -1639,10 +1646,10 @@ def main(args=None):
     parser_featurecounts.add_argument("--featurecounts_options", type=str, default="", help="featureCounts | More options (e.g. --arg 1 ) [Default: ''] | http://bioinf.wehi.edu.au/featureCounts/")
 
     # Tiara
-    parser_domain = parser.add_argument_group('Domain classification arguments')
-    parser_domain.add_argument("--logit_transform", type=str, default="softmax", help = " Transformation for consensus_domain_classification: {softmax, tss} [Default: softmax]")
-    parser_domain.add_argument("--tiara_minimum_length", type=int, default=3000, help="Tiara | Minimum contig length. Anything lower than 3000 is not recommended. [Default: 3000]")
-    parser_domain.add_argument("--tiara_options", type=str, default="", help="Tiara | More options (e.g. --arg 1 ) [Default: ''] | https://github.com/ibe-uw/tiara")
+    # parser_domain = parser.add_argument_group('Domain classification arguments')
+    # parser_domain.add_argument("--logit_transform", type=str, default="softmax", help = " Transformation for consensus_domain_classification: {softmax, tss} [Default: softmax]")
+    # parser_domain.add_argument("--tiara_minimum_length", type=int, default=3000, help="Tiara | Minimum contig length. Anything lower than 3000 is not recommended. [Default: 3000]")
+    # parser_domain.add_argument("--tiara_options", type=str, default="", help="Tiara | More options (e.g. --arg 1 ) [Default: ''] | https://github.com/ibe-uw/tiara")
 
 
     # Options

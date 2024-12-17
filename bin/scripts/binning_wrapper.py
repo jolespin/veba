@@ -12,7 +12,7 @@ from soothsayer_utils import *
 
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2024.12.12"
+__version__ = "2024.12.16"
 
 def get_maxbin2_cmd( input_filepaths, output_filepaths, output_directory, directories, opts):
     # Create dummy scaffolds_to_bins.tsv to overwrite later. 
@@ -356,6 +356,9 @@ def get_metacoag_cmd( input_filepaths, output_filepaths, output_directory, direc
          "echo '' > {}".format(os.path.join(output_directory, "scaffolds_to_bins.tsv")),
          "&&",
          "mkdir -p {}".format(os.path.join(output_directory, "bins")),
+         "&&",
+        "mkdir -p {}".format(os.path.join(output_directory, "intermediate")),
+
 
     ]
 
@@ -385,14 +388,14 @@ def get_metacoag_cmd( input_filepaths, output_filepaths, output_directory, direc
         "&&",
        
         os.environ["metacoag"],
-        "--assembler {}".format(opts.assembler),
+        "--assembler {}".format(opts.metacoag_assembler),
         "--contigs {}".format(opts.fasta), # scaffolds.fasta
         "--abundance {}".format(coverage_file),
-        "--graph {}".format(opts.graph), 
-        "--paths {}".format(opts.paths) if opts.paths else "", 
+        "--graph {}".format(opts.metacoag_graph), 
+        "--paths {}".format(opts.metacoag_paths) if opts.metacoag_paths else "", 
         "--proteins {}".format(opts.proteins) if opts.proteins else "", 
         "--proteins_to_contigs {}".format(opts.proteins_to_contigs) if opts.proteins_to_contigs else "", 
-        "--output {}".format(output_directory),
+        "--output {}".format(os.path.join(output_directory, "intermediate")),
         "--min_bin_size {}".format(opts.minimum_genome_length),
         "--min_length {}".format(opts.minimum_contig_length),
         "--nthreads {}".format(opts.n_jobs),
@@ -999,11 +1002,11 @@ def configure_parameters(opts, directories):
         opts.bin_prefix = None
         
     if opts.algorithm == "metacoag":
-        # assert opts.assembler is not None, "Must provide --assembler if --algorithm = metacoag"
-        assert opts.graph is not None, "Must provide --graph if --algorithm = metacoag"
+        # assert opts.metacoag_assembler is not None, "Must provide --assembler if --algorithm = metacoag"
+        assert opts.metacoag_graph is not None, "Must provide --graph if --algorithm = metacoag"
 
-        if opts.assembler in {"spades", "flye"}:
-            assert opts.paths is not None, "Must provide --paths if --algorithm = metacoag and --assembler = spades or flye"
+        if opts.metacoag_assembler in {"spades", "flye"}:
+            assert opts.metacoag_paths is not None, "Must provide --paths if --algorithm = metacoag and --assembler = spades or flye"
     
 
     # Set environment variables
@@ -1081,9 +1084,9 @@ def main(argv=None):
 
     # MetaCoAG
     parser_metacoag = parser.add_argument_group('MetaCoAG arguments')
-    parser_metacoag.add_argument("--assembler", type=str, choices={"auto", "spades", "megahit", "flye"}, default="auto", help="MeteaCoAG | Assembler used during assembly [Required if MetaCoAG is used]")
-    parser_metacoag.add_argument("--graph", type=str, help="MetaCoAG | de Bruijn graph from SPAdes, MEGAHIT, or metaFlye [Required if MetaCoAG is used]")
-    parser_metacoag.add_argument("--paths", type=str, help="MetaCoAG | de Bruijn graph paths from SPAdes or metaFlye [Required if MetaCoAG is used with SPAdes or metaFlye]")
+    parser_metacoag.add_argument("--metacoag_assembler", type=str, choices={"auto", "spades", "megahit", "flye"}, default="auto", help="MeteaCoAG | Assembler used during assembly [Required if MetaCoAG is used]")
+    parser_metacoag.add_argument("--metacoag_graph", default="auto", type=str, help="MetaCoAG | de Bruijn graph from SPAdes, MEGAHIT, or metaFlye [Required if MetaCoAG is used, if `auto` then assembly graphs will be looked]")
+    parser_metacoag.add_argument("--metacoag_paths", default="auto", type=str, help="MetaCoAG | de Bruijn graph paths from SPAdes or metaFlye [Required if MetaCoAG is used with SPAdes or metaFlye]")
     parser_metacoag.add_argument("--metacoag_options", type=str, default="", help="MetaCoAG | More options (e.g. --arg 1 ) [Default: ''] | https://github.com/jolespin/metacoag-nal")
 
     # MaxBin2

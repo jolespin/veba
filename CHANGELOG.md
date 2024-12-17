@@ -482,6 +482,8 @@ ________________________________________________________________
 <details>
 	<summary> <b>Daily Change Log:</b> </summary>
 
+* [2024.12.17] - Added `filter_binette_results.py` script
+* [2024.12.16] - Added intermediate directory to `metacoag` in `binning_wrapper.py`
 * [2024.12.12] - Added `metacoag` support and custom HMM support to `metadecoder` in `binning_wrapper.py` 
 * [2024.12.11] - Added `prepend_de-bruijn_path.py` script and use this in `assembly.py` and `assembly-long.py` to prepend prefix to SPAdes/Flye de Bruijn graph paths.
 * [2024.12.10] - Changed default `--minimum_genome_size` to `200000` from `150000`
