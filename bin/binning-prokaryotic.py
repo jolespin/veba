@@ -13,7 +13,7 @@ from soothsayer_utils import *
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2024.12.23"
+__version__ = "2024.12.26"
 
 # Assembly
 def get_coverage_cmd( input_filepaths, output_filepaths, output_directory, directories, opts):
@@ -183,7 +183,7 @@ def get_metacoag_cmd( input_filepaths, output_filepaths, output_directory, direc
         os.environ["binning_wrapper.py"],
         "-a metacoag",
         "-f {}".format(input_filepaths[0]), # scaffolds.fasta
-        "-c {}".format(input_filepaths[1]),
+        "-c {}".format(input_filepaths[1]), # coverage
         "-o {}".format(output_directory),
         "-m {}".format(opts.minimum_contig_length), # mininimum contig length must be >= 1000 nts for SemiBin2 which is handled by the wrapper
         "-s {}".format(opts.minimum_genome_length), 
@@ -192,7 +192,7 @@ def get_metacoag_cmd( input_filepaths, output_filepaths, output_directory, direc
         "--bin_prefix {}".format(prefix),
         "--remove_bins",
         "--remove_intermediate_files",
-        "--proteins {}".format(opts.proteins),
+        "--proteins {}".format(input_filepaths[2]),
         "--metacoag_assembler {}".format(opts.metacoag_assembler),
         "--metacoag_graph {}".format(opts.metacoag_graph),
         "--metacoag_paths {}".format(opts.metacoag_paths),
