@@ -7,7 +7,7 @@ import pandas as pd
 from tqdm import tqdm
 
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2024.12.17"
+__version__ = "2024.12.23"
 
 def main(args=None):
     # Path info
@@ -16,7 +16,7 @@ def main(args=None):
     # Path info
     description = """
     Running: {} v{} via Python v{} | {}""".format(__program__, __version__, sys.version.split(" ")[0], sys.executable)
-    usage = "{} -i <quality_report.tsv> -b <bin_directory> -o <output_directory> -f <scaffolds.fasta> -m 1500".format(__program__)
+    usage = "{} -i <binette_directory> -o <output_directory> -f <scaffolds.fasta> -m 1500".format(__program__)
     epilog = "Copyright 2021 Josh L. Espinoza (jespinoz@jcvi.org)"
 
     # Parser
@@ -27,10 +27,10 @@ def main(args=None):
     parser.add_argument("-o","--output_directory", type=str, help = "path/to/output_directory/ [Default: path/to/binette_directory/filtered/]")
     parser.add_argument("-p","--bin_prefix", type=str, default="BINETTE__", help = "Bin prefix [Default: 'BINETTE__']")
     parser.add_argument("-x","--extension", type=str, default="fa", help = "Fasta file extension for bins [Default: fa]")
-    parser.add_argument("--completeness", type=float, default=50.0, help = "CheckM2 completeness [Default: 50.0]")
-    parser.add_argument("--contamination", type=float, default=10.0, help = "CheckM2 contamination [Default: 10.0]")
     parser.add_argument("-f", "--fasta", type=str, help = "path/to/scaffolds.fasta. Include this only if you want to list of unbinned contigs")
     parser.add_argument("-m", "--minimum_contig_length", type=int, default=1, help="Minimum contig length. [Default: 1]")
+    parser.add_argument("--completeness", type=float, default=50.0, help = "CheckM2 completeness [Default: 50.0]")
+    parser.add_argument("--contamination", type=float, default=10.0, help = "CheckM2 contamination [Default: 10.0]")
     parser.add_argument("-u", "--unbinned", action="store_true", help="Write unbinned fasta sequences to file")
     # parser.add_argument("--symlink", action="store_true", help = "Symlink MAGs instead of copying")
 
@@ -42,6 +42,7 @@ def main(args=None):
     # Load CheckM2
     # bin_id  origin  name    completeness    contamination   score   size    N50     contig_count
     df_quality_report = pd.read_csv(os.path.join(opts.binette_directory, "final_bins_quality_reports.tsv"),sep="\t", index_col=0)
+    df_quality_report.index = df_quality_report.index.map(lambda x: f"bin_{x}")
 
     # Quality assessment on MAGs
     magold_to_magnew = dict()
@@ -70,7 +71,7 @@ def main(args=None):
     df_quality_report_filtered.index = df_quality_report_filtered.index.map(lambda x: magold_to_magnew[x])
     df_quality_report_filtered.columns = df_quality_report_filtered.columns.map(str.capitalize)
     df_quality_report_filtered.indexname = "id_genome"
-    df_quality_report_filtered.to_csv(os.path.join(opts.output_directory,"filtered","checkm2_results.filtered.tsv"), sep="\t") 
+    df_quality_report_filtered.to_csv(os.path.join(opts.output_directory,"checkm2_results.filtered.tsv"), sep="\t") 
 
 
     #bins.list
@@ -81,26 +82,24 @@ def main(args=None):
     # binned.list
     f_binned_list = open(os.path.join(opts.output_directory, "binned.list"), "w")
 
-    binned_contigs = list() 
+    binned_contigs = set() 
     scaffold_to_mag = OrderedDict()
-
     for id_mag in tqdm(mags, "Copying fasta files and writing binned contigs", unit=" MAG"):
 
-        for src in glob.glob(os.path.join(opts.bin_directory, "{}.*".format(magold_to_magnew[id_mag]))):
-            fn = os.path.split(src)[1]
-            dst = os.path.join(opts.output_directory,"genomes", fn)
+        for src in glob.glob(os.path.join(opts.binette_directory, "final_bins", "{}.*".format(id_mag))):
+            dst = os.path.join(opts.output_directory,"genomes", "{}.fa".format(magold_to_magnew[id_mag]))
             copyfile(src,dst)
 
         # Write contigs to list
-        path_genome_assembly = os.path.join(opts.bin_directory, "{}.{}".format(magold_to_magnew[id_mag], opts.extension))
+        path_genome_assembly = os.path.join(opts.binette_directory, "final_bins", "{}.{}".format(id_mag, opts.extension))
         with open(path_genome_assembly, "r") as f_fasta:
             for line in f_fasta:
                 line = line.strip()
                 if line.startswith(">"):
                     header = line[1:]
-                    id_contig = header.split(" ")[0] # Remove fasta description
+                    id_contig = header.split(" ")[0].strip() # Remove fasta description
                     print(id_contig, file=f_binned_list)
-                    binned_contigs.append(id_contig)
+                    binned_contigs.add(id_contig)
                     scaffold_to_mag[id_contig] = magold_to_magnew[id_mag]
     f_binned_list.close()
     scaffold_to_mag = pd.Series(scaffold_to_mag)
@@ -114,20 +113,19 @@ def main(args=None):
 
         if opts.unbinned:
             f_unbinned_fasta = open(os.path.join(opts.output_directory, "unbinned.fasta"), "w")
-            for id, seq in tqdm(pyfastx.Fasta(f_fasta, build_index=False), "Writing unbinned contigs", unit=" contig"):
-                id_contig = header.split(" ")[0]
+            for id_contig, seq in tqdm(pyfastx.Fasta(opts.fasta, build_index=False), "Writing unbinned contigs", unit=" contig"):
+                
                 conditions = [
                     id_contig not in binned_contigs,
                     len(seq) >= opts.minimum_contig_length,
                 ]
+               
                 if all(conditions):
                     print(id_contig, file=f_unbinned_list)
-                    if all(conditions):
-                        print(">{}\n{}".format(id_contig, seq), file=f_unbinned_fasta)
-                        
+                    print(">{}\n{}".format(id_contig, seq), file=f_unbinned_fasta)
+            f_unbinned_fasta.close()
         else:
-            for id, seq in tqdm(pyfastx.Fasta(f_fasta, build_index=False), "Writing unbinned contigs", unit=" contig"):
-                id_contig = header.split(" ")[0]
+            for id_contig, seq in tqdm(pyfastx.Fasta(opts.fasta, build_index=False), "Writing unbinned contigs", unit=" contig"):
                 conditions = [
                     id_contig not in binned_contigs,
                     len(seq) >= opts.minimum_contig_length,
@@ -139,4 +137,3 @@ def main(args=None):
 if __name__ == "__main__":
     main()
     
-                

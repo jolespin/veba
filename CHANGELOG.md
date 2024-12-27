@@ -423,11 +423,10 @@ ________________________________________________________________
 **Definitely:**
 
 * Replace `Bowtie2` with `strobealign` and `Fairy` when applicable (i.e., `coverage` module)
-* Script to add `Diamond` or `PyHMMSearch` annotations to `annotations.proteins.tsv.gz`
+* Script to add `PyHMMSearch` annotations to `annotations.proteins.tsv.gz`
 * Develop `add_taxonomy_to_annotations.py` script
 * Develop method for building and curating HMM cutoffs (e.g., comparing against false positives)
 * Add `frozenset` for proteins that has all of the database identifiers
-* Replace `MaxBin2` and `CONCOCT` with `MetaDecoder` and `SemiBin2` (Other options in clude `COMEBin` and `MetaCoAG`)
 * Add `--proteins` option to `classify-eukaryotic.py` which aligns proteins to `MicroEuk100.eukaryota_odb10` via `MMseqs2` and then proceeds with the pipeline.
 * Build SQL databases from all results
 * Develop `iterative_metaeuk_wrapper.py` which does the following: 1) Mask genome with `sdust` (pipe to stdout); 2) `MMseqs2` contig database (from stdin); 3) `MetaEuk` on MicroEuk100.eukaryota_odb10 to get source taxa for enrichment; 4) `subset_microeuk_proteins.py` to get enriched protein set; 5) run `MetaEuk` again with enriched subset; ...
@@ -482,6 +481,8 @@ ________________________________________________________________
 <details>
 	<summary> <b>Daily Change Log:</b> </summary>
 
+* [2024.12.26] - Added support for `binette` and `tiara` in updated `binning_prokaryotic.py` module
+* [2024.12.23] - Added `copy_attribute_in_gff.py` script which copies attributes to a source and destination attribute
 * [2024.12.17] - Added `filter_binette_results.py` script
 * [2024.12.16] - Added intermediate directory to `metacoag` in `binning_wrapper.py`
 * [2024.12.12] - Added `metacoag` support and custom HMM support to `metadecoder` in `binning_wrapper.py` 

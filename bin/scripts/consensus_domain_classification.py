@@ -5,7 +5,7 @@ import pandas as pd
 from scipy.special import softmax
 
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2022.02.28"
+__version__ = "2022.2.28"
 
 def main(argv=None):
     # Path info
