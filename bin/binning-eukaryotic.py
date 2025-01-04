@@ -14,7 +14,7 @@ from soothsayer_utils import *
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2024.4.29"
+__version__ = "2024.12.30"
 
 # DATABASE_METAEUK="/usr/local/scratch/CORE/jespinoz/db/veba/v1.0/Classify/Eukaryotic/eukaryotic"
 
@@ -598,7 +598,6 @@ def create_pipeline(opts, directories, f_cmds):
     # i/o
     output_filepaths = [
         os.path.join(output_directory, "scaffolds_to_bins.tsv"),
-        os.path.join(output_directory, "scaffolds_to_bins.tsv"),
 
     ]
 
@@ -982,6 +981,7 @@ def main(args=None):
     parser_io.add_argument("-n", "--name", type=str, help="Name of sample", required=True)
     parser_io.add_argument("-l","--contig_identifiers", type=str,  help = "path/to/contigs.list [Optional]")
     parser_io.add_argument("-o","--project_directory", type=str, default="veba_output/binning/eukaryotic", help = "path/to/project_directory [Default: veba_output/binning/eukaryotic]")
+    parser_io.add_argument("-L", "--long_reads", action="store_true", help="Use this if long reads are being used")
 
     # Utility
     parser_utility = parser.add_argument_group('Utility arguments')
@@ -1056,7 +1056,6 @@ def main(args=None):
 
     # featureCounts
     parser_featurecounts = parser.add_argument_group('featureCounts arguments')
-    parser_featurecounts.add_argument("--long_reads", action="store_true", help="featureCounts | Use this if long reads are being used")
     parser_featurecounts.add_argument("--featurecounts_options", type=str, default="", help="featureCounts | More options (e.g. --arg 1 ) [Default: ''] | http://bioinf.wehi.edu.au/featureCounts/")
 
     # Options

@@ -13,7 +13,7 @@ from soothsayer_utils import *
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2024.12.11"
+__version__ = "2024.12.30"
 
 # Assembly
 def get_assembly_cmd( input_filepaths, output_filepaths, output_directory, directories, opts):
@@ -45,15 +45,7 @@ def get_assembly_cmd( input_filepaths, output_filepaths, output_directory, direc
         "echo 'Renaming final.contigs.fa -> scaffolds.fasta'" 
         "&&",
         "mv {} {}".format(os.path.join(output_directory, "final.contigs.fa"), os.path.join(output_directory, "scaffolds.fasta")),
-        "&&",
-        "echo 'Creating GFA file -> assembly_graph_with_scaffolds.gfa'",
-        "&&",
-        os.environ["gfastats"],
-        "-o gfa",
-        "-f",
-        os.path.join(output_directory, "scaffolds.fasta"),
-        ">",
-        os.path.join(output_directory, "assembly_graph_with_scaffolds.gfa"),
+
         ]
     # SPAdes-based assemblers
     else:
@@ -81,14 +73,14 @@ def get_assembly_cmd( input_filepaths, output_filepaths, output_directory, direc
             "echo 'Adding prefixes to scaffolds.paths'",
             "&&",
             os.environ["prepend_de-bruijn_path.py"],
-            "-i {}".format(os.path.join(output_directory, "scaffolds.path")),
-            "-o {}".format(os.path.join(output_directory, "scaffolds.prefixed.path")),
+            "-i {}".format(os.path.join(output_directory, "scaffolds.paths")),
+            "-o {}".format(os.path.join(output_directory, "scaffolds.prefixed.paths")),
             "--prefix {}".format(opts.scaffold_prefix),
             "--program spades",
             "&&",
             "mv",
-            os.path.join(output_directory, "scaffolds.prefixed.path"),
-            os.path.join(output_directory, "scaffolds.path"),
+            os.path.join(output_directory, "scaffolds.prefixed.paths"),
+            os.path.join(output_directory, "scaffolds.paths"),
         ]
 
     # Filter out small scaffolds/transcripts, add prefix (if applicable), and create SAF file
@@ -212,6 +204,17 @@ def get_assembly_cmd( input_filepaths, output_filepaths, output_directory, direc
 
 
     if opts.program == "megahit":
+        cmd += [
+        "&&",
+        "echo 'Creating GFA file -> assembly_graph_with_scaffolds.gfa'",
+        "&&",
+        os.environ["gfastats"],
+        "-o gfa",
+        "-f",
+        os.path.join(output_directory, "scaffolds.fasta"),
+        ">",
+        os.path.join(output_directory, "assembly_graph_with_scaffolds.gfa"),
+        ]
         files_to_remove = ["intermediate_contigs", "done"]
     else:
         files_to_remove = [ 

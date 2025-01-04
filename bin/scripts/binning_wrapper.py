@@ -12,7 +12,7 @@ from soothsayer_utils import *
 
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2024.12.16"
+__version__ = "2024.12.28"
 
 def get_maxbin2_cmd( input_filepaths, output_filepaths, output_directory, directories, opts):
     # Create dummy scaffolds_to_bins.tsv to overwrite later. 
@@ -263,6 +263,7 @@ def get_semibin2_cmd( input_filepaths, output_filepaths, output_directory, direc
         "--engine {}".format(opts.semibin2_engine),
         "--compression none",
         "--tag-output bin",
+        "--sequencing-type {}".format(opts.semibin2_sequencing_type),
         opts.semibin2_options,
         ]
     
@@ -982,10 +983,10 @@ def add_executables_to_environment(opts):
 def configure_parameters(opts, directories):
     # assert opts.reference_assembly is not None, "Must include --reference_assembly"
     assert not all([bool(opts.bam), bool(opts.coverage)]), "Cannot have both --bam and --coverage"
-    if opts.algorithm in {"metabat2", "maxbin2", "semibin2", "metacoag"}:
+    if opts.algorithm in {"metabat2", "maxbin2", "semibin2", "metacoag", "metadecoder"}:
         
         assert  any([bool(opts.bam), bool(opts.coverage)]), f"Must have either --bam or --coverage for --algorithm  {opts.algorithm}"
-    if opts.algorithm in {"concoct", "metadecoder"}:
+    if opts.algorithm in {"concoct"}:
         assert opts.bam is not None, f"Must provide --bam for --algorithm  {opts.algorithm}"
         
     if opts.semibin2_biome == "NONE":
@@ -1075,6 +1076,7 @@ def main(argv=None):
     parser_semibin2 = parser.add_argument_group('SemiBin2 arguments')
     parser_semibin2.add_argument("--semibin2_biome", type=str, choices={'ocean', 'wastewater', 'global', 'pig_gut', 'human_oral', 'cat_gut', 'soil', 'chicken_caecum', 'human_gut', 'built_environment', 'dog_gut', 'mouse_gut', 'NONE'}, default="global", help="SemiBin2 | Biome/environment for the built-in model.  Use 'NONE' to implement Semi-Supervised training (takes longer with more compute) [Default: global]")
     parser_semibin2.add_argument("--semibin2_engine", type=str, choices={'auto', 'cpu', 'gpu'}, default="auto", help="SemiBin2 | Device used to train the model [Default: auto]")
+    parser_semibin2.add_argument("--semibin2_sequencing_type", type=str, choices={'short_read', 'long_read'}, default="short_read", help="SemiBin2 | Sequencing type [Default: short_read]")
     parser_semibin2.add_argument("--semibin2_options", type=str, default="", help="SemiBin2 | More options (e.g. --arg 1 ) [Default: ''] | https://github.com/BigDataBiology/SemiBin")
 
     # MetaDecoder

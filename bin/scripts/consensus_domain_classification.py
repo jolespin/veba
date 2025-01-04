@@ -5,7 +5,7 @@ import pandas as pd
 from scipy.special import softmax
 
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2022.2.28"
+__version__ = "2024.12.27"
 
 def main(argv=None):
     # Path info
@@ -49,11 +49,11 @@ def main(argv=None):
         df_tiara = df_tiara.groupby(lambda x: {"Archaea":"Prokaryota", "Bacteria":"Prokaryota"}.get(x,x), axis=1).sum()
 
     # Logits
-    df_logits = df_tiara.groupby(scaffold_to_bin, axis=0).sum()
+    df_logits = df_tiara.groupby(scaffold_to_bin).sum()
 
     # Predictions
     if opts.logit_transform == "softmax":
-        df_predict_proba = softmax(df_logits, axis=1)
+        df_predict_proba = pd.DataFrame(softmax(df_logits.values, axis=1), index=df_logits.index, columns=df_logits.columns)
     else:
         df_predict_proba = df_logits/df_logits.sum(axis=1).values.reshape(-1,1)
 

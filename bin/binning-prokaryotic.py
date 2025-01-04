@@ -13,7 +13,7 @@ from soothsayer_utils import *
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2024.12.26"
+__version__ = "2024.12.31"
 
 # Assembly
 def get_coverage_cmd( input_filepaths, output_filepaths, output_directory, directories, opts):
@@ -46,7 +46,7 @@ def get_coverage_cmd( input_filepaths, output_filepaths, output_directory, direc
 
         "&&",
 
-    # # Coverage for MaxBin2
+    # # Coverage for MetaCoaAG
     # "cut -f1,4",
     # output_filepaths[0],
     # "|",
@@ -54,12 +54,27 @@ def get_coverage_cmd( input_filepaths, output_filepaths, output_directory, direc
     # ">",
     # output_filepaths[1],
     """
-    python -c "import pandas as pd; df = pd.read_csv('{}', sep='\t', index_col=0); df.loc[:,df.columns.map(lambda x: x.startswith('mapped.sorted.bam') and (not '-var' in x))].to_csv('{}', sep='\t', header=None)"
+    
+    python -c "import pandas as pd; df = pd.read_csv('{}', sep='\t', index_col=0); df.loc[:,df.columns.map(lambda x: x.endswith(('.bam','.sam')))].to_csv('{}', sep='\t', header=None)"
+    
     """.format( 
             output_filepaths[0],
             output_filepaths[1],
     )
     ]
+    
+    if "metadecoder" in opts.algorithms:
+        cmd += [
+            
+            
+        os.environ["metadecoder"],
+        "coverage",
+        "-b",
+        " ".join(opts.bam),
+        "-o {}".format(output_filepaths[2]),
+        "--threads {}".format(opts.n_jobs),
+        opts.metadecoder_coverage_options,
+        ]
 
     return cmd
 
@@ -152,6 +167,14 @@ def get_semibin2_cmd( input_filepaths, output_filepaths, output_directory, direc
         "--semibin2_engine {}".format(opts.semibin2_engine),
         "--semibin2_options {}".format(opts.semibin2_options) if bool(opts.semibin2_options) else "",
     ]
+    if opts.long_reads:
+        cmd += [
+            "--semibin2_sequencing_type long_read",
+        ]
+    else:
+        cmd += [
+            "--semibin2_sequencing_type short_read",
+        ]
     return cmd
 
 # MetaDecoder
@@ -161,7 +184,7 @@ def get_metadecoder_cmd( input_filepaths, output_filepaths, output_directory, di
         os.environ["binning_wrapper.py"],
         "-a metadecoder",
         "-f {}".format(input_filepaths[0]), # scaffolds.fasta
-        "-b {}".format(" ".join(opts.bam)), # Needs special coverage format
+        "-c {}".format(input_filepaths[1]), # Needs special coverage format
         "-o {}".format(output_directory),
         "-m {}".format(opts.minimum_contig_length), # mininimum contig length must be >= 1000 nts for SemiBin2 which is handled by the wrapper
         "-s {}".format(opts.minimum_genome_length), 
@@ -170,7 +193,7 @@ def get_metadecoder_cmd( input_filepaths, output_filepaths, output_directory, di
         "--bin_prefix {}".format(prefix),
         "--remove_bins",
         "--remove_intermediate_files",
-        "--proteins {}".format(input_filepaths[1]),
+        "--proteins {}".format(input_filepaths[2]),
         "--metadecoder_coverage_options {}".format(opts.metadecoder_coverage_options) if bool(opts.metadecoder_coverage_options) else "",
         "--metadecoder_cluster_options {}".format(opts.metadecoder_cluster_options) if bool(opts.metadecoder_cluster_options) else "",
     ]
@@ -270,12 +293,28 @@ def get_metacoag_cmd( input_filepaths, output_filepaths, output_directory, direc
 
 
 # Binette
-def get_binette_cmd(input_filepaths, output_filepaths, output_directory, directories, opts):
+def get_binette_cmd(input_filepaths, output_filepaths, output_directory, directories, opts, prefix):
+    
+    # Get non-empty scaffolds to bins
     cmd = [
+    """
+S2B_FILES="{}"
+
+NON_EMPTY_S2B_FILES=""
+for file in $S2B_FILES; do
+    if [ -s "$file" ] && [ -n "$(grep -v '^[[:space:]]*$' "$file")" ]; then
+        NON_EMPTY_S2B_FILES="$NON_EMPTY_S2B_FILES $file"
+    fi
+done
+    
+    """.format(" ".join(input_filepaths[4:]))
+    ]
+
+    cmd += [
         # Run Binnette
         os.environ["binette"],
         "-b",
-        " ".join(input_filepaths[4:]),
+        "${NON_EMPTY_S2B_FILES}",
         "-c",
         input_filepaths[0],
         # Uncomment for > 1.4.0
@@ -302,13 +341,15 @@ def get_binette_cmd(input_filepaths, output_filepaths, output_directory, directo
         os.path.join(output_directory, "filtered"),
         "-f",
         input_filepaths[0],
-        "--unbinned",
+        # "--unbinned",
         "-m",
         opts.minimum_contig_length,
         "--completeness",
         opts.checkm2_completeness,
         "--contamination",
         opts.checkm2_contamination,
+        "--bin_prefix",
+        prefix,
         
             "&&",
             
@@ -319,8 +360,6 @@ def get_binette_cmd(input_filepaths, output_filepaths, output_directory, directo
         os.environ["scaffolds_to_bins.py"],
         "-x",
         "fa",
-        "--bin_prefix",
-        "BINETTE__",
         ">",
         os.path.join(output_directory, "scaffolds_to_bins.tsv"),
         
@@ -357,6 +396,21 @@ def get_binette_cmd(input_filepaths, output_filepaths, output_directory, directo
         "&&",
         "gzip",
         os.path.join(output_directory, "temporary_files", "diamond_result.tsv"),
+        
+        "&&",
+        
+        "cat",
+        input_filepaths[0],
+        "|",
+        os.environ["seqkit"],
+        "seq",
+        "-m {}".format(opts.minimum_contig_length),
+        "|",
+        os.environ["seqkit"],
+        "grep",
+        "--pattern-file {}".format(os.path.join(output_directory, "filtered", "unbinned.list")),
+        ">",
+        output_filepaths[-1],
 
     ]
     return cmd
@@ -396,8 +450,8 @@ def get_tiara_cmd(input_filepaths, output_filepaths, output_directory, directori
         
         os.environ["seqkit"],
         "grep",
-        "-p",
-        os.path.join(directories["tmp"], "binned.list"),
+        "-f",
+        os.path.join(directories["output"], "binned.list"),
         
         "|",
 
@@ -423,10 +477,10 @@ def get_tiara_cmd(input_filepaths, output_filepaths, output_directory, directori
 # barrnap
 def get_barrnap_cmd(input_filepaths, output_filepaths, output_directory, directories, opts):
     cmd = [
-        "cat",
-        input_filepaths[0],
-        ">",
-        os.path.join(directories["tmp"], "genomes_to_domain.tsv"),
+        # "cat",
+        # input_filepaths[0],
+        # ">",
+        # os.path.join(directories["tmp"], "genomes_to_domain.tsv"),
 
 """
 OUTPUT_DIRECTORY={}
@@ -443,23 +497,20 @@ do
             >$OUTPUT_DIRECTORY/$ID.rRNA
             >$OUTPUT_DIRECTORY/$ID.rRNA.gff
             {} --kingdom $DOMAIN_ABBREVIATION --threads {} --lencutoff {} --reject {} --evalue {} --outseq $OUTPUT_DIRECTORY/$ID.rRNA $GENOME_FASTA  | {} > $OUTPUT_DIRECTORY/$ID.rRNA.gff
-            rm $GENOME_FASTA.fai
+            #rm $GENOME_FASTA.fai
         fi
     done
 done
-
-rm -f {}
 """.format(
         output_directory,
-        os.path.join(directories["tmp"], "genomes_to_domain.tsv"),
-        os.path.join(os.path.split(input_filepaths[1])[0],"$ID.fa"),
+        input_filepaths[0],
+        os.path.join(os.path.split(input_filepaths[1])[0],"$ID.fa"), # Is this inefficient?
         os.environ["barrnap"],
         opts.n_jobs,
         opts.barrnap_length_cutoff, 
         opts.barrnap_reject, 
         opts.barrnap_evalue,
         os.environ["append_geneid_to_barrnap_gff.py"],
-        os.path.join(directories["tmp"], "genomes_to_domain.tsv"),
     ),
     ]
     return cmd
@@ -481,10 +532,10 @@ def get_trnascan_cmd(input_filepaths, output_filepaths, output_directory, direct
             # input_filepaths[0],
 
     cmd = [
-        "cat",
-        input_filepaths[0],
-        ">",
-        os.path.join(directories["tmp"], "genomes_to_domain.tsv"),
+        # "cat",
+        # input_filepaths[0],
+        # ">",
+        # os.path.join(directories["tmp"], "genomes_to_domain.tsv"),
 
 
 """
@@ -516,16 +567,13 @@ do
         fi  
     done
 done
-
-rm -f {}
 """.format(
         output_directory,
-        os.path.join(directories["tmp"], "genomes_to_domain.tsv"),
+        input_filepaths[0],
         os.path.join(os.path.split(input_filepaths[1])[0],"$ID.fa"),
         os.environ["tRNAscan-SE"],
         opts.n_jobs,
         opts.trnascan_options,
-        os.path.join(directories["tmp"], "genomes_to_domain.tsv"),
     )
     ]
     return cmd
@@ -564,7 +612,7 @@ S2B=$(ls {}) || (echo 'No genomes have been detected' && exit 1)
 
 """.format(
     os.path.join(output_directory, "genomes"),
-    os.path.join(directories["intermediate"], "*__checkm2",  "filtered", "scaffolds_to_bins.tsv"),
+    os.path.join(directories["intermediate"], "*__binette",  "filtered", "scaffolds_to_bins.tsv"),
     ),
     ]
 
@@ -584,7 +632,7 @@ S2B=$(ls {}) || (echo 'No genomes have been detected' && exit 1)
         ">",
         os.path.join(output_directory, "bins.list"),
 
-            "&&",
+            # "&&",
 
         # # binned.list
         # "cat",
@@ -640,7 +688,7 @@ done
     directories[("intermediate", "{}__barrnap".format(step-3))],
     directories[("intermediate", "{}__trnascan-se".format(step-2))],
     os.path.join(output_directory,"genomes"),
-    os.path.join(directories["intermediate"], "*__checkm2", "filtered", "genomes", "*.fa"),
+    os.path.join(directories["intermediate"], "*__binette", "filtered", "genomes", "*.fa"),
     os.environ["compile_gff.py"],
     )
     ]
@@ -803,13 +851,15 @@ def create_pipeline(opts, directories, f_cmds):
     output_directory = directories[("intermediate",  program_label)] = create_directory(os.path.join(directories["intermediate"], program_label))
 
     # Info
-    description = "Calculating coverage for assembly via CoverM"
+    description = "Calculating coverage for assembly"
 
     input_filepaths = [
             *opts.bam,
         ]
 
     output_filenames = ["coverage_metabat.tsv", "coverage_noheader.tsv"]
+    if "metadecoder" in opts.algorithms:
+        output_filenames.append("coverage_metadecoder.tsv")
 
     output_filepaths = list(map(lambda filename: os.path.join(output_directory, filename), output_filenames))
 
@@ -1036,8 +1086,8 @@ def create_pipeline(opts, directories, f_cmds):
                 # i/o
                 input_filepaths = [
                     input_fasta,
+                    os.path.join(directories[("intermediate",  "1__coverage")], "coverage_metadecoder.tsv"),
                     os.path.join(directories[("intermediate",  "2__pyrodigal")], "gene_models.faa"),
-                    *opts.bam,
                 ]
 
                 output_filenames = [
@@ -1159,7 +1209,8 @@ def create_pipeline(opts, directories, f_cmds):
             os.path.join(directories[("intermediate",  "2__pyrodigal")], "gene_models.faa"),
         ]
         for algorithm in opts.algorithms:
-            s2b = os.path.join(directories[("intermediate","{}__{}".format(steps[algorithm], algorithm))], "scaffolds_to_bins.tsv")
+            program = "binning_{}".format(algorithm)
+            s2b = os.path.join(directories[("intermediate","{}__{}".format(steps[program], program))], "scaffolds_to_bins.tsv")
             input_filepaths.append(s2b)
             
 
@@ -1168,6 +1219,10 @@ def create_pipeline(opts, directories, f_cmds):
             "filtered/*.list",
         ]
         output_filepaths = list(map(lambda filename: os.path.join(output_directory, filename), output_filenames))
+        output_filepaths += [ 
+            os.path.join(directories["tmp"], "unbinned_{}.fasta".format(iteration)),
+        ]
+
 
         params = {
             "input_filepaths":input_filepaths,
@@ -1175,6 +1230,8 @@ def create_pipeline(opts, directories, f_cmds):
             "output_directory":output_directory,
             "opts":opts,
             "directories":directories,
+            "prefix":"{}__BINETTE__{}.{}__".format(opts.name, "P", iteration),
+
         } 
 
         cmd = get_binette_cmd(**params)
@@ -1274,7 +1331,7 @@ def create_pipeline(opts, directories, f_cmds):
     description = "Detecting rRNA genes"
     # i/o
     input_filepaths = [
-        os.path.join(directories["intermediate"], "tiara",  "consensus_domain_classification", "predictions.tsv"),
+        os.path.join(directories["intermediate"], f"{step - 1}__tiara",  "consensus_domain_classification", "predictions.tsv"),
         os.path.join(directories["intermediate"], "*__binette", "filtered", "genomes", "*"),
     ]
 
@@ -1327,7 +1384,7 @@ def create_pipeline(opts, directories, f_cmds):
     description = "Detecting tRNA genes"
     # i/o
     input_filepaths = [
-        os.path.join(directories["intermediate"], "tiara",  "consensus_domain_classification", "predictions.tsv"),
+        os.path.join(directories["intermediate"], f"{step - 2}__tiara",  "consensus_domain_classification", "predictions.tsv"),
         os.path.join(directories["intermediate"], "*__binette", "filtered", "genomes", "*"),
     ]
 
@@ -1432,11 +1489,11 @@ def create_pipeline(opts, directories, f_cmds):
 
     # i/o
     input_filepaths = [
-        # os.path.join(directories["intermediate"], "*__checkm2",  "filtered", "scaffolds_to_bins.tsv"),
-        # os.path.join(directories["intermediate"], "*__checkm2",  "filtered", "bins.list"),
-        # os.path.join(directories["intermediate"], "*__checkm2",  "filtered", "binned.list"),
-        os.path.join(directories["intermediate"], "*__checkm2",  "filtered", "checkm2_results.filtered.tsv"),
-        os.path.join(directories["intermediate"], "*__checkm2", "filtered", "genomes", "*"),
+        # os.path.join(directories["intermediate"], "*__binette",  "filtered", "scaffolds_to_bins.tsv"),
+        # os.path.join(directories["intermediate"], "*__binette",  "filtered", "bins.list"),
+        # os.path.join(directories["intermediate"], "*__binette",  "filtered", "binned.list"),
+        os.path.join(directories["intermediate"], "*__binette",  "filtered", "checkm2_results.filtered.tsv"),
+        os.path.join(directories["intermediate"], "*__binette", "filtered", "genomes", "*"),
         os.path.join(directories[("intermediate", "{}__featurecounts".format(step-1))], "featurecounts.orfs.tsv.gz"),
 
         # Can't assume these are not empty
@@ -1494,6 +1551,7 @@ def add_executables_to_environment(opts):
                 "binning_wrapper.py",
                 "scaffolds_to_bins.py",
                 # "check_scaffolds_to_bins.py",
+                "filter_binette_results.py",
                 "partition_gene_models.py",
                 "append_geneid_to_prodigal_gff.py",
                 "append_geneid_to_barrnap_gff.py",
@@ -1513,6 +1571,7 @@ def add_executables_to_environment(opts):
                 "featureCounts",
                 "barrnap",
                 "tRNAscan-SE",
+                # "parallel",
  
      } | accessory_scripts
 
@@ -1560,6 +1619,7 @@ def configure_parameters(opts, directories):
     opts.algorithms = set(map(str.strip, opts.algorithms.split(",")))
     choices = {"metabat2", "semibin2", "metadecoder", "metacoag"}
     assert opts.algorithms <= choices, "Unrecognized algorithm(s): {}".format(opts.algorithms - choices)
+    opts.algorithms = sorted(opts.algorithms)
     add_executables_to_environment(opts=opts)
 
 def main(args=None):
@@ -1582,6 +1642,8 @@ def main(args=None):
     parser_io.add_argument("-b","--bam", type=str, nargs="+", required=True, help = "path/to/mapped.sorted.bam files separated by spaces.")
     parser_io.add_argument("-n", "--name", type=str, help="Name of sample", required=True)
     parser_io.add_argument("-o","--project_directory", type=str, default="veba_output/binning/prokaryotic/", help = "path/to/project_directory [Default: veba_output/binning/prokaryotic/]")
+    parser_io.add_argument("-L", "--long_reads", action="store_true", help="Use this if long reads are being used")
+
 
     # Utility
     parser_utility = parser.add_argument_group('Utility arguments')
@@ -1600,7 +1662,7 @@ def main(args=None):
 
     # Binning
     parser_binning = parser.add_argument_group('Binning arguments')
-    parser_binning.add_argument("-a", "--algorithms", type=str, default="metabat2,semibin2,metadecoder,metacoag", help='Comma separated list of binning algorithms.  Choose from {"metabat2", "semibin2", "metadecoder", "metacoag"} [Default: metabat2,semibin2,metadecoder,metacoag]')
+    parser_binning.add_argument("-a", "--algorithms", type=str, default="metabat2,semibin2,metadecoder,metacoag", help='Comma separated list of binning algorithms.  Choose from {"metabat2", "semibin2", "metadecoder", "metacoag"}.  metacoag will fail if the --fasta does not match the --metacoag_graph exactly which will be fixed in future versions. [Default: metabat2,semibin2,metadecoder,metacoag]')
     parser_binning.add_argument("-m", "--minimum_contig_length", type=int, default=1500, help="Minimum contig length.  Anything under 2500 will default to 2500 for MetaBat2 [Default: 1500] ")
     parser_binning.add_argument("-s", "--minimum_genome_length", type=int, default=200000, help="Minimum genome length.  [Default: 200000]")
     parser_binning.add_argument("--retain_intermediate_bins",action="store_true",help='Retain intermediate bins in fasta.')
@@ -1657,7 +1719,6 @@ def main(args=None):
 
     # featureCounts
     parser_featurecounts = parser.add_argument_group('featureCounts arguments')
-    parser_featurecounts.add_argument("--long_reads", action="store_true", help="featureCounts | Use this if long reads are being used")
     parser_featurecounts.add_argument("--featurecounts_options", type=str, default="", help="featureCounts | More options (e.g. --arg 1 ) [Default: ''] | http://bioinf.wehi.edu.au/featureCounts/")
 
     # Tiara
