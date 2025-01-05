@@ -1,4 +1,4 @@
-name: VEBA-assembly_env__2023.11.30
+name: VEBA-assembly_env__2024.12.30
 channels:
   - conda-forge
   - bioconda
@@ -11,21 +11,26 @@ dependencies:
   - alsa-lib=1.2.8=h166bdaf_0
   - bbmap=39.01=h5c4e2a8_0
   - biopython=1.80=py39hb9d737c_0
+  - boltons=24.0.0=pyhd8ed1ab_0
   - bowtie2=2.5.0=py39h3321a2d_0
   - brotlipy=0.7.0=py39hb9d737c_1005
   - bz2file=0.98=py_0
   - bzip2=1.0.8=h7f98852_4
   - c-ares=1.18.1=h7f98852_0
-  - ca-certificates=2023.11.17=hbcca054_0
+  - ca-certificates=2024.8.30=hbcca054_0
   - cairo=1.16.0=ha61ee94_1014
-  - certifi=2023.11.17=pyhd8ed1ab_0
+  - certifi=2024.8.30=pyhd8ed1ab_0
   - cffi=1.15.1=py39he91dace_2
   - charset-normalizer=2.1.1=pyhd8ed1ab_0
   - colorama=0.4.6=pyhd8ed1ab_0
+  - conda=23.7.4=py39hf3d152e_0
+  - conda-package-handling=2.4.0=pyh7900ff3_0
+  - conda-package-streaming=0.11.0=pyhd8ed1ab_0
   - coreutils=9.3=h0b41bf4_0
   - cryptography=41.0.7=py39hd4f0224_0
   - expat=2.5.0=h27087fc_0
   - flye=2.9.3=py39hd65a603_0
+  - fmt=10.2.1=h00ab1b0_0
   - font-ttf-dejavu-sans-mono=2.37=hab24e00_0
   - font-ttf-inconsolata=3.000=h77eed37_0
   - font-ttf-source-code-pro=2.038=h77eed37_0
@@ -36,6 +41,7 @@ dependencies:
   - freetype=2.12.1=hca18f0e_1
   - genopype=2023.5.15=py_0
   - gettext=0.21.1=h27087fc_0
+  - gfastats=1.3.9=hdcf5f25_0
   - giflib=5.2.1=h36c2ea0_2
   - graphite2=1.3.13=h58526e2_1001
   - harfbuzz=5.3.0=h418a68e_0
@@ -43,6 +49,8 @@ dependencies:
   - icu=70.1=h27087fc_0
   - idna=3.4=pyhd8ed1ab_0
   - jpeg=9e=h166bdaf_2
+  - jsonpatch=1.33=pyhd8ed1ab_0
+  - jsonpointer=3.0.0=py39hf3d152e_1
   - k8=0.2.5=hdcf5f25_4
   - kernel-headers_linux-64=3.10.0=h4a8ded7_13
   - keyutils=1.6.1=h166bdaf_0
@@ -50,6 +58,7 @@ dependencies:
   - lcms2=2.12=hddcbb42_0
   - ld_impl_linux-64=2.39=hcc3a1bd_1
   - lerc=4.0.0=h27087fc_0
+  - libarchive=3.6.2=h3d51595_0
   - libblas=3.9.0=16_linux64_openblas
   - libcblas=3.9.0=16_linux64_openblas
   - libcups=2.3.3=h4637d8d_4
@@ -58,20 +67,25 @@ dependencies:
   - libedit=3.1.20191231=he28a2e2_2
   - libev=4.33=h516909a_1
   - libffi=3.4.2=h7f98852_5
-  - libgcc-ng=12.2.0=h65d4601_19
+  - libgcc=14.2.0=h77fa898_1
+  - libgcc-ng=14.2.0=h69a702a_1
   - libgfortran-ng=12.2.0=h69a702a_19
   - libgfortran5=12.2.0=h337968e_19
   - libglib=2.74.1=h606061b_1
-  - libgomp=12.2.0=h65d4601_19
+  - libgomp=14.2.0=h77fa898_1
   - libhwloc=2.8.0=h32351e8_1
   - libiconv=1.17=h166bdaf_0
   - liblapack=3.9.0=16_linux64_openblas
+  - libmamba=1.5.1=h744094f_0
+  - libmambapy=1.5.1=py39h10defb6_0
   - libnghttp2=1.52.0=h61bc06f_0
   - libnsl=2.0.0=h7f98852_0
   - libopenblas=0.3.21=pthreads_h78a6416_3
   - libpng=1.6.39=h753d276_0
+  - libsolv=0.7.29=ha6fb4c9_0
   - libsqlite=3.40.0=h753d276_0
   - libssh2=1.11.0=h0841786_0
+  - libstdcxx=14.2.0=hc0a3c3a_1
   - libstdcxx-ng=12.2.0=h46fd767_19
   - libtiff=4.2.0=hf544144_3
   - libuuid=2.32.1=h7f98852_1000
@@ -80,21 +94,29 @@ dependencies:
   - libxml2=2.10.3=h7463322_0
   - libzlib=1.2.13=h166bdaf_4
   - llvm-openmp=8.0.1=hc9558a2_0
+  - lz4-c=1.9.4=hcb278e6_0
+  - lzo=2.10=hd590300_1001
+  - mamba=1.5.1=py39hc5d2bb1_0
   - megahit=1.2.9=h2e03b76_1
   - minimap2=2.26=he4a0461_2
   - ncurses=6.3=h27087fc_1
   - numpy=1.23.5=py39h3d75532_0
   - openjdk=11.0.1=h516909a_1016
   - openmp=8.0.1=0
-  - openssl=3.2.0=hd590300_1
+  - openssl=3.4.0=hb9d3cd8_0
+  - packaging=24.2=pyhff2d567_1
   - pandas=1.5.2=py39h4661b88_0
+  - parallel=20240922=ha770c72_0
   - pathlib2=2.3.7.post1=py39hf3d152e_2
   - pbzip2=1.1.13=0
   - pcre2=10.40=hc3806b6_0
   - perl=5.32.1=2_h7f98852_perl5
   - pip=22.3.1=pyhd8ed1ab_0
   - pixman=0.40.0=h36c2ea0_0
+  - pluggy=1.5.0=pyhd8ed1ab_0
   - pthread-stubs=0.4=h36c2ea0_1001
+  - pybind11-abi=4=hd8ed1ab_3
+  - pycosat=0.6.6=py39hd1e30aa_0
   - pycparser=2.21=pyhd8ed1ab_0
   - pyopenssl=23.3.0=pyhd8ed1ab_0
   - pysocks=1.7.1=pyha2e5f31_6
@@ -105,7 +127,11 @@ dependencies:
   - pytz=2022.6=pyhd8ed1ab_0
   - pytz-deprecation-shim=0.1.0.post0=py39hf3d152e_3
   - readline=8.1.2=h0f457ee_0
+  - reproc=14.2.4.post0=hd590300_1
+  - reproc-cpp=14.2.4.post0=h59595ed_1
   - requests=2.28.1=pyhd8ed1ab_1
+  - ruamel.yaml=0.17.40=py39hd1e30aa_0
+  - ruamel.yaml.clib=0.2.8=py39hd1e30aa_0
   - samtools=1.16.1=h6899075_1
   - scandir=1.10.0=py39hb9d737c_6
   - seqkit=2.3.1=h9ee0642_0
@@ -117,6 +143,7 @@ dependencies:
   - sysroot_linux-64=2.17=h4a8ded7_13
   - tbb=2021.7.0=h924138e_1
   - tk=8.6.12=h27826a3_0
+  - toolz=1.0.0=pyhd8ed1ab_0
   - tqdm=4.64.1=pyhd8ed1ab_0
   - tzdata=2022g=h191b570_0
   - tzlocal=4.2=py39hf3d152e_2
@@ -140,5 +167,7 @@ dependencies:
   - xorg-xextproto=7.3.0=h7f98852_1002
   - xorg-xproto=7.0.31=h7f98852_1007
   - xz=5.2.6=h166bdaf_0
+  - yaml-cpp=0.7.0=h59595ed_3
   - zlib=1.2.13=h166bdaf_4
+  - zstandard=0.19.0=py39h6e5214e_2
   - zstd=1.5.2=h6239696_4
