@@ -414,6 +414,7 @@ ________________________________________________________________
 
 **Critical:**
 
+* Symlink genomes in `classify-prokaryotic.py` instead of copying genomes
 * Cluster module doesn't symlink global directory correctly on MacOS
 * Return code for `cluster.py` when it fails during global and local clustering is 0 but should be 1.
 * Don't load all genomes, proteins, and cds into memory for clustering.  Also, too many files are opened with large genomics datasets.
@@ -422,6 +423,7 @@ ________________________________________________________________
 
 **Definitely:**
 
+* Add `metadecoder` with `eukaryota_odb10` marker set for `binning-eukaryotic.py`
 * Replace `Bowtie2` with `strobealign` and `Fairy` when applicable (i.e., `coverage` module)
 * Script to add `PyHMMSearch` annotations to `annotations.proteins.tsv.gz`
 * Develop `add_taxonomy_to_annotations.py` script
@@ -429,15 +431,11 @@ ________________________________________________________________
 * Add `frozenset` for proteins that has all of the database identifiers
 * Add `--proteins` option to `classify-eukaryotic.py` which aligns proteins to `MicroEuk100.eukaryota_odb10` via `MMseqs2` and then proceeds with the pipeline.
 * Build SQL databases from all results
-* Develop `iterative_metaeuk_wrapper.py` which does the following: 1) Mask genome with `sdust` (pipe to stdout); 2) `MMseqs2` contig database (from stdin); 3) `MetaEuk` on MicroEuk100.eukaryota_odb10 to get source taxa for enrichment; 4) `subset_microeuk_proteins.py` to get enriched protein set; 5) run `MetaEuk` again with enriched subset; ...
 * Remove `p__Arthropoda` from `MicroEuk` database
 * Add number of unique protein clusters to `identifier_mapping.genomes.tsv.gz` in `cluster.py` to assess most metabolicly diverse representative.
 * Add `BiNI` biosynthetic novelty index to `biosynthetic.py`
 * `busco_wrapper.py` that relabels all the genes, runs analysis, then converts output to tsv.
-* Script to update genome clusters
-* Script to update protein clusters
 * Add `convert_reads_long_to_short.py` which will take windows of 150 bp for the long reads.
-* Add option to `compile_custom_humann_database_from_annotations.py` to only output best hit of a UniRef identifier per genome.
 * Use `pigz` instead of `gzip`
 * Create a taxdump for `MicroEuk`
 * Reimplement `compile_eukaryotic_classifications.py`
@@ -462,7 +460,9 @@ ________________________________________________________________
 
 **...Maybe (Not)?**
 
+* Add option to `compile_custom_humann_database_from_annotations.py` to only output best hit of a UniRef identifier per genome.
 * Swap [`TransDecoder`](https://github.com/TransDecoder/TransDecoder) for [`TransSuite`](https://github.com/anonconda/TranSuite)
+* Develop `iterative_metaeuk_wrapper.py` which does the following: 1) Mask genome with `sdust` (pipe to stdout); 2) `MMseqs2` contig database (from stdin); 3) `MetaEuk` on MicroEuk100.eukaryota_odb10 to get source taxa for enrichment; 4) `subset_microeuk_proteins.py` to get enriched protein set; 5) run `MetaEuk` again with enriched subset; ...
 
 
 **Developmental:**
@@ -481,6 +481,10 @@ ________________________________________________________________
 <details>
 	<summary> <b>Daily Change Log:</b> </summary>
 
+* [2025.1.5] - Added `--busco_options` and `--busco_offline` arguments for `binning-eukaryotic.py`
+* [2024.12.28] - Added `--semibin2_sequencing_type` to `binning_wrapper.py` and added functionality for `--long_reads`.  Moved `--long_reads` argument to `parser_io` instead of `parser_featurecounts`
+* [2024.12.27] - Fixed issue in `consensus_domain_classification.py` where `softmax` returns a `np.array` instead of a `pd.DataFrame`
+* [2024.12.26] - Added support for precomputed coverage for `metadecoder` in `binning_wrapper.py`
 * [2024.12.26] - Added support for `binette` and `tiara` in updated `binning_prokaryotic.py` module
 * [2024.12.23] - Added `copy_attribute_in_gff.py` script which copies attributes to a source and destination attribute
 * [2024.12.17] - Added `filter_binette_results.py` script
