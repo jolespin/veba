@@ -6,7 +6,7 @@ import numpy as np
 from soothsayer_utils import read_hmmer, pv, get_file_object, assert_acceptable_arguments, format_header, flatten
 
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2024.11.15"
+__version__ = "2025.1.15"
 
 DIAMOND_HEADER_FIELDS = "qseqid sseqid stitle pident evalue bitscore qcovhsp scovhsp"
 DIAMOND_COLUMNS = list(filter(bool, DIAMOND_HEADER_FIELDS.split(" ")))
@@ -176,7 +176,7 @@ def main(args=None):
     #     df_diamond_uniref = pd.DataFrame(columns=columns)
     
     # df_diamond_uniref.columns = DIAMOND_COLUMNS
-    df_diamond_uniref = df_diamond_uniref.set_index("qseqid")
+    # df_diamond_uniref = df_diamond_uniref.set_index("qseqid")
 
     # Remove ID from stitle
     df_diamond_uniref["stitle"] = df_diamond_uniref["stitle"].map(clean_stitle)
@@ -198,7 +198,7 @@ def main(args=None):
         df_diamond_mibig = pd.read_csv(opts.diamond_mibig, sep="\t", index_col=0)
     except pd.errors.EmptyDataError:
         df_diamond_mibig = pd.DataFrame(columns=DIAMOND_COLUMNS)
-    df_diamond_mibig = df_diamond_mibig.set_index("qseqid")
+    # df_diamond_mibig = df_diamond_mibig.set_index("qseqid")
     df_diamond_mibig = df_diamond_mibig.drop(["stitle"], axis=1)
     proteins = proteins | set(df_diamond_mibig.index)
 
@@ -207,7 +207,7 @@ def main(args=None):
         df_diamond_vfdb = pd.read_csv(opts.diamond_vfdb, sep="\t", index_col=0)
     except pd.errors.EmptyDataError:
         df_diamond_vfdb = pd.DataFrame(columns=DIAMOND_COLUMNS)
-    df_diamond_vfdb = df_diamond_vfdb.set_index("qseqid")
+    # df_diamond_vfdb = df_diamond_vfdb.set_index("qseqid")
     df_diamond_vfdb = df_diamond_vfdb.drop(["stitle"], axis=1)
     proteins = proteins | set(df_diamond_vfdb.index)
 
@@ -216,7 +216,7 @@ def main(args=None):
         df_diamond_cazy = pd.read_csv(opts.diamond_cazy, sep="\t", index_col=0)
     except pd.errors.EmptyDataError:
         df_diamond_cazy = pd.DataFrame(columns=DIAMOND_COLUMNS)
-    df_diamond_cazy = df_diamond_cazy.set_index("qseqid")
+    # df_diamond_cazy = df_diamond_cazy.set_index("qseqid")
     df_diamond_cazy = df_diamond_cazy.drop(["stitle"], axis=1)
     proteins = proteins | set(df_diamond_cazy.index)
 

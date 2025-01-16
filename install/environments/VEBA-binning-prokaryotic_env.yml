@@ -1,5 +1,5 @@
 name: 
-  VEBA-binning-prokaryotic_env__v2024.12.28
+  VEBA-binning-prokaryotic_env__v2025.1.15
 channels:
   - conda-forge
   - bioconda
@@ -23,7 +23,6 @@ dependencies:
   - backports.zoneinfo=0.2.1=py38h01eb140_8
   - barrnap=0.9=hdfd78af_4
   - bedtools=2.31.1=hf5e1c6e_2
-  - binette=1.0.4=pyh7e72e81_0
   - blas=1.1=openblas
   - blinker=1.8.2=pyhd8ed1ab_0
   - boost-cpp=1.70.0=ha2d47e9_1
@@ -32,7 +31,7 @@ dependencies:
   - bz2file=0.98=py_0
   - bzip2=1.0.8=h4bc722e_7
   - c-ares=1.34.4=hb9d3cd8_0
-  - ca-certificates=2024.12.14=hbcca054_0
+  - ca-certificates=2024.12.31=h06a4308_0
   - cachetools=5.5.0=pyhd8ed1ab_0
   - certifi=2024.8.30=pyhd8ed1ab_0
   - cffi=1.17.0=py38heb5c249_0
@@ -144,6 +143,7 @@ dependencies:
   - opt_einsum=3.4.0=pyhd8ed1ab_0
   - packaging=24.2=pyhd8ed1ab_2
   - pandas=1.4.0=py38h43a58ef_0
+  - parallel=20241122=ha770c72_0
   - pathlib2=2.3.7.post1=py38h578d9bd_3
   - perl=5.32.1=7_hd590300_perl5
   - pip=24.3.1=pyh8b19718_0
@@ -218,10 +218,10 @@ dependencies:
   - zstandard=0.23.0=py38h62bed22_0
   - zstd=1.5.6=ha6fb4c9_0
   - pip:
+      - binette==1.0.5
       - biopython==1.83
       - llvmlite==0.41.1
       - numba==0.58.1
-      - numpy==1.23.0
       - psutil==5.9.8
       - pyhmmer==0.10.15
       - pyhmmsearch==2024.10.20
@@ -230,3 +230,4 @@ dependencies:
       - https://github.com/jolespin/tiara-nal/releases/download/1.0.4rc2/tiara-1.0.4rc2.tar.gz
       - https://github.com/jolespin/metadecoder-nal/releases/download/1.1.1rc5/metadecoder-1.1.1rc5.tar.gz
       - https://github.com/jolespin/metacoag-nal/releases/download/1.2.3rc4/metacoag-1.2.3rc4.tar.gz
+      - numpy==1.23.0

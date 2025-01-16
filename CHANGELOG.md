@@ -481,6 +481,9 @@ ________________________________________________________________
 <details>
 	<summary> <b>Daily Change Log:</b> </summary>
 
+* [2025.1.15] - Fixed bug in `binning_wrapper.py` where script was looking for bins in the wrong directory for `MetaCoAG`
+* [2025.1.14] - Fixed bug in `merge_annotations.py` where `diamond` outputs were queried incorrectly
+* [2025.1.5] - Change default `--busco_completeness` from `50` to `30` in `binning-eukaryotic.py`
 * [2025.1.5] - Added `--busco_options` and `--busco_offline` arguments for `binning-eukaryotic.py`
 * [2024.12.28] - Added `--semibin2_sequencing_type` to `binning_wrapper.py` and added functionality for `--long_reads`.  Moved `--long_reads` argument to `parser_io` instead of `parser_featurecounts`
 * [2024.12.27] - Fixed issue in `consensus_domain_classification.py` where `softmax` returns a `np.array` instead of a `pd.DataFrame`

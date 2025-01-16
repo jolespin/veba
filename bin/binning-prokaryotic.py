@@ -13,7 +13,7 @@ from soothsayer_utils import *
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2024.12.31"
+__version__ = "2025.1.15"
 
 # Assembly
 def get_coverage_cmd( input_filepaths, output_filepaths, output_directory, directories, opts):
@@ -85,18 +85,17 @@ def get_pyrodigal_cmd(input_filepaths, output_filepaths, output_directory, direc
     cmd = [
         "cat",
         input_filepaths[0],
+        
         "|",
+        
         os.environ["seqkit"],
         "seq",
         "-m {}".format(opts.minimum_contig_length),
-        ">",
-        os.path.join(directories["tmp"], "tmp.fasta"),
-
-            "&&",
         
+        "|",
+                
         os.environ["pyrodigal"],
         "-p meta",
-        "-i {}".format(os.path.join(directories["tmp"], "tmp.fasta")),
         "-g {}".format(opts.pyrodigal_genetic_code),
         "-f gff",
         "-d {}".format(os.path.join(output_directory, "gene_models.ffn")),
@@ -104,24 +103,14 @@ def get_pyrodigal_cmd(input_filepaths, output_filepaths, output_directory, direc
         "--min-gene {}".format(opts.pyrodigal_minimum_gene_length),
         "--min-edge-gene {}".format(opts.pyrodigal_minimum_edge_gene_length),
         "--max-overlap {}".format(opts.pyrodigal_maximum_gene_overlap_length),
-        # "-j {}".format(opts.n_jobs),
-        ">",
-        os.path.join(directories["tmp"], "tmp.gff"),
-
-            "&&",
-
-        "cat",
-        os.path.join(directories["tmp"], "tmp.gff"),
+        "-j {}".format(opts.n_jobs),
+ 
         "|",
+        
         os.environ["append_geneid_to_prodigal_gff.py"],
         "-a gene_id",
         ">",
         os.path.join(output_directory, "gene_models.gff"),
-
-            "&&",
-
-        "rm -rf",
-        os.path.join(directories["tmp"], "tmp.*")
 
     ]
     return cmd
@@ -317,9 +306,8 @@ done
         "${NON_EMPTY_S2B_FILES}",
         "-c",
         input_filepaths[0],
-        # Uncomment for > 1.4.0
-        # "-p",
-        # input_filepaths[3],
+        "-p",
+        input_filepaths[3],
         "-o",
         output_directory,
         "-t",
@@ -393,9 +381,6 @@ done
         os.path.join(output_directory, "final_bins"),
         os.path.join(output_directory, "temporary_files", "assembly_proteins.faa"),
         
-        "&&",
-        "gzip",
-        os.path.join(output_directory, "temporary_files", "diamond_result.tsv"),
         
         "&&",
         
@@ -1662,7 +1647,7 @@ def main(args=None):
 
     # Binning
     parser_binning = parser.add_argument_group('Binning arguments')
-    parser_binning.add_argument("-a", "--algorithms", type=str, default="metabat2,semibin2,metadecoder,metacoag", help='Comma separated list of binning algorithms.  Choose from {"metabat2", "semibin2", "metadecoder", "metacoag"}.  metacoag will fail if the --fasta does not match the --metacoag_graph exactly which will be fixed in future versions. [Default: metabat2,semibin2,metadecoder,metacoag]')
+    parser_binning.add_argument("-a", "--algorithms", type=str, default="metabat2,semibin2,metadecoder,metacoag", help='Comma separated list of binning algorithms.  Choose from {"metabat2", "semibin2", "metadecoder", "metacoag"}.  If MEGAHIT assembly was used then metacoag will fail if the --fasta does not match the --metacoag_graph exactly which will be fixed in future versions. [Default: metabat2,semibin2,metadecoder,metacoag]')
     parser_binning.add_argument("-m", "--minimum_contig_length", type=int, default=1500, help="Minimum contig length.  Anything under 2500 will default to 2500 for MetaBat2 [Default: 1500] ")
     parser_binning.add_argument("-s", "--minimum_genome_length", type=int, default=200000, help="Minimum genome length.  [Default: 200000]")
     parser_binning.add_argument("--retain_intermediate_bins",action="store_true",help='Retain intermediate bins in fasta.')

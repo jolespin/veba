@@ -1,5 +1,5 @@
 #!/bin/bash
-# __version__ = "2024.5.6"
+# __version__ = "2025.1.13"
 SCRIPT_PATH=$(realpath $0)
 SCRIPT_DIRECTORY=$(dirname $0)
 VEBA_REPOSITORY_DIRECTORY=$(realpath ${SCRIPT_DIRECTORY}/../)
@@ -24,7 +24,7 @@ conda install -c conda-forge mamba -y
 echo "Creating ${VEBA} main environment"
 
 ENV_NAME="VEBA"
-(mamba create -y -p ${CONDA_ENVS_PATH}/${ENV_NAME} -c conda-forge -c bioconda -c jolespin seqkit genopype networkx biopython biom-format anndata || echo "Error when creating main VEBA environment" ; exit 1) &> ${LOG_DIRECTORY}/VEBA.log
+(mamba create -y -p ${CONDA_ENVS_PATH}/${ENV_NAME} -c conda-forge -c bioconda -c jolespin parallelseqkit genopype networkx biopython biom-format anndata || echo "Error when creating main VEBA environment" ; exit 1) &> ${LOG_DIRECTORY}/VEBA.log
 
 # Copy main executable
 echo -e "\t*Copying main VEBA executable into ${ENV_NAME} environment path"

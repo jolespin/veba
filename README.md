@@ -49,9 +49,9 @@ ___________________________________________________________________
 
 ### Announcements
 
-* **Current Stable Version:** [`v2.3.0`](https://github.com/jolespin/veba/releases/tag/v2.3.0)
+* **Current Stable Version:** [`v2.4.0`](https://github.com/jolespin/veba/releases/tag/v2.4.0)
 
-* **Current Database Version:** [`VDB_v8`](install/DATABASE.md)
+* **Current Database Version:** [`VDB_v8.1`](install/DATABASE.md)
 
 	If you are updating to ≥v2.2.0 you will need to modify your existing database.  
 	Please see [FAQs](FAQ.md#how-can-i-update-the-database-from-veba-v210-veba-database-vdb_v6-to-veba-v230-veba-database-vdb_v8) for more details.
@@ -77,10 +77,10 @@ ___________________________________________________________________
 		* Replaced [MicrobeAnnotator-KEGG](https://zenodo.org/records/10020074) reimplementation with [KEGG Pathway Profiler](https://github.com/jolespin/kegg_pathway_profiler)
 
 
-	* **`VEBA` Database (`VDB_v8`)**:
+	* **`VEBA` Database (`VDB_v8.1`)**:
 
 		* Completely rebuilt `VEBA's Microeukaryotic Protein Database` to produce a clustered database `MicroEuk100/90/50` similar to `UniRef100/90/50`. Available on [doi:10.5281/zenodo.10139450](https://zenodo.org/records/10139451).
-		* Expanded protein annotation database
+		* Expanded protein annotation database including serialized KOfam with enzyme support
 		* Updated `GTDB r214.1` to `GTDB r220`
 		* Replaced [MicrobeAnnotator-KEGG](https://zenodo.org/records/10020074) reimplementation with [KEGG Pathway Profiler](https://github.com/jolespin/kegg_pathway_profiler) database
 

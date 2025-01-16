@@ -12,7 +12,7 @@ from soothsayer_utils import *
 
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2024.12.28"
+__version__ = "2025.1.15"
 
 def get_maxbin2_cmd( input_filepaths, output_filepaths, output_directory, directories, opts):
     # Create dummy scaffolds_to_bins.tsv to overwrite later. 
@@ -356,8 +356,6 @@ def get_metacoag_cmd( input_filepaths, output_filepaths, output_directory, direc
     cmd = [
          "echo '' > {}".format(os.path.join(output_directory, "scaffolds_to_bins.tsv")),
          "&&",
-         "mkdir -p {}".format(os.path.join(output_directory, "bins")),
-         "&&",
         "mkdir -p {}".format(os.path.join(output_directory, "intermediate")),
 
 
@@ -406,6 +404,13 @@ def get_metacoag_cmd( input_filepaths, output_filepaths, output_directory, direc
         "--threshold_method {}".format(opts.threshold_method),
         "--evalue {}".format(opts.evalue),
         opts.metacoag_options,
+        
+        "&&",
+        
+        "mv",
+        os.path.join(output_directory, "intermediate", "bins"),
+        os.path.join(output_directory),
+        
         
         ]
 

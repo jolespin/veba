@@ -1035,7 +1035,7 @@ def main(args=None):
     # BUSCO
     parser_busco = parser.add_argument_group('BUSCO arguments')
     parser_busco.add_argument("--busco_offline", type=str, help="BUSCO | Offline database path")
-    parser_busco.add_argument("--busco_completeness", type=float, default=50.0, help = "BUSCO completeness [Default: 50.0]")
+    parser_busco.add_argument("--busco_completeness", type=float, default=30.0, help = "BUSCO completeness [Default: 30.0]")
     parser_busco.add_argument("--busco_contamination", type=float, default=10.0, help = "BUSCO contamination [Default: 10.0]")
     parser_busco.add_argument("--busco_evalue", type=float, default=0.001, help="BUSCO | E-value cutoff for BLAST searches. Allowed formats, 0.001 or 1e-03 [Default: 1e-03]")
     parser_busco.add_argument("--busco_options", type=str, default="", help="tRNAscan-SE | More options (e.g. --arg 1 ) [Default: '']")
