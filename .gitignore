@@ -166,3 +166,5 @@ cython_debug/
 Icon?
 **/deprecated/
 **/devel/
+**/build/
+
