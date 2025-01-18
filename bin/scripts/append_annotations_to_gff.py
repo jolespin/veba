@@ -1,11 +1,11 @@
 #!/usr/bin/env python
-import sys, os, glob, argparse, gzip
+import sys, os, glob, argparse, gzip, pickle
 from collections import OrderedDict, defaultdict
 import pandas as pd
 from tqdm import tqdm
 
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2024.11.11"
+__version__ = "2025.1.16"
 
 def get_annotations_from_veba(f):
     """
@@ -111,6 +111,7 @@ def main(args=None):
     parser.add_argument("-i","--input", type=str, default="stdin", help = "path/to/gene_models.gff[.gz] [Default: stdin]")
     parser.add_argument("-o","--output", type=str, default="stdout", help = "path/to/gene_models.updated.gff[.gz] [Default: stdout]")
     parser.add_argument("-a","--annotations", type=str, required=True, help = "path/to/annotations.tsv[.gz]")
+    parser.add_argument("-b","--serialized_annotations", type=str, help = "path/to/annotations.pkl[.gz] if file does not exist, then build it.  If file exists, then use it instead of parsing.")
     parser.add_argument("-g","--identifier_attribute", type=str, default="gene_id",  help = "Identifier attribute [Default: gene_id]")
     parser.add_argument("-f","--annotation_format", type=str, default="veba", 
                         choices={
@@ -165,34 +166,59 @@ def main(args=None):
             }:
         hmmsearch_attribute_label = "KOfam"
         
-    if opts.annotation_format == "veba":
-        id_to_annotation = get_annotations_from_veba(opts.annotations)
-    else:
-        if opts.annotations.endswith(".gz"):
-            f = gzip.open(opts.annotations, "rt")
+    # Get annotations
+    write_serialized_annotations = False
+    parse_annotations = True
+    if opts.serialized_annotations:
+        if os.path.exists(opts.serialized_annotations):
+            print(" * Loading serialized annotations from {}".format(opts.serialized_annotations), file=sys.stderr)
+            if opts.serialized_annotations.endswith(".gz"):
+                f_serialized_annotations = gzip.open(opts.serialized_annotations, "rb")
+            else:
+                f_serialized_annotations = open(opts.serialized_annotations, "rb")
+            id_to_annotation = pickle.load(f_serialized_annotations)
+            f_serialized_annotations.close()
+            parse_annotations = False
         else:
-            f = open(opts.annotations, "r") 
+            write_serialized_annotations = True
             
-        # Remove header
-        if opts.annotation_format in {
-            "pykofamsearch", 
-            "pykofamsearch-reformatted", 
-            "pyhmmsearch",
-            "pyhmmsearch-reformatted",
-            }:
-            f = next(f)
-            
-        if opts.annotation_format in {
-            "pykofamsearch", 
-            "pykofamsearch-no-header", 
-            "pyhmmsearch",
-            "pyhmmsearch-no-header",
-            }:
-            id_to_annotation = get_annotations_from_pyhmmsearch(f, hmmsearch_attribute_label)
+    if parse_annotations:
+        if opts.annotation_format == "veba":
+            id_to_annotation = get_annotations_from_veba(opts.annotations)
         else:
-            id_to_annotation = get_annotations_from_pyhmmsearch_reformatted(f, hmmsearch_attribute_label)
+            if opts.annotations.endswith(".gz"):
+                f = gzip.open(opts.annotations, "rt")
+            else:
+                f = open(opts.annotations, "r") 
+                
+            # Remove header
+            if opts.annotation_format in {
+                "pykofamsearch", 
+                "pykofamsearch-reformatted", 
+                "pyhmmsearch",
+                "pyhmmsearch-reformatted",
+                }:
+                f = next(f)
+                
+            if opts.annotation_format in {
+                "pykofamsearch", 
+                "pykofamsearch-no-header", 
+                "pyhmmsearch",
+                "pyhmmsearch-no-header",
+                }:
+                id_to_annotation = get_annotations_from_pyhmmsearch(f, hmmsearch_attribute_label)
+            else:
+                id_to_annotation = get_annotations_from_pyhmmsearch_reformatted(f, hmmsearch_attribute_label)
 
-
+        # Write serialized database
+        if write_serialized_annotations:
+            if opts.serialized_annotations.endswith(".gz"):
+                f_serialized_annotations = gzip.open(opts.serialized_annotations, "wb")
+            else:
+                f_serialized_annotations = open(opts.serialized_annotations, "wb")        
+            pickle.dump(id_to_annotation, f_serialized_annotations)
+            f_serialized_annotations.close()
+        
     # Update GFF
     for line in f_in:
         line = line.strip()

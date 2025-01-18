@@ -423,6 +423,8 @@ ________________________________________________________________
 
 **Definitely:**
 
+* When annotating proteins, create a hash representation and a dictionary of redundant sequences to decrease search space
+* Add an `isolate.py` module which assembles, calls genes, checks for contamination and if there is, then bins genomes, and quality assesses.
 * Add `metadecoder` with `eukaryota_odb10` marker set for `binning-eukaryotic.py`
 * Replace `Bowtie2` with `strobealign` and `Fairy` when applicable (i.e., `coverage` module)
 * Script to add `PyHMMSearch` annotations to `annotations.proteins.tsv.gz`
@@ -481,6 +483,7 @@ ________________________________________________________________
 <details>
 	<summary> <b>Daily Change Log:</b> </summary>
 
+* [2025.1.16] - Added `--serialized_annotations` to `append_annotations_to_gff.py` to avoid overhead from reparsing the annotations
 * [2025.1.15] - Fixed bug in `binning_wrapper.py` where script was looking for bins in the wrong directory for `MetaCoAG`
 * [2025.1.14] - Fixed bug in `merge_annotations.py` where `diamond` outputs were queried incorrectly
 * [2025.1.5] - Change default `--busco_completeness` from `50` to `30` in `binning-eukaryotic.py`
