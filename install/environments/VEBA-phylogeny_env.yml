@@ -1,4 +1,4 @@
-name: VEBA-phylogeny_env__v2024.11.7
+name: VEBA-phylogeny_env__v2025.1.23
 channels:
   - conda-forge
   - bioconda
@@ -166,3 +166,5 @@ dependencies:
   - zstd=1.5.6=ha6fb4c9_0
   - pip:
       - pyhmmsearch==2024.10.20
+      - memory-profiler==0.61.0
+      - pyexeggutor==2025.1.23.post2

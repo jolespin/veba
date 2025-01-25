@@ -1,4 +1,4 @@
-name: VEBA-database_env__v2024.11.7
+name: VEBA-database_env__v2025.1.25
 channels:
   - conda-forge
   - bioconda
@@ -122,3 +122,5 @@ dependencies:
       - psutil==5.9.8
       - pyhmmer==0.10.15
       - pykofamsearch==2024.11.8.post1
+      - memory-profiler==0.61.0
+      - pyexeggutor==2025.1.23.post2

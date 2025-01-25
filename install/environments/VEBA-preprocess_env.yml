@@ -1,4 +1,4 @@
-name: VEBA-preprocess_env__v2023.12.12
+name: VEBA-preprocess_env__v2025.1.23
 channels:
   - conda-forge
   - bioconda
@@ -237,3 +237,7 @@ dependencies:
   - yaml=0.2.5=h7f98852_2
   - zlib=1.2.13=h166bdaf_4
   - zstd=1.5.5=hfc55251_0
+  - pip:
+      - memory-profiler==0.61.0
+      - psutil==6.1.1
+      - pyexeggutor==2025.1.23.post2

@@ -1,4 +1,4 @@
-name: VEBA-binning-viral_env__v2023.7.7
+name: VEBA-binning-viral_env__v2025.1.23
 channels:
   - conda-forge
   - bioconda
@@ -269,3 +269,6 @@ dependencies:
   - zipp=3.15.0=pyhd8ed1ab_0
   - zlib=1.2.13=h166bdaf_4
   - zstd=1.5.2=h3eb15da_6
+  - pip:
+      - memory-profiler==0.61.0
+      - pyexeggutor==2025.1.23.post2

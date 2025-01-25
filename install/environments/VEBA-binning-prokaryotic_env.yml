@@ -1,5 +1,5 @@
 name: 
-  VEBA-binning-prokaryotic_env__v2025.1.15
+  VEBA-binning-prokaryotic_env__v2025.1.23
 channels:
   - conda-forge
   - bioconda
@@ -231,3 +231,5 @@ dependencies:
       - https://github.com/jolespin/metadecoder-nal/releases/download/1.1.1rc5/metadecoder-1.1.1rc5.tar.gz
       - https://github.com/jolespin/metacoag-nal/releases/download/1.2.3rc4/metacoag-1.2.3rc4.tar.gz
       - numpy==1.23.0
+      - memory-profiler==0.61.0
+      - pyexeggutor==2025.1.23.post2

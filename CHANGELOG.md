@@ -483,6 +483,8 @@ ________________________________________________________________
 <details>
 	<summary> <b>Daily Change Log:</b> </summary>
 
+* [2025.1.24] - Added `Initial_bins` to `Binette` results in `filter_binette_results.py`
+* [2025.1.23] - Added `essentials.py` module
 * [2025.1.16] - Added `--serialized_annotations` to `append_annotations_to_gff.py` to avoid overhead from reparsing the annotations
 * [2025.1.15] - Fixed bug in `binning_wrapper.py` where script was looking for bins in the wrong directory for `MetaCoAG`
 * [2025.1.14] - Fixed bug in `merge_annotations.py` where `diamond` outputs were queried incorrectly

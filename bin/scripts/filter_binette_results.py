@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-import sys, os, glob, argparse
+import sys, os, glob, argparse, re
 from shutil import copyfile
 from typing import OrderedDict
 # from collections import OrderedDict
@@ -7,7 +7,29 @@ import pandas as pd
 from tqdm import tqdm
 
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2024.12.23"
+__version__ = "2025.1.24"
+
+def parse_binette_initial_bin_combinations(combination:str):
+    """
+    Parses a list of bin combinations to extract unique bins.
+
+    Parameters:
+        bin_combinations (list of str): A list of strings containing bin combinations.
+
+    Returns:
+        set: A set of unique bins as strings.
+    """
+    unique_bins = set()
+
+    # Split by delimiters (-, &, |)
+    parts = re.split(r"[-&|]", combination)
+
+    for part in parts:
+        # Strip whitespace and check if the part is numeric or a bin identifier
+        part = part.strip()
+        if part:
+            unique_bins.add(part)
+    return unique_bins
 
 def main(args=None):
     # Path info
@@ -66,13 +88,38 @@ def main(args=None):
         opts.output_directory = os.path.join(opts.binette_directory, "filtered")
     os.makedirs(opts.output_directory, exist_ok=True)
     os.makedirs(os.path.join(opts.output_directory,"genomes"), exist_ok=True)
+    
+    # Initial bins
+    dataframes = list()
+    for filepath_initial in glob.glob(os.path.join(opts.binette_directory, "input_bins_quality_reports", "*.tsv")):
+        df = pd.read_csv(filepath_initial, sep="\t", index_col=0)
+        dataframes.append(df)
+    df_initial = pd.concat(dataframes, axis=0)
+    df_initial.index = df_initial.index.map(str)
+    initial_to_genome = df_initial["name"].to_dict()
 
+    # Build quality report
     df_quality_report_filtered = df_quality_report.loc[mags,:]
     df_quality_report_filtered.index = df_quality_report_filtered.index.map(lambda x: magold_to_magnew[x])
+    
+    # Add initial bins to quality report
+    genome_to_initial = dict()
+    for id_genome, combination in df_quality_report_filtered["name"].items():
+        initial_bins = parse_binette_initial_bin_combinations(combination)
+        initial_bins_labeled = set()
+        for id_bin_number in initial_bins:
+            try:
+                id_initial_bin = initial_to_genome[id_bin_number]
+                initial_bins_labeled.add((id_bin_number, id_initial_bin))
+            except KeyError:
+                initial_bins_labeled.add(id_bin_number)
+        genome_to_initial[id_genome] = initial_bins_labeled
+    df_quality_report_filtered["Initial_bins"] = pd.Series(genome_to_initial, dtype=object)
+    
+    # Write quality report
     df_quality_report_filtered.columns = df_quality_report_filtered.columns.map(str.capitalize)
     df_quality_report_filtered.indexname = "id_genome"
     df_quality_report_filtered.to_csv(os.path.join(opts.output_directory,"checkm2_results.filtered.tsv"), sep="\t") 
-
 
     #bins.list
     with open(os.path.join(opts.output_directory, "bins.list"), "w") as f_bins:
@@ -136,4 +183,3 @@ def main(args=None):
 
 if __name__ == "__main__":
     main()
-    

@@ -1,4 +1,4 @@
-name: VEBA-annotate_env__v2025.1.6
+name: VEBA-annotate_env__v2025.1.23
 channels:
   - bioconda
   - conda-forge
@@ -117,3 +117,5 @@ dependencies:
       - kegg-pathway-profiler==2024.9.21
       - pyhmmsearch==2024.10.20
       - pykofamsearch==2024.11.8.post1
+      - memory-profiler==0.61.0
+      - pyexeggutor==2025.1.23.post2
