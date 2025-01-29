@@ -473,3 +473,23 @@ The main function of this module is run `antiSMASH`, reformat the results (tabul
 <p align="right"><a href="#readme-top">^__^</a></p>
 
 ___________________________________________________________________
+
+
+### annotation
+
+The main function of this module is run `diamond`, `pyhmmsearch`, and `pykofamsearch` to detect protein homology with respect to known databases.
+
+* **Protein homology:**
+
+    * `annotations.proteins.tsv.gz` - Diamond and HMM-based alignments with respect to proteins
+    * `annotations.protein_clusters.tsv.gz` - Diamond and HMM-based alignments with respect to protein clusters
+
+* **Pathway coverage:**
+    * `module_completion_ratios.genomes.[tsv|pkl].gz` - KEGG module completion ratios with respect to genomes
+    * `module_completion_ratios.genome_clusters.[tsv|pkl].gz` - KEGG module completion ratios with respect to genome clusters
+
+
+
+<p align="right"><a href="#readme-top">^__^</a></p>
+
+___________________________________________________________________

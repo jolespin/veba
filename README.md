@@ -47,45 +47,14 @@ Your insight matters, if you have 30 seconds to spare please fill out [this quic
 
 ___________________________________________________________________
 
-### Announcements
+### Current
 
-* **Current Stable Version:** [`v2.3.0`](https://github.com/jolespin/veba/releases/tag/v2.3.0)
+* **Stable Version:** [`v2.4.0`](https://github.com/jolespin/veba/releases/tag/v2.4.0)
 
-* **Current Database Version:** [`VDB_v8`](install/DATABASE.md)
+* **Corresponding Database Version:** [`VDB_v8.1`](install/DATABASE.md)
 
-	If you are updating to ≥v2.2.0 you will need to modify your existing database.  
-	Please see [FAQs](FAQ.md#how-can-i-update-the-database-from-veba-v210-veba-database-vdb_v6-to-veba-v230-veba-database-vdb_v8) for more details.
+For details on daily changes, please refer to the [change log](CHANGELOG.md) or [release history](https://github.com/jolespin/veba/releases)
 
-	<details>
-		<summary>New features and updates:</summary>
-
-	* **`VEBA` Modules:**
-		* Expanded functionality, streamlined user-interface, and Docker containerization
-		* Fast and memory-efficient genome- and protein-level clustering
-		* Automatic calculation of feature compression ratios
-		* Large/complex metagenomes and long-read technology support
-		* Bioprospecting and natural product discovery support
-		* Ribosomal RNA, transfer RNA, and organelle support
-		* Genome-resolved taxonomic and pathway profiling
-		* Identification and classification of mobile genetic elements
-		* Native support for candidate phyla radiation quality assessment and memory- efficient genome classification
-		* Standalone support for generalized multi-split binning
-		* Automated phylogenomic functional category feature engineering support
-		* Visualizations of hierarchical data and phylogenies
-		* Added minimum alignment fraction threshold for genome clustering
-		* Faster HMM protein annotations with PyHMMER
-		* Replaced [MicrobeAnnotator-KEGG](https://zenodo.org/records/10020074) reimplementation with [KEGG Pathway Profiler](https://github.com/jolespin/kegg_pathway_profiler)
-
-
-	* **`VEBA` Database (`VDB_v8`)**:
-
-		* Completely rebuilt `VEBA's Microeukaryotic Protein Database` to produce a clustered database `MicroEuk100/90/50` similar to `UniRef100/90/50`. Available on [doi:10.5281/zenodo.10139450](https://zenodo.org/records/10139451).
-		* Expanded protein annotation database
-		* Updated `GTDB r214.1` to `GTDB r220`
-		* Replaced [MicrobeAnnotator-KEGG](https://zenodo.org/records/10020074) reimplementation with [KEGG Pathway Profiler](https://github.com/jolespin/kegg_pathway_profiler) database
-
-
-	</details>
 
 
 <p align="right"><a href="#readme-top">^__^</a></p>

@@ -410,25 +410,34 @@ ________________________________________________________________
 **Check:**
 
 * Start/end positions on `MetaEuk` gene ID might be off.
+* Why are some HMM annotations [number_of_hits, ids] while Enzyme annotations show the reverse order?
 
 **Critical:**
 
+* Symlink genomes in `classify-prokaryotic.py` instead of copying genomes
+* Cluster module doesn't symlink global directory correctly on MacOS
 * Return code for `cluster.py` when it fails during global and local clustering is 0 but should be 1.
-* Don't load all genomes, proteins, and cds into memory for clustering.
+* Don't load all genomes, proteins, and cds into memory for clustering.  Also, too many files are opened with large genomics datasets.
 * Genome checkpoints in `tRNAscan-SE` aren't working properly.
 * Dereplicate CDS sequences in GFF from `MetaEuk` for `antiSMASH` to work for eukaryotic genomes
 
 **Definitely:**
 
-* Add number of unique protein clusters to `identifier_mapping.genomes.tsv.gz` in `cluster.py` to assess most metabolicly diverse representative.
+* When annotating proteins, create a hash representation and a dictionary of redundant sequences to decrease search space
+* Add an `isolate.py` module which assembles, calls genes, checks for contamination and if there is, then bins genomes, and quality assesses.
+* Add `metadecoder` with `eukaryota_odb10` marker set for `binning-eukaryotic.py`
+* Replace `Bowtie2` with `strobealign` and `Fairy` when applicable (i.e., `coverage` module)
+* Script to add `PyHMMSearch` annotations to `annotations.proteins.tsv.gz`
+* Develop `add_taxonomy_to_annotations.py` script
+* Develop method for building and curating HMM cutoffs (e.g., comparing against false positives)
+* Add `frozenset` for proteins that has all of the database identifiers
 * Add `--proteins` option to `classify-eukaryotic.py` which aligns proteins to `MicroEuk100.eukaryota_odb10` via `MMseqs2` and then proceeds with the pipeline.
+* Build SQL databases from all results
+* Remove `p__Arthropoda` from `MicroEuk` database
+* Add number of unique protein clusters to `identifier_mapping.genomes.tsv.gz` in `cluster.py` to assess most metabolicly diverse representative.
 * Add `BiNI` biosynthetic novelty index to `biosynthetic.py`
 * `busco_wrapper.py` that relabels all the genes, runs analysis, then converts output to tsv.
-* Script to update genome clusters
-* Script to update protein clusters
-* Script to add `Diamond` or `HMMSearch` annotations to `annotations.proteins.tsv.gz`
 * Add `convert_reads_long_to_short.py` which will take windows of 150 bp for the long reads.
-* Add option to `compile_custom_humann_database_from_annotations.py` to only output best hit of a UniRef identifier per genome.
 * Use `pigz` instead of `gzip`
 * Create a taxdump for `MicroEuk`
 * Reimplement `compile_eukaryotic_classifications.py`
@@ -453,7 +462,9 @@ ________________________________________________________________
 
 **...Maybe (Not)?**
 
+* Add option to `compile_custom_humann_database_from_annotations.py` to only output best hit of a UniRef identifier per genome.
 * Swap [`TransDecoder`](https://github.com/TransDecoder/TransDecoder) for [`TransSuite`](https://github.com/anonconda/TranSuite)
+* Develop `iterative_metaeuk_wrapper.py` which does the following: 1) Mask genome with `sdust` (pipe to stdout); 2) `MMseqs2` contig database (from stdin); 3) `MetaEuk` on MicroEuk100.eukaryota_odb10 to get source taxa for enrichment; 4) `subset_microeuk_proteins.py` to get enriched protein set; 5) run `MetaEuk` again with enriched subset; ...
 
 
 **Developmental:**
@@ -472,6 +483,38 @@ ________________________________________________________________
 <details>
 	<summary> <b>Daily Change Log:</b> </summary>
 
+* [2025.1.24] - Added `Initial_bins` to `Binette` results in `filter_binette_results.py`
+* [2025.1.23] - Added `essentials.py` module
+* [2025.1.16] - Added `--serialized_annotations` to `append_annotations_to_gff.py` to avoid overhead from reparsing the annotations
+* [2025.1.15] - Fixed bug in `binning_wrapper.py` where script was looking for bins in the wrong directory for `MetaCoAG`
+* [2025.1.14] - Fixed bug in `merge_annotations.py` where `diamond` outputs were queried incorrectly
+* [2025.1.5] - Change default `--busco_completeness` from `50` to `30` in `binning-eukaryotic.py`
+* [2025.1.5] - Added `--busco_options` and `--busco_offline` arguments for `binning-eukaryotic.py`
+* [2024.12.28] - Added `--semibin2_sequencing_type` to `binning_wrapper.py` and added functionality for `--long_reads`.  Moved `--long_reads` argument to `parser_io` instead of `parser_featurecounts`
+* [2024.12.27] - Fixed issue in `consensus_domain_classification.py` where `softmax` returns a `np.array` instead of a `pd.DataFrame`
+* [2024.12.26] - Added support for precomputed coverage for `metadecoder` in `binning_wrapper.py`
+* [2024.12.26] - Added support for `binette` and `tiara` in updated `binning_prokaryotic.py` module
+* [2024.12.23] - Added `copy_attribute_in_gff.py` script which copies attributes to a source and destination attribute
+* [2024.12.17] - Added `filter_binette_results.py` script
+* [2024.12.16] - Added intermediate directory to `metacoag` in `binning_wrapper.py`
+* [2024.12.12] - Added `metacoag` support and custom HMM support to `metadecoder` in `binning_wrapper.py` 
+* [2024.12.11] - Added `prepend_de-bruijn_path.py` script and use this in `assembly.py` and `assembly-long.py` to prepend prefix to SPAdes/Flye de Bruijn graph paths.
+* [2024.12.10] - Changed default `--minimum_genome_size` to `200000` from `150000`
+* [2024.12.9] - Added support for `SemiBin2` and `MetaDecoder` in `binning_wrapper.py`
+* [2024.11.21] - Updated `--cluster_label_mode` default to `md5` instead of `numeric` to allow for easier cluster updates post hoc. Change reflected in `cluster.py`, `global_clustering.py`, `local_clustering.py`, and `update_genome_clusters.py`
+* [2024.11.18] - Added `update_genome_clusters.py` which runs `skani` against all reference genome clusters.  Does not do protein clustering nor does it update the graph, representatives, or proteins.
+* [2024.11.15] - Added `--header simple` to `diamond` output in `annotate.py` and accounted for change in `merge_annotations.py`
+* [2024.11.11] - Added `Enzymes` to `append_annotations_to_gff.py` script
+* [2024.11.9] - Added `kofam.enzymes.list` and `kofam.pathways.list` in `VDB_v8.1` to provide subsets for `pykofamsearch`
+* [2024.11.8] - Updating VEBA database `VDB_v8` to `VDB_v8.1` which adds serialized KOfam with enzyme support
+* [2024.11.8] - Added `Enzymes` to `annotate.py` and `merge_annotations.py` [!untested]
+* [2024.11.7] - Updated `pyhmmsearch` and `pykofamsearch` version in `VEBA-annotate_env.yml`, `VEBA-classify-eukaryotic_env.yml`,`VEBA-database_env`, and `VEBA-phylogeny_env`.  Also updated executables in `annotate.py`, `classify-eukaryotic.py`,  `phylogeny.py`, and `download_databases-annotate.sh`.
+* [2024.11.7] - In `edgelist_to_clusters.py`, added `--cluster_label_mode {"numeric", "random", "pseudo-random", "md5", "nodes"}` to allow for different types of labels.  Added `--threshold2` option for a second weight.
+* [2024.11.7] - Added `--wrap` to `fasta_utility.py` and split id and descriptions in header so prefix/suffix is only added to id.
+* [2024.11.7] - Added `prepend_gff.py` to prepend a prefix to contig and attribute identifiers
+* [2024.11.7] - Changed default `--skani_minimum_af` to `50` from `15` as this is used in GTDB-Tk for determining species-level clusters in `cluster.py`, `global_clustering.py`, and `local_clustering.py`
+* [2024.11.6] - Added `append_annotations_to_gff.py` script
+* [2024.10.29] - Changed `manual` mode to `metaeuk` mode for preexisting `metaeuk` results
 * [2024.9.21] - Added `KEGG Pathway Profiler` to `VEBA-database_env` and `VEBA-annotate_env` which replaces `MicrobeAnnotator-KEGG` for module completion ratios.  Replacing `${VEBA_DATABASE}/Annotate/MicrobeAnnotator-KEGG` with `${VEBA_DATABASE}/Annotate/KEGG-Pathway-Profiler/` database files.  **Note: New module completion ratio output does not have classes labels for KEGG modules.**
 * [2024.8.30] - Added ${N_JOBS} to download scripts with default set to maximum threads available
 * [2024.8.29] - Added `VERSION` file created in `download_databases.sh`

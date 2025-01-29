@@ -1,5 +1,5 @@
 #!/bin/bash
-# v2024.6.6
+# v2025.1.23
 
 CONDA_ENVS_PATH=${CONDA_ENVS_PATH:-"$(conda info --base)/envs/"}
 
@@ -26,6 +26,7 @@ AVAILABLE_MODULES=(
 "preprocess"
 "profile-pathway"
 "profile-taxonomy"
+"essentials"
 )
 
 # Conda base
@@ -199,5 +200,9 @@ case $MODULE in
     "profile-taxonomy")
         source "${CONDA_BASE}/bin/activate" ${CONDA_ENVS_PATH}/VEBA-profile_env
         profile-taxonomy.py $PARAMS
+        ;;
+    "essentials")
+        source "${CONDA_BASE}/bin/activate" ${CONDA_ENVS_PATH}/VEBA
+        essentials.py $PARAMS
         ;;
 esac

@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-import sys, os, argparse, gzip, pickle
+import sys, os, argparse, gzip, pickle, hashlib
 from collections import defaultdict
 import numpy as np
 import pandas as pd
@@ -8,7 +8,21 @@ from tqdm import tqdm
 from Bio.SeqIO.FastaIO import SimpleFastaParser
 
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2024.7.11"
+__version__ = "2024.11.8"
+
+def generate_unique_cluster_base_label(nodes:set, mode:str, index:int, cluster_prefix_zfill:int):
+    ALPHANUMERIC=list("1234567890abcdefghijklmnopqrstuvwxyz")
+    # {"numeric", "md5", "pseudo-random", "random"}
+    if mode == "numeric":
+        return str(index).zfill(cluster_prefix_zfill)
+    elif mode == "nodes":
+        return "|".join(sorted(nodes))
+    elif mode == "md5":
+        return hashlib.md5(str(sorted(nodes)).encode()).hexdigest()
+    elif mode == "pseudo-random":
+        return "".join(np.random.RandomState(seed=index).choice(ALPHANUMERIC, 32))
+    elif mode == "random":
+        return "".join(np.random.choice(ALPHANUMERIC, 32))
 
 def main(args=None):
     # Path info
@@ -24,26 +38,32 @@ def main(args=None):
     parser = argparse.ArgumentParser(description=description, usage=usage, epilog=epilog, formatter_class=argparse.RawTextHelpFormatter)
     # Pipeline
 
-    parser.add_argument("-i","--input", type=str, default="stdin", help = "path/to/edgelist.tsv, No header. [id_1]<tab>[id_2] or [id_1]<tab>[id_2]<tab>[weight] or [id_1]<tab>[id_2]<tab>[weight]<tab>[alignment_fraction][Default: stdin]") #  
+    parser.add_argument("-i","--input", type=str, default="stdin", help = \
+                        "path/to/edgelist.tsv, No header. Accepted formats:\n"
+                        "[id_1]<tab>[id_2]\n"
+                        "[id_1]<tab>[id_2]<tab>[weight]\n"
+                        "[id_1]<tab>[id_2]<tab>[weight_1]<tab>[weight_2]\n"
+                        "[id_1]<tab>[id_2]<tab>[weight]<tab>[alignment_fraction_reference]<tab>[alignment_fraction_query]\n"
+                        "[Default: stdin]") #  
     parser.add_argument("-o","--output", type=str, default="stdout", help = "path/to/clusters.tsv [Default: stdout]")
-    parser.add_argument("-t","--threshold", type=float, default=0.0,  help = "Minimum weight threshold. [Default: 0.0]") 
+    parser.add_argument("-t","--threshold", type=float, default=0.0,  help = "Minimum weight threshold(1). [Default: 0.0]") 
+    parser.add_argument("--threshold2", type=float, default=0.0,  help = "Minimum weight threshold2. [Default: 0.0]") 
     parser.add_argument("-a","--minimum_af", type=float, default=0.0,  help = "Minimum alignment fraction. [Default: 0.0]") 
-    parser.add_argument("-m","--af_mode", type=str, default="relaxed",  choices={"relaxed", "strict"}, help = "Minimum alignment fraction mode with either `relaxed = max([AF_ref, AF_query]) > minimum_af` or `strict = (AF_ref > minimum_af) & (AF_query > minimum_af)` [Default: relaxed]") 
+    parser.add_argument("-m","--af_mode", type=str, default="relaxed",  choices={"relaxed", "strict"}, help = "Minimum alignment fraction mode with either `relaxed = max([AF_ref, AF_query]) > minimum_af` or `strict = (AF_ref > minimum_af) & (AF_query > minimum_af)`. `strict` will be biased against fragmented or partial genomes likely derived from metagenomes [Default: relaxed]") 
     parser.add_argument("-n", "--no_singletons", action="store_true", help = "Don't include self-interactions. Self-interactions will ensure unclustered genomes make it into the output")
     parser.add_argument("-b", "--basename", action="store_true", help = "Removes filepath prefix and extension.  Support for gzipped filepaths.")
     parser.add_argument("--identifiers", type=str, help = "Identifiers to include.  If missing identifiers and singletons are allowed, then they will be included as singleton clusters with weight of np.nan")
 
     parser_labels = parser.add_argument_group('Label arguments')
-    parser_labels.add_argument("-p", "--cluster_prefix", type=str, default="c", help="Cluster prefix [Default: 'c']")
-    parser_labels.add_argument("-z", "--cluster_prefix_zfill", type=int, default=0, help="Cluster prefix zfill. Use 7 to match identifiers from OrthoFinder.  Use 0 to add no zfill. [Default: 0]") #7
+    parser_labels.add_argument("-p", "--cluster_prefix", type=str, default="c-", help="Cluster prefix [Default: 'c-']")
+    parser_labels.add_argument("-z", "--cluster_prefix_zfill", type=int, default=0, help="Cluster prefix zfill. Use 7 to match identifiers from OrthoFinder.  Use 0 to add no zfill. Only applicable when --cluster_label_mode numeric. [Default: 0]") #7
     parser_labels.add_argument("-s", "--cluster_suffix", type=str, default="", help="Cluster suffix [Default: '']")
+    parser_labels.add_argument("-c", "--cluster_label_mode", type=str, default="md5", choices={"numeric", "random", "pseudo-random", "md5", "nodes"}, help="Cluster label. [Default: 'md5']")
 
     parser_fasta = parser.add_argument_group('Fasta arguments')
     parser_fasta.add_argument("-f","--fasta", type=str,  help = "path/to/sequences.fasta")
     parser_fasta.add_argument("--output_fasta_directory", type=str, default="clusters", help = "path/to/clusters/cluster_x.fasta [Default: clusters]")
     parser_fasta.add_argument("-x", "--output_fasta_extension", type=str, default="fasta", help = "path/to/clusters/cluster_x.[extension] [Default: fasta]")
-
-
 
     parser_export = parser.add_argument_group('Export arguments')
     parser_export.add_argument("-g", "--export_graph", type=str,   help = "prefix/to/graph pickled output files: nx.Graph suggested prefix is .graph.pkl")
@@ -143,17 +163,17 @@ def main(args=None):
 
     # Weighted with alignment fraction
     if df_edgelist.shape[1] == 4:
-        for i, (id_query, id_target, w, af) in tqdm(df_edgelist.iterrows(), "Reading edgelist with weights (≥ {}) and alignment fractions (≥ {}): {}".format(opts.threshold, opts.minimum_af, opts.input), total=df_edgelist.shape[0]):
+        for i, (id_query, id_target, w1, w2) in tqdm(df_edgelist.iterrows(), "Reading edgelist with weights (≥ {}) and weights2 (≥ {}): {}".format(opts.threshold, opts.threshold2, opts.input), total=df_edgelist.shape[0]):
             if all([
-                w >= opts.threshold,
-                af >= opts.minimum_af,
+                w1 >= opts.threshold,
+                w2 >= opts.threshold2,
                 ]):
                 if {id_query, id_target}.issubset(all_identifiers):
-                    graph.add_edge(id_query, id_target, weight=w, alignment_fraction=af)
+                    graph.add_edge(id_query, id_target, weight=w1, weight2=w2)
         if not opts.no_singletons:
             for id in all_identifiers:
                 if id not in graph.nodes():
-                    graph.add_edge(id, id, weight=np.nan, alignment_fraction=100.0)
+                    graph.add_edge(id, id, weight=np.nan, weight2=np.nan)
                     
     # Weighted with alignment fraction
     if df_edgelist.shape[1] == 5:
@@ -185,13 +205,15 @@ def main(args=None):
     node_to_cluster = dict()
     cluster_to_nodes = dict()
 
-    for id_cluster, nodes in tqdm(enumerate(sorted(nx.connected_components(graph), key=len, reverse=True), start=1), "Organizing clusters", unit=" clusters"):
+    for i, nodes in tqdm(enumerate(sorted(nx.connected_components(graph), key=len, reverse=True), start=1), "Organizing clusters", unit=" clusters"):
+        id_cluster = generate_unique_cluster_base_label(nodes=nodes, mode=opts.cluster_label_mode, index=i, cluster_prefix_zfill=opts.cluster_prefix_zfill)
+
         # Add cluster prefix and suffix
         if bool(opts.cluster_prefix):
-            id_cluster =  "{}{}".format(opts.cluster_prefix, str(id_cluster).zfill(opts.cluster_prefix_zfill))
+            id_cluster =  "{}{}".format(opts.cluster_prefix, id_cluster)
         if bool(opts.cluster_suffix):
             id_cluster =  "{}{}".format(id_cluster, opts.cluster_suffix)
-
+                    
         # Get subgraph
         if len(nodes) > 1:
             subgraph = graph.subgraph(nodes)

@@ -1,4 +1,4 @@
-name: VEBA-classify-eukaryotic_env__v2024.6.8
+name: VEBA-classify-eukaryotic_env__v2025.1.23
 channels:
   - conda-forge
   - bioconda
@@ -90,4 +90,6 @@ dependencies:
   - zlib=1.3.1=h4ab18f5_1
   - zstd=1.5.6=ha6fb4c9_0
   - pip:
-      - pyhmmsearch==2024.6.8
+      - pyhmmsearch==2024.10.20
+      - memory-profiler==0.61.0
+      - pyexeggutor==2025.1.23.post2

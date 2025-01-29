@@ -164,3 +164,7 @@ cython_debug/
 
 .DS_Store
 Icon?
+**/deprecated/
+**/devel/
+**/build/
+

@@ -7,3 +7,5 @@ channels:
   - qiime2
 
 report_errors: true
+
+solver: libmamba

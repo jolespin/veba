@@ -1,4 +1,4 @@
-name: VEBA-cluster_env__v2023.12.8
+name: VEBA-cluster_env__v2025.1.23
 channels:
   - conda-forge
   - bioconda
@@ -114,3 +114,7 @@ dependencies:
   - xz=5.2.6=h166bdaf_0
   - zlib=1.2.13=h166bdaf_4
   - zstd=1.5.5=hfc55251_0
+  - pip:
+      - memory-profiler==0.61.0
+      - psutil==6.1.1
+      - pyexeggutor==2025.1.23.post2

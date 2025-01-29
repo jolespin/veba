@@ -14,10 +14,7 @@ from soothsayer_utils import *
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2024.4.29"
-
-# DATABASE_METAEUK="/usr/local/scratch/CORE/jespinoz/db/veba/v1.0/Classify/Eukaryotic/eukaryotic"
-
+__version__ = "2025.1.5"
 
 def get_preprocess_cmd(input_filepaths, output_filepaths, output_directory, directories, opts):
 
@@ -386,7 +383,7 @@ for FP in %s;
     echo $OUT_DIR
 
     # BUSCO Command
-    %s --force -i $FP -o $OUT_DIR -m protein --auto-lineage-euk -c %d --evalue %f --download_path $TMP_BUSCO_DIRECTORY
+    %s --force -i $FP -o $OUT_DIR -m protein --auto-lineage-euk -c %d --evalue %f --download_path %s %s
 
     # Remove big intermediate files
 
@@ -409,6 +406,8 @@ rm -rf $TMP_BUSCO_DIRECTORY/*
     os.environ["busco"],
     opts.n_jobs,
     opts.busco_evalue,
+    "$TMP_BUSCO_DIRECTORY" if not opts.busco_offline else opts.busco_offline,
+    opts.busco_options,
     ),
 
     os.environ["merge_busco_json.py"],
@@ -597,7 +596,6 @@ def create_pipeline(opts, directories, f_cmds):
     
     # i/o
     output_filepaths = [
-        os.path.join(output_directory, "scaffolds_to_bins.tsv"),
         os.path.join(output_directory, "scaffolds_to_bins.tsv"),
 
     ]
@@ -982,6 +980,7 @@ def main(args=None):
     parser_io.add_argument("-n", "--name", type=str, help="Name of sample", required=True)
     parser_io.add_argument("-l","--contig_identifiers", type=str,  help = "path/to/contigs.list [Optional]")
     parser_io.add_argument("-o","--project_directory", type=str, default="veba_output/binning/eukaryotic", help = "path/to/project_directory [Default: veba_output/binning/eukaryotic]")
+    parser_io.add_argument("-L", "--long_reads", action="store_true", help="Use this if long reads are being used")
 
     # Utility
     parser_utility = parser.add_argument_group('Utility arguments')
@@ -1035,10 +1034,11 @@ def main(args=None):
 
     # BUSCO
     parser_busco = parser.add_argument_group('BUSCO arguments')
-    # parser_busco.add_argument("--busco_offline", type=str, help="BUSCO | Offline database path")
-    parser_busco.add_argument("--busco_completeness", type=float, default=50.0, help = "BUSCO completeness [Default: 50.0]")
+    parser_busco.add_argument("--busco_offline", type=str, help="BUSCO | Offline database path")
+    parser_busco.add_argument("--busco_completeness", type=float, default=30.0, help = "BUSCO completeness [Default: 30.0]")
     parser_busco.add_argument("--busco_contamination", type=float, default=10.0, help = "BUSCO contamination [Default: 10.0]")
     parser_busco.add_argument("--busco_evalue", type=float, default=0.001, help="BUSCO | E-value cutoff for BLAST searches. Allowed formats, 0.001 or 1e-03 [Default: 1e-03]")
+    parser_busco.add_argument("--busco_options", type=str, default="", help="tRNAscan-SE | More options (e.g. --arg 1 ) [Default: '']")
 
     # rRNA
     parser_barrnap = parser.add_argument_group('barrnap arguments')
@@ -1056,7 +1056,6 @@ def main(args=None):
 
     # featureCounts
     parser_featurecounts = parser.add_argument_group('featureCounts arguments')
-    parser_featurecounts.add_argument("--long_reads", action="store_true", help="featureCounts | Use this if long reads are being used")
     parser_featurecounts.add_argument("--featurecounts_options", type=str, default="", help="featureCounts | More options (e.g. --arg 1 ) [Default: ''] | http://bioinf.wehi.edu.au/featureCounts/")
 
     # Options

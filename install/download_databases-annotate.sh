@@ -1,6 +1,6 @@
 #!/bin/bash
-# __version__ = "2024.9.21"
-# VEBA_DATABASE_VERSION = "VDB_v8"
+# __version__ = "2024.11.8"
+# VEBA_DATABASE_VERSION = "VDB_v8.1"
 # MICROEUKAYROTIC_DATABASE_VERSION = "MicroEuk_v3"
 # usage: bash veba/download_databases-annotate.sh /path/to/veba_database_destination/
 
@@ -31,9 +31,16 @@ echo ". .. ... ..... ........ ............."
 echo " * Processing KEGG profile HMM marker sets"
 echo ". .. ... ..... ........ ............."
 mkdir -v -p ${DATABASE_DIRECTORY}/Annotate/KOfam/
-wget -v -O - ftp://ftp.genome.jp/pub/db/kofam/ko_list.gz | gzip -d > ${DATABASE_DIRECTORY}/Annotate/KOfam/ko_list
-wget -v -c ftp://ftp.genome.jp/pub/db/kofam/profiles.tar.gz -O - |  tar -xz
-mv profiles ${DATABASE_DIRECTORY}/Annotate/KOfam/
+# wget -v -O - ftp://ftp.genome.jp/pub/db/kofam/ko_list.gz | gzip -d > ${DATABASE_DIRECTORY}/Annotate/KOfam/ko_list
+# wget -v -c ftp://ftp.genome.jp/pub/db/kofam/profiles.tar.gz -O - |  tar -xz
+# mv profiles ${DATABASE_DIRECTORY}/Annotate/KOfam/
+serialize_kofam_models -o ${DATABASE_DIRECTORY}/Annotate/KOfam/
+grep "\[EC:" ${DATABASE_DIRECTORY}/Annotate/KOfam/kegg-ortholog_metadata.tsv  | cut -f1 | sort -u > ${DATABASE_DIRECTORY}/Annotate/KOfam/kofam.enzymes.list
+
+echo "Gzipping intermediate files"
+gzip -v ${DATABASE_DIRECTORY}/Annotate/KOfam/data/*
+# rm -rf ${DATABASE_DIRECTORY}/Annotate/KOfam/data/
+
 
 ## KEGG MicrobeAnnotator
 #wget -v -O ${DATABASE_DIRECTORY}/MicrobeAnnotator-KEGG.tar.gz https://zenodo.org/records/10020074/files/MicrobeAnnotator-KEGG.tar.gz?download=1
@@ -44,6 +51,7 @@ mv profiles ${DATABASE_DIRECTORY}/Annotate/KOfam/
 # KEGG Pathway Profiler
 mkdir -p ${DATABASE_DIRECTORY}/Annotate/KEGG-Pathway-Profiler/
 build-pathway-database.py --force --download --intermediate_directory ${DATABASE_DIRECTORY}/Annotate/KEGG-Pathway-Profiler/ --database ${DATABASE_DIRECTORY}/Annotate/KEGG-Pathway-Profiler/database.pkl.gz
+cut -f2 ${DATABASE_DIRECTORY}/Annotate/KEGG-Pathway-Profiler/database.tsv | grep "^K" | sort -u | grep -v "K00000" > ${DATABASE_DIRECTORY}/Annotate/KOfam/kofam.pathways.list
 
 # Pfam
 echo ". .. ... ..... ........ ............."
