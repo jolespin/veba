@@ -82,7 +82,7 @@ dependencies:
   - xz=5.2.6=h166bdaf_0
   - zlib=1.2.13=hd590300_5
   - zstd=1.5.5=hfc55251_0
-    - pip:
+  - pip:
       - memory-profiler==0.61.0
       - psutil==6.1.1
       - pyexeggutor==2025.1.23.post2
