@@ -53,9 +53,9 @@ ___________________________________________________________________
 
 * **Corresponding Database Version:** [`VDB_v8.1`](install/DATABASE.md)
 
+This version completely reimplements `binning-prokaryotic` module which now uses `Metabat2`, `SemiBin`, `MetaDecoder`, and `MetaCoAG` (deprecates `MaxBin2` and `CONCOCT`).
+
 For details on daily changes, please refer to the [change log](CHANGELOG.md) or [release history](https://github.com/jolespin/veba/releases)
-
-
 
 <p align="right"><a href="#readme-top">^__^</a></p>
 
