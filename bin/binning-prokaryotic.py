@@ -13,7 +13,7 @@ from soothsayer_utils import *
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2025.1.15"
+__version__ = "2025.2.1"
 
 # Assembly
 def get_coverage_cmd( input_filepaths, output_filepaths, output_directory, directories, opts):
@@ -1647,7 +1647,7 @@ def main(args=None):
 
     # Binning
     parser_binning = parser.add_argument_group('Binning arguments')
-    parser_binning.add_argument("-a", "--algorithms", type=str, default="metabat2,semibin2,metadecoder,metacoag", help='Comma separated list of binning algorithms.  Choose from {"metabat2", "semibin2", "metadecoder", "metacoag"}.  If MEGAHIT assembly was used then metacoag will fail if the --fasta does not match the --metacoag_graph exactly which will be fixed in future versions. [Default: metabat2,semibin2,metadecoder,metacoag]')
+    parser_binning.add_argument("-a", "--algorithms", type=str, default="metabat2,semibin2,metadecoder,metacoag", help='Comma separated list of binning algorithms.  Choose from {"metabat2", "semibin2", "metadecoder", "metacoag"}.  If MEGAHIT assembly was used then metacoag will fail if the --fasta does not match the --metacoag_graph exactly which will be fixed in future versions. Do not use metacoag with MEGAHIT assembly if  you have performed viral binning prior to prokaryotic binning. [Default: metabat2,semibin2,metadecoder,metacoag]')
     parser_binning.add_argument("-m", "--minimum_contig_length", type=int, default=1500, help="Minimum contig length.  Anything under 2500 will default to 2500 for MetaBat2 [Default: 1500] ")
     parser_binning.add_argument("-s", "--minimum_genome_length", type=int, default=200000, help="Minimum genome length.  [Default: 200000]")
     parser_binning.add_argument("--retain_intermediate_bins",action="store_true",help='Retain intermediate bins in fasta.')

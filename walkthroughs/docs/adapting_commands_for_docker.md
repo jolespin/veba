@@ -29,7 +29,7 @@ Let's say you wanted to use the `preprocess` module.  Download the Docker image 
 
 ```bash
 # Version
-VERSION=2.4.0
+VERSION=2.4.1
 
 # Image
 DOCKER_IMAGE="jolespin/veba_preprocess:${VERSION}"
