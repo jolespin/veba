@@ -80,7 +80,7 @@ The `VEBA` installation is going to configure some `conda` environments for you 
 # For stable version, download and decompress the tarball:
 Please double check this is the most recent version as displayed in **Releases** on GitHub. 
 
-VERSION="2.4.0"
+VERSION="2.4.1"
 # wget https://github.com/jolespin/veba/archive/refs/tags/v${VERSION}.tar.gz # The .tar.gz is out of date in this release
 # tar -xvf v${VERSION}.tar.gz && mv veba-${VERSION} veba
 

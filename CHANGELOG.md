@@ -483,6 +483,7 @@ ________________________________________________________________
 <details>
 	<summary> <b>Daily Change Log:</b> </summary>
 
+* [2025.2.1] - Added `--megahit_build_de_bruijn_graph` to make de-Bruijn graph construction for `MEGAHIT` optional in `assembly.py`
 * [2025.1.24] - Added `Initial_bins` to `Binette` results in `filter_binette_results.py`
 * [2025.1.23] - Added `essentials.py` module
 * [2025.1.16] - Added `--serialized_annotations` to `append_annotations_to_gff.py` to avoid overhead from reparsing the annotations

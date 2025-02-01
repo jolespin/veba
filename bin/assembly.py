@@ -13,7 +13,7 @@ from soothsayer_utils import *
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2024.12.30"
+__version__ = "2025.2.1"
 
 # Assembly
 def get_assembly_cmd( input_filepaths, output_filepaths, output_directory, directories, opts):
@@ -204,17 +204,18 @@ def get_assembly_cmd( input_filepaths, output_filepaths, output_directory, direc
 
 
     if opts.program == "megahit":
-        cmd += [
-        "&&",
-        "echo 'Creating GFA file -> assembly_graph_with_scaffolds.gfa'",
-        "&&",
-        os.environ["gfastats"],
-        "-o gfa",
-        "-f",
-        os.path.join(output_directory, "scaffolds.fasta"),
-        ">",
-        os.path.join(output_directory, "assembly_graph_with_scaffolds.gfa"),
-        ]
+        if opts.megahit_build_de_bruijn_graph:
+            cmd += [
+            "&&",
+            "echo 'Creating GFA file -> assembly_graph_with_scaffolds.gfa'",
+            "&&",
+            os.environ["gfastats"],
+            "-o gfa",
+            "-f",
+            os.path.join(output_directory, "scaffolds.fasta"),
+            ">",
+            os.path.join(output_directory, "assembly_graph_with_scaffolds.gfa"),
+            ]
         files_to_remove = ["intermediate_contigs", "done"]
     else:
         files_to_remove = [ 
@@ -432,7 +433,13 @@ def create_pipeline(opts, directories, f_cmds):
     if opts.program == "rnaspades.py":
         output_filenames = ["transcripts.fasta", "transcripts.fasta.saf", "genes_to_transcripts.tsv"]
     else:
-        output_filenames = ["scaffolds.fasta", "scaffolds.fasta.saf", "assembly_graph_with_scaffolds.gfa"]
+        output_filenames = ["scaffolds.fasta", "scaffolds.fasta.saf"]
+        if any([
+            (opts.program == "megahit") and bool(opts.megahit_preset),
+            "spades" in opts.program,
+            ]):
+            output_filenames.append("assembly_graph_with_scaffolds.gfa")
+            
     if "spades" in opts.program:
         output_filenames.append("scaffolds.paths")
         
@@ -643,14 +650,20 @@ def create_pipeline(opts, directories, f_cmds):
     else:
         input_filepaths = [ 
             os.path.join(directories[("intermediate", "1__assembly")], "scaffolds.*"),
-            os.path.join(directories[("intermediate", "1__assembly")], "assembly_graph_with_scaffolds.gfa"),
-        ] 
-    input_filepaths += [
             os.path.join(directories[("intermediate", "2__alignment")], "mapped.sorted.bam"),
             os.path.join(directories[("intermediate", "2__alignment")], "mapped.sorted.bam.bai"),
             os.path.join(directories[("intermediate", "3__featurecounts")], "featurecounts.tsv.gz"),
             os.path.join(directories[("intermediate", "4__seqkit")], "seqkit_stats.tsv.gz"),
         ]
+        if any([
+            (opts.program == "megahit") and bool(opts.megahit_preset),
+            "spades" in opts.program,
+            ]):
+            input_filepaths += [
+                os.path.join(directories[("intermediate", "1__assembly")], "assembly_graph_with_scaffolds.gfa"),
+            ] 
+
+
 
     output_filenames =  map(lambda fp: fp.split("/")[-1], input_filepaths)
     output_filepaths = list(map(lambda fn:os.path.join(directories["output"], fn), output_filenames))
@@ -744,6 +757,7 @@ def main(args=None):
 
     # MEGAHIT
     parser_megahit = parser.add_argument_group('MEGAHIT arguments')
+    parser_megahit.add_argument("--megahit_build_de_bruijn_graph",action='store_true', help="MEGAHIT | Build de Bruijn graph for MEGAHIT. Not recommended for large metagenomes or when viral binning is performed prior to prokaryotic binning.")
     parser_megahit.add_argument("--megahit_memory", type=float, default=0.99, help="MEGAHIT | Max memory in byte to be used in SdBG construction. If set between 0-1, fraction of the machine's total memory. [Default: 0.99]")
     parser_megahit.add_argument("--megahit_preset", type=str,  help="MEGAHIT | meta-sensitive: '--min-count 1 --k-list 21,29,39,49,...,129,141' meta-large: '--k-min 27 --k-max 127 --k-step 10' (large & complex metagenomes, like soil)")
 
