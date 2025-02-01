@@ -435,7 +435,7 @@ def create_pipeline(opts, directories, f_cmds):
     else:
         output_filenames = ["scaffolds.fasta", "scaffolds.fasta.saf"]
         if any([
-            (opts.program == "megahit") and bool(opts.megahit_preset),
+            (opts.program == "megahit") and bool(opts.megahit_build_de_bruijn_graph),
             "spades" in opts.program,
             ]):
             output_filenames.append("assembly_graph_with_scaffolds.gfa")
@@ -656,7 +656,7 @@ def create_pipeline(opts, directories, f_cmds):
             os.path.join(directories[("intermediate", "4__seqkit")], "seqkit_stats.tsv.gz"),
         ]
         if any([
-            (opts.program == "megahit") and bool(opts.megahit_preset),
+            (opts.program == "megahit") and bool(opts.megahit_build_de_bruijn_graph),
             "spades" in opts.program,
             ]):
             input_filepaths += [

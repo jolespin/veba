@@ -1,4 +1,4 @@
-VEBA __version__ = "2.4.1"
+VEBA __version__ = "2.4.2"
 VEBA_DATABASE __version__ = "VDB_v8.1"
 amplicon.py __version__ = "2023.11.30"
 annotate.py __version__ = "2024.11.15"
