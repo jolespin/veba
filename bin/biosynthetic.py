@@ -13,7 +13,7 @@ from soothsayer_utils import *
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2024.3.5"
+__version__ = "2025.3.11"
 
 # antiSMASH
 def get_antismash_from_genomes_cmd( input_filepaths, output_filepaths, output_directory, directories, opts):
@@ -47,7 +47,7 @@ do read -r -a ARRAY <<< $LINE
         grep "CDS" ${GENE_MODELS} > ${GENE_MODELS_CDS_ONLY}
 
         # Run antiSMASH
-        %s --allow-long-headers --verbose --skip-zip-file -c %d --output-dir ${INTERMEDIATE_DIRECTORY}/${ID} --html-title ${ID} --taxon %s --minlength %d --databases %s --hmmdetection-strictness %s --logfile ${INTERMEDIATE_DIRECTORY}/${ID}/log.txt --genefinding-gff3 ${GENE_MODELS_CDS_ONLY} ${GENOME} || (echo "antiSMASH for ${ID} failed" && exit 1)
+        %s --allow-long-headers --verbose --skip-zip-file -c %d --output-dir ${INTERMEDIATE_DIRECTORY}/${ID} --html-title ${ID} --taxon %s --minlength %d --databases %s --hmmdetection-strictness %s --logfile ${INTERMEDIATE_DIRECTORY}/${ID}/log.txt --genefinding-gff3 ${GENE_MODELS_CDS_ONLY} ${GENOME} %s || (echo "antiSMASH for ${ID} failed" && exit 1)
         rm ${GENE_MODELS_CDS_ONLY}
 
         # Genbanks to table
@@ -137,6 +137,7 @@ done < %s
     opts.minimum_contig_length,
     opts.antismash_database,
     opts.hmmdetection_strictness,
+    opts.antismash_options,
 
     # Summary table
     os.environ["biosynthetic_genbanks_to_table.py"],
