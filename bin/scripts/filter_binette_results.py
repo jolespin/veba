@@ -7,7 +7,7 @@ import pandas as pd
 from tqdm import tqdm
 
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2025.1.24"
+__version__ = "2025.3.31"
 
 def parse_binette_initial_bin_combinations(combination:str):
     """
@@ -54,13 +54,26 @@ def main(args=None):
     parser.add_argument("--completeness", type=float, default=50.0, help = "CheckM2 completeness [Default: 50.0]")
     parser.add_argument("--contamination", type=float, default=10.0, help = "CheckM2 contamination [Default: 10.0]")
     parser.add_argument("-u", "--unbinned", action="store_true", help="Write unbinned fasta sequences to file")
+    parser.add_argument("-e", "--exclude",  help="List of genomes to exclude (e.g., eukaryotic genomes)")
+
     # parser.add_argument("--symlink", action="store_true", help = "Symlink MAGs instead of copying")
 
     # Options
     opts = parser.parse_args()
     opts.script_directory  = script_directory
     opts.script_filename = script_filename
-
+    
+    # Exclusion
+    exclude_mags = set()
+    if opts.exclude:
+        with open(opts.exclude, "r") as f:
+            for line in f:
+                line = line.strip()
+                if line:
+                    exclude_mags.add(line)
+    if exclude_mags:
+        print("Excluding the following MAGs:", exclude_mags, file=sys.stderr)
+                
     # Load CheckM2
     # bin_id  origin  name    completeness    contamination   score   size    N50     contig_count
     df_quality_report = pd.read_csv(os.path.join(opts.binette_directory, "final_bins_quality_reports.tsv"),sep="\t", index_col=0)
@@ -78,6 +91,7 @@ def main(args=None):
         conditions = [
             completeness >= opts.completeness,
             contamination < opts.contamination,
+            id_mag not in exclude_mags,
         ]
         if all(conditions):
             magold_to_magnew[id_mag] = f"{opts.bin_prefix}{id_mag}"

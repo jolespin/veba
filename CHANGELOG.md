@@ -483,6 +483,11 @@ ________________________________________________________________
 <details>
 	<summary> <b>Daily Change Log:</b> </summary>
 
+* [2025.3.31] - Added `-e/--exclude` to `filter_binette_results.py` to allow the removal of eukaryotic genomes.  
+* [2025.3.31] - `Tiara` is now added into the `binette` step of `binning-prokaryotic.py` along with `consensus_domain_classification.py`.
+* [2025.3.30] - Updated `CheckM2` and `Binette` versions in `binning-prokaryotic.py` which also includes a new `CheckM2` `Diamond` database in `VDB_v8.2`
+* [2025.3.30] - Added `semibin2-[biome]` to `binning-prokaryotic.py` and remove `--semibin2_biome` which allows a user to specify multiple biomes (e.g., `semibin2-global` and `semibin2-ocean`)
+* [2025.3.30] - Added `--semibin2_orf_finder` to `binning_wrapper.py` and remove precomputed genes from `SemiBin2` wrapper because [SemiBin2/issue-#185](https://github.com/BigDataBiology/SemiBin/issues/185).
 * [2025.3.11] - Added `--antismash_options` missing bug in `biosynthetic.py`
 * [2025.2.1] - Added `--megahit_build_de_bruijn_graph` to make de-Bruijn graph construction for `MEGAHIT` optional in `assembly.py`
 * [2025.1.24] - Added `Initial_bins` to `Binette` results in `filter_binette_results.py`

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 from __future__ import print_function, division
-import sys, os, argparse, glob, random
+import sys, os, argparse, glob, random, warnings
 from collections import OrderedDict, defaultdict
 
 import pandas as pd
@@ -13,7 +13,7 @@ from soothsayer_utils import *
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2025.2.1"
+__version__ = "2025.3.31"
 
 # Assembly
 def get_coverage_cmd( input_filepaths, output_filepaths, output_directory, directories, opts):
@@ -119,6 +119,10 @@ def get_pyrodigal_cmd(input_filepaths, output_filepaths, output_directory, direc
 def get_metabat2_cmd( input_filepaths, output_filepaths, output_directory, directories, opts, prefix, seed):
 
     cmd = [
+        f"rm -rv {output_directory}",
+        "&&",
+        f"mkdir -p {output_directory}",
+        "&&",
         os.environ["binning_wrapper.py"],
         "-a metabat2",
         "-f {}".format(input_filepaths[0]), # scaffolds.fasta
@@ -136,9 +140,12 @@ def get_metabat2_cmd( input_filepaths, output_filepaths, output_directory, direc
     return cmd
 
 # SemiBin2
-def get_semibin2_cmd( input_filepaths, output_filepaths, output_directory, directories, opts, prefix, seed):
-
+def get_semibin2_cmd( input_filepaths, output_filepaths, output_directory, directories, opts, prefix, seed, biome):
     cmd = [
+        f"rm -rv {output_directory}",
+        "&&",
+        f"mkdir -p {output_directory}",
+        "&&",
         os.environ["binning_wrapper.py"],
         "-a semibin2",
         "-f {}".format(input_filepaths[0]), # scaffolds.fasta
@@ -151,8 +158,9 @@ def get_semibin2_cmd( input_filepaths, output_filepaths, output_directory, direc
         "--bin_prefix {}".format(prefix),
         "--remove_bins",
         "--remove_intermediate_files",
-        "--proteins {}".format(input_filepaths[2]),
-        "--semibin2_biome {}".format(opts.semibin2_biome),
+        "--semibin2_orf_finder {}".format(opts.semibin2_orf_finder),
+        # "--proteins {}".format(input_filepaths[2]), # Doesn't actually do anything in SemiBin2: https://github.com/BigDataBiology/SemiBin/issues/185
+        "--semibin2_biome {}".format(biome),
         "--semibin2_engine {}".format(opts.semibin2_engine),
         "--semibin2_options {}".format(opts.semibin2_options) if bool(opts.semibin2_options) else "",
     ]
@@ -170,6 +178,10 @@ def get_semibin2_cmd( input_filepaths, output_filepaths, output_directory, direc
 def get_metadecoder_cmd( input_filepaths, output_filepaths, output_directory, directories, opts, prefix, seed):
 
     cmd = [
+        f"rm -rv {output_directory}",
+        "&&",
+        f"mkdir -p {output_directory}",
+        "&&",
         os.environ["binning_wrapper.py"],
         "-a metadecoder",
         "-f {}".format(input_filepaths[0]), # scaffolds.fasta
@@ -192,6 +204,10 @@ def get_metadecoder_cmd( input_filepaths, output_filepaths, output_directory, di
 def get_metacoag_cmd( input_filepaths, output_filepaths, output_directory, directories, opts, prefix, seed):
 
     cmd = [
+        f"rm -rv {output_directory}",
+        "&&",
+        f"mkdir -p {output_directory}",
+        "&&",
         os.environ["binning_wrapper.py"],
         "-a metacoag",
         "-f {}".format(input_filepaths[0]), # scaffolds.fasta
@@ -286,7 +302,14 @@ def get_binette_cmd(input_filepaths, output_filepaths, output_directory, directo
     
     # Get non-empty scaffolds to bins
     cmd = [
+        f"rm -rv {output_directory}",
+        "&&",
+        f"mkdir -p {output_directory}",
+    ]
+    
+    cmd += [
     """
+    
 S2B_FILES="{}"
 
 NON_EMPTY_S2B_FILES=""
@@ -320,6 +343,52 @@ done
         opts.binnette_options,
         
             "&&",
+            
+        # Scaffolds to bins intermediate
+        os.environ["scaffolds_to_bins.py"],
+        "-i",
+        os.path.join(output_directory, "final_bins"),
+        ">",
+        os.path.join(output_directory, "final_bins", "scaffolds_to_bins.tsv"),
+        
+            "&&",
+            
+        # -----------------------dev----------------------------            
+        # Tiara
+        "mkdir -p {}".format(os.path.join(output_directory, "consensus_domain_classification")),
+        
+        "&&",
+
+        # Subset binned contigs by length filter
+        "cat",
+        os.path.join(output_directory, "final_bins", "*.fa"),
+        "|",
+        os.environ["seqkit"],
+        "seq",
+        "-m {}".format(opts.tiara_minimum_length),
+        
+        "|",
+
+        # Pipe sequences into Tiara
+        os.environ["tiara"],
+        "-o {}".format(os.path.join(output_directory, "consensus_domain_classification", "tiara_output.tsv")),
+        "--probabilities",
+        "-m {}".format(opts.tiara_minimum_length),
+        "-t {}".format(opts.n_jobs),
+        opts.tiara_options,
+
+        # Predict domain
+        "&&",
+        
+        os.environ["consensus_domain_classification.py"],
+        "-i {}".format(os.path.join(directories["output"], "scaffolds_to_bins.tsv")),
+        "-t {}".format(os.path.join(output_directory, "consensus_domain_classification", "tiara_output.tsv")),
+        "-o {}".format(os.path.join(output_directory, "consensus_domain_classification")),
+        "--logit_transform {}".format(opts.logit_transform),
+        # -----------------------dev----------------------------
+        
+        "&&",
+        
         
         # Add filtered directory
         os.environ["filter_binette_results.py"],
@@ -339,6 +408,7 @@ done
         "--bin_prefix",
         prefix,
         
+ 
             "&&",
             
         # Scaffolds to Bins
@@ -379,8 +449,8 @@ done
         "rm",
         "-rfv",
         os.path.join(output_directory, "final_bins"),
-        os.path.join(output_directory, "temporary_files", "assembly_proteins.faa"),
-        
+        os.path.join(output_directory, "temporary_files", "assembly_proteins.faa.gz"),
+        os.path.join(output_directory, "temporary_files", "*.fxi"),
         
         "&&",
         
@@ -401,63 +471,69 @@ done
     return cmd
     
 # Tiara
-def get_tiara_cmd(input_filepaths, output_filepaths, output_directory, directories, opts):
-    cmd = [
-        "mkdir -p {}".format(os.path.join(output_directory, "consensus_domain_classification")),
+# def get_tiara_cmd(input_filepaths, output_filepaths, output_directory, directories, opts):
+#     cmd = [
+#         "mkdir -p {}".format(os.path.join(output_directory, "consensus_domain_classification")),
         
-        # Get scaffolds to bins
-        "&&",
+#         # Get scaffolds to bins
+#         "&&",
         
-        "cat",
-        " ".join(input_filepaths[1:]),
-        ">",
-        os.path.join(directories["output"], "scaffolds_to_bins.tsv"),
+#         "cat",
+#         " ".join(input_filepaths[1:]),
+#         ">",
+#         os.path.join(directories["output"], "scaffolds_to_bins.tsv"),
         
-        # Get binned contigs
+#         # Get binned contigs
         
-        "&&",
+#         "&&",
         
-        "cut",
-        "-f",
-        "1",
-        os.path.join(directories["output"], "scaffolds_to_bins.tsv"),
-        ">",
-        os.path.join(directories["output"], "binned.list"),
+#         "cut",
+#         "-f",
+#         "1",
+#         os.path.join(directories["output"], "scaffolds_to_bins.tsv"),
+#         ">",
+#         os.path.join(directories["output"], "binned.list"),
         
-        # Subset binned contigs by length filter
-        "&&",
-        os.environ["seqkit"],
-        "seq",
-        "-m {}".format(opts.tiara_minimum_length),
-        input_filepaths[0],
+#         # Subset binned contigs by length filter
+#         "&&",
+#         os.environ["seqkit"],
+#         "seq",
+#         "-m {}".format(opts.tiara_minimum_length),
+#         input_filepaths[0],
         
-        "|",
+#         "|",
         
-        os.environ["seqkit"],
-        "grep",
-        "-f",
-        os.path.join(directories["output"], "binned.list"),
+#         os.environ["seqkit"],
+#         "grep",
+#         "-f",
+#         os.path.join(directories["output"], "binned.list"),
         
-        "|",
+#         "|",
 
-        # Pipe sequences into Tiara
-        os.environ["tiara"],
-        "-o {}".format(os.path.join(output_directory, "consensus_domain_classification", "tiara_output.tsv")),
-        "--probabilities",
-        "-m {}".format(opts.tiara_minimum_length),
-        "-t {}".format(opts.n_jobs),
-        opts.tiara_options,
+#         # Pipe sequences into Tiara
+#         os.environ["tiara"],
+#         "-o {}".format(os.path.join(output_directory, "consensus_domain_classification", "tiara_output.tsv")),
+#         "--probabilities",
+#         "-m {}".format(opts.tiara_minimum_length),
+#         "-t {}".format(opts.n_jobs),
+#         opts.tiara_options,
 
-        # Predict domain
-        "&&",
+#         # Predict domain
+#         "&&",
         
-        os.environ["consensus_domain_classification.py"],
-        "-i {}".format(os.path.join(directories["output"], "scaffolds_to_bins.tsv")),
-        "-t {}".format(os.path.join(output_directory, "consensus_domain_classification", "tiara_output.tsv")),
-        "-o {}".format(os.path.join(output_directory, "consensus_domain_classification")),
-        "--logit_transform {}".format(opts.logit_transform),
-    ]
-    return cmd
+#         os.environ["consensus_domain_classification.py"],
+#         "-i {}".format(os.path.join(directories["output"], "scaffolds_to_bins.tsv")),
+#         "-t {}".format(os.path.join(output_directory, "consensus_domain_classification", "tiara_output.tsv")),
+#         "-o {}".format(os.path.join(output_directory, "consensus_domain_classification")),
+#         "--logit_transform {}".format(opts.logit_transform),
+#     ]
+#     return cmd
+
+# def get_consolidate_prokaryotic_and_remove_eukaryotic_genomes_cmd(input_filepaths, output_filepaths, output_directory, directories, opts):
+#     cmd = [
+        
+#     ]
+#     return cmd
 
 # barrnap
 def get_barrnap_cmd(input_filepaths, output_filepaths, output_directory, directories, opts):
@@ -994,11 +1070,12 @@ def create_pipeline(opts, directories, f_cmds):
             # ==========
             # SemiBin2
             # ==========
-            if algorithm == "semibin2":
+            if isinstance(algorithm, tuple):
+                algorithm, biome = algorithm
 
                 step  += 1
 
-                program = "binning_semibin2"
+                program = f"binning_semibin2-{biome}"
                 program_label = "{}__{}".format(step, program)
                 
                 # Add to directories
@@ -1006,7 +1083,7 @@ def create_pipeline(opts, directories, f_cmds):
 
 
                 # Info
-                description = "Binning via SemiBin2 [Iteration={}]".format(iteration)
+                description = "Binning via SemiBin2 ({}) [Iteration={}]".format(biome, iteration)
 
                 # i/o
                 input_filepaths = [
@@ -1027,8 +1104,9 @@ def create_pipeline(opts, directories, f_cmds):
                     "output_directory":output_directory,
                     "opts":opts,
                     "directories":directories,
-                    "prefix":"{}__SEMIBIN2__{}.{}__".format(opts.name, "P", iteration),
+                    "prefix":"{}__SEMIBIN2-{}__{}.{}__".format(opts.name, biome.upper(),"P", iteration),
                     "seed":seed,
+                    "biome":biome,
                 }
 
 
@@ -1243,60 +1321,60 @@ def create_pipeline(opts, directories, f_cmds):
         # Reset input_fasta
         input_fasta = os.path.join(directories["tmp"], "unbinned_{}.fasta".format(iteration))
         
-    # ==========
-    # Tiara
-    # ==========
-    step  += 1
+    # # ==========
+    # # Tiara
+    # # ==========
+    # step  += 1
 
-    program = "tiara"
-    program_label = "{}__{}".format(step, program)
+    # program = "tiara"
+    # program_label = "{}__{}".format(step, program)
     
-    # Add to directories
-    output_directory = directories[("intermediate",  program_label)] = create_directory(os.path.join(directories["intermediate"], program_label))
+    # # Add to directories
+    # output_directory = directories[("intermediate",  program_label)] = create_directory(os.path.join(directories["intermediate"], program_label))
 
 
-    # Info
-    description = "Consensus domain classification"
-    # i/o
-    input_filepaths = [
-        opts.fasta,
-        os.path.join(directories["intermediate"], "*__binette",  "filtered", "scaffolds_to_bins.tsv"),
-    ]
+    # # Info
+    # description = "Consensus domain classification"
+    # # i/o
+    # input_filepaths = [
+    #     opts.fasta,
+    #     os.path.join(directories["intermediate"], "*__binette",  "filtered", "scaffolds_to_bins.tsv"),
+    # ]
 
 
-    output_filepaths = [
-        os.path.join(directories["output"], "scaffolds_to_bins.tsv"),
-        os.path.join(directories["output"], "binned.list"),
-        os.path.join(output_directory, "tiara_results.tsv"),
-        os.path.join(output_directory,  "consensus_domain_classification", "predictions.tsv"),
+    # output_filepaths = [
+    #     os.path.join(directories["output"], "scaffolds_to_bins.tsv"),
+    #     os.path.join(directories["output"], "binned.list"),
+    #     os.path.join(output_directory, "tiara_results.tsv"),
+    #     os.path.join(output_directory,  "consensus_domain_classification", "predictions.tsv"),
 
 
-    ]
+    # ]
 
-    params = {
-        "input_filepaths":input_filepaths,
-        "output_filepaths":output_filepaths,
-        "output_directory":output_directory,
-        "opts":opts,
-        "directories":directories,
-    } 
+    # params = {
+    #     "input_filepaths":input_filepaths,
+    #     "output_filepaths":output_filepaths,
+    #     "output_directory":output_directory,
+    #     "opts":opts,
+    #     "directories":directories,
+    # } 
 
-    cmd = get_tiara_cmd(**params)
-    pipeline.add_step(
-                id=program_label,
-                description = description,
-                step=step,
-                cmd=cmd,
-                input_filepaths = input_filepaths,
-                output_filepaths = output_filepaths,
-                validate_inputs=False,
-                validate_outputs=False,
-                errors_ok=False,
-                acceptable_returncodes={0},                    
-                log_prefix=program_label,
-                # acceptable_returncodes= {0,1},
+    # cmd = get_tiara_cmd(**params)
+    # pipeline.add_step(
+    #             id=program_label,
+    #             description = description,
+    #             step=step,
+    #             cmd=cmd,
+    #             input_filepaths = input_filepaths,
+    #             output_filepaths = output_filepaths,
+    #             validate_inputs=False,
+    #             validate_outputs=False,
+    #             errors_ok=False,
+    #             acceptable_returncodes={0},                    
+    #             log_prefix=program_label,
+    #             # acceptable_returncodes= {0,1},
 
-    )
+    # )
 
 
     steps[program] = step
@@ -1562,7 +1640,9 @@ def add_executables_to_environment(opts):
 
     
     for algorithm in opts.algorithms:
-        if algorithm == "semibin2":
+        if isinstance(algorithm, tuple):
+            if algorithm[0] != ("semibin2"):
+                raise f"If algorithm is tuple, then the first element must be semibin2: {algorithm}"
             required_executables.add("SemiBin2")
         elif algorithm == "metadecoder":
             required_executables.add("metadecoder")
@@ -1601,10 +1681,22 @@ def add_executables_to_environment(opts):
 # Configure parameters
 def configure_parameters(opts, directories):
     # Set environment variables
+    semibin2_biomes = {'ocean', 'wastewater', 'global', 'pig_gut', 'human_oral', 'cat_gut', 'soil', 'chicken_caecum', 'human_gut', 'built_environment', 'dog_gut', 'mouse_gut', 'NONE'}
     opts.algorithms = set(map(str.strip, opts.algorithms.split(",")))
-    choices = {"metabat2", "semibin2", "metadecoder", "metacoag"}
+    choices = {"metabat2", "semibin2", "metadecoder", "metacoag"} | set(map(lambda biome: f"semibin2-{x}", semibin2_biomes))
     assert opts.algorithms <= choices, "Unrecognized algorithm(s): {}".format(opts.algorithms - choices)
-    opts.algorithms = sorted(opts.algorithms)
+    algorithms_formatted = list()
+    for algorithm in opts.algorithms:
+        if algorithm.startswith("semibin2"):
+            if "-" in algorithm:
+                biome = algorithm.split("-")[1]
+            else:
+                warnings.warn("No biome specified for semibin2.  Defaulting to global.")
+                biome = "global"
+            algorithms_formatted.append(("semibin2", biome))
+        else:
+            algorithms_formatted.append(algorithm)
+    opts.algorithms = sorted(algorithms_formatted)
     add_executables_to_environment(opts=opts)
 
 def main(args=None):
@@ -1647,7 +1739,7 @@ def main(args=None):
 
     # Binning
     parser_binning = parser.add_argument_group('Binning arguments')
-    parser_binning.add_argument("-a", "--algorithms", type=str, default="metabat2,semibin2,metadecoder,metacoag", help='Comma separated list of binning algorithms.  Choose from {"metabat2", "semibin2", "metadecoder", "metacoag"}.  If MEGAHIT assembly was used then metacoag will fail if the --fasta does not match the --metacoag_graph exactly which will be fixed in future versions. Do not use metacoag with MEGAHIT assembly if  you have performed viral binning prior to prokaryotic binning. [Default: metabat2,semibin2,metadecoder,metacoag]')
+    parser_binning.add_argument("-a", "--algorithms", type=str, default="metabat2,semibin2-global,metadecoder,metacoag", help='Comma separated list of binning algorithms.  Choose from {"metabat2", "metadecoder", "metacoag", "semibin2-[biome]"} where [biome] is one of [ocean, wastewater, global, pig_gut, human_oral, cat_gut, soil, chicken_caecum, human_gut, built_environment, dog_gut, mouse_gut, NONE] where NONE is usedto implement Semi-Supervised training (takes longer with more compute).  If MEGAHIT assembly was used then metacoag will fail if the --fasta does not match the --metacoag_graph exactly which will be fixed in future versions. Do not use metacoag with MEGAHIT assembly if  you have performed viral binning prior to prokaryotic binning. [Default: metabat2,semibin2-global,metadecoder,metacoag]')
     parser_binning.add_argument("-m", "--minimum_contig_length", type=int, default=1500, help="Minimum contig length.  Anything under 2500 will default to 2500 for MetaBat2 [Default: 1500] ")
     parser_binning.add_argument("-s", "--minimum_genome_length", type=int, default=200000, help="Minimum genome length.  [Default: 200000]")
     parser_binning.add_argument("--retain_intermediate_bins",action="store_true",help='Retain intermediate bins in fasta.')
@@ -1658,7 +1750,7 @@ def main(args=None):
 
     # SemiBin2
     parser_semibin2 = parser.add_argument_group('SemiBin2 arguments')
-    parser_semibin2.add_argument("--semibin2_biome", type=str, choices={'ocean', 'wastewater', 'global', 'pig_gut', 'human_oral', 'cat_gut', 'soil', 'chicken_caecum', 'human_gut', 'built_environment', 'dog_gut', 'mouse_gut', 'NONE'}, default="global", help="SemiBin2 | Biome/environment for the built-in model.  Use 'NONE' to implement Semi-Supervised training (takes longer with more compute) [Default: global]")
+    # parser_semibin2.add_argument("--semibin2_biome", type=str, choices={'ocean', 'wastewater', 'global', 'pig_gut', 'human_oral', 'cat_gut', 'soil', 'chicken_caecum', 'human_gut', 'built_environment', 'dog_gut', 'mouse_gut', 'NONE'}, default="global", help="SemiBin2 | Biome/environment for the built-in model.  Use 'NONE' to implement Semi-Supervised training (takes longer with more compute) [Default: global]")
     parser_semibin2.add_argument("--semibin2_engine", type=str, choices={'auto', 'cpu', 'gpu'}, default="auto", help="SemiBin2 | Device used to train the model [Default: auto]")
     parser_semibin2.add_argument("--semibin2_options", type=str, default="", help="SemiBin2 | More options (e.g. --arg 1 ) [Default: ''] | https://github.com/BigDataBiology/SemiBin")
 

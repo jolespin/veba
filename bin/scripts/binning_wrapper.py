@@ -12,7 +12,7 @@ from soothsayer_utils import *
 
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2025.1.15"
+__version__ = "2025.3.30"
 
 def get_maxbin2_cmd( input_filepaths, output_filepaths, output_directory, directories, opts):
     # Create dummy scaffolds_to_bins.tsv to overwrite later. 
@@ -255,7 +255,8 @@ def get_semibin2_cmd( input_filepaths, output_filepaths, output_directory, direc
         "-m {}".format(max(opts.minimum_contig_length, 1000)),
         "-p {}".format(opts.n_jobs),
         "--environment {}".format(opts.semibin2_biome) if opts.semibin2_biome else "",
-        "--prodigal-output-faa {}".format(opts.proteins) if opts.proteins else "",
+        "--orf-finder {}".format(opts.semibin2_orf_finder),
+        # "--prodigal-output-faa {}".format(opts.proteins) if opts.proteins else "",
         "--minfasta-kbs {}".format(opts.minimum_genome_length//1000),
         "--random-seed {}".format(opts.random_state),
         "--verbose",
@@ -1079,6 +1080,7 @@ def main(argv=None):
 
     # SemiBin2
     parser_semibin2 = parser.add_argument_group('SemiBin2 arguments')
+    parser_semibin2.add_argument("--semibin2_orf_finder", type=str, choices={'fast-naive', 'prodigal', 'fraggenescan'}, default="fast-naive", help="SemiBin2 | ORF finder used to estimate the number of bins  [Default: fast-naive]")
     parser_semibin2.add_argument("--semibin2_biome", type=str, choices={'ocean', 'wastewater', 'global', 'pig_gut', 'human_oral', 'cat_gut', 'soil', 'chicken_caecum', 'human_gut', 'built_environment', 'dog_gut', 'mouse_gut', 'NONE'}, default="global", help="SemiBin2 | Biome/environment for the built-in model.  Use 'NONE' to implement Semi-Supervised training (takes longer with more compute) [Default: global]")
     parser_semibin2.add_argument("--semibin2_engine", type=str, choices={'auto', 'cpu', 'gpu'}, default="auto", help="SemiBin2 | Device used to train the model [Default: auto]")
     parser_semibin2.add_argument("--semibin2_sequencing_type", type=str, choices={'short_read', 'long_read'}, default="short_read", help="SemiBin2 | Sequencing type [Default: short_read]")

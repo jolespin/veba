@@ -1,5 +1,5 @@
 #!/bin/bash
-# __version__ = "2024.11.8"
+# __version__ = "2025.3.30"
 # VEBA_DATABASE_VERSION = "VDB_v8.1"
 # MICROEUKAYROTIC_DATABASE_VERSION = "MicroEuk_v3"
 # usage: bash veba/download_databases-classify.sh /path/to/veba_database_destination/
@@ -97,7 +97,8 @@ echo ". .. ... ..... ........ ............."
 echo " * Processing CheckM2"
 echo ". .. ... ..... ........ ............."
 mkdir -v -p ${DATABASE_DIRECTORY}/Classify/CheckM2
-wget -v -P ${DATABASE_DIRECTORY} https://zenodo.org/api/files/fd3bc532-cd84-4907-b078-2e05a1e46803/checkm2_database.tar.gz
+# wget -v -P ${DATABASE_DIRECTORY} https://zenodo.org/api/files/fd3bc532-cd84-4907-b078-2e05a1e46803/checkm2_database.tar.gz
+wget -v -O ${DATABASE_DIRECTORY}/checkm2_database.tar.gz https://zenodo.org/records/14897628/files/checkm2_database.tar.gz?download=1
 tar xzfv ${DATABASE_DIRECTORY}/checkm2_database.tar.gz -C ${DATABASE_DIRECTORY}/Classify/CheckM2 --strip-components=1
 rm -rf ${DATABASE_DIRECTORY}/checkm2_database.tar.gz
 
