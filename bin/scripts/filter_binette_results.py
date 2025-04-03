@@ -78,7 +78,7 @@ def main(args=None):
         
     # Use hash
     magold_to_hash = dict()
-    for filepath in glob.glob(os.path.join(opts.binette_directory, "final_bins", "*.fa")):
+    for filepath in tqdm(glob.glob(os.path.join(opts.binette_directory, "final_bins", "*.fa")), "Creating hashes for each MAG", unit=" MAGs"):
         id_mag = filepath.split("/")[-1][:-3]
         contigs = set()
         with open(filepath, "r") as f:
@@ -105,7 +105,7 @@ def main(args=None):
     magold_to_magnew = dict()
     mags = list()
 
-    for id_mag, row in tqdm(df_quality_report.iterrows(), "Filtering MAGs", unit=" MAG"):
+    for id_mag, row in tqdm(df_quality_report.iterrows(), "Filtering MAGs", unit=" MAGs"):
         origin = row["origin"]
         name = row["name"]
         completeness = row["completeness"]
@@ -161,6 +161,7 @@ def main(args=None):
     
     # Write quality report
     # df_quality_report_filtered.columns = df_quality_report_filtered.columns.map(str.capitalize)
+    df_quality_report_filtered = df_quality_report_filtered.sort_index()
     df_quality_report_filtered.indexname = "id_genome"
     df_quality_report_filtered.to_csv(os.path.join(opts.output_directory,"checkm2_results.filtered.tsv"), sep="\t") 
 
@@ -174,7 +175,7 @@ def main(args=None):
 
     binned_contigs = set() 
     scaffold_to_mag = OrderedDict()
-    for id_mag in tqdm(mags, "Copying fasta files and writing binned contigs", unit=" MAG"):
+    for id_mag in tqdm(mags, "Copying fasta files and writing binned contigs", unit=" MAGs"):
 
         for src in glob.glob(os.path.join(opts.binette_directory, "final_bins", "{}.*".format(id_mag))):
             dst = os.path.join(opts.output_directory,"genomes", "{}.fa".format(magold_to_magnew[id_mag]))

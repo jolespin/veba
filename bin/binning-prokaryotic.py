@@ -302,7 +302,9 @@ def get_binette_cmd(input_filepaths, output_filepaths, output_directory, directo
     
     # Get non-empty scaffolds to bins
     cmd = [
-        f"rm -rv {output_directory}",
+        f"rm -rvf",
+        output_directory,
+        output_filepaths[-1], # Next unbinned fasta
         "&&",
         f"mkdir -p {output_directory}",
     ]
@@ -323,10 +325,10 @@ done
     ]
 
     cmd += [
-        #For reproducible results in Binette
-        "unset PYTHONHASHSEED && export PYTHONHASHSEED=0", # It's more practical to have this as a stable value instead of --random_state
+        # For reproducible results in Binette
+        # "unset PYTHONHASHSEED && export PYTHONHASHSEED=0", # It's more practical to have this as a stable value instead of --random_state
         
-            "&&",
+            # "&&",
         
         # Run Binette
         os.environ["binette"],
