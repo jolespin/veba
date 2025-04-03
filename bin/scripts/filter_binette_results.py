@@ -5,9 +5,10 @@ from typing import OrderedDict
 # from collections import OrderedDict
 import pandas as pd
 from tqdm import tqdm
+import xxhash
 
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2025.3.31"
+__version__ = "2025.4.2"
 
 def parse_binette_initial_bin_combinations(combination:str):
     """
@@ -55,6 +56,7 @@ def main(args=None):
     parser.add_argument("--contamination", type=float, default=10.0, help = "CheckM2 contamination [Default: 10.0]")
     parser.add_argument("-u", "--unbinned", action="store_true", help="Write unbinned fasta sequences to file")
     parser.add_argument("-e", "--exclude",  help="List of genomes to exclude (e.g., eukaryotic genomes)")
+    parser.add_argument("-d","--domain_predictions", type=str,  help = "Tab-seperated table of domain predictions [id_genome]<tab>[id_domain], No header.")
 
     # parser.add_argument("--symlink", action="store_true", help = "Symlink MAGs instead of copying")
 
@@ -73,17 +75,39 @@ def main(args=None):
                     exclude_mags.add(line)
     if exclude_mags:
         print("Excluding the following MAGs:", exclude_mags, file=sys.stderr)
+        
+    # Use hash
+    magold_to_hash = dict()
+    for filepath in glob.glob(os.path.join(opts.binette_directory, "final_bins", "*.fa")):
+        id_mag = filepath.split("/")[-1][:-3]
+        contigs = set()
+        with open(filepath, "r") as f:
+            for line in f:
+                line = line.strip()
+                if line.startswith(">"):
+                    header = line[1:]
+                    id_contig = header.split(" ", maxsplit=1)[0]
+                    contigs.add(id_contig)
+        contigs_repr = repr(sorted(contigs))
+        magold_to_hash[id_mag] = xxhash.xxh32(contigs_repr, seed=0).hexdigest()
                 
     # Load CheckM2
     # bin_id  origin  name    completeness    contamination   score   size    N50     contig_count
     df_quality_report = pd.read_csv(os.path.join(opts.binette_directory, "final_bins_quality_reports.tsv"),sep="\t", index_col=0)
     df_quality_report.index = df_quality_report.index.map(lambda x: f"bin_{x}")
-
+    
+    if opts.domain_predictions:
+        print("Adding domain predictions", file=sys.stderr)
+        mag_to_domain = pd.read_csv(opts.domain_predictions, sep="\t", index_col=0, header=None).iloc[:,0]
+        df_quality_report["domain"] = mag_to_domain
+    
     # Quality assessment on MAGs
     magold_to_magnew = dict()
     mags = list()
 
     for id_mag, row in tqdm(df_quality_report.iterrows(), "Filtering MAGs", unit=" MAG"):
+        origin = row["origin"]
+        name = row["name"]
         completeness = row["completeness"]
         contamination = row["contamination"]
 
@@ -94,7 +118,12 @@ def main(args=None):
             id_mag not in exclude_mags,
         ]
         if all(conditions):
-            magold_to_magnew[id_mag] = f"{opts.bin_prefix}{id_mag}"
+            if (origin not in {"diff", "union", "intersec"}) and  (";" not in origin):
+                new_mag = name
+            else:
+                new_mang = f"{opts.bin_prefix}{magold_to_hash[id_mag]}"
+                # new_mag = f"{opts.bin_prefix}{id_mag}"
+            magold_to_magnew[id_mag] = new_mag
             mags.append(id_mag)
 
     # Output filtered 
@@ -128,10 +157,10 @@ def main(args=None):
             except KeyError:
                 initial_bins_labeled.add(id_bin_number)
         genome_to_initial[id_genome] = initial_bins_labeled
-    df_quality_report_filtered["Initial_bins"] = pd.Series(genome_to_initial, dtype=object)
+    df_quality_report_filtered["initial_bins"] = pd.Series(genome_to_initial, dtype=object)
     
     # Write quality report
-    df_quality_report_filtered.columns = df_quality_report_filtered.columns.map(str.capitalize)
+    # df_quality_report_filtered.columns = df_quality_report_filtered.columns.map(str.capitalize)
     df_quality_report_filtered.indexname = "id_genome"
     df_quality_report_filtered.to_csv(os.path.join(opts.output_directory,"checkm2_results.filtered.tsv"), sep="\t") 
 

@@ -483,7 +483,10 @@ ________________________________________________________________
 <details>
 	<summary> <b>Daily Change Log:</b> </summary>
 
-* [2025.3.31] - Added `-e/--exclude` to `filter_binette_results.py` to allow the removal of eukaryotic genomes.  
+* [!] BINNER CHECHKPOINTS MIGHT NOT WORK?
+* [2025.4.2] - Added `xxhash` dependency to `VEBA-binning-prokaryotic_env` which is used for bin name reproducibility
+* [2025.4.2] - Removed capitalization of column headers in `filter_binette_results.py`
+* [2025.3.31] - Added `-e/--exclude` and `-d/--domain_predictions` to `filter_binette_results.py` to allow the removal of eukaryotic genomes and setup the domain assignments for `barrnap` and `tRNAscan-SE`.  
 * [2025.3.31] - `Tiara` is now added into the `binette` step of `binning-prokaryotic.py` along with `consensus_domain_classification.py`.
 * [2025.3.30] - Updated `CheckM2` and `Binette` versions in `binning-prokaryotic.py` which also includes a new `CheckM2` `Diamond` database in `VDB_v8.2`
 * [2025.3.30] - Added `semibin2-[biome]` to `binning-prokaryotic.py` and remove `--semibin2_biome` which allows a user to specify multiple biomes (e.g., `semibin2-global` and `semibin2-ocean`)

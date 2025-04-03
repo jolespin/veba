@@ -323,8 +323,14 @@ done
     ]
 
     cmd += [
-        # Run Binnette
+        #For reproducible results in Binette
+        "unset PYTHONHASHSEED && export PYTHONHASHSEED=0", # It's more practical to have this as a stable value instead of --random_state
+        
+            "&&",
+        
+        # Run Binette
         os.environ["binette"],
+        "--debug",
         "-b",
         "${NON_EMPTY_S2B_FILES}",
         "-c",
@@ -357,7 +363,7 @@ done
         # Tiara
         "mkdir -p {}".format(os.path.join(output_directory, "consensus_domain_classification")),
         
-        "&&",
+            "&&",
 
         # Subset binned contigs by length filter
         "cat",
@@ -378,16 +384,16 @@ done
         opts.tiara_options,
 
         # Predict domain
-        "&&",
+            "&&",
         
         os.environ["consensus_domain_classification.py"],
-        "-i {}".format(os.path.join(directories["output"], "scaffolds_to_bins.tsv")),
+        "-i {}".format(os.path.join(output_directory, "final_bins", "scaffolds_to_bins.tsv")),
         "-t {}".format(os.path.join(output_directory, "consensus_domain_classification", "tiara_output.tsv")),
         "-o {}".format(os.path.join(output_directory, "consensus_domain_classification")),
         "--logit_transform {}".format(opts.logit_transform),
         # -----------------------dev----------------------------
         
-        "&&",
+            "&&",
         
         
         # Add filtered directory
@@ -407,21 +413,24 @@ done
         opts.checkm2_contamination,
         "--bin_prefix",
         prefix,
-        
+        "-d",
+        os.path.join(output_directory, "consensus_domain_classification", "predictions.tsv"),
+        "-e",
+        os.path.join(output_directory, "consensus_domain_classification", "eukaryota.list"),
  
             "&&",
             
-        # Scaffolds to Bins
-        "ls",
-        os.path.join(output_directory, "final_bins", "*.fa"),
-        "|",
-        os.environ["scaffolds_to_bins.py"],
-        "-x",
-        "fa",
-        ">",
-        os.path.join(output_directory, "scaffolds_to_bins.tsv"),
+        # # Scaffolds to Bins
+        # "ls",
+        # os.path.join(output_directory, "final_bins", "*.fa"),
+        # "|",
+        # os.environ["scaffolds_to_bins.py"],
+        # "-x",
+        # "fa",
+        # ">",
+        # os.path.join(output_directory, "scaffolds_to_bins.tsv"),
         
-            "&&",
+        #     "&&",
             
         # Partition gene models
         os.environ["partition_gene_models.py"],
@@ -436,23 +445,8 @@ done
         "-o",
         os.path.join(output_directory, "filtered", "genomes"),
         "--use_mag_as_description",
-
+        
             "&&",
-            
-        # Cleanup
-        "mv",
-        os.path.join(output_directory, "final_bins_quality_reports.tsv"),
-        os.path.join(output_directory, "quality_reports.tsv"),
-        
-        "&&",
-        
-        "rm",
-        "-rfv",
-        os.path.join(output_directory, "final_bins"),
-        os.path.join(output_directory, "temporary_files", "assembly_proteins.faa.gz"),
-        os.path.join(output_directory, "temporary_files", "*.fxi"),
-        
-        "&&",
         
         "cat",
         input_filepaths[0],
@@ -466,6 +460,21 @@ done
         "--pattern-file {}".format(os.path.join(output_directory, "filtered", "unbinned.list")),
         ">",
         output_filepaths[-1],
+        
+        # Cleanup
+            "&&",
+
+        "mv",
+        os.path.join(output_directory, "final_bins_quality_reports.tsv"),
+        os.path.join(output_directory, "quality_reports.tsv"),
+        
+            "&&",
+        
+        "rm",
+        "-rfv",
+        os.path.join(output_directory, "final_bins"),
+        os.path.join(output_directory, "temporary_files", "assembly_proteins.faa.gz"),
+        os.path.join(output_directory, "temporary_files", "*.fxi"),
 
     ]
     return cmd
@@ -534,6 +543,22 @@ done
         
 #     ]
 #     return cmd
+
+# Get domain predictions
+def get_domain_predictions_cmd(input_filepaths, output_filepaths, output_directory, directories, opts):
+    cmd = [
+        os.environ["concatenate_dataframes.py"],
+        " ".join(input_filepaths),
+        "|",
+        "cut",
+        "-f1,10",
+        "|",
+        "tail",
+        "-n +2",
+        ">",
+        output_filepaths[0],
+    ] 
+    return cmd
 
 # barrnap
 def get_barrnap_cmd(input_filepaths, output_filepaths, output_directory, directories, opts):
@@ -642,7 +667,15 @@ done
 
 def get_featurecounts_cmd(input_filepaths, output_filepaths, output_directory, directories, opts):
     # ORF-Level Counts
+        # Get non-empty scaffolds to bins
     cmd = [
+        f"rm -rv {output_directory}",
+        "&&",
+        f"mkdir -p {output_directory}",
+    ]
+    
+    cmd += [
+    "&&",
     "mkdir -p {}".format(os.path.join(directories["tmp"], "featurecounts")),
     "&&",
         os.environ["featureCounts"],
@@ -677,15 +710,15 @@ S2B=$(ls {}) || (echo 'No genomes have been detected' && exit 1)
     ),
     ]
 
-    cmd += [ 
+    cmd += [
 
         # scaffolds_to_bins.tsv
-        # "cat",
-        # os.path.join(directories["intermediate"], "*__binette",  "filtered", "scaffolds_to_bins.tsv"), 
-        # ">",
-        # os.path.join(output_directory, "scaffolds_to_bins.tsv"),
+        "cat",
+        os.path.join(directories["intermediate"], "*__binette",  "filtered", "scaffolds_to_bins.tsv"), 
+        ">",
+        os.path.join(output_directory, "scaffolds_to_bins.tsv"),
 
-            # "&&",
+            "&&",
 
         # bins.list
         "cat",
@@ -693,13 +726,13 @@ S2B=$(ls {}) || (echo 'No genomes have been detected' && exit 1)
         ">",
         os.path.join(output_directory, "bins.list"),
 
-            # "&&",
+            "&&",
 
-        # # binned.list
-        # "cat",
-        # os.path.join(directories["intermediate"], "*__binette",  "filtered", "binned.list"), 
-        # ">",
-        # os.path.join(output_directory, "binned.list"),
+        # binned.list
+        "cat",
+        os.path.join(directories["intermediate"], "*__binette",  "filtered", "binned.list"), 
+        ">",
+        os.path.join(output_directory, "binned.list"),
 
             "&&",
 
@@ -1272,7 +1305,11 @@ def create_pipeline(opts, directories, f_cmds):
             os.path.join(directories[("intermediate",  "2__pyrodigal")], "gene_models.faa"),
         ]
         for algorithm in opts.algorithms:
-            program = "binning_{}".format(algorithm)
+            if isinstance(algorithm, tuple):
+                algorithm, biome = algorithm
+                program = f"binning_semibin2-{biome}"
+            else:
+                program = "binning_{}".format(algorithm)
             s2b = os.path.join(directories[("intermediate","{}__{}".format(steps[program], program))], "scaffolds_to_bins.tsv")
             input_filepaths.append(s2b)
             
@@ -1373,11 +1410,58 @@ def create_pipeline(opts, directories, f_cmds):
     #             acceptable_returncodes={0},                    
     #             log_prefix=program_label,
     #             # acceptable_returncodes= {0,1},
-
     # )
+    # steps[program] = step
+    
+    
+    # ==========
+    # get_domain_predictions_cmd
+    # ==========
+    step  += 1
 
+    program = "domain_predictions"
+    program_label = "{}__{}".format(step, program)
+    # Add to directories
+    output_directory = directories["tmp"]
 
+    # Info
+    description = "Get domain predictions"
+    # i/o
+    input_filepaths = [
+        os.path.join(directories["intermediate"], "*__binette", "filtered",  "checkm2_results.filtered.tsv"),
+    ]
+
+    output_filenames = [
+        "domain_predictions.tsv",
+    ]
+    output_filepaths = list(map(lambda filename: os.path.join(output_directory, filename), output_filenames))
+
+    params = {
+        "input_filepaths":input_filepaths,
+        "output_filepaths":output_filepaths,
+        "output_directory":output_directory,
+        "opts":opts,
+        "directories":directories,
+    } 
+
+    cmd = get_domain_predictions_cmd(**params)
+    pipeline.add_step(
+                id=program_label,
+                description = description,
+                step=step,
+                cmd=cmd,
+                input_filepaths = input_filepaths,
+                output_filepaths = output_filepaths,
+                validate_inputs=False,
+                validate_outputs=False,
+                errors_ok=False,
+                acceptable_returncodes={0},                    
+                log_prefix=program_label,
+                # acceptable_returncodes= {0,1},
+
+    )
     steps[program] = step
+
     
     # ==========
     # barrnap
@@ -1394,7 +1478,7 @@ def create_pipeline(opts, directories, f_cmds):
     description = "Detecting rRNA genes"
     # i/o
     input_filepaths = [
-        os.path.join(directories["intermediate"], f"{step - 1}__tiara",  "consensus_domain_classification", "predictions.tsv"),
+        os.path.join(directories["tmp"], "domain_predictions.tsv"),
         os.path.join(directories["intermediate"], "*__binette", "filtered", "genomes", "*"),
     ]
 
@@ -1447,7 +1531,7 @@ def create_pipeline(opts, directories, f_cmds):
     description = "Detecting tRNA genes"
     # i/o
     input_filepaths = [
-        os.path.join(directories["intermediate"], f"{step - 2}__tiara",  "consensus_domain_classification", "predictions.tsv"),
+        os.path.join(directories["tmp"], "domain_predictions.tsv"),
         os.path.join(directories["intermediate"], "*__binette", "filtered", "genomes", "*"),
     ]
 
@@ -1682,9 +1766,9 @@ def add_executables_to_environment(opts):
 def configure_parameters(opts, directories):
     # Set environment variables
     semibin2_biomes = {'ocean', 'wastewater', 'global', 'pig_gut', 'human_oral', 'cat_gut', 'soil', 'chicken_caecum', 'human_gut', 'built_environment', 'dog_gut', 'mouse_gut', 'NONE'}
-    opts.algorithms = set(map(str.strip, opts.algorithms.split(",")))
-    choices = {"metabat2", "semibin2", "metadecoder", "metacoag"} | set(map(lambda biome: f"semibin2-{x}", semibin2_biomes))
-    assert opts.algorithms <= choices, "Unrecognized algorithm(s): {}".format(opts.algorithms - choices)
+    opts.algorithms = list(map(str.strip, opts.algorithms.split(",")))
+    choices = {"metabat2", "semibin2", "metadecoder", "metacoag"} | set(map(lambda biome: f"semibin2-{biome}", semibin2_biomes))
+    assert set(opts.algorithms) <= choices, "Unrecognized algorithm(s): {}".format(set(opts.algorithms) - choices)
     algorithms_formatted = list()
     for algorithm in opts.algorithms:
         if algorithm.startswith("semibin2"):
@@ -1696,7 +1780,7 @@ def configure_parameters(opts, directories):
             algorithms_formatted.append(("semibin2", biome))
         else:
             algorithms_formatted.append(algorithm)
-    opts.algorithms = sorted(algorithms_formatted)
+    opts.algorithms = algorithms_formatted
     add_executables_to_environment(opts=opts)
 
 def main(args=None):
@@ -1751,6 +1835,7 @@ def main(args=None):
     # SemiBin2
     parser_semibin2 = parser.add_argument_group('SemiBin2 arguments')
     # parser_semibin2.add_argument("--semibin2_biome", type=str, choices={'ocean', 'wastewater', 'global', 'pig_gut', 'human_oral', 'cat_gut', 'soil', 'chicken_caecum', 'human_gut', 'built_environment', 'dog_gut', 'mouse_gut', 'NONE'}, default="global", help="SemiBin2 | Biome/environment for the built-in model.  Use 'NONE' to implement Semi-Supervised training (takes longer with more compute) [Default: global]")
+    parser_semibin2.add_argument("--semibin2_orf_finder", type=str, choices={'fast-naive', 'prodigal', 'fraggenescan'}, default="fast-naive", help="SemiBin2 | ORF finder used to estimate the number of bins  [Default: fast-naive]")
     parser_semibin2.add_argument("--semibin2_engine", type=str, choices={'auto', 'cpu', 'gpu'}, default="auto", help="SemiBin2 | Device used to train the model [Default: auto]")
     parser_semibin2.add_argument("--semibin2_options", type=str, default="", help="SemiBin2 | More options (e.g. --arg 1 ) [Default: ''] | https://github.com/BigDataBiology/SemiBin")
 
@@ -1852,6 +1937,7 @@ def main(args=None):
     configure_parameters(opts, directories)
     sys.stdout.flush()
 
+    os.environ["PYTHONHASHSEED"] = "0"
 
     # Run pipeline
     with open(os.path.join(directories["sample"], "commands.sh"), "w") as f_cmds:
