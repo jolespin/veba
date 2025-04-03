@@ -125,7 +125,8 @@ def main(args=None):
                 # new_mag = f"{opts.bin_prefix}{id_mag}"
             magold_to_magnew[id_mag] = new_mag
             mags.append(id_mag)
-
+    pd.Series(magold_to_magnew).to_frame().to_csv(os.path.join(opts.output_directory, "initial_to_filtered.tsv"), sep="\t", header=None)
+    
     # Output filtered 
     if not opts.output_directory:
         opts.output_directory = os.path.join(opts.binette_directory, "filtered")

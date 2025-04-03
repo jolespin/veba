@@ -1,6 +1,6 @@
 #!/bin/bash
-# __version__ = "2024.11.8"
-# VEBA_DATABASE_VERSION = "VDB_v8.1"
+# __version__ = "2025.4.3"
+# VEBA_DATABASE_VERSION = "VDB_v9"
 # MICROEUKAYROTIC_DATABASE_VERSION = "MicroEuk_v3"
 # usage: bash veba/download_databases-annotate.sh /path/to/veba_database_destination/
 
@@ -127,6 +127,8 @@ wget -v -P ${DATABASE_DIRECTORY} https://bcb.unl.edu/dbCAN2/download/CAZyDB.0726
 diamond makedb --in ${DATABASE_DIRECTORY}/CAZyDB.07262023.fa --db ${DATABASE_DIRECTORY}/Annotate/CAZy/CAZyDB.07262023.dmnd --threads ${N_JOBS}
 rm -rf ${DATABASE_DIRECTORY}/CAZyDB.07262023.fa
 
+# antiSMASH
+wget -qO- https://zenodo.org/records/15132672/files/antiSMASH.tar.gz?download=1 | tar -xzf - -C ${DATABASE_DIRECTORY}/Annotate/
 
 echo -e " _    _ _______ ______  _______\n  \  /  |______ |_____] |_____|\n   \/   |______ |_____] |     |"
 echo -e "...................................................."

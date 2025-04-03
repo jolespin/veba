@@ -1,6 +1,6 @@
 #!/bin/bash
-# __version__ = "2025.3.31"
-# VEBA_DATABASE_VERSION = "VDB_v8.1"
+# __version__ = "2025.4.3"
+# VEBA_DATABASE_VERSION = "VDB_v9"
 # MICROEUKAYROTIC_DATABASE_VERSION = "MicroEuk_v3"
 # usage: bash veba/download_databases-classify.sh /path/to/veba_database_destination/
 
@@ -84,7 +84,7 @@ CHECKVDB_VERSION="v1.5"
 # echo "${CHECKV_VERSION}" > ${DATABASE_DIRECTORY}/Classify/CheckV/database_version
 # diamond makedb --in ${DATABASE_DIRECTORY}/Classify/CheckV/genome_db/checkv_reps.faa --db ${DATABASE_DIRECTORY}/Classify/CheckV/genome_db/checkv_reps.dmnd --threads ${N_JOBS}
 wget -qO- https://zenodo.org/records/15116682/files/CheckV_v1.5.tar.gz?download=1 | tar -xzf - -C ${DATABASE_DIRECTORY}/Classify/
-rm -rf ${DATABASE_DIRECTORY}/checkv-db-${CHECKVDB_VERSION}.tar.gz
+# rm -rf ${DATABASE_DIRECTORY}/checkv-db-${CHECKVDB_VERSION}.tar.gz
 
 # geNomad
 mkdir -p ${DATABASE_DIRECTORY}/Classify/geNomad

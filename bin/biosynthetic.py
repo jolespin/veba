@@ -13,7 +13,7 @@ from soothsayer_utils import *
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2025.3.11"
+__version__ = "2025.4.3"
 
 # antiSMASH
 def get_antismash_from_genomes_cmd( input_filepaths, output_filepaths, output_directory, directories, opts):
@@ -47,7 +47,7 @@ do read -r -a ARRAY <<< $LINE
         grep "CDS" ${GENE_MODELS} > ${GENE_MODELS_CDS_ONLY}
 
         # Run antiSMASH
-        %s --allow-long-headers --verbose --skip-zip-file -c %d --output-dir ${INTERMEDIATE_DIRECTORY}/${ID} --html-title ${ID} --taxon %s --minlength %d --databases %s --hmmdetection-strictness %s --logfile ${INTERMEDIATE_DIRECTORY}/${ID}/log.txt --genefinding-gff3 ${GENE_MODELS_CDS_ONLY} ${GENOME} %s || (echo "antiSMASH for ${ID} failed" && exit 1)
+        %s --tta-threshold %f --cb-%s  -c %d --output-dir ${INTERMEDIATE_DIRECTORY}/${ID} --html-title ${ID} --taxon %s --databases %s %s ${GENOME} %s || (echo "antiSMASH for ${ID} failed" && exit 1)
         rm ${GENE_MODELS_CDS_ONLY}
 
         # Genbanks to table
@@ -132,11 +132,12 @@ done < %s
 
     # antiSMASH
     os.environ["antismash"],
+    opts.tta_threshold,
+    opts.clusterblast_database,
     opts.n_jobs,
     opts.taxon,
-    opts.minimum_contig_length,
     opts.antismash_database,
-    opts.hmmdetection_strictness,
+    "--genefinding-gff3 ${GENE_MODELS_CDS_ONLY}" if opts.taxon == "bacteria" else "",
     opts.antismash_options,
 
     # Summary table
@@ -336,9 +337,11 @@ def get_diamond_cmd( input_filepaths, output_filepaths, output_directory, direct
         "--threads {}".format(opts.n_jobs),
         "-f 6 {}".format(" ".join(fields)),
         "--evalue {}".format(opts.diamond_evalue),
-        "-o {}".format(os.path.join(output_directory, "diamond_output.mibig.no_header.tsv")),
+        "-o {}".format(os.path.join(output_directory, "diamond_output.mibig.tsv")),
         "--max-target-seqs 1",
         "--tmpdir {}".format(os.path.join(directories["tmp"], "diamond")),
+        "--header simple",
+
         # "--header 2",
     ]
     if bool(opts.diamond_sensitivity):
@@ -347,20 +350,6 @@ def get_diamond_cmd( input_filepaths, output_filepaths, output_directory, direct
         ]
     cmd += [ 
         opts.diamond_options,
-
-                "&&",
-            
-        "echo",
-        "'{}'".format("\t".join(fields)),
-        ">",
-        os.path.join(output_directory, "diamond_output.mibig.tsv"),
-
-            "&&",
-
-        "cat",
-        os.path.join(output_directory, "diamond_output.mibig.no_header.tsv"),
-        ">>",
-        os.path.join(output_directory, "diamond_output.mibig.tsv"),
 
         # VFDB
                 "&&",
@@ -376,10 +365,10 @@ def get_diamond_cmd( input_filepaths, output_filepaths, output_directory, direct
         "--threads {}".format(opts.n_jobs),
         "-f 6 {}".format(" ".join(fields)),
         "--evalue {}".format(opts.diamond_evalue),
-        "-o {}".format(os.path.join(output_directory, "diamond_output.vfdb.no_header.tsv")),
+        "-o {}".format(os.path.join(output_directory, "diamond_output.vfdb.tsv")),
         "--max-target-seqs 1",
         "--tmpdir {}".format(os.path.join(directories["tmp"], "diamond")),
-        # "--header 2",
+        "--header simple",
     ]
     if bool(opts.diamond_sensitivity):
         cmd += [ 
@@ -387,24 +376,6 @@ def get_diamond_cmd( input_filepaths, output_filepaths, output_directory, direct
         ]
     cmd += [ 
         opts.diamond_options,
-
-                "&&",
-            
-        "echo",
-        "'{}'".format("\t".join(fields)),
-        ">",
-        os.path.join(output_directory, "diamond_output.vfdb.tsv"),
-
-            "&&",
-
-        "cat",
-        os.path.join(output_directory, "diamond_output.vfdb.no_header.tsv"),
-        ">>",
-        os.path.join(output_directory, "diamond_output.vfdb.tsv"),
-
-    ]
-
-    cmd += [ 
     
             "&&",
 
@@ -420,7 +391,6 @@ def get_diamond_cmd( input_filepaths, output_filepaths, output_directory, direct
 
         "rm -rf",
         os.path.join(directories["tmp"], "components.concatenated.faa"),
-        os.path.join(output_directory, "*.no_header.tsv"),
 
     ]           
 
@@ -1027,10 +997,8 @@ def main(args=None):
     # antiSMASH
     parser_antismash = parser.add_argument_group('antiSMASH arguments')
     parser_antismash.add_argument("-t", "--taxon", type=str, default="bacteria", help="Taxonomic classification of input sequence {bacteria,fungi} [Default: bacteria]")
-    parser_antismash.add_argument("--minimum_contig_length", type=int, default=1, help="Minimum contig length.  [Default: 1] ")
-    parser_antismash.add_argument("-d", "--antismash_database", type=str, default=os.path.join(site.getsitepackages()[0], "antismash", "databases"), help="antiSMASH | Database directory path [Default: {}]".format(os.path.join(site.getsitepackages()[0], "antismash", "databases")))
-    parser_antismash.add_argument("-s", "--hmmdetection_strictness", type=str, default="relaxed", help="antiSMASH | Defines which level of strictness to use for HMM-based cluster detection {strict,relaxed,loose}  [Default: relaxed] ")
     parser_antismash.add_argument("--tta_threshold", type=float, default=0.65, help="antiSMASH | Lowest GC content to annotate TTA codons at [Default: 0.65]")
+    parser_antismash.add_argument("--clusterblast_database", type=str, choices={ "general", "subclusters", "knownclusters"}, default="general", help="antiSMASH | Compare identified clusters against a database [Default: general]")
     parser_antismash.add_argument("--antismash_options", type=str, default="", help="antiSMASH | More options (e.g. --arg 1 ) [Default: '']")
 
     # Diamond
@@ -1085,6 +1053,7 @@ def main(args=None):
     if opts.veba_database is None:
         assert "VEBA_DATABASE" in os.environ, "Please set the following environment variable 'export VEBA_DATABASE=/path/to/veba_database' or provide path to --veba_database"
         opts.veba_database = os.environ["VEBA_DATABASE"]
+    opts.antismash_database = os.path.join(opts.veba_database, "Annotate", "antiSMASH")
 
     # Directories
     directories = dict()

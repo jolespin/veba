@@ -1,4 +1,4 @@
-name: VEBA-binning-prokaryotic_env__v2025.3.31
+name: VEBA-binning-prokaryotic_env__v2025.4.3
 channels:
   - conda-forge
   - bioconda

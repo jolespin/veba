@@ -14,7 +14,7 @@ from soothsayer_utils import *
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2025.1.5"
+__version__ = "2025.4.3"
 
 def get_preprocess_cmd(input_filepaths, output_filepaths, output_directory, directories, opts):
 
@@ -50,6 +50,7 @@ def get_binning_cmd( input_filepaths, output_filepaths, output_directory, direct
         os.path.join(directories["output"], "unbinned.fasta"),
 
         "&&",
+        
         # Binning wrapper
         os.environ["binning_wrapper.py"],
         "-f {}".format(opts.fasta), # scaffolds.fasta
@@ -61,27 +62,8 @@ def get_binning_cmd( input_filepaths, output_filepaths, output_directory, direct
         "--minimum_genome_length {}".format(opts.minimum_genome_length),
         "--bin_prefix {}".format(prefix),
         "--random_state {}".format(seed),
-        ]
-    if opts.algorithm == "metabat2":
-        if bool(opts.metabat2_options):
-            cmd += [ "--metabat2_options {}".format(opts.metabat2_options)]
-    if opts.algorithm == "concoct":
-        cmd += [ 
-            "--concoct_fragment_length {}".format(opts.concoct_fragment_length),
-            "--concoct_overlap_length {}".format(opts.concoct_overlap_length),
-            ]
-        if bool(opts.concoct_options):
-            cmd += ["--concoct_options {}".format(opts.concoct_options)]
+        "--metabat2_options {}".format(opts.metabat2_options) if opts.metabat2_options else "",
 
-    cmd += [ 
-        # # Delete extra files
-        # "&&",
-        # "rm {} {} {} {}".format(
-        #     os.path.join(output_directory, "bins.list"),
-        #     os.path.join(output_directory, "binned.list"),
-        #     os.path.join(output_directory, "unbinned.list"),
-        #     os.path.join(output_directory, "genome_statistics.tsv"),
-        # ),
         # Move scaffolds_to_bins.tsv to tmp
         "&&",
 
@@ -92,25 +74,21 @@ def get_binning_cmd( input_filepaths, output_filepaths, output_directory, direct
 
         # Non-Eukaryotic
         "&&",
+        "mkdir -p {}".format(os.path.join(output_directory, "consensus_domain_classification")),
+        "&&",
+        "mkdir -p {}".format(os.path.join(output_directory,  "bins", "non-eukaryota")),
+        "&&",
+        
         "cat",
         os.path.join(os.path.join(output_directory, "bins"), "*.fa"),
         "|",
         os.environ["seqkit"],
         "seq",
         "-m {}".format(opts.tiara_minimum_length),
-        ">" ,
-        os.path.join(directories["tmp"], "scaffolds.binned.gte{}.fasta".format(opts.tiara_minimum_length)),
-
+        "|" ,
 
         # Tiara
-        "&&",
-        "mkdir -p {}".format(os.path.join(output_directory, "consensus_domain_classification")),
-        "&&",
-        "mkdir -p {}".format(os.path.join(output_directory,  "bins", "non-eukaryota")),
-
-        "&&",
         os.environ["tiara"],
-        "-i {}".format(os.path.join(directories["tmp"], "scaffolds.binned.gte{}.fasta".format(opts.tiara_minimum_length))),
         "-o {}".format(os.path.join(output_directory, "consensus_domain_classification", "tiara_output.tsv")),
         "--probabilities",
         "-m {}".format(opts.tiara_minimum_length),
@@ -226,67 +204,6 @@ def get_binning_cmd( input_filepaths, output_filepaths, output_directory, direct
 
     return cmd
 
-
-
-# def get_metaeuk_cmd(input_filepaths, output_filepaths, output_directory, directories, opts):
-
-#     cmd = [
-#         # Get the eukaryotic contigs
-#         "cat",
-#         opts.fasta,
-#         "|",
-#         os.environ["seqkit"],
-#         "seq",
-#         "-m {}".format(opts.minimum_contig_length),
-#         "|",
-#         os.environ["seqkit"],
-#         "grep",
-#         "--pattern-file {}".format(os.path.join(directories[("intermediate",  "1__binning_{}".format(opts.algorithm))], "binned.list")),
-#         ">",
-#         os.path.join(directories["tmp"], "scaffolds.binned.eukaryotic.fasta"), # contigs
-
-#         # Run MetaEuk
-#         "&&",
-#         os.environ["metaeuk"],
-#         "easy-predict",
-#         "--threads {}".format(opts.n_jobs),
-#         "-s {}".format(opts.metaeuk_sensitivity),
-#         "-e {}".format(opts.metaeuk_evalue),
-#         opts.metaeuk_options,
-#         os.path.join(directories["tmp"], "scaffolds.binned.eukaryotic.fasta"), # contigs
-#         opts.metaeuk_database, # db
-#         os.path.join(output_directory, "metaeuk"), # output prefix
-#         os.path.join(directories["tmp"],"metaeuk"),
-
-#         # Convert MetaEuk identifiers
-#         "&&",
-#         os.environ["compile_metaeuk_identifiers.py"],
-#         "--cds {}".format(os.path.join(output_directory, "metaeuk.codon.fas")),
-#         "--protein {}".format(os.path.join(output_directory, "metaeuk.fas")),
-#         "-o {}".format(output_directory),
-#         "-b gene_models",
-
-#         # Partition the gene models and genomes
-#         "&&",
-#         os.environ["partition_gene_models.py"],
-#         "-i {}".format(input_filepaths[1]),
-#         "-f {}".format(os.path.join(directories["tmp"], "scaffolds.binned.eukaryotic.fasta")),
-#         "-g {}".format(os.path.join(output_directory, "gene_models.gff")),
-#         "-d {}".format(os.path.join(output_directory, "gene_models.ffn")),
-#         "-a {}".format(os.path.join(output_directory, "gene_models.faa")),
-#         "-o {}".format(os.path.join(output_directory, "genomes")),
-
-#         # Remove temporary files
-#         "&&",
-#         "rm -rf {} {} {} {} {}".format(
-#             os.path.join(output_directory, "*.fas"), # output prefix
-#             os.path.join(output_directory, "metaeuk.gff"), # output prefix
-#             os.path.join(output_directory, "gene_models.*"), # output prefix
-#             os.path.join(directories["tmp"], "scaffolds.binned.eukaryotic.fasta"),
-#             os.path.join(directories["tmp"],"metaeuk", "*"),
-#         )
-#     ]
-#     return cmd
 
 def get_eukaryotic_gene_modeling_cmd(input_filepaths, output_filepaths, output_directory, directories, opts):
 
@@ -910,14 +827,14 @@ def add_executables_to_environment(opts):
                 "coverm",
         }
 
-    if opts.algorithm == "concoct":
-        required_executables |= {
-                "concoct",
-                "cut_up_fasta.py", 
-                "concoct_coverage_table.py",
-                "merge_cutup_clustering.py", 
-                "extract_fasta_bins.py", 
-        }
+    # if opts.algorithm == "concoct":
+    #     required_executables |= {
+    #             "concoct",
+    #             "cut_up_fasta.py", 
+    #             "concoct_coverage_table.py",
+    #             "merge_cutup_clustering.py", 
+    #             "extract_fasta_bins.py", 
+    #     }
 
     if opts.path_config == "CONDA_PREFIX":
         executables = dict()
@@ -1000,12 +917,12 @@ def main(args=None):
 
     # Binning
     parser_binning = parser.add_argument_group('Binning arguments')
-    parser_binning.add_argument("-a", "--algorithm", type=str, default="metabat2", help="Binning algorithm: {concoct, metabat2}  [Default: metabat2] ")
+    parser_binning.add_argument("-a", "--algorithm", type=str, default="metabat2", choices={"metabat2"}, help="Binning algorithm  [Default: metabat2] ")
     parser_binning.add_argument("-m", "--minimum_contig_length", type=int, default=1500, help="Minimum contig length.  [Default: 1500] ")
     parser_binning.add_argument("-s", "--minimum_genome_length", type=int, default=2000000, help="Minimum genome length.  [Default: 2000000] ")
-    parser_binning.add_argument("--concoct_fragment_length", type=int, default=10000, help="CONCOCT | Fragment length [Default: 10000] ")
-    parser_binning.add_argument("--concoct_overlap_length", type=int, default=0, help="CONCOCT | Fragment overlap length [Default: 0] ")
-    parser_binning.add_argument("--concoct_options", type=str, default="", help="CONCOCT | More options (e.g. --arg 1 ) [Default: '']")
+    # parser_binning.add_argument("--concoct_fragment_length", type=int, default=10000, help="CONCOCT | Fragment length [Default: 10000] ")
+    # parser_binning.add_argument("--concoct_overlap_length", type=int, default=0, help="CONCOCT | Fragment overlap length [Default: 0] ")
+    # parser_binning.add_argument("--concoct_options", type=str, default="", help="CONCOCT | More options (e.g. --arg 1 ) [Default: '']")
     parser_binning.add_argument("--metabat2_options", type=str, default="", help="MetaBat2 | More options (e.g. --arg 1 ) [Default: ''] | https://bitbucket.org/berkeleylab/metabat/src/master/")
 
 

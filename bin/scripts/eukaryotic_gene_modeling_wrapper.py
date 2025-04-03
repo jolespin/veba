@@ -187,26 +187,23 @@ def get_metaeuk_cmd(input_filepaths, output_filepaths, output_directory, directo
 def get_pyrodigal_cmd(input_filepaths, output_filepaths, output_directory, directories, opts, genetic_code):
 
     cmd = [
-        "cat",
-        opts.fasta,
-        "|",
-        os.environ["seqkit"],
-        "grep",
-        "-f {}".format(input_filepaths[0]),
-        ">",
-        os.path.join(directories["tmp"], "tmp.fasta"),
-
-            "&&",
 
         # Placeholder
         "OUTPUT_DIRECTORY={};  for ID in $(cat {}); do >$OUTPUT_DIRECTORY/$ID.faa; >$OUTPUT_DIRECTORY/$ID.ffn; >$OUTPUT_DIRECTORY/$ID.gff; done".format(output_directory, input_filepaths[1]),
 
             "&&",
 
+        "cat",
+        opts.fasta,
+        "|",
+        os.environ["seqkit"],
+        "grep",
+        "-f {}".format(input_filepaths[0]),
+        "|",
+
         # Run analysis
         os.environ["pyrodigal"],
         "-p meta",
-        "-i {}".format(os.path.join(directories["tmp"], "tmp.fasta")),
         "-g {}".format(genetic_code),
         "-f gff",
         "-d {}".format(os.path.join(output_directory, "{}.ffn".format(opts.basename))),
@@ -214,24 +211,13 @@ def get_pyrodigal_cmd(input_filepaths, output_filepaths, output_directory, direc
         "--min-gene {}".format(opts.pyrodigal_minimum_gene_length),
         "--min-edge-gene {}".format(opts.pyrodigal_minimum_edge_gene_length),
         "--max-overlap {}".format(opts.pyrodigal_maximum_gene_overlap_length),
-        # "-j {}".format(opts.n_jobs),
-        ">",
-        os.path.join(directories["tmp"], "tmp.gff"),
-
-            "&&",
-
-        "cat",
-        os.path.join(directories["tmp"], "tmp.gff"),
+        "-j {}".format(opts.n_jobs),
         "|",
         os.environ["append_geneid_to_prodigal_gff.py"],
         "-a gene_id",
         ">",
         os.path.join(output_directory, "{}.gff".format(opts.basename)),
 
-            "&&",
-
-        "rm -rf",
-        os.path.join(directories["tmp"], "tmp.*"),
         ]
     
     if opts.scaffolds_to_bins:

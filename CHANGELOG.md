@@ -483,13 +483,24 @@ ________________________________________________________________
 <details>
 	<summary> <b>Daily Change Log:</b> </summary>
 
-* [!] BINNER CHECHKPOINTS MIGHT NOT WORK?
-* [2025.4.2] - Added `xxhash` dependency to `VEBA-binning-prokaryotic_env` which is used for bin name reproducibility
+* [2025.4.3] - Updated `Pyrodigal` in `binning-eukaryotic.py` for organelles to allow piping and threading
+* [2025.4.3] - Remove `CONCOCT` support in `binning-eukaryotic.py`
+* [2025.4.3] - Updated `BUSCO v5.8.3` and associated database
+* [2025.4.3] - Updated `Tiara` to `Tiara-NAL` in `VEBA-binning-prokaryotic_env` and `VEBA-binning-eukaryotic_env` to handle `stdin`
+* [2025.4.3] - Updated `biosynthetic.py` to use `antiSMASH v7` [Issue #159](https://github.com/jolespin/veba/issues/159)
+* [2025.4.3] - If `--taxon fungi` then precomputed genes are not used because of formatting issues
+* [2025.4.3] - Added `genome_statistics.tsv.gz`, `gene_statistics.cds.tsv.gz`, `gene_statistics.rRNA.tsv.gz`, and `gene_statistics.tRNA.tsv.gz` to `essentials.py`
+* [2025.4.3] - Fixed bug where `VFDB` hits were counted as `MIBiG` in `biosynthetic.py` [Issue #141](https://github.com/jolespin/veba/issues/141)
+* [2025.4.3] - Added `--tta_threshold` to `biosynthetic.py`.  This argument was already available but not actually connected to the command.
+* [2025.4.3] - Added `--clusterblast_database` to `biosynthetic.py` [Issue #143](https://github.com/jolespin/veba/issues/143)
+* [2025.4.3] - Simplified the method used for adding the header to `Diamond` outputs in `biosynthetic.py`
+* [2025.4.2] - Changed `Dockerfile` working directory from `/tmp/` to `/home/`
+* [2025.4.2] - Added `xxhash` dependency to `VEBA-binning-prokaryotic_env` which is used for bin name reproducibility [Issue #140](https://github.com/jolespin/veba/issues/140)
 * [2025.4.2] - Removed capitalization of column headers in `filter_binette_results.py`
-* [2025.3.31] - Added `-e/--exclude` and `-d/--domain_predictions` to `filter_binette_results.py` to allow the removal of eukaryotic genomes and setup the domain assignments for `barrnap` and `tRNAscan-SE`.  
+* [2025.3.31] - Added `-e/--exclude` and `-d/--domain_predictions` to `filter_binette_results.py` to allow the removal of eukaryotic genomes and setup the domain assignments for `barrnap` and `tRNAscan-SE`.  [Issue #153](https://github.com/jolespin/veba/issues/153)
 * [2025.3.31] - `Tiara` is now added into the `binette` step of `binning-prokaryotic.py` along with `consensus_domain_classification.py`.
-* [2025.3.30] - Updated `CheckM2` and `Binette` versions in `binning-prokaryotic.py` which also includes a new `CheckM2` `Diamond` database in `VDB_v8.2`
-* [2025.3.30] - Added `semibin2-[biome]` to `binning-prokaryotic.py` and remove `--semibin2_biome` which allows a user to specify multiple biomes (e.g., `semibin2-global` and `semibin2-ocean`)
+* [2025.3.30] - Updated `CheckM2` and `Binette` versions in `binning-prokaryotic.py` which also includes a new `CheckM2` `Diamond` database in `VDB_v8.2` [Issue #154](https://github.com/jolespin/veba/issues/154)
+* [2025.3.30] - Added `semibin2-[biome]` to `binning-prokaryotic.py` and remove `--semibin2_biome` which allows a user to specify multiple biomes (e.g., `semibin2-global` and `semibin2-ocean`) [Issue #155](https://github.com/jolespin/veba/issues/155)
 * [2025.3.30] - Added `--semibin2_orf_finder` to `binning_wrapper.py` and remove precomputed genes from `SemiBin2` wrapper because [SemiBin2/issue-#185](https://github.com/BigDataBiology/SemiBin/issues/185).
 * [2025.3.11] - Added `--antismash_options` missing bug in `biosynthetic.py`
 * [2025.2.1] - Added `--megahit_build_de_bruijn_graph` to make de-Bruijn graph construction for `MEGAHIT` optional in `assembly.py`
