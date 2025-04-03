@@ -121,7 +121,7 @@ def main(args=None):
             if (origin not in {"diff", "union", "intersec"}) and  (";" not in origin):
                 new_mag = name
             else:
-                new_mang = f"{opts.bin_prefix}{magold_to_hash[id_mag]}"
+                new_mag = f"{opts.bin_prefix}{magold_to_hash[id_mag]}"
                 # new_mag = f"{opts.bin_prefix}{id_mag}"
             magold_to_magnew[id_mag] = new_mag
             mags.append(id_mag)
