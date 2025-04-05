@@ -266,7 +266,7 @@ def get_checkv_cmd(input_filepaths, output_filepaths, output_directory, director
     
     return cmd
 
-# Prodigal
+# Pyrodigal
 def get_pyrodigalgv_cmd(input_filepaths, output_filepaths, output_directory, directories, opts):
     cmd = [
         "cat",

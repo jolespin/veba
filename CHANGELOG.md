@@ -419,14 +419,12 @@ ________________________________________________________________
 * Return code for `cluster.py` when it fails during global and local clustering is 0 but should be 1.
 * Don't load all genomes, proteins, and cds into memory for clustering.  Also, too many files are opened with large genomics datasets.
 * Genome checkpoints in `tRNAscan-SE` aren't working properly.
-* Dereplicate CDS sequences in GFF from `MetaEuk` for `antiSMASH` to work for eukaryotic genomes
 
 **Definitely:**
 
-* Use Strobealign instead of Bowtie2 (https://github.com/ksahlin/strobealign)
 * When annotating proteins, create a hash representation and a dictionary of redundant sequences to decrease search space
-* Add an `isolate.py` module which assembles, calls genes, checks for contamination and if there is, then bins genomes, and quality assesses.
-* Add `metadecoder` with `eukaryota_odb10` marker set for `binning-eukaryotic.py`
+* Add a `isolate-prokaryotic.py` and `isolate-eukaryotic.py` modules which assembles, calls genes, checks for contamination and if there is, then bins genomes, and quality assesses.
+* Add `metadecoder` with `eukaryota_odb12` marker set for `binning-eukaryotic.py`
 * Replace `Bowtie2` with `strobealign` and `Fairy` when applicable (i.e., `coverage` module)
 * Script to add `PyHMMSearch` annotations to `annotations.proteins.tsv.gz`
 * Develop `add_taxonomy_to_annotations.py` script
@@ -438,14 +436,11 @@ ________________________________________________________________
 * Add number of unique protein clusters to `identifier_mapping.genomes.tsv.gz` in `cluster.py` to assess most metabolicly diverse representative.
 * Add `BiNI` biosynthetic novelty index to `biosynthetic.py`
 * `busco_wrapper.py` that relabels all the genes, runs analysis, then converts output to tsv.
-* Add `convert_reads_long_to_short.py` which will take windows of 150 bp for the long reads.
 * Use `pigz` instead of `gzip`
-* Create a taxdump for `MicroEuk`
-* Reimplement `compile_eukaryotic_classifications.py`
 * Add representative to `identifier_mapping.proteins.tsv.gz`
 * Use `aria2` in parallel instead of `wget`.
 * Add support for `Salmon` in `mapping.py` and `index.py`.  This can be used instead of `STAR` which will require adding the `exon` field to `Pyrodigal` GFF file (`MetaEuk` modified GFF files already have exon ids). 
-* [Optional] Number of plasmids (via `geNomad`) for each MAG.
+* Number of plasmids (via `geNomad`) for each MAG.
 
 
 **Eventually (Yes)?:**
@@ -456,27 +451,13 @@ ________________________________________________________________
 * Add coding density to GFF files
 * Run `cmsearch` before `tRNAscan-SE`
 * DN/DS from pangeome analysis
-* Add a `metabolic.py` module	
 * For viral binning, contigs that are not identified as viral via `geNomad -> CheckV` use with `vRhyme`.
 * Add `vRhyme` to `binning_wrapper.py` and support `vRhyme` in `binning-viral.py`.
 
 
 **...Maybe (Not)?**
-
-* Add option to `compile_custom_humann_database_from_annotations.py` to only output best hit of a UniRef identifier per genome.
 * Swap [`TransDecoder`](https://github.com/TransDecoder/TransDecoder) for [`TransSuite`](https://github.com/anonconda/TranSuite)
-* Develop `iterative_metaeuk_wrapper.py` which does the following: 1) Mask genome with `sdust` (pipe to stdout); 2) `MMseqs2` contig database (from stdin); 3) `MetaEuk` on MicroEuk100.eukaryota_odb10 to get source taxa for enrichment; 4) `subset_microeuk_proteins.py` to get enriched protein set; 5) run `MetaEuk` again with enriched subset; ...
 
-
-**Developmental:**
-
-* Error with `amplicon.py` that works when run manually... (Developmental module)
-
-```
-There was a problem importing veba_output/misc/reads_table.tsv:
-
-  Missing one or more files for SingleLanePerSamplePairedEndFastqDirFmt: '.+_.+_L[0-9][0-9][0-9]_R[12]_001\\.fastq\\.gz'
-```
 
 ________________________________________________________________
 
@@ -484,6 +465,7 @@ ________________________________________________________________
 <details>
 	<summary> <b>Daily Change Log:</b> </summary>
 
+* [2025.4.4] - Deprecated `amplicon.py` because `nf-core/ampliseq` works great.
 * [2025.4.4] - Changed `prodigal-gv` to `pyrodigal-gv` in multithreaded mode for `binning-viral.py`
 * [2025.4.4] - Removed `metacoag`from default binning algorithms now that `SemiBin2` can be used with different biomes. `MetaCoAG` is getting `KeyErrors`.
 * [2025.4.4] - Changed `CONDA_ENVS_PATH=${CONDA_ENVS_PATH:-"$(conda info --base)/envs/"}` to `CONDA_ENVS_PATH=$(dirname $CONDA_PREFIX)` in `veba` controller executable to handle new syntax when `VEBA` environments are in different location than the base conda.
