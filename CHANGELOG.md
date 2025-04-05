@@ -423,6 +423,7 @@ ________________________________________________________________
 
 **Definitely:**
 
+* Use Strobealign instead of Bowtie2 (https://github.com/ksahlin/strobealign)
 * When annotating proteins, create a hash representation and a dictionary of redundant sequences to decrease search space
 * Add an `isolate.py` module which assembles, calls genes, checks for contamination and if there is, then bins genomes, and quality assesses.
 * Add `metadecoder` with `eukaryota_odb10` marker set for `binning-eukaryotic.py`
@@ -483,6 +484,10 @@ ________________________________________________________________
 <details>
 	<summary> <b>Daily Change Log:</b> </summary>
 
+* [2025.4.4] - Changed `prodigal-gv` to `pyrodigal-gv` in multithreaded mode for `binning-viral.py`
+* [2025.4.4] - Removed `metacoag`from default binning algorithms now that `SemiBin2` can be used with different biomes. `MetaCoAG` is getting `KeyErrors`.
+* [2025.4.4] - Changed `CONDA_ENVS_PATH=${CONDA_ENVS_PATH:-"$(conda info --base)/envs/"}` to `CONDA_ENVS_PATH=$(dirname $CONDA_PREFIX)` in `veba` controller executable to handle new syntax when `VEBA` environments are in different location than the base conda.
+* [2025.4.4] - Updated `geNomad` to `v1.11.0` and `geNomad database` to `v1.8` because of `ImportError: numpy.core.multiarray failed to import` error [Issue #160](https://github.com/jolespin/veba/issues/160)
 * [2025.4.3] - Updated `Pyrodigal` in `binning-eukaryotic.py` for organelles to allow piping and threading
 * [2025.4.3] - Remove `CONCOCT` support in `binning-eukaryotic.py`
 * [2025.4.3] - Updated `BUSCO v5.8.3` and associated database
