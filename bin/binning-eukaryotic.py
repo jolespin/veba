@@ -49,7 +49,7 @@ def get_binning_cmd( input_filepaths, output_filepaths, output_directory, direct
         ">",
         os.path.join(directories["output"], "unbinned.fasta"),
 
-        "&&",
+            "&&",
         
         # Binning wrapper
         os.environ["binning_wrapper.py"],
@@ -65,7 +65,7 @@ def get_binning_cmd( input_filepaths, output_filepaths, output_directory, direct
         "--metabat2_options {}".format(opts.metabat2_options) if opts.metabat2_options else "",
 
         # Move scaffolds_to_bins.tsv to tmp
-        "&&",
+            "&&",
 
         "mv {} {}".format(
             os.path.join(output_directory, "scaffolds_to_bins.tsv"),
