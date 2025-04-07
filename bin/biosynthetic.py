@@ -13,7 +13,7 @@ from soothsayer_utils import *
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2025.4.3"
+__version__ = "2025.4.7"
 
 # antiSMASH
 def get_antismash_from_genomes_cmd( input_filepaths, output_filepaths, output_directory, directories, opts):
@@ -47,7 +47,7 @@ do read -r -a ARRAY <<< $LINE
         grep "CDS" ${GENE_MODELS} > ${GENE_MODELS_CDS_ONLY}
 
         # Run antiSMASH
-        %s --tta-threshold %f --cb-%s  -c %d --output-dir ${INTERMEDIATE_DIRECTORY}/${ID} --html-title ${ID} --taxon %s --databases %s %s ${GENOME} %s || (echo "antiSMASH for ${ID} failed" && exit 1)
+        %s --tta-threshold %f -c %d --output-dir ${INTERMEDIATE_DIRECTORY}/${ID} --html-title ${ID} --taxon %s --databases %s %s ${GENOME} %s || (echo "antiSMASH for ${ID} failed" && exit 1)
         rm ${GENE_MODELS_CDS_ONLY}
 
         # Genbanks to table
@@ -133,7 +133,7 @@ done < %s
     # antiSMASH
     os.environ["antismash"],
     opts.tta_threshold,
-    opts.clusterblast_database,
+    # opts.clusterblast_database,
     opts.n_jobs,
     opts.taxon,
     opts.antismash_database,
@@ -998,7 +998,7 @@ def main(args=None):
     parser_antismash = parser.add_argument_group('antiSMASH arguments')
     parser_antismash.add_argument("-t", "--taxon", type=str, default="bacteria", help="Taxonomic classification of input sequence {bacteria,fungi} [Default: bacteria]")
     parser_antismash.add_argument("--tta_threshold", type=float, default=0.65, help="antiSMASH | Lowest GC content to annotate TTA codons at [Default: 0.65]")
-    parser_antismash.add_argument("--clusterblast_database", type=str, choices={ "general", "subclusters", "knownclusters"}, default="general", help="antiSMASH | Compare identified clusters against a database [Default: general]")
+    # parser_antismash.add_argument("--clusterblast_database", type=str, choices={ "general", "subclusters", "knownclusters"}, default="general", help="antiSMASH | Compare identified clusters against a database [Default: general]") # Can't use this because antiSMASH needs to write to the directory so you can't have read-only access
     parser_antismash.add_argument("--antismash_options", type=str, default="", help="antiSMASH | More options (e.g. --arg 1 ) [Default: '']")
 
     # Diamond
