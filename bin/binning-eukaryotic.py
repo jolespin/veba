@@ -331,6 +331,7 @@ rm -rf $TMP_BUSCO_DIRECTORY/*
     "-i {}".format(os.path.join(output_directory, "busco_output")),
     "-j {}".format(os.path.join(output_directory, "busco_results.json")),
     "-o {}".format(os.path.join(output_directory, "busco_results.tsv")),
+    "--busco_version 5.8.x",
 
         "&&",
 

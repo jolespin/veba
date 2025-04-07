@@ -12,7 +12,7 @@ from soothsayer_utils import *
 
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2025.3.30"
+__version__ = "2025.4.6"
 
 def get_maxbin2_cmd( input_filepaths, output_filepaths, output_directory, directories, opts):
     # Create dummy scaffolds_to_bins.tsv to overwrite later. 
@@ -417,6 +417,39 @@ def get_metacoag_cmd( input_filepaths, output_filepaths, output_directory, direc
 
 
     return cmd
+
+# VAMB
+# The code below is obsolete with the current version
+# Also the coverage table needs to match the contigs exactly
+# def get_vamb_cmd(input_filepaths, output_filepaths, output_directory, directories, opts):
+#
+#     os.environ["TMPDIR"] = directories["tmp"]
+#     # Command
+#     cmd = [
+#     "(echo $CONDA_PREFIX && echo $PATH)",
+#     "&&",
+#     # VAMB
+#     "(",
+#     "rm -rf {}".format(output_directory), # There can't be an existing directory for some reason
+#     "&&",
+#     os.environ["vamb"],
+#     "--fasta {}".format(input_filepaths[0]),
+#     "--jgi {}".format(input_filepaths[1]),
+#     "-m {}".format(opts.minimum_contig_length),
+#     # "-p {}".format(opts.n_jobs),
+#     "--outdir {}".format(output_directory),
+#     opts.vamb_options,
+#         "&&",
+#     os.environ["scaffolds_to_bins.py"],
+#     "-x fna",
+#     "-i {}".format(output_directory),
+#     # "--sep '\t'",
+#     "--bin_prefix VAMB__",
+#     ">",
+#     os.path.join(output_directory, "scaffolds_to_bins.tsv"),
+#     ")",
+#     ]
+#     return cmd
 
 def get_compile_cmd( input_filepaths, output_filepaths, output_directory, directories, opts):
 
@@ -1176,32 +1209,3 @@ if __name__ == "__main__":
 
 
 # Extra:
-# # VAMB
-# def get_vamb_cmd(input_filepaths, output_filepaths, output_directory, directories, opts):
-#     os.environ["TMPDIR"] = directories["tmp"]
-#     # Command
-#     cmd = [
-#     "(echo $CONDA_PREFIX && echo $PATH)",
-#     "&&",
-#     # VAMB
-#     "(",
-#     "rm -rf {}".format(output_directory), # There can't be an existing directory for some reason
-#     "&&",
-#     os.environ["vamb"],
-#     "--fasta {}".format(input_filepaths[0]),
-#     "--jgi {}".format(input_filepaths[1]),
-#     "-m {}".format(opts.minimum_contig_length),
-#     # "-p {}".format(opts.n_jobs),
-#     "--outdir {}".format(output_directory),
-#     opts.vamb_options,
-#         "&&",
-#     os.environ["scaffolds_to_bins.py"],
-#     "-x fna",
-#     "-i {}".format(output_directory),
-#     # "--sep '\t'",
-#     "--bin_prefix VAMB__",
-#     ">",
-#     os.path.join(output_directory, "scaffolds_to_bins.tsv"),
-#     ")",
-#     ]
-#     return cmd
