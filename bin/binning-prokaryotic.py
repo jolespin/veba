@@ -13,7 +13,7 @@ from soothsayer_utils import *
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2025.4.4"
+__version__ = "2025.4.8"
 
 # Assembly
 def get_coverage_cmd( input_filepaths, output_filepaths, output_directory, directories, opts):
@@ -1347,7 +1347,7 @@ def create_pipeline(opts, directories, f_cmds):
                     validate_inputs=False,
                     validate_outputs=False,
                     errors_ok=False,
-                    acceptable_returncodes={0,1,2},                    
+                    acceptable_returncodes={0,1,2,134}, # Should this be 0 and then errors_ok=True?                   
                     log_prefix=program_label,
                     # acceptable_returncodes= {0,1},
 

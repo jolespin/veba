@@ -414,18 +414,19 @@ ________________________________________________________________
 
 **Critical:**
 
-* Symlink genomes in `classify-prokaryotic.py` instead of copying genomes
-* Cluster module doesn't symlink global directory correctly on MacOS
-* Return code for `cluster.py` when it fails during global and local clustering is 0 but should be 1.
-* Don't load all genomes, proteins, and cds into memory for clustering.  Also, too many files are opened with large genomics datasets.
+* Symlink genomes in `classify-prokaryotic.py` instead of copying genomes [v2.6.0]
+* Cluster module doesn't symlink global directory correctly on MacOS [v2.6.0]
+* Return code for `cluster.py` when it fails during global and local clustering is 0 but should be 1. [v2.6.0]
+* Don't load all genomes, proteins, and cds into memory for clustering.  Also, too many files are opened with large genomics datasets. [v2.6.0]
 * Genome checkpoints in `tRNAscan-SE` aren't working properly.
 
 **Definitely:**
 
-* When annotating proteins, create a hash representation and a dictionary of redundant sequences to decrease search space
+* When annotating proteins, create a hash representation and a dictionary of redundant sequences to decrease search space [v2.6.0]
+* Replace `Bowtie2` with `strobealign` and `Fairy` when applicable (i.e., `coverage`, `assembly`, `binning`, `index`, and `mapping` modules) [v2.6.0] 
+* Number of plasmids (via `geNomad`) for each MAG. [v2.6.0]
 * Add a `isolate-prokaryotic.py` and `isolate-eukaryotic.py` modules which assembles, calls genes, checks for contamination and if there is, then bins genomes, and quality assesses.
 * Add `metadecoder` with `eukaryota_odb12` marker set for `binning-eukaryotic.py`
-* Replace `Bowtie2` with `strobealign` and `Fairy` when applicable (i.e., `coverage` module)
 * Script to add `PyHMMSearch` annotations to `annotations.proteins.tsv.gz`
 * Develop `add_taxonomy_to_annotations.py` script
 * Develop method for building and curating HMM cutoffs (e.g., comparing against false positives)
@@ -440,7 +441,6 @@ ________________________________________________________________
 * Add representative to `identifier_mapping.proteins.tsv.gz`
 * Use `aria2` in parallel instead of `wget`.
 * Add support for `Salmon` in `mapping.py` and `index.py`.  This can be used instead of `STAR` which will require adding the `exon` field to `Pyrodigal` GFF file (`MetaEuk` modified GFF files already have exon ids). 
-* Number of plasmids (via `geNomad`) for each MAG.
 
 
 **Eventually (Yes)?:**
@@ -465,9 +465,10 @@ ________________________________________________________________
 <details>
 	<summary> <b>Daily Change Log:</b> </summary>
 
+* [2025.4.8] - Allow faulty return codes in iterative mode for `binette` since this allows genome recovery to converge
 * [2025.4.4] - Deprecated `amplicon.py` because `nf-core/ampliseq` works great.
 * [2025.4.4] - Changed `prodigal-gv` to `pyrodigal-gv` in multithreaded mode for `binning-viral.py`
-* [2025.4.4] - Removed `metacoag`from default binning algorithms now that `SemiBin2` can be used with different biomes. `MetaCoAG` is getting `KeyErrors`.
+* [2025.4.4] - Removed `metacoag`from default binning algorithms now that `SemiBin2` can be used with different biomes. 
 * [2025.4.4] - Changed `CONDA_ENVS_PATH=${CONDA_ENVS_PATH:-"$(conda info --base)/envs/"}` to `CONDA_ENVS_PATH=$(dirname $CONDA_PREFIX)` in `veba` controller executable to handle new syntax when `VEBA` environments are in different location than the base conda.
 * [2025.4.4] - Updated `geNomad` to `v1.11.0` and `geNomad database` to `v1.8` because of `ImportError: numpy.core.multiarray failed to import` error [Issue #160](https://github.com/jolespin/veba/issues/160)
 * [2025.4.3] - Updated `Pyrodigal` in `binning-eukaryotic.py` for organelles to allow piping and threading
@@ -479,7 +480,7 @@ ________________________________________________________________
 * [2025.4.3] - Added `genome_statistics.tsv.gz`, `gene_statistics.cds.tsv.gz`, `gene_statistics.rRNA.tsv.gz`, and `gene_statistics.tRNA.tsv.gz` to `essentials.py`
 * [2025.4.3] - Fixed bug where `VFDB` hits were counted as `MIBiG` in `biosynthetic.py` [Issue #141](https://github.com/jolespin/veba/issues/141)
 * [2025.4.3] - Added `--tta_threshold` to `biosynthetic.py`.  This argument was already available but not actually connected to the command.
-* [2025.4.3] - Added `--clusterblast_database` to `biosynthetic.py` [Issue #143](https://github.com/jolespin/veba/issues/143)
+* ~~[2025.4.3] - Added `--clusterblast_database` to `biosynthetic.py` [Issue #143](https://github.com/jolespin/veba/issues/143)~~
 * [2025.4.3] - Simplified the method used for adding the header to `Diamond` outputs in `biosynthetic.py`
 * [2025.4.2] - Changed `Dockerfile` working directory from `/tmp/` to `/home/`
 * [2025.4.2] - Added `xxhash` dependency to `VEBA-binning-prokaryotic_env` which is used for bin name reproducibility [Issue #140](https://github.com/jolespin/veba/issues/140)
