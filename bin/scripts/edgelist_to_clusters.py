@@ -6,9 +6,11 @@ import pandas as pd
 import networkx as nx
 from tqdm import tqdm
 from Bio.SeqIO.FastaIO import SimpleFastaParser
+from pyexeggutor import open_file_writer
+
 
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2024.11.8"
+__version__ = "2025.4.8"
 
 def generate_unique_cluster_base_label(nodes:set, mode:str, index:int, cluster_prefix_zfill:int):
     ALPHANUMERIC=list("1234567890abcdefghijklmnopqrstuvwxyz")
@@ -235,32 +237,27 @@ def main(args=None):
 
     # Export pickle
     if opts.export_graph is not None:
-        with open("{}".format(opts.export_graph), "wb") as f:
+        with open_file_writer("{}".format(opts.export_graph)) as f:
             pickle.dump(graph, f)
 
     if opts.export_dict is not None:
-        with open("{}".format(opts.export_dict), "wb") as f:
+        with open_file_writer("{}".format(opts.export_dict)) as f:
             pickle.dump(cluster_to_nodes, f)
 
     # Export representatives
     if opts.export_representatives is not None:
-        if opts.export_representatives.endswith(".gz"):
-            f_representatives = gzip.open("{}".format(opts.export_representatives), "wt")
-        else:
-            f_representatives = open("{}".format(opts.export_representatives), "w")
-
-        print("id_node", "id_cluster", "intra-cluster_connectivity", "representative", sep="\t", file=f_representatives)
-        for id_node, node_metadata in graph.nodes(data=True):
-            k = node_metadata["intra-cluster_connectivity"]
-            print(
-                id_node, 
-                node_metadata["id_cluster"], 
-                k if pd.notnull(k) else "", 
-                node_metadata["representative"], 
-                sep="\t", 
-                file=f_representatives,
-            )
-        f_representatives.close()
+        with open_file_writer("{}".format(opts.export_representatives)) as f:
+            print("id_node", "id_cluster", "intra-cluster_connectivity", "representative", sep="\t", file=f)
+            for id_node, node_metadata in graph.nodes(data=True):
+                k = node_metadata["intra-cluster_connectivity"]
+                print(
+                    id_node, 
+                    node_metadata["id_cluster"], 
+                    k if pd.notnull(k) else "", 
+                    node_metadata["representative"], 
+                    sep="\t", 
+                    file=f,
+                )
 
 
     # # Export edgelist

@@ -465,6 +465,7 @@ ________________________________________________________________
 <details>
 	<summary> <b>Daily Change Log:</b> </summary>
 
+* [2025.4.8] - Added `open_file_writer` from `pyexeggutor` to `edgelist_to_clusters.py` to handle automatic gzipping if `.gz` extension is detected.
 * [2025.4.8] - Allow faulty return codes in iterative mode for `binette` since this allows genome recovery to converge
 * [2025.4.4] - Deprecated `amplicon.py` because `nf-core/ampliseq` works great.
 * [2025.4.4] - Changed `prodigal-gv` to `pyrodigal-gv` in multithreaded mode for `binning-viral.py`
