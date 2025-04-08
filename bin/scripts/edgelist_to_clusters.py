@@ -237,11 +237,11 @@ def main(args=None):
 
     # Export pickle
     if opts.export_graph is not None:
-        with open_file_writer("{}".format(opts.export_graph)) as f:
+        with open_file_writer("{}".format(opts.export_graph), binary=True) as f:
             pickle.dump(graph, f)
 
     if opts.export_dict is not None:
-        with open_file_writer("{}".format(opts.export_dict)) as f:
+        with open_file_writer("{}".format(opts.export_dict), binary=True) as f:
             pickle.dump(cluster_to_nodes, f)
 
     # Export representatives
