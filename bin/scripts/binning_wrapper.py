@@ -516,6 +516,8 @@ def get_vamb_cmd(input_filepaths, output_filepaths, output_directory, directorie
         os.path.join(output_directory, "scaffolds_to_bins.tsv"),
         "-o",
         os.path.join(output_directory, "bins"),
+        "-f",
+        opts.fasta,
         "-x",
         "fa",
         

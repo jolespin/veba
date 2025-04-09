@@ -21,7 +21,6 @@ def get_coverage_cmd( input_filepaths, output_filepaths, output_directory, direc
     # Command
     cmd = [
 
-
     # For pipeline purposes
     "cat",
     opts.fasta,
@@ -32,6 +31,25 @@ def get_coverage_cmd( input_filepaths, output_filepaths, output_directory, direc
     ">" ,
     os.path.join(directories["output"], "unbinned.fasta"),
 
+    "&&",
+    
+    # Get contig list
+    "cat",
+    opts.fasta,
+    "|",
+    "grep",
+    '"^>"',
+    "|",
+    "cut",
+    "-c2-",
+    "|",
+    "cut",
+    "-d",
+    '" "',
+    "-f1",
+    ">",
+    os.path.join(directories["tmp"], "contigs.list"),
+    
     "&&",
 
     # Coverage for MetaBat2 
@@ -44,34 +62,43 @@ def get_coverage_cmd( input_filepaths, output_filepaths, output_directory, direc
     ">",
     output_filepaths[0],
 
-        "&&",
+        "&&", #     output_filenames = ["coverage_metabat.tsv", "coverage_noheader.tsv", "coverage_vamb.tsv"]
 
-    # # Coverage for MetaCoaAG
-    # "cut -f1,4",
-    # output_filepaths[0],
-    # "|",
-    # "tail -n +2",
-    # ">",
-    # output_filepaths[1],
-    """
+
+    # Coverage for MetaCoaAG
+    os.environ["convert_metabat2_coverage.py"],
+    "-i",
+    output_filepaths[0],
+    "-o",
+    output_filepaths[1],
+    "--no_header",
     
-    python -c "import pandas as pd; df = pd.read_csv('{}', sep='\t', index_col=0); df.loc[:,df.columns.map(lambda x: x.endswith(('.bam','.sam')))].to_csv('{}', sep='\t', header=None)"
+        "&&",
     
-    """.format( 
-            output_filepaths[0],
-            output_filepaths[1],
-    )
-    ]
+    # Coverage for VAMB
+    os.environ["convert_metabat2_coverage.py"],
+    "-i",
+    output_filepaths[0],
+    "-o",
+    output_filepaths[2],
+    "--no_header",
+    "--index_name",
+    "contigname",
+    "--identifiers",
+    os.path.join(directories["tmp"], "contigs.list"),
+    
+    
     
     if "metadecoder" in opts.algorithms:
         cmd += [
             
+            "&&",
             
         os.environ["metadecoder"],
         "coverage",
         "-b",
         " ".join(opts.bam),
-        "-o {}".format(output_filepaths[2]),
+        "-o {}".format(output_filepaths[3]),
         "--threads {}".format(opts.n_jobs),
         opts.metadecoder_coverage_options,
         ]
@@ -228,6 +255,29 @@ def get_metacoag_cmd( input_filepaths, output_filepaths, output_directory, direc
     ]
     return cmd
 
+# VAMB
+def get_vamb_cmd( input_filepaths, output_filepaths, output_directory, directories, opts, prefix, seed):
+
+    cmd = [
+        f"rm -rv {output_directory}",
+        "&&",
+        f"mkdir -p {output_directory}",
+        "&&",
+        os.environ["binning_wrapper.py"],
+        "-a vamb",
+        "-f {}".format(input_filepaths[0]), # scaffolds.fasta
+        "-c {}".format(input_filepaths[1]), # Needs special coverage format
+        "-o {}".format(output_directory),
+        "-m {}".format(opts.minimum_contig_length), # mininimum contig length must be >= 1000 nts for SemiBin2 which is handled by the wrapper
+        "-s {}".format(opts.minimum_genome_length), 
+        "--n_jobs {}".format(opts.n_jobs),
+        "--random_state {}".format(seed),
+        "--bin_prefix {}".format(prefix),
+        "--remove_bins",
+        "--remove_intermediate_files",
+        "--vamb_options {}".format(opts.vamb_options) if bool(opts.vamb_options) else "",
+    ]
+    return cmd
 
 # # MaxBin2
 # def get_maxbin2_107_cmd( input_filepaths, output_filepaths, output_directory, directories, opts, prefix, seed):
@@ -953,7 +1003,7 @@ def create_pipeline(opts, directories, f_cmds):
             *opts.bam,
         ]
 
-    output_filenames = ["coverage_metabat.tsv", "coverage_noheader.tsv"]
+    output_filenames = ["coverage_metabat.tsv", "coverage_noheader.tsv", "coverage_vamb.tsv"]
     if "metadecoder" in opts.algorithms:
         output_filenames.append("coverage_metadecoder.tsv")
 
@@ -1708,6 +1758,8 @@ def add_executables_to_environment(opts):
                 "concatenate_dataframes.py",
                 "subset_table.py",
                 "compile_gff.py",
+                "convert_metabat2_coverage.py",
+
                 }
 
     required_executables={
@@ -1825,7 +1877,7 @@ def main(args=None):
 
     # Binning
     parser_binning = parser.add_argument_group('Binning arguments')
-    parser_binning.add_argument("-a", "--algorithms", type=str, default="metabat2,semibin2-global,metadecoder", help='Comma separated list of binning algorithms.  Choose from {"metabat2", "metadecoder", "metacoag", "semibin2-[biome]"} where [biome] is one of [ocean, wastewater, global, pig_gut, human_oral, cat_gut, soil, chicken_caecum, human_gut, built_environment, dog_gut, mouse_gut, NONE] where NONE is usedto implement Semi-Supervised training (takes longer with more compute).  If MEGAHIT assembly was used then metacoag will fail if the --fasta does not match the --metacoag_graph exactly which will be fixed in future versions. Do not use metacoag with MEGAHIT assembly if  you have performed viral binning prior to prokaryotic binning. [Default: metabat2,semibin2-global,metadecoder]')
+    parser_binning.add_argument("-a", "--algorithms", type=str, default="metabat2,semibin2-global,metadecoder,vamb", help='Comma separated list of binning algorithms.  Choose from {"metabat2", "metadecoder", "metacoag", "semibin2-[biome]", "vamb"} where [biome] is one of [ocean, wastewater, global, pig_gut, human_oral, cat_gut, soil, chicken_caecum, human_gut, built_environment, dog_gut, mouse_gut, NONE] where NONE is usedto implement Semi-Supervised training (takes longer with more compute).  If SemiBin2 is used, you will not have reproducible results between runs. If MEGAHIT assembly was used then metacoag will fail if the --fasta does not match the --metacoag_graph exactly which will be fixed in future versions. Do not use metacoag with MEGAHIT assembly if you have performed viral binning prior to prokaryotic binning. [Default: metabat2,semibin2-global,metadecoder,vamb]')
     parser_binning.add_argument("-m", "--minimum_contig_length", type=int, default=1500, help="Minimum contig length.  Anything under 2500 will default to 2500 for MetaBat2 [Default: 1500] ")
     parser_binning.add_argument("-s", "--minimum_genome_length", type=int, default=200000, help="Minimum genome length.  [Default: 200000]")
     parser_binning.add_argument("--retain_intermediate_bins",action="store_true",help='Retain intermediate bins in fasta.')
@@ -1852,6 +1904,11 @@ def main(args=None):
     parser_metacoag.add_argument("--metacoag_graph", default="auto", type=str, help="MetaCoAG | de Bruijn graph from SPAdes, MEGAHIT, or metaFlye [Required if MetaCoAG is used, if `auto` then assembly graphs will be looked]")
     parser_metacoag.add_argument("--metacoag_paths", default="auto", type=str, help="MetaCoAG | de Bruijn graph paths from SPAdes or metaFlye [Required if MetaCoAG is used with SPAdes or metaFlye]")
     parser_metacoag.add_argument("--metacoag_options", type=str, default="", help="MetaCoAG | More options (e.g. --arg 1 ) [Default: ''] | https://github.com/jolespin/metacoag-nal")
+
+    # VAMB
+    parser_vamb = parser.add_argument_group('VAMB arguments')
+    parser_vamb.add_argument("--vamb_engine", type=str, choices={'cpu', 'gpu'}, default="cpu", help="VAMB | Device used to train & cluster [Default: cpu]")
+    parser_vamb.add_argument("--vamb_options", type=str, default="", help="VAMB | More options (e.g. --arg 1 ) [Default: ''] | https://github.com/RasmussenLab/vamb")
 
     # Gene models
     parser_genemodels = parser.add_argument_group('Gene model arguments')

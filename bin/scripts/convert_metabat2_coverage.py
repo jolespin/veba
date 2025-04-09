@@ -38,7 +38,7 @@ def main(args=None):
         opts.input = sys.stdin 
     df_input = pd.read_csv(opts.input, sep="\t", index_col=0)
     df_input = df_input.iloc[:,2:]
-    mask = df_input.columns.map(lambda x: not x.endswith("-var"))
+    mask = df_input.columns.map(lambda x: x.endswith((".bam",".sam")))
     df_input = df_input.loc[:,mask]
     df_input.index.name = opts.index_name
 
