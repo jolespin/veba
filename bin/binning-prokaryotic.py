@@ -81,7 +81,6 @@ def get_coverage_cmd( input_filepaths, output_filepaths, output_directory, direc
     output_filepaths[0],
     "-o",
     output_filepaths[2],
-    "--no_header",
     "--index_name",
     "contigname",
     "--identifiers",
