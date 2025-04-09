@@ -1,6 +1,6 @@
 #!/bin/bash
-# __version__ = "2025.3.31"
-# VEBA_DATABASE_VERSION = "VDB_v8.1"
+# __version__ = "2025.4.4"
+# VEBA_DATABASE_VERSION = "VEBA-DB_v9"
 # MICROEUKAYROTIC_DATABASE_VERSION = "MicroEuk_v3"
 # usage: bash veba/download_databases-classify.sh /path/to/veba_database_destination/
 
@@ -35,7 +35,7 @@ mkdir -v -p ${DATABASE_DIRECTORY}/Classify/NCBITaxonomy
 wget -v -P ${DATABASE_DIRECTORY} https://ftp.ncbi.nlm.nih.gov/pub/taxonomy/taxdump.tar.gz
 # python -c 'import sys; from ete3 import NCBITaxa; NCBITaxa(taxdump_file="%s/taxdump.tar.gz"%(sys.argv[1]), dbfile="%s/Classify/NCBITaxonomy/taxa.sqlite"%(sys.argv[1]))' $DATABASE_DIRECTORY
 tar xzfv ${DATABASE_DIRECTORY}/taxdump.tar.gz -C ${DATABASE_DIRECTORY}/Classify/NCBITaxonomy/
-rm -rf ${DATABASE_DIRECTORY}/taxdump.tar.gz
+rm -rfv ${DATABASE_DIRECTORY}/taxdump.tar.gz
 
 # GTDB-Tk
 echo ". .. ... ..... ........ ............."
@@ -51,7 +51,7 @@ rm -rf ${DATABASE_DIRECTORY}/Classify/GTDB
 mv ${DATABASE_DIRECTORY}/release${GTDB_VERSION} ${DATABASE_DIRECTORY}/Classify/GTDB
 echo "r${GTDB_VERSION}" > ${DATABASE_DIRECTORY}/Classify/GTDB/database_version
 wget -P ${DATABASE_DIRECTORY}/Classify/GTDB/ https://data.ace.uq.edu.au/public/gtdb/data/releases/release${GTDB_VERSION}/${GTDB_VERSION}.0/RELEASE_NOTES.txt 
-rm -rf ${DATABASE_DIRECTORY}/gtdbtk_r${GTDB_VERSION}_data.tar.gz
+rm -rfv ${DATABASE_DIRECTORY}/gtdbtk_r${GTDB_VERSION}_data.tar.gz
 
 # GTDB r220 mash sketch
 GTDB_ZENODO_RECORD_ID="11494307"
@@ -76,7 +76,7 @@ mv ${DATABASE_DIRECTORY}/gtdb_r${GTDB_VERSION}.msh ${DATABASE_DIRECTORY}/Classif
 echo ". .. ... ..... ........ ............."
 echo " * Processing CheckV"
 echo ". .. ... ..... ........ ............."
-rm -rf ${DATABASE_DIRECTORY}/Classify/CheckV
+rm -rfv ${DATABASE_DIRECTORY}/Classify/CheckV
 CHECKVDB_VERSION="v1.5"
 # wget -v -P ${DATABASE_DIRECTORY} https://portal.nersc.gov/CheckV/checkv-db-${CHECKVDB_VERSION}.tar.gz
 # tar xvzf ${DATABASE_DIRECTORY}/checkv-db-${CHECKVDB_VERSION}.tar.gz -C ${DATABASE_DIRECTORY}
@@ -84,14 +84,14 @@ CHECKVDB_VERSION="v1.5"
 # echo "${CHECKV_VERSION}" > ${DATABASE_DIRECTORY}/Classify/CheckV/database_version
 # diamond makedb --in ${DATABASE_DIRECTORY}/Classify/CheckV/genome_db/checkv_reps.faa --db ${DATABASE_DIRECTORY}/Classify/CheckV/genome_db/checkv_reps.dmnd --threads ${N_JOBS}
 wget -qO- https://zenodo.org/records/15116682/files/CheckV_v1.5.tar.gz?download=1 | tar -xzf - -C ${DATABASE_DIRECTORY}/Classify/
-rm -rf ${DATABASE_DIRECTORY}/checkv-db-${CHECKVDB_VERSION}.tar.gz
+# rm -rf ${DATABASE_DIRECTORY}/checkv-db-${CHECKVDB_VERSION}.tar.gz
 
 # geNomad
-mkdir -p ${DATABASE_DIRECTORY}/Classify/geNomad
-GENOMADDB_VERSION="v1.2"
-wget -v -O ${DATABASE_DIRECTORY}/genomad_db_${GENOMADDB_VERSION}.tar.gz https://zenodo.org/record/7586412/files/genomad_db_${GENOMADDB_VERSION}.tar.gz?download=1
+mkdir -v -p ${DATABASE_DIRECTORY}/Classify/geNomad
+GENOMADDB_VERSION="v1.9"
+wget -v -O ${DATABASE_DIRECTORY}/genomad_db_${GENOMADDB_VERSION}.tar.gz https://zenodo.org/record/14886553/files/genomad_db_${GENOMADDB_VERSION}.tar.gz?download=1
 tar xvzf ${DATABASE_DIRECTORY}/genomad_db_${GENOMADDB_VERSION}.tar.gz -C ${DATABASE_DIRECTORY}/Classify/geNomad --strip-components=1
-rm -rf ${DATABASE_DIRECTORY}/genomad_db_${GENOMADDB_VERSION}.tar.gz
+rm -rfv ${DATABASE_DIRECTORY}/genomad_db_${GENOMADDB_VERSION}.tar.gz
 
 # CheckM2
 echo ". .. ... ..... ........ ............."
@@ -101,7 +101,7 @@ mkdir -v -p ${DATABASE_DIRECTORY}/Classify/CheckM2
 # wget -v -P ${DATABASE_DIRECTORY} https://zenodo.org/api/files/fd3bc532-cd84-4907-b078-2e05a1e46803/checkm2_database.tar.gz
 wget -v -O ${DATABASE_DIRECTORY}/checkm2_database.tar.gz https://zenodo.org/records/14897628/files/checkm2_database.tar.gz?download=1
 tar xzfv ${DATABASE_DIRECTORY}/checkm2_database.tar.gz -C ${DATABASE_DIRECTORY}/Classify/CheckM2 --strip-components=1
-rm -rf ${DATABASE_DIRECTORY}/checkm2_database.tar.gz
+rm -rfv ${DATABASE_DIRECTORY}/checkm2_database.tar.gz
 
 # Microeukaryotic 
 echo ". .. ... ..... ........ ............."
@@ -124,25 +124,25 @@ echo ". .. ... ..... ........ ............."
 # Download MicroEuk_v3 from Zenodo
 wget -v -O ${DATABASE_DIRECTORY}/MicroEuk_v3.tar.gz https://zenodo.org/records/10139451/files/MicroEuk_v3.tar.gz?download=1 
 tar xvzf ${DATABASE_DIRECTORY}/MicroEuk_v3.tar.gz -C ${DATABASE_DIRECTORY}
-mkdir -p ${DATABASE_DIRECTORY}/Classify/MicroEuk
+mkdir -v -p ${DATABASE_DIRECTORY}/Classify/MicroEuk
 
 # Source Taxonomy
-cp -rf ${DATABASE_DIRECTORY}/MicroEuk_v3/source_taxonomy.tsv.gz ${DATABASE_DIRECTORY}/Classify/MicroEuk
+cp -rfv ${DATABASE_DIRECTORY}/MicroEuk_v3/source_taxonomy.tsv.gz ${DATABASE_DIRECTORY}/Classify/MicroEuk
 
 # MicroEuk100
-gzip -d ${DATABASE_DIRECTORY}/MicroEuk_v3/MicroEuk100.faa.gz
+gzip -v -d ${DATABASE_DIRECTORY}/MicroEuk_v3/MicroEuk100.faa.gz
 mmseqs createdb --compressed 1 ${DATABASE_DIRECTORY}/MicroEuk_v3/MicroEuk100.faa ${DATABASE_DIRECTORY}/Classify/MicroEuk/MicroEuk100
 
 # MicroEuk100.eukaryota_odb10
-gzip -d ${DATABASE_DIRECTORY}/MicroEuk_v3/MicroEuk100.eukaryota_odb10.list.gz
+gzip -v -d ${DATABASE_DIRECTORY}/MicroEuk_v3/MicroEuk100.eukaryota_odb10.list.gz
 seqkit grep -f ${DATABASE_DIRECTORY}/MicroEuk_v3/MicroEuk100.eukaryota_odb10.list ${DATABASE_DIRECTORY}/MicroEuk_v3/MicroEuk100.faa | mmseqs createdb --compressed 1 stdin ${DATABASE_DIRECTORY}/Classify/MicroEuk/MicroEuk100.eukaryota_odb10
 
 # MicroEuk90
-gzip -d -c ${DATABASE_DIRECTORY}/MicroEuk_v3/MicroEuk90_clusters.tsv.gz | cut -f1 | sort -u > ${DATABASE_DIRECTORY}/MicroEuk_v3/MicroEuk90.list
+gzip -v -d -c ${DATABASE_DIRECTORY}/MicroEuk_v3/MicroEuk90_clusters.tsv.gz | cut -f1 | sort -u > ${DATABASE_DIRECTORY}/MicroEuk_v3/MicroEuk90.list
 seqkit grep -f ${DATABASE_DIRECTORY}/MicroEuk_v3/MicroEuk90.list ${DATABASE_DIRECTORY}/MicroEuk_v3/MicroEuk100.faa | mmseqs createdb --compressed 1 stdin ${DATABASE_DIRECTORY}/Classify/MicroEuk/MicroEuk90
 
 # MicroEuk50
-gzip -d -c ${DATABASE_DIRECTORY}/MicroEuk_v3/MicroEuk50_clusters.tsv.gz | cut -f1 | sort -u > ${DATABASE_DIRECTORY}/MicroEuk_v3/MicroEuk50.list
+gzip -v -d -c ${DATABASE_DIRECTORY}/MicroEuk_v3/MicroEuk50_clusters.tsv.gz | cut -f1 | sort -u > ${DATABASE_DIRECTORY}/MicroEuk_v3/MicroEuk50.list
 seqkit grep -f ${DATABASE_DIRECTORY}/MicroEuk_v3/MicroEuk50.list ${DATABASE_DIRECTORY}/MicroEuk_v3/MicroEuk100.faa | mmseqs createdb --compressed 1 stdin ${DATABASE_DIRECTORY}/Classify/MicroEuk/MicroEuk50
 
 # source_to_lineage.dict.pkl.gz
@@ -152,8 +152,8 @@ build_source_to_lineage_dictionary.py -i ${DATABASE_DIRECTORY}/MicroEuk_v3/sourc
 build_target_to_source_dictionary.py -i ${DATABASE_DIRECTORY}/MicroEuk_v3/identifier_mapping.proteins.tsv.gz -o ${DATABASE_DIRECTORY}/Classify/MicroEuk/target_to_source.dict.pkl.gz
 
 # Remove intermediate files
-rm -rf ${DATABASE_DIRECTORY}/MicroEuk_v3/
-rm -rf ${DATABASE_DIRECTORY}/MicroEuk_v3.tar.gz
+rm -rfv ${DATABASE_DIRECTORY}/MicroEuk_v3/
+rm -rfv ${DATABASE_DIRECTORY}/MicroEuk_v3.tar.gz
 
 echo -e " _    _ _______ ______  _______\n  \  /  |______ |_____] |_____|\n   \/   |______ |_____] |     |"
 echo -e "...................................................."

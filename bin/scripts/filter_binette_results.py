@@ -8,7 +8,7 @@ from tqdm import tqdm
 import xxhash
 
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2025.4.2"
+__version__ = "2025.4.4"
 
 def parse_binette_initial_bin_combinations(combination:str):
     """
@@ -64,6 +64,12 @@ def main(args=None):
     opts = parser.parse_args()
     opts.script_directory  = script_directory
     opts.script_filename = script_filename
+    
+    # Output filtered 
+    if not opts.output_directory:
+        opts.output_directory = os.path.join(opts.binette_directory, "filtered")
+    os.makedirs(opts.output_directory, exist_ok=True)
+    os.makedirs(os.path.join(opts.output_directory,"genomes"), exist_ok=True)
     
     # Exclusion
     exclude_mags = set()
@@ -125,12 +131,9 @@ def main(args=None):
                 # new_mag = f"{opts.bin_prefix}{id_mag}"
             magold_to_magnew[id_mag] = new_mag
             mags.append(id_mag)
+    pd.Series(magold_to_magnew).to_frame().to_csv(os.path.join(opts.output_directory, "initial_to_filtered.tsv"), sep="\t", header=None)
+    
 
-    # Output filtered 
-    if not opts.output_directory:
-        opts.output_directory = os.path.join(opts.binette_directory, "filtered")
-    os.makedirs(opts.output_directory, exist_ok=True)
-    os.makedirs(os.path.join(opts.output_directory,"genomes"), exist_ok=True)
     
     # Initial bins
     dataframes = list()
