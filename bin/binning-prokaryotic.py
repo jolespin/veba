@@ -1882,7 +1882,7 @@ def configure_parameters(opts, directories):
     # Set environment variables
     semibin2_biomes = {'ocean', 'wastewater', 'global', 'pig_gut', 'human_oral', 'cat_gut', 'soil', 'chicken_caecum', 'human_gut', 'built_environment', 'dog_gut', 'mouse_gut', 'NONE'}
     opts.algorithms = list(map(str.strip, opts.algorithms.split(",")))
-    choices = {"metabat2", "semibin2", "metadecoder", "metacoag"} | set(map(lambda biome: f"semibin2-{biome}", semibin2_biomes))
+    choices = {"metabat2", "semibin2", "metadecoder", "metacoag", "vamb"} | set(map(lambda biome: f"semibin2-{biome}", semibin2_biomes))
     assert set(opts.algorithms) <= choices, "Unrecognized algorithm(s): {}".format(set(opts.algorithms) - choices)
     algorithms_formatted = list()
     for algorithm in opts.algorithms:
