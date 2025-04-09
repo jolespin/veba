@@ -499,7 +499,7 @@ def get_vamb_cmd(input_filepaths, output_filepaths, output_directory, directorie
 """
 
 for FP in %s;
-    do ID_GENOME=$(basename ${FP} .fasta);
+    do ID_GENOME=$(basename ${FP} .fna);
     mv $FP %s/${ID_GENOME}.fa
     done
 
