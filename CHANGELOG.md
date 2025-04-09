@@ -422,6 +422,7 @@ ________________________________________________________________
 
 **Definitely:**
 
+* Modify `COMEbin` so it can be used in the same environment as `Binette` and `CheckM2`
 * When annotating proteins, create a hash representation and a dictionary of redundant sequences to decrease search space [v2.6.0]
 * Replace `Bowtie2` with `strobealign` and `Fairy` when applicable (i.e., `coverage`, `assembly`, `binning`, `index`, and `mapping` modules) [v2.6.0] 
 * Number of plasmids (via `geNomad`) for each MAG. [v2.6.0]
@@ -453,7 +454,7 @@ ________________________________________________________________
 * DN/DS from pangeome analysis
 * For viral binning, contigs that are not identified as viral via `geNomad -> CheckV` use with `vRhyme`.
 * Add `vRhyme` to `binning_wrapper.py` and support `vRhyme` in `binning-viral.py`.
-
+* Different binning modes such as `ensemble-algorithm` (default) but also allow for `ensemble-seed` which allows for the same algorithm to be run multiple times different random states
 
 **...Maybe (Not)?**
 * Swap [`TransDecoder`](https://github.com/TransDecoder/TransDecoder) for [`TransSuite`](https://github.com/anonconda/TranSuite)
@@ -465,6 +466,8 @@ ________________________________________________________________
 <details>
 	<summary> <b>Daily Change Log:</b> </summary>
 
+* [2025.4.8] - Addd `VAMB` to `binning_wrapper.py`
+* [2025.4.8] - Added `convert_metabat2_coverage.py` with `--identifiers`, `--index_name`, and `--no_header` so it can work in multiple scenarios including `VAMB`
 * [2025.4.8] - Added `open_file_writer` from `pyexeggutor` to `edgelist_to_clusters.py` to handle automatic gzipping if `.gz` extension is detected.
 * [2025.4.8] - Allow faulty return codes in iterative mode for `binette` since this allows genome recovery to converge
 * [2025.4.4] - Deprecated `amplicon.py` because `nf-core/ampliseq` works great.

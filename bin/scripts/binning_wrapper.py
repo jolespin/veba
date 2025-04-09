@@ -12,7 +12,7 @@ from soothsayer_utils import *
 
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2025.4.6"
+__version__ = "2025.4.8"
 
 def get_maxbin2_cmd( input_filepaths, output_filepaths, output_directory, directories, opts):
     # Create dummy scaffolds_to_bins.tsv to overwrite later. 
@@ -27,23 +27,22 @@ def get_maxbin2_cmd( input_filepaths, output_filepaths, output_directory, direct
     if opts.bam:
         coverage_file = os.path.join(output_directory,"intermediate", "coverage.tsv")
         
-        # Coverage for MaxBin2 
+        # Coverage for MaxBin2
         cmd += [
-            "&&",
-            os.environ["coverm"],
-            "contig",
-            "--threads {}".format(opts.n_jobs),
-            "--methods metabat",
-            "--bam-files",
-            " ".join(opts.bam),
-            "|",
-            # Coverage for MaxBin2
-            "cut -f1,4",
-            "|",
-            "tail -n +2",
-            ">",
-            coverage_file ,
-  
+        "&&",
+        os.environ["coverm"],
+        "contig",
+        "--threads {}".format(opts.n_jobs),
+         "--methods",
+         "mean",
+         "--bam-files",
+        " ".join(opts.bam),
+        "|",
+        "tail",
+        "-n",
+        "+2",
+        ">",
+        coverage_file,
         ]
 
     cmd += [ 
@@ -419,37 +418,110 @@ def get_metacoag_cmd( input_filepaths, output_filepaths, output_directory, direc
     return cmd
 
 # VAMB
-# The code below is obsolete with the current version
-# Also the coverage table needs to match the contigs exactly
-# def get_vamb_cmd(input_filepaths, output_filepaths, output_directory, directories, opts):
-#
-#     os.environ["TMPDIR"] = directories["tmp"]
-#     # Command
-#     cmd = [
-#     "(echo $CONDA_PREFIX && echo $PATH)",
-#     "&&",
-#     # VAMB
-#     "(",
-#     "rm -rf {}".format(output_directory), # There can't be an existing directory for some reason
-#     "&&",
-#     os.environ["vamb"],
-#     "--fasta {}".format(input_filepaths[0]),
-#     "--jgi {}".format(input_filepaths[1]),
-#     "-m {}".format(opts.minimum_contig_length),
-#     # "-p {}".format(opts.n_jobs),
-#     "--outdir {}".format(output_directory),
-#     opts.vamb_options,
-#         "&&",
-#     os.environ["scaffolds_to_bins.py"],
-#     "-x fna",
-#     "-i {}".format(output_directory),
-#     # "--sep '\t'",
-#     "--bin_prefix VAMB__",
-#     ">",
-#     os.path.join(output_directory, "scaffolds_to_bins.tsv"),
-#     ")",
-#     ]
-#     return cmd
+# The coverage table needs to match the contigs exactly
+def get_vamb_cmd(input_filepaths, output_filepaths, output_directory, directories, opts):
+
+    # Create dummy scaffolds_to_bins.tsv to overwrite later. 
+    cmd = [
+         "echo '' > {}".format(os.path.join(output_directory, "scaffolds_to_bins.tsv")),
+         "&&",
+         "mkdir -p {}".format(os.path.join(output_directory, "bins")),
+    ]
+
+    # Coverage for VAMB 
+    coverage_file = opts.coverage
+
+    if opts.bam:
+        coverage_file = os.path.join(output_directory,"intermediate", "coverage.tsv")
+        cmd += [
+            "&&",
+            # Get contig list
+            "cat",
+            opts.fasta,
+            "|",
+            "grep",
+            '"^>"',
+            "|",
+            "cut",
+            "-c2-",
+            "|",
+            "cut",
+            "-d",
+            '" "',
+            "-f1",
+            ">",
+            os.path.join(output_directory, "intermediate", "contigs.list"),
+
+            "&&",
+            
+            os.environ["coverm"],
+            "contig",
+            "--threads {}".format(opts.n_jobs),
+            "--methods metabat",
+            "--bam-files",
+            " ".join(opts.bam),
+            "|",
+            os.environ["convert_metabat2_coverage.py"],
+            "--index_name"
+            "contigname",
+            "--identifiers",
+            os.path.join(output_directory, "intermediate", "contigs.list"),
+            ">",
+            coverage_file,
+        ]
+        
+    cmd += [
+
+            "&&",
+
+        os.environ["vamb"],
+        "bin",
+        "default",
+        "--fasta",
+        opts.fasta,
+        "--abundance_tsv",
+        coverage_file,
+        "--outdir",
+        os.path.join(output_directory, "intermediate", "results"),
+        "-p",
+        opts.n_jobs,
+        "-m",
+        opts.minimum_contig_length,
+        "--minfasta",
+        opts.minimum_genome_length,
+        "--seed",
+        opts.random_state,
+        {"cpu":"","gpu":"--cuda"}[opts.vamb_engine],
+        
+            "&&",
+            
+        "cat",
+        os.path.join(output_directory, "intermediate", "results", "vae_clusters_unsplit.tsv"),
+        "|",
+        os.environ["cut_table_by_column_index.py"],
+        "-f",
+        "2,1",
+        "|",
+        "tail",
+        "-n",
+        "+2",
+        ">",
+        os.path.join(output_directory, "scaffolds_to_bins.tsv"),
+        
+            "&&",
+            
+        os.environ["partition_bins.py"],
+        "-i",
+        os.path.join(output_directory, "scaffolds_to_bins.tsv"),
+        "-o",
+        os.path.join(output_directory, "bins"),
+        "-x",
+        "fa",
+        
+
+        
+    ]
+    return cmd
 
 def get_compile_cmd( input_filepaths, output_filepaths, output_directory, directories, opts):
 
@@ -719,6 +791,30 @@ def create_pipeline(opts, directories, f_cmds):
 
         cmd = get_metadecoder_cmd(**params)
         
+    # VAMB
+    elif opts.algorithm == "vamb":
+        if opts.bam:
+            input_filepaths = [
+                opts.fasta, 
+                *opts.bam,
+                ]
+        else:
+            input_filepaths = [
+                opts.fasta, 
+                opts.coverage,
+                ]            
+
+
+        params = {
+            "input_filepaths":input_filepaths,
+            "output_filepaths":output_filepaths,
+            "output_directory":output_directory,
+            "opts":opts,
+            "directories":directories,
+        }
+
+        cmd = get_vamb_cmd(**params)
+        
     # MetaCoAG
     elif opts.algorithm == "metacoag":
         if opts.bam:
@@ -930,6 +1026,9 @@ def add_executables_to_environment(opts):
         "scaffolds_to_bins.py",
         "partition_multisplit_bins.py",
         "subset_table.py",
+        "convert_metabat2_coverage.py",
+        "cut_table_by_column_index.py",
+        "partition_bins.py",
     }
 
     required_executables={
@@ -983,6 +1082,11 @@ def add_executables_to_environment(opts):
                 "extract_fasta_bins.py", 
             } 
             
+    if opts.algorithm == "vamb":
+        required_executables |= {
+            "coverm",
+            "vamb",
+            }
 
     required_executables |= accessory_scripts
 
@@ -1092,7 +1196,7 @@ def main(argv=None):
 
     # Binning
     parser_binning = parser.add_argument_group('Binning arguments')
-    parser_binning.add_argument("-a", "--algorithm", type=str, default="metabat2", choices={"concoct", "metabat2", "maxbin2", "semibin2", "metadecoder", "metacoag"}, help="Binning algorithm [Default: metabat2] ")
+    parser_binning.add_argument("-a", "--algorithm", type=str, default="metabat2", choices={"concoct", "metabat2", "maxbin2", "semibin2", "metadecoder", "metacoag", "vamb"}, help="Binning algorithm [Default: metabat2] ")
     parser_binning.add_argument("-m", "--minimum_contig_length", type=int, default=1500, help="Minimum contig length.  [Default: 1500] ")
     parser_binning.add_argument("-s", "--minimum_genome_length", type=int, default=200000, help="Minimum genome length.  [Default: 200000] ")
     parser_binning.add_argument("-P","--bin_prefix", type=str,  default="DEFAULT", help = "Prefix for bin names. Special strings include: 1) --bin_prefix NONE which does not include a bin prefix; and 2) --bin_prefix DEFAULT then prefix is [ALGORITHM_UPPERCASE]__")
@@ -1130,6 +1234,10 @@ def main(argv=None):
     parser_metacoag.add_argument("--metacoag_graph", default="auto", type=str, help="MetaCoAG | de Bruijn graph from SPAdes, MEGAHIT, or metaFlye [Required if MetaCoAG is used, if `auto` then assembly graphs will be looked]")
     parser_metacoag.add_argument("--metacoag_paths", default="auto", type=str, help="MetaCoAG | de Bruijn graph paths from SPAdes or metaFlye [Required if MetaCoAG is used with SPAdes or metaFlye]")
     parser_metacoag.add_argument("--metacoag_options", type=str, default="", help="MetaCoAG | More options (e.g. --arg 1 ) [Default: ''] | https://github.com/jolespin/metacoag-nal")
+
+    # VAMB
+    parser_vamb = parser.add_argument_group('VAMB arguments')
+    parser_vamb.add_argument("--vamb_engine", type=str, choices={'cpu', 'gpu'}, default="cpu", help="VAMB | Device used to train & cluster [Default: cpu]")
 
     # MaxBin2
     parser_maxbin2 = parser.add_argument_group('MaxBin2 arguments')
