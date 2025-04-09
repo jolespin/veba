@@ -506,7 +506,7 @@ def get_vamb_cmd(input_filepaths, output_filepaths, output_directory, directorie
         "-p",
         opts.n_jobs,
         "-m",
-        opts.minimum_contig_length - 1,
+        opts.minimum_contig_length,
         "--minfasta",
         opts.minimum_genome_length,
         "--seed",
