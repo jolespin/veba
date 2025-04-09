@@ -275,6 +275,7 @@ def get_vamb_cmd( input_filepaths, output_filepaths, output_directory, directori
         "--bin_prefix {}".format(prefix),
         "--remove_bins",
         "--remove_intermediate_files",
+        "--vamb_engine {}".format(opts.vamb_engine),
         "--vamb_options {}".format(opts.vamb_options) if bool(opts.vamb_options) else "",
     ]
     return cmd
@@ -1178,7 +1179,7 @@ def create_pipeline(opts, directories, f_cmds):
                 input_filepaths = [
                     input_fasta,
                     os.path.join(directories[("intermediate",  "1__coverage")], "coverage_metabat.tsv"),
-                    os.path.join(directories[("intermediate",  "2__pyrodigal")], "gene_models.faa"),
+                    # os.path.join(directories[("intermediate",  "2__pyrodigal")], "gene_models.faa"),
                 ]
 
                 output_filenames = [
