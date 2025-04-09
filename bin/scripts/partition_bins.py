@@ -51,7 +51,7 @@ def main(args=None):
     # Files
     bin_to_file = dict()
     for id_bin in set(scaffold_to_bin.values()):
-        filepath = os.path.join(opts.output, "{}.{}".format(id_bin, opts.extension))
+        filepath = os.path.join(opts.output_directory, "{}.{}".format(id_bin, opts.extension))
         bin_to_file[id_bin] = open_file_writer(filepath)
         
     # Fasta

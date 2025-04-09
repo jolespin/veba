@@ -86,6 +86,7 @@ def get_coverage_cmd( input_filepaths, output_filepaths, output_directory, direc
     "contigname",
     "--identifiers",
     os.path.join(directories["tmp"], "contigs.list"),
+    ]
     
     
     
@@ -1003,7 +1004,11 @@ def create_pipeline(opts, directories, f_cmds):
             *opts.bam,
         ]
 
-    output_filenames = ["coverage_metabat.tsv", "coverage_noheader.tsv", "coverage_vamb.tsv"]
+    output_filenames = [
+        "coverage_metabat.tsv", 
+        "coverage_noheader.tsv", 
+        "coverage_vamb.tsv",
+        ]
     if "metadecoder" in opts.algorithms:
         output_filenames.append("coverage_metadecoder.tsv")
 
@@ -1334,6 +1339,62 @@ def create_pipeline(opts, directories, f_cmds):
 
                 steps[program] = step
 
+            # ==========
+            # MetaCoAG
+            # ==========
+            if algorithm == "vamb":
+
+                step  += 1
+
+                program = "binning_vamb"
+                program_label = "{}__{}".format(step, program)
+                
+                # Add to directories
+                output_directory = directories[("intermediate",  program_label)] = create_directory(os.path.join(directories["intermediate"], program_label))
+
+
+                # Info
+                description = "Binning via MetaCoAG [Iteration={}]".format(iteration)
+
+                # i/o
+                input_filepaths = [
+                    input_fasta,
+                    os.path.join(directories[("intermediate",  "1__coverage")], "coverage_vamb.tsv"),
+                ]
+
+                output_filenames = [
+                    # "bin*.fa", 
+                    "scaffolds_to_bins.tsv",
+                    ]
+                output_filepaths = list(map(lambda filename: os.path.join(output_directory, filename), output_filenames))
+
+                params = {
+                    "input_filepaths":input_filepaths,
+                    "output_filepaths":output_filepaths,
+                    "output_directory":output_directory,
+                    "opts":opts,
+                    "directories":directories,
+                    "prefix":"{}__VAMB__{}.{}__".format(opts.name, "P", iteration),
+                    "seed":seed,
+                }
+
+                cmd = get_vamb_cmd(**params)
+                pipeline.add_step(
+                            id=program_label,
+                            description = description,
+                            step=step,
+                            cmd=cmd,
+                            input_filepaths = input_filepaths,
+                            output_filepaths = output_filepaths,
+                            validate_inputs=False,
+                            validate_outputs=False,
+                            errors_ok=False,
+                            acceptable_returncodes={0,1,2},
+                            log_prefix=program_label,
+
+                )
+
+                steps[program] = step
 
 
         # ==========
