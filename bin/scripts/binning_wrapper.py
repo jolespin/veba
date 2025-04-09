@@ -1283,7 +1283,7 @@ def main(argv=None):
     directories["log"] = create_directory(os.path.join(directories["output"],"intermediate", "log"))
     directories["tmp"] = create_directory(os.path.join(directories["output"],"intermediate", "tmp"))
     directories["checkpoints"] = create_directory(os.path.join(directories["output"],"intermediate", "checkpoints"))
-    os.environ["TMPDIR"] = directories["tmp"]
+    # os.environ["TMPDIR"] = directories["tmp"]
 
     # Info
     print(format_header(__program__, "="), file=sys.stdout)
