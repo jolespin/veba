@@ -492,6 +492,7 @@ def get_vamb_cmd(input_filepaths, output_filepaths, output_directory, directorie
         "--seed",
         opts.random_state,
         {"cpu":"","gpu":"--cuda"}[opts.vamb_engine],
+        opts.vamb_options,
         
             "&&",
             
@@ -1238,6 +1239,7 @@ def main(argv=None):
     # VAMB
     parser_vamb = parser.add_argument_group('VAMB arguments')
     parser_vamb.add_argument("--vamb_engine", type=str, choices={'cpu', 'gpu'}, default="cpu", help="VAMB | Device used to train & cluster [Default: cpu]")
+    parser_vamb.add_argument("--vamb_options", type=str, default="", help="VAMB | More options (e.g. --arg 1 ) [Default: ''] | https://github.com/RasmussenLab/vamb")
 
     # MaxBin2
     parser_maxbin2 = parser.add_argument_group('MaxBin2 arguments')
