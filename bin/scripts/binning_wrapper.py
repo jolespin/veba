@@ -494,35 +494,20 @@ def get_vamb_cmd(input_filepaths, output_filepaths, output_directory, directorie
         {"cpu":"","gpu":"--cuda"}[opts.vamb_engine],
         opts.vamb_options,
         
-            "&&",
             
-        "cat",
-        os.path.join(output_directory, "intermediate", "results", "vae_clusters_unsplit.tsv"),
-        "|",
-        os.environ["cut_table_by_column_index.py"],
-        "-f",
-        "2,1",
-        "|",
-        "tail",
-        "-n",
-        "+2",
-        ">",
-        os.path.join(output_directory, "scaffolds_to_bins.tsv"),
-        
-            "&&",
-            
-        os.environ["partition_bins.py"],
-        "-i",
-        os.path.join(output_directory, "scaffolds_to_bins.tsv"),
-        "-o",
-        os.path.join(output_directory, "bins"),
-        "-f",
-        opts.fasta,
-        "-x",
-        "fa",
-        
+        # Move bins and change extension
+"""
 
-        
+for FP in %s;
+    do ID_GENOME=$(basename ${FP} .fasta);
+    mv $FP %s/${ID_GENOME}.fa
+    done
+
+"""%( 
+    os.path.join(output_directory, "intermediate", "results","bins", "*.fna"),
+    os.path.join(output_directory, "bins"),
+    )
+
     ]
     return cmd
 
