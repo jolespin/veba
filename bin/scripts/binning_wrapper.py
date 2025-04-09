@@ -12,7 +12,7 @@ from soothsayer_utils import *
 
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2025.4.8"
+__version__ = "2025.4.9"
 
 def get_maxbin2_cmd( input_filepaths, output_filepaths, output_directory, directories, opts):
     # Create dummy scaffolds_to_bins.tsv to overwrite later. 
@@ -427,13 +427,9 @@ def get_vamb_cmd(input_filepaths, output_filepaths, output_directory, directorie
          "&&",
          "mkdir -p {}".format(os.path.join(output_directory, "bins")),
     ]
-
-    # Coverage for VAMB 
-    coverage_file = opts.coverage
-
-    if opts.bam:
-        coverage_file = os.path.join(output_directory,"intermediate", "coverage.tsv")
-        cmd += [
+    
+    # Get contigs for coverage
+    cmd += [ 
             "&&",
             # Get contig list
             "cat",
@@ -451,6 +447,15 @@ def get_vamb_cmd(input_filepaths, output_filepaths, output_directory, directorie
             "-f1",
             ">",
             os.path.join(output_directory, "intermediate", "contigs.list"),
+    ]
+
+    # Coverage for VAMB 
+    coverage_file = opts.coverage
+
+    if opts.bam:
+        coverage_file = os.path.join(output_directory,"intermediate", "coverage.tsv")
+        cmd += [
+
 
             "&&",
             
@@ -466,6 +471,21 @@ def get_vamb_cmd(input_filepaths, output_filepaths, output_directory, directorie
             "contigname",
             "--identifiers",
             os.path.join(output_directory, "intermediate", "contigs.list"),
+            ">",
+            coverage_file,
+        ]
+        
+    else:
+        coverage_file = os.path.join(output_directory,"intermediate", "coverage.tsv")
+        cmd += [
+            "&&",
+            os.environ["subset_table.py"],
+            "-i",
+            os.path.join(output_directory, "intermediate", "contigs.list"),
+            "-t",
+            opts.coverage,
+            "--index_name",
+            "contigname",
             ">",
             coverage_file,
         ]
@@ -486,12 +506,13 @@ def get_vamb_cmd(input_filepaths, output_filepaths, output_directory, directorie
         "-p",
         opts.n_jobs,
         "-m",
-        opts.minimum_contig_length,
+        opts.minimum_contig_length - 1,
         "--minfasta",
         opts.minimum_genome_length,
         "--seed",
         opts.random_state,
         {"cpu":"","gpu":"--cuda"}[opts.vamb_engine],
+        "-o",
         opts.vamb_options,
         
             

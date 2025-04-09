@@ -640,6 +640,7 @@ ________________________________________________________________
 <details>
 	<summary> <b>Daily Change Log:</b> </summary>
 
+* [2025.4.9] - Subset the coverage table for `VAMB` which is needed for iterations > 1 since the coverage index contigs must match the input contigs exactly
 * [2025.4.8] - Added `VAMB` to `binning-prokaryotic.py` which is included as one of the default binners
 * [2025.4.8] - Addd `VAMB` to `binning_wrapper.py`
 * [2025.4.8] - Added `convert_metabat2_coverage.py` with `--identifiers`, `--index_name`, and `--no_header` so it can work in multiple scenarios including `VAMB`
