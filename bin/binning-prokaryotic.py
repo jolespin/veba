@@ -13,7 +13,7 @@ from soothsayer_utils import *
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2025.4.8"
+__version__ = "2025.4.9"
 
 # Assembly
 def get_coverage_cmd( input_filepaths, output_filepaths, output_directory, directories, opts):
@@ -1843,6 +1843,8 @@ def add_executables_to_environment(opts):
             if algorithm[0] != ("semibin2"):
                 raise f"If algorithm is tuple, then the first element must be semibin2: {algorithm}"
             required_executables.add("SemiBin2")
+        elif algorithm == "vamb":
+            required_executables.add("vamb")
         elif algorithm == "metadecoder":
             required_executables.add("metadecoder")
         elif algorithm == "metacoag":
