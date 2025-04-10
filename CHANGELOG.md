@@ -26,6 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 *   Added `genome_statistics.tsv.gz`, `gene_statistics.cds.tsv.gz`, `gene_statistics.rRNA.tsv.gz`, and `gene_statistics.tRNA.tsv.gz` outputs to `essentials.py`.
 *   Added `--identifiers`, `--index_name`, and `--no_header` options to `convert_metabat2_coverage.py` for broader applicability, including `VAMB`.
 *   Added `-l eukaryota_odb12` as default but also allow `--auto-lineage-euk` for `BUSCO` in `binning-eukaryotic.py`
+
 ### Changed
 
 *   Changed `binning-eukaryotic.py` behavior to provide a solution to [BUSCO Issue #447](https://gitlab.com/ezlab/busco/-/issues/447)
