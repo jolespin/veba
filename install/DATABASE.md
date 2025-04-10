@@ -6,6 +6,11 @@ This document summarizes the main changes introduced between different versions 
 
 ## Summary of Changes
 
+### VEBA-DB_v9 (from VDB_v8.1)
+*   Updated the `geNomad` database component to `v1.8` (associated with geNomad software v1.11.0).
+*   Updated the `CheckM2 Diamond` database component ([Issue #154](https://github.com/jolespin/veba/issues/154)).
+*   Renamed database identifier convention from `VDB_vX` to `VEBA-DB_vX`.
+
 ### VDB_v8.1 (from VDB_v8)
 *   Added `kofam.enzymes.list` and `kofam.pathways.list` in `Annotate/KOfam/` to provide subsets for `pykofamsearch`.
 *   Updated `Annotate/KOfam/` with serialized KOfam data including enzyme support (replacing older `ko_list` and `profiles` structure).
