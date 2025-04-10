@@ -13,7 +13,26 @@ ____________________________________________________________
 
 ### VEBA Database: 
 
-Please refer to the [VEBA Database](DATABASE.md) documentation.
+#### Compatibility Table
+
+| VEBA Database Version | Compatible VEBA Software Version(s)       | Legacy Database Name |
+|-----------------------|-------------------------------------------|----------------------|
+| VEBA-DB_v9            | v2.5.0                                    | -                    |
+| VEBA-DB_v8.1          | v2.4.0, v2.4.1, v2.4.2                    | VDB_v8.1             |
+| VEBA-DB_v8            | v2.3.0                                    | VDB_v8               |
+| VEBA-DB_v7            | v2.2.0, v2.2.1                            | VDB_v7               |
+| VEBA-DB_v6            | v1.4.1, v1.4.2, v1.5.0, v2.0.0, v2.1.0    | VDB_v6               |
+| VEBA-DB_v5.2          | v1.3.0                                    | VDB_v5.2             |
+| VEBA-DB_v5.1          | v1.2.0                                    | VDB_v5.1             |
+| VEBA-DB_v5            | v1.1.2                                    | VDB_v5               |
+| VEBA-DB_v4            | v1.1.0                                    | VDB_v4               |
+| VEBA-DB_v3.1          | v1.1.0                                    | VDB_v3.1             |
+| VEBA-DB_v3            | v1.0.4                                    | VDB_v3               |
+| VEBA-DB_v2            | v1.0.2a+, v1.0.3e                         | VDB_v2               |
+| VEBA-DB_v1            | v1.0.0, v1.0.1                            | VDB_v1               |
+
+
+Please refer to the [VEBA Database](DATABASE.md) for more documentation.
 ____________________________________________________________
 
 ### Install via Conda (Recommended):

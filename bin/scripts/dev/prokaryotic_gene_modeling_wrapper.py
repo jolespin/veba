@@ -8,100 +8,117 @@ import numpy as np
 
 # Soothsayer Ecosystem
 from genopype import *
-from genopype import __version__ as genopype_version
 from soothsayer_utils import *
 
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2024.8.29"
+__version__ = "2023.8.28"
 
-# Tiara
-def get_tiara_cmd(input_filepaths, output_filepaths, output_directory, directories, opts):
+# Pyrodigal
+def get_pyrodigal_cmd(input_filepaths, output_filepaths, output_directory, directories, opts):
+
     cmd = [
-    os.environ["tiara"],
-    "-i {}".format(opts.fasta),
-    "-o {}".format(os.path.join(output_directory,  "tiara_output.tsv")),
-    "--probabilities",
-    "-m {}".format(opts.tiara_minimum_length),
-    "-t {}".format(opts.n_jobs),
-    opts.tiara_options,
+        "cat",
+        input_filepaths[0],
+        "|",
+        os.environ["seqkit"],
+        "seq",
+        "-m {}".format(opts.minimum_contig_length),
+        ">",
+        os.path.join(directories["tmp"], "tmp.fasta"),
+
+            "&&",
+        
+        os.environ["pyrodigal"],
+        "-p meta",
+        "-i {}".format(os.path.join(directories["tmp"], "tmp.fasta")),
+        "-g {}".format(opts.pyrodigal_genetic_code),
+        "-f gff",
+        "-d {}".format(os.path.join(output_directory, "gene_models.ffn")),
+        "-a {}".format(os.path.join(output_directory, "gene_models.faa")),
+        "--min-gene {}".format(opts.pyrodigal_minimum_gene_length),
+        "--min-edge-gene {}".format(opts.pyrodigal_minimum_edge_gene_length),
+        "--max-overlap {}".format(opts.pyrodigal_maximum_gene_overlap_length),
+        # "-j {}".format(opts.n_jobs),
+        ">",
+        os.path.join(directories["tmp"], "tmp.gff"),
+
+            "&&",
+
+        "cat",
+        os.path.join(directories["tmp"], "tmp.gff"),
+        "|",
+        os.environ["append_geneid_to_prodigal_gff.py"],
+        "-a gene_id",
+        ">",
+        os.path.join(output_directory, "gene_models.gff"),
+
+            "&&",
+
+        "rm",
+        os.path.join(directories["tmp"], "tmp.*")
+
     ]
     return cmd
 
-def get_partition_organelle_sequences_single_cmd(input_filepaths, output_filepaths, output_directory, directories, opts):
+
+# Prodigal
+def get_prodigal_cmd(input_filepaths, output_filepaths, output_directory, directories, opts):
     cmd = [
-    os.environ["partition_organelle_sequences.py"],
-    "-f {}".format(input_filepaths[0]),
-    "-t {}".format(input_filepaths[1]),
-    "-n {}".format(opts.name),
-    "-o {}".format(directories["output"]),
-    "-u {}".format(opts.unknown_organelle_prediction),
-    # "--mitochondrion_suffix {}".format(opts.mitochondrion_suffix),
-    # "--plastid_suffix {}".format(opts.plastid_suffix),
-    # "--unknown_suffix {}".format(opts.unknown_suffix),
-    "--verbose",
+        "cat",
+        os.path.join(input_filepaths[0], "*.fa"),
+        "|",
+        os.environ["prodigal-gv"],
+        "-p meta",
+        "-g {}".format(opts.prodigal_genetic_code),
+        "-f gff",
+        "-d {}".format(os.path.join(output_directory, "gene_models.ffn")),
+        "-a {}".format(os.path.join(output_directory, "gene_models.faa")),
+        "|",
+        os.environ["append_geneid_to_prodigal_gff.py"],
+        "-a gene_id",
+        ">",
+        os.path.join(output_directory, "gene_models.gff"),
 
-        "&&",
+            "&&",
+            
+        os.environ["partition_gene_models.py"],
+        "-i {}".format(input_filepaths[1]),
+        "-g {}".format(os.path.join(output_directory, "gene_models.gff")),
+        "-d {}".format(os.path.join(output_directory, "gene_models.ffn")),
+        "-a {}".format(os.path.join(output_directory, "gene_models.faa")),
+        "-o {}".format(os.path.join(directories[("intermediate",  "2__checkv")],"filtered", "genomes")),
 
-    "echo",
-    opts.name, 
-    ">",
-    os.path.join(output_directory, "genomes.list"),
 """
-OUTPUT_DIRECTORY={}
-INTERMEDIATE_DIRECTORY={}
-cat $OUTPUT_DIRECTORY/*.fa | grep "^>" | cut -c2- | cut -f1 -d " " > $INTERMEDIATE_DIRECTORY/eukaryotic_contigs.list
-cat $OUTPUT_DIRECTORY/mitochondrion/*.fa | grep "^>" | cut -c2- | cut -f1 -d " " > $INTERMEDIATE_DIRECTORY/mitochondria_contigs.list
-cat $OUTPUT_DIRECTORY/plastid/*.fa | grep "^>" | cut -c2- | cut -f1 -d " " > $INTERMEDIATE_DIRECTORY/plastid_contigs.list
-""".format(
-    directories["output"],
-    output_directory,
-)
-    ]
-    return cmd
 
-def get_partition_organelle_sequences_multiple_cmd(input_filepaths, output_filepaths, output_directory, directories, opts):
-    cmd = [
-"""
 OUTPUT_DIRECTORY={}
-INTERMEDIATE_DIRECTORY={}
-S2B={}
 
-# Partition sequences
-for ID in $(cut -f2 $S2B | sort -u);
+for GENOME_FASTA in {};
 do
-    SCAFFOLD_LIST={}
-    grep $ID $S2B | cut -f1 > $SCAFFOLD_LIST
-    {} grep -f $SCAFFOLD_LIST {} | {} -f stdin -t {} -n $ID -o $OUTPUT_DIRECTORY -u {} --verbose
+    ID=$(basename $GENOME_FASTA .fa)
+    DIR_GENOME=$(dirname $GENOME_FASTA)
+    GFF_CDS=$DIR_GENOME/$ID.gff
+    GFF_OUTPUT=$OUTPUT_DIRECTORY/$ID.gff
+    >$GFF_OUTPUT.tmp
+    {} -f $GENOME_FASTA -o $GFF_OUTPUT.tmp -n $ID -c $GFF_CDS -d Virus
+    mv $GFF_OUTPUT.tmp $GFF_OUTPUT
 done
 
-# Store list of genomes
-cat $S2B | cut -f2 | sort -u > $INTERMEDIATE_DIRECTORY/genomes.list
-
-# Store list of partitioned contigs
-cat $OUTPUT_DIRECTORY/*.fa | grep "^>" | cut -c2- | cut -f1 -d " " > $INTERMEDIATE_DIRECTORY/eukaryotic_contigs.list
-cat $OUTPUT_DIRECTORY/mitochondrion/*.fa | grep "^>" | cut -c2- | cut -f1 -d " " > $INTERMEDIATE_DIRECTORY/mitochondrion_contigs.list
-cat $OUTPUT_DIRECTORY/plastid/*.fa | grep "^>" | cut -c2- | cut -f1 -d " " > $INTERMEDIATE_DIRECTORY/plastid_contigs.list
-
-rm -rf $SCAFFOLD_LIST
 """.format(
-        directories["output"],
-        output_directory,
-        opts.scaffolds_to_bins,
-        os.path.join(directories["tmp"], "$ID.list"),
-        os.environ["seqkit"],
-        input_filepaths[0],
+        os.path.join(directories[("intermediate",  "2__checkv")],"filtered", "genomes"),
+        os.path.join(directories[("intermediate",  "2__checkv")],"filtered", "genomes", "*.fa"),
+        os.environ["compile_gff.py"],
+    ),
 
-        os.environ["partition_organelle_sequences.py"],
-        input_filepaths[1],
-        opts.unknown_organelle_prediction,
-        # opts.mitochondrion_suffix,
-        # opts.plastid_suffix,
-        # opts.unknown_suffix,
 
-)
+        "rm -rf",
+        os.path.join(output_directory, "gene_models.gff"),
+        os.path.join(output_directory, "gene_models.ffn"),
+        os.path.join(output_directory, "gene_models.faa"),
+
     ]
     return cmd
+
 
 # MetaEuk
 def get_metaeuk_cmd(input_filepaths, output_filepaths, output_directory, directories, opts):
@@ -131,7 +148,6 @@ def get_metaeuk_cmd(input_filepaths, output_filepaths, output_directory, directo
         "--threads {}".format(opts.n_jobs),
         "-s {}".format(opts.metaeuk_sensitivity),
         "-e {}".format(opts.metaeuk_evalue),
-        "--split-memory-limit {}".format(opts.metaeuk_split_memory_limit),
         opts.metaeuk_options,
         os.path.join(directories["tmp"], "tmp.fasta"),
         opts.metaeuk_database, # db
@@ -187,23 +203,26 @@ def get_metaeuk_cmd(input_filepaths, output_filepaths, output_directory, directo
 def get_pyrodigal_cmd(input_filepaths, output_filepaths, output_directory, directories, opts, genetic_code):
 
     cmd = [
-
-        # Placeholder
-        "OUTPUT_DIRECTORY={};  for ID in $(cat {}); do >$OUTPUT_DIRECTORY/$ID.faa; >$OUTPUT_DIRECTORY/$ID.ffn; >$OUTPUT_DIRECTORY/$ID.gff; done".format(output_directory, input_filepaths[1]),
-
-            "&&",
-
         "cat",
         opts.fasta,
         "|",
         os.environ["seqkit"],
         "grep",
         "-f {}".format(input_filepaths[0]),
-        "|",
+        ">",
+        os.path.join(directories["tmp"], "tmp.fasta"),
+
+            "&&",
+
+        # Placeholder
+        "OUTPUT_DIRECTORY={};  for ID in $(cat {}); do >$OUTPUT_DIRECTORY/$ID.faa; >$OUTPUT_DIRECTORY/$ID.ffn; >$OUTPUT_DIRECTORY/$ID.gff; done".format(output_directory, input_filepaths[1]),
+
+            "&&",
 
         # Run analysis
         os.environ["pyrodigal"],
         "-p meta",
+        "-i {}".format(os.path.join(directories["tmp"], "tmp.fasta")),
         "-g {}".format(genetic_code),
         "-f gff",
         "-d {}".format(os.path.join(output_directory, "{}.ffn".format(opts.basename))),
@@ -211,13 +230,24 @@ def get_pyrodigal_cmd(input_filepaths, output_filepaths, output_directory, direc
         "--min-gene {}".format(opts.pyrodigal_minimum_gene_length),
         "--min-edge-gene {}".format(opts.pyrodigal_minimum_edge_gene_length),
         "--max-overlap {}".format(opts.pyrodigal_maximum_gene_overlap_length),
-        "-j {}".format(opts.n_jobs),
+        # "-j {}".format(opts.n_jobs),
+        ">",
+        os.path.join(directories["tmp"], "tmp.gff"),
+
+            "&&",
+
+        "cat",
+        os.path.join(directories["tmp"], "tmp.gff"),
         "|",
         os.environ["append_geneid_to_prodigal_gff.py"],
         "-a gene_id",
         ">",
         os.path.join(output_directory, "{}.gff".format(opts.basename)),
 
+            "&&",
+
+        "rm",
+        os.path.join(directories["tmp"], "tmp.*"),
         ]
     
     if opts.scaffolds_to_bins:
@@ -300,14 +330,7 @@ done
 for GENOME_FASTA in {}
 do  
     ID=$(basename $GENOME_FASTA .fa)
-    TRNA_FASTA=$OUTPUT_DIRECTORY/$ID.tRNA
-    if [[ -s "$TRNA_FASTA" ]]; 
-        then
-            echo "[Skipping] [tRNAscan-SE] $GENOME_FASTA because tRNA fasta exists and is not empty"
-        else
-            echo "[Running] [tRNAscan-SE] $GENOME_FASTA"
-            {} {} --forceow --progress --thread {} --fasta $OUTPUT_DIRECTORY/$ID.tRNA --gff $OUTPUT_DIRECTORY/$ID.tRNA.gff --struct $OUTPUT_DIRECTORY/$ID.tRNA.struct {} $GENOME_FASTA > $OUTPUT_DIRECTORY/$ID.tRNA.txt
-    fi
+    {} {} --forceow --progress --thread {} --fasta $OUTPUT_DIRECTORY/$ID.tRNA --gff $OUTPUT_DIRECTORY/$ID.tRNA.gff --struct $OUTPUT_DIRECTORY/$ID.tRNA.struct {} $GENOME_FASTA > $OUTPUT_DIRECTORY/$ID.tRNA.txt
 done
 """.format(
         output_directory,
@@ -1341,11 +1364,11 @@ def main(args=None):
     # Pipeline
     parser_io = parser.add_argument_group('I/O arguments')
     parser_io.add_argument("-f","--fasta", type=str, required=True, help = "path/to/scaffolds.fasta")
-    parser_io.add_argument("-t","--tiara_results", type=str, required=False, help = "path/to/scaffolds.fasta [Optional]")
+    parser_io.add_argument("-t","--tiara_results", type=str, required=True, help = "path/to/scaffolds.fasta")
     parser_io.add_argument("-n","--name", type=str, required=False, help = "path/to/scaffolds.fasta [Cannot be used with --scaffolds_to_bins]")
     parser_io.add_argument("-i","--scaffolds_to_bins", type=str, required=False,  help = "path/to/scaffolds_to_bins.tsv, [Optional] Format: [id_scaffold]<tab>[id_bin], No header. [Cannot be used with --name]")
     parser_io.add_argument("-o","--output_directory", type=str, default="eukaryotic_gene_modeling_output", help = "path/to/project_directory [Default: eukaryotic_gene_modeling_output]")
-    parser_io.add_argument("-d", "--metaeuk_database", type=str,  required=True, help=f"MetaEuk/MMSEQS2 database (E.g., $VEBA_DATABASE/Classify/MicroEuk/MicroEuk50)")
+    parser_io.add_argument("-d", "--metaeuk_database", type=str,  required=True, help=f"MetaEuk/MMSEQS2 database (E.g., $VEBA_DATABASE/Classify/Microeukaryotic/microeukaryotic)")
 
     # Utility
     parser_utility = parser.add_argument_group('Utility arguments')
@@ -1361,14 +1384,12 @@ def main(args=None):
     # parser_organelle.add_argument("--mitochondrion_suffix", type=str, default=".mtDNA", help = "Mitochondrion suffix [Default: .mtDNA]")
     # parser_organelle.add_argument("--plastid_suffix", type=str, default=".plastid", help = "Plastid suffix [Default: .plastid]")
     # parser_organelle.add_argument("--unknown_suffix", type=str, default=".unknown", help = "Unknown suffix [Default: .unknown]")
-    parser_organelle.add_argument("--tiara_minimum_length", type=int, default=3000, help="Tiara | Minimum contig length. Anything lower than 3000 is not recommended. [Default: 3000]")
     parser_organelle.add_argument("--tiara_options", type=str, default="", help="Tiara | More options (e.g. --arg 1 ) [Default: '']")
 
     # MetaEuk
     parser_metaeuk = parser.add_argument_group('MetaEuk arguments')
     parser_metaeuk.add_argument("--metaeuk_sensitivity", type=float, default=4.0, help="MetaEuk | Sensitivity: 1.0 faster; 4.0 fast; 7.5 sensitive  [Default: 4.0]")
     parser_metaeuk.add_argument("--metaeuk_evalue", type=float, default=0.01, help="MetaEuk | List matches below this E-value (range 0.0-inf) [Default: 0.01]")
-    parser_metaeuk.add_argument("--metaeuk_split_memory_limit", type=str, default="36G", help="MetaEuk | Set max memory per split. E.g. 800B, 5K, 10M, 1G. Use 0 to use all available system memory. (Default value is experimental) [Default: 36G]")
     parser_metaeuk.add_argument("--metaeuk_options", type=str, default="", help="MetaEuk | More options (e.g. --arg 1 ) [Default: ''] https://github.com/soedinglab/metaeuk")
 
     # Pyrodigal
@@ -1426,7 +1447,6 @@ def main(args=None):
     print(format_header("Configuration:", "-"), file=sys.stdout)
     print("Python version:", sys.version.replace("\n"," "), file=sys.stdout)
     print("Python path:", sys.executable, file=sys.stdout) #sys.path[2]
-    print("GenoPype version:", genopype_version, file=sys.stdout) #sys.path[2]
     print("Script version:", __version__, file=sys.stdout)
     print("Moment:", get_timestamp(), file=sys.stdout)
     print("Directory:", os.getcwd(), file=sys.stdout)

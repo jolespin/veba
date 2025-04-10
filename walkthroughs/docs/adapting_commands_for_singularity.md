@@ -32,7 +32,7 @@ Let's say you wanted to use the `binning-prokaryotic` module.  Pull the Docker i
 
 ```bash
 # Version
-VERSION=2.4.2
+VERSION=2.5.0
 
 # Image
 MODULE="veba_binning-prokaryotic"
@@ -91,7 +91,7 @@ singularity exec \
     --bind ${LOCAL_WORKING_DIRECTORY}:${CONTAINER_WORKSPACE_DIRECTORY},${LOCAL_DATABASE_DIRECTORY}:${CONTAINER_DATABASE_DIRECTORY} \
      ${SINGULARITY_IMAGE} \
     bash -c \
-"export PATH=/usr/bin/:/opt/conda/bin/; export CONDA_PREFIX=/opt/conda/; binning-prokaryotic.py -f ${FASTA} -b ${BAM} -n ${NAME} -o ${OUTPUT_DIRECTORY} --veba_database ${CONTAINER_DATABASE_DIRECTORY}"
+"export PATH=/opt/conda/bin:/usr/bin; export CONDA_PREFIX=/opt/conda; binning-prokaryotic.py -f ${FASTA} -b ${BAM} -n ${NAME} -o ${OUTPUT_DIRECTORY} --veba_database ${CONTAINER_DATABASE_DIRECTORY}"
 ```
 
 You get idea...

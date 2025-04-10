@@ -3,7 +3,7 @@ import sys, os, argparse
 import pandas as pd
 
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.9.15"
+__version__ = "2024.4.3"
 
 def main(args=None):
     # Path info
@@ -69,7 +69,7 @@ def main(args=None):
 
     bgc_to_vfdbnhits = pd.Series([0]*df_bgcs.shape[0], df_bgcs.index)
     bgc_to_vfdbnhits.update(df_vfdb.index.map(lambda x: component_to_bgc[x]).value_counts())
-    df_bgcs["number_of_vfdb_hits"] = bgc_to_mibignhits
+    df_bgcs["number_of_vfdb_hits"] = bgc_to_vfdbnhits
     df_bgcs["virulence_ratio"] = df_bgcs["number_of_vfdb_hits"]/df_bgcs["number_of_genes"]
 
     # Output

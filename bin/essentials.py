@@ -13,7 +13,7 @@ from pyexeggutor import (
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2025.1.24"
+__version__ = "2025.4.9"
     
 def merge_quality(organism_type, organism_specific_binning_directory):
     """
@@ -52,6 +52,26 @@ def merge_quality(organism_type, organism_specific_binning_directory):
             df.insert(0, "id_sample", id_sample)
         dataframes.append(df)
 
+    # Concatenate all DataFrames
+    if dataframes:
+        return pd.concat(dataframes, axis=0)
+    else:  
+        return pd.DataFrame()
+    
+def merge_statistics(binning_directory, sequence_type):
+    if sequence_type == "genome":
+        pattern = os.path.join(binning_directory, "*", "*", "output", "genome_statistics.tsv")
+    elif sequence_type == "cds":
+        pattern = os.path.join(binning_directory, "*", "*", "output", "gene_statistics.cds.tsv")
+    elif sequence_type == "rRNA":
+        pattern = os.path.join(binning_directory, "*", "*", "output", "gene_statistics.rRNA.tsv")
+    elif sequence_type == "tRNA":
+        pattern = os.path.join(binning_directory, "*", "*", "output", "gene_statistics.tRNA.tsv")
+        
+    dataframes = list()
+    for filepath in tqdm(glob.glob(pattern), desc=f"Processing {sequence_type} files"):
+        df = pd.read_csv(filepath, sep="\t", index_col=0)
+        dataframes.append(df)
     # Concatenate all DataFrames
     if dataframes:
         return pd.concat(dataframes, axis=0)
@@ -201,13 +221,33 @@ def main(args=None):
             df_identifier_mapping.to_csv(destination_filepath, sep="\t", header=None)
         else:
             logger.warning("No identifier mapping files found")
+
+        # Statistics
+        logger.info(f"Gathering genome statistics: {parent_directory}")
+        os.makedirs(os.path.join(opts.output_directory, "statistics"), exist_ok=True)
+        df = merge_statistics(parent_directory, sequence_type="genome")
+        if df.empty:
+            logger.warning("No genome statistics files found")
+        else:
+            df.to_csv(os.path.join(opts.output_directory, "statistics", "genome_statistics.tsv.gz"), sep="\t")
         
+        for sequence_type in ["cds", "rRNA", "tRNA"]:
+            logger.info(f"Gathering {sequence_type} statistics: {parent_directory}")
+            df = merge_statistics(parent_directory, sequence_type=sequence_type)
+            if df.empty:
+                logger.warning(f"No {sequence_type} statistics files found")
+            else:
+                df.to_csv(os.path.join(opts.output_directory, "statistics", f"gene_statistics.{sequence_type}.tsv.gz"), sep="\t")
+        
+            
         # Genomes
         for source_directory in glob.glob(os.path.join(opts.veba_directory, "binning", "*")):
             source_directory = os.path.normpath(source_directory)
             if os.path.isdir(source_directory):
                 # if source_directory.endswith("/"):
                 #     source_directory = source_directory[:-1]
+
+                    
                 organism_specific_binning_directory = source_directory
                 organism_type = organism_specific_binning_directory.split("/")[-1]
                 logger.info(f"Gathering genome files [{organism_type}]: {source_directory}")
@@ -250,6 +290,8 @@ def main(args=None):
                         df_identifier_mapping_metaeuk.to_csv(destination_filepath, sep="\t")
                     else:
                         logger.warning("Identifier mapping files found for MetaEuk")
+                        
+
                         
     # Annotations
     # -----------

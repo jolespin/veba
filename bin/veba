@@ -1,7 +1,8 @@
 #!/bin/bash
-# v2025.1.23
+# v2025.4.4
 
-CONDA_ENVS_PATH=${CONDA_ENVS_PATH:-"$(conda info --base)/envs/"}
+# CONDA_ENVS_PATH=${CONDA_ENVS_PATH:-"$(conda info --base)/envs/"}
+CONDA_ENVS_PATH=$(dirname $CONDA_PREFIX)
 
 
 # Define available modules

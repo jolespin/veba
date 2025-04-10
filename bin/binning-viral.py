@@ -14,7 +14,7 @@ from soothsayer_utils import *
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2024.12.28"
+__version__ = "2025.4.4"
 
 # geNomad
 def get_genomad_cmd(input_filepaths, output_filepaths, output_directory, directories, opts):
@@ -266,18 +266,19 @@ def get_checkv_cmd(input_filepaths, output_filepaths, output_directory, director
     
     return cmd
 
-# Prodigal
-def get_prodigal_cmd(input_filepaths, output_filepaths, output_directory, directories, opts):
+# Pyrodigal
+def get_pyrodigalgv_cmd(input_filepaths, output_filepaths, output_directory, directories, opts):
     cmd = [
         "cat",
         os.path.join(input_filepaths[0], "*.fa"),
         "|",
-        os.environ["prodigal-gv"],
+        os.environ["pyrodigal-gv"],
         "-p meta",
         "-g {}".format(opts.prodigal_genetic_code),
         "-f gff",
         "-d {}".format(os.path.join(output_directory, "gene_models.ffn")),
         "-a {}".format(os.path.join(output_directory, "gene_models.faa")),
+        "-j {}".format(opts.n_jobs),
         "|",
         os.environ["append_geneid_to_prodigal_gff.py"],
         "-a gene_id",
@@ -595,18 +596,18 @@ def create_pipeline(opts, directories, f_cmds):
     )
 
     # ==========
-    # Prodigal
+    # Pyrodigal-GV
     # ==========
     step = 3
 
-    program = "prodigal-gv"
+    program = "pyrodigal-gv"
     program_label = "{}__{}".format(step, program)
     # Add to directories
     output_directory = directories[("intermediate",  program_label)] = create_directory(os.path.join(directories["intermediate"], program_label))
 
 
     # Info
-    description = "Viral gene calls via Prodigal-GV"
+    description = "Viral gene calls via Pyrodigal-GV"
     # i/o
     input_filepaths = [
         os.path.join(directories[("intermediate",  "2__checkv")],"filtered", "genomes"),
@@ -629,7 +630,7 @@ def create_pipeline(opts, directories, f_cmds):
         "directories":directories,
     }
 
-    cmd = get_prodigal_cmd(**params)
+    cmd = get_pyrodigalgv_cmd(**params)
     pipeline.add_step(
                 id=program_label,
                 description = description,
@@ -790,7 +791,7 @@ def add_executables_to_environment(opts):
     }
 
     required_executables={
-                "prodigal-gv",
+                "pyrodigal-gv",
                 "genomad",
                 "checkv",
                 "seqkit",

@@ -1,4 +1,4 @@
-# v2024.6.10
+# v2025.4.2
 # =================================
 FROM --platform=linux/amd64 mambaorg/micromamba:latest
 
@@ -6,10 +6,11 @@ ARG ENV_NAME
 
 SHELL ["/usr/local/bin/_dockerfile_shell.sh"]
 
-WORKDIR /tmp/
+WORKDIR /home/
 
 # Data
 USER root
+RUN mkdir -p /tmp/
 RUN mkdir -p /volumes/
 RUN mkdir -p /volumes/input
 RUN mkdir -p /volumes/output

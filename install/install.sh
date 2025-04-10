@@ -1,5 +1,5 @@
 #!/bin/bash
-# __version__ = "2025.1.27"
+# __version__ = "2025.4.2"
 SCRIPT_PATH=$(realpath $0)
 SCRIPT_DIRECTORY=$(dirname $0)
 VEBA_REPOSITORY_DIRECTORY=$(realpath ${SCRIPT_DIRECTORY}/../)
@@ -25,6 +25,7 @@ echo "Creating ${VEBA} main environment"
 
 ENV_NAME="VEBA"
 (mamba create -y -p ${CONDA_ENVS_PATH}/${ENV_NAME} -c conda-forge -c bioconda -c jolespin parallel seqkit genopype networkx biopython biom-format anndata || echo "Error when creating main VEBA environment" ; exit 1) &> ${LOG_DIRECTORY}/VEBA.log
+mamba run -p ${CONDA_ENVS_PATH}/${ENV_NAME} pip install pyexeggutor
 
 # Copy main executable
 echo -e "\t*Copying main VEBA executable into ${ENV_NAME} environment path"
