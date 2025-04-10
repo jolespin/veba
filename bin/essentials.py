@@ -13,7 +13,7 @@ from pyexeggutor import (
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2025.4.2"
+__version__ = "2025.4.9"
     
 def merge_quality(organism_type, organism_specific_binning_directory):
     """
@@ -222,30 +222,31 @@ def main(args=None):
         else:
             logger.warning("No identifier mapping files found")
 
+        # Statistics
+        logger.info(f"Gathering genome statistics: {parent_directory}")
+        os.makedirs(os.path.join(opts.output_directory, "statistics"), exist_ok=True)
+        df = merge_statistics(parent_directory, sequence_type="genome")
+        if df.empty:
+            logger.warning("No genome statistics files found")
+        else:
+            df.to_csv(os.path.join(opts.output_directory, "statistics", "genome_statistics.tsv.gz"), sep="\t")
+        
+        for sequence_type in ["cds", "rRNA", "tRNA"]:
+            logger.info(f"Gathering {sequence_type} statistics: {parent_directory}")
+            df = merge_statistics(parent_directory, sequence_type=sequence_type)
+            if df.empty:
+                logger.warning(f"No {sequence_type} statistics files found")
+            else:
+                df.to_csv(os.path.join(opts.output_directory, "statistics", f"gene_statistics.{sequence_type}.tsv.gz"), sep="\t")
+        
             
-        # Genomes and statistics
+        # Genomes
         for source_directory in glob.glob(os.path.join(opts.veba_directory, "binning", "*")):
             source_directory = os.path.normpath(source_directory)
             if os.path.isdir(source_directory):
                 # if source_directory.endswith("/"):
                 #     source_directory = source_directory[:-1]
-                # Statistics
-                logger.info(f"Gathering genome statistics: {source_directory}")
-                os.makedirs(os.path.join(opts.output_directory, "statistics"), exist_ok=True)
-                df = merge_statistics(source_directory, sequence_type="genome")
-                if df.empty:
-                    logger.warning("No genome statistics files found")
-                else:
-                    df.to_csv(os.path.join(opts.output_directory, "statistics", "genome_statistics.tsv.gz"), sep="\t")
-                
-                for sequence_type in ["cds", "rRNA", "tRNA"]:
-                    logger.info(f"Gathering {sequence_type} statistics: {source_directory}")
-                    df = merge_statistics(source_directory, sequence_type=sequence_type)
-                    if df.empty:
-                        logger.warning(f"No {sequence_type} statistics files found")
-                    else:
-                        df.to_csv(os.path.join(opts.output_directory, "statistics", f"gene_statistics.{sequence_type}.tsv.gz"), sep="\t")
-                
+
                     
                 organism_specific_binning_directory = source_directory
                 organism_type = organism_specific_binning_directory.split("/")[-1]
