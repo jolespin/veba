@@ -13,7 +13,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [2.5.0] - 2025.04.08
+## [2.5.0] - 2025.04.10
 
 ### Added
 
@@ -25,9 +25,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 *   Added `--semibin2_orf_finder` option to `binning_wrapper.py`.
 *   Added `genome_statistics.tsv.gz`, `gene_statistics.cds.tsv.gz`, `gene_statistics.rRNA.tsv.gz`, and `gene_statistics.tRNA.tsv.gz` outputs to `essentials.py`.
 *   Added `--identifiers`, `--index_name`, and `--no_header` options to `convert_metabat2_coverage.py` for broader applicability, including `VAMB`.
-
+*   Added `-l eukaryota_odb12` as default but also allow `--auto-lineage-euk` for `BUSCO` in `binning-eukaryotic.py`
 ### Changed
 
+*   Changed `binning-eukaryotic.py` behavior to provide a solution to [BUSCO Issue #447](https://gitlab.com/ezlab/busco/-/issues/447)
 *   Changed `CHANGELOG.md` format to best practice [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 *   Changed `prodigal-gv` to `pyrodigal-gv` in multithreaded mode for `binning-viral.py` for performance.
 *   Removed `metacoag` from the default set of binning algorithms in `binning-prokaryotic.py`.
@@ -596,6 +597,7 @@ ________________________________________________________________
 
 **Definitely:**
 
+* Update `eukaryota_odb10` -> `eukaryota_odb12` in `Markers` database
 * Modify `COMEbin` so it can be used in the same environment as `Binette` and `CheckM2`
 * When annotating proteins, create a hash representation and a dictionary of redundant sequences to decrease search space [v2.6.0]
 * Replace `Bowtie2` with `strobealign` and `Fairy` when applicable (i.e., `coverage`, `assembly`, `binning`, `index`, and `mapping` modules) [v2.6.0] 
@@ -640,6 +642,7 @@ ________________________________________________________________
 <details>
 	<summary> <b>Daily Change Log:</b> </summary>
 
+* [2025.4.10] - Use `-l eukaryota_odb12` as default but also allow `--auto-lineage-euk` for `BUSCO` in `binning-eukaryotic.py`
 * [2025.4.9] - Subset the coverage table for `VAMB` which is needed for iterations > 1 since the coverage index contigs must match the input contigs exactly
 * [2025.4.8] - Added `VAMB` to `binning-prokaryotic.py` which is included as one of the default binners
 * [2025.4.8] - Addd `VAMB` to `binning_wrapper.py`

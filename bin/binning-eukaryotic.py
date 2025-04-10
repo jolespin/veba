@@ -14,7 +14,7 @@ from soothsayer_utils import *
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2025.4.3"
+__version__ = "2025.4.10"
 
 def get_preprocess_cmd(input_filepaths, output_filepaths, output_directory, directories, opts):
 
@@ -300,7 +300,7 @@ for FP in %s;
     echo $OUT_DIR
 
     # BUSCO Command
-    %s --force -i $FP -o $OUT_DIR -m protein --auto-lineage-euk -c %d --evalue %f --download_path %s %s
+    %s --force -i $FP -o $OUT_DIR -m protein %s -c %d --evalue %f --download_path %s %s
 
     # Remove big intermediate files
 
@@ -321,6 +321,7 @@ rm -rf $TMP_BUSCO_DIRECTORY/*
     os.path.join(directories["tmp"],"busco"),
     os.path.join(directories[("intermediate",  "2__eukaryotic_gene_modeling")], "output", "*.faa"),
     os.environ["busco"],
+    "--auto-lineage-euk" if opts.busco_auto_lineage else "-l {}".format(opts.busco_lineage),
     opts.n_jobs,
     opts.busco_evalue,
     "$TMP_BUSCO_DIRECTORY" if not opts.busco_offline else opts.busco_offline,
@@ -952,6 +953,8 @@ def main(args=None):
 
     # BUSCO
     parser_busco = parser.add_argument_group('BUSCO arguments')
+    parser_busco.add_argument("--busco_lineage", default="eukaryota_odb12", help="BUSCO | Eukaryotic lineage markers to test [Default: eukaryota_odb12]")
+    parser_busco.add_argument("--busco_auto_lineage", action="store_true",help="BUSCO | Override the default eukaryota lineage and use automatic lineage detection.  Caution: https://gitlab.com/ezlab/busco/-/issues/447")
     parser_busco.add_argument("--busco_offline", type=str, help="BUSCO | Offline database path")
     parser_busco.add_argument("--busco_completeness", type=float, default=30.0, help = "BUSCO completeness [Default: 30.0]")
     parser_busco.add_argument("--busco_contamination", type=float, default=10.0, help = "BUSCO contamination [Default: 10.0]")
