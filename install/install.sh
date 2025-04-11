@@ -47,7 +47,7 @@ cp -rf ${VEBA_REPOSITORY_DIRECTORY}/VERSION ${CONDA_ENVS_PATH}/${ENV_NAME}/bin/V
 cp -r ${VEBA_REPOSITORY_DIRECTORY}/bin/VEBA_SCRIPT_VERSIONS ${CONDA_ENVS_PATH}/${ENV_NAME}/bin/
 
 # Module environments
-for ENV_YAML in $(ls ${VEBA_REPOSITORY_DIRECTORY}/install/environments/VEBA*.yml | grep -v "-gpu"); do
+for ENV_YAML in $(ls ${VEBA_REPOSITORY_DIRECTORY}/install/environments/VEBA*.yml | grep -v "\-gpu"); do
     # Get environment name
     ENV_NAME=$(basename $ENV_YAML .yml)
 
