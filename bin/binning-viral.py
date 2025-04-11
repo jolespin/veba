@@ -872,7 +872,7 @@ def main(args=None):
 
     # Binning
     parser_binning = parser.add_argument_group('Binning arguments')
-    # parser_binning.add_argument("-a", "--algorithm", type=str, choices={"genomad"},default="genomad", help="Binning algorithm to use (only genomad is support but more may be added in the future) [Default: genomad]")
+    parser_binning.add_argument("-a", "--algorithm", type=str, choices={"genomad"},default="genomad", help="Binning algorithm to use (only genomad is support but more may be added in the future) [Default: genomad]")
     parser_binning.add_argument("-m", "--minimum_contig_length", type=int, default=1500, help="Minimum contig length.  [Default: 1500] ")
     parser_binning.add_argument("--include_provirus_detection", action="store_true", help="Include provirus viral detection")
 
