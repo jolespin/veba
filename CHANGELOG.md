@@ -13,6 +13,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.5.1] - 2025.04.12
+
+### Added
+
+*   Added `install-gpu.sh` which installs GPU accelerated environments when applicable (i.e., `VEBA-binning-prokaryotic_env` and `VEBA-binning-viral_env`)
+*   Added `Dockerfile-GPU` which is experimental
+
+### Changed
+
+*   Changed `install.sh` so it only installs CPU-based environments [Issue #167](https://github.com/jolespin/veba/issues/167)
+*   Changed `containerize_environments.sh` so it only installs CPU-based environments [Issue #167](https://github.com/jolespin/veba/issues/167)
+
+### Deprecated
+
+*   Deprecated `VirFinder` algorithm in `binning-viral.py` so now only `geNomad` is supported
+
 ## [2.5.0] - 2025.04.10
 
 ### Added
@@ -643,6 +659,11 @@ ________________________________________________________________
 <details>
 	<summary> <b>Daily Change Log:</b> </summary>
 
+* [2025.4.11] - Added `install-gpu.sh` which installs GPU accelerated environments when applicable (i.e., `VEBA-binning-prokaryotic_env` and `VEBA-binning-viral_env`)
+* [2025.4.11] - Added `Dockerfile-GPU` which is experimental
+* [2025.4.11] - Changed `install.sh` so it only installs CPU-based environments [Issue #167](https://github.com/jolespin/veba/issues/167)
+* [2025.4.11] - Changed `containerize_environments.sh` so it only installs CPU-based environments [Issue #167](https://github.com/jolespin/veba/issues/167)
+* [2025.4.11] - Deprecated `VirFinder` algorithm in `binning-viral.py` so now only `geNomad` is supported
 * [2025.4.10] - Use `-l eukaryota_odb12` as default but also allow `--auto-lineage-euk` for `BUSCO` in `binning-eukaryotic.py`
 * [2025.4.9] - Subset the coverage table for `VAMB` which is needed for iterations > 1 since the coverage index contigs must match the input contigs exactly
 * [2025.4.8] - Added `VAMB` to `binning-prokaryotic.py` which is included as one of the default binners

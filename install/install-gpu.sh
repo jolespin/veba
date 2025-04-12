@@ -47,7 +47,9 @@ cp -rf ${VEBA_REPOSITORY_DIRECTORY}/VERSION ${CONDA_ENVS_PATH}/${ENV_NAME}/bin/V
 cp -r ${VEBA_REPOSITORY_DIRECTORY}/bin/VEBA_SCRIPT_VERSIONS ${CONDA_ENVS_PATH}/${ENV_NAME}/bin/
 
 # Module environments
-for ENV_YAML in $(ls ${VEBA_REPOSITORY_DIRECTORY}/install/environments/VEBA*.yml | grep -v "\-gpu"); do
+# CPU
+GPU_MODULES="VEBA-binning-prokaryotic|VEBA-binning-viral"
+for ENV_YAML in $(ls ${VEBA_REPOSITORY_DIRECTORY}/install/environments/VEBA*.yml | grep -E -v "${GPU_MODULES}"); do
     # Get environment name
     ENV_NAME=$(basename $ENV_YAML .yml)
 
@@ -75,6 +77,48 @@ for ENV_YAML in $(ls ${VEBA_REPOSITORY_DIRECTORY}/install/environments/VEBA*.yml
     cp -r ${VEBA_REPOSITORY_DIRECTORY}/bin/VEBA_SCRIPT_VERSIONS ${CONDA_ENVS_PATH}/${ENV_NAME}/bin/
 
     done
+
+# GPU
+# Set IFS to the delimiter '|'
+IFS='|'
+
+# Convert the string into an array
+read -ra GPU_MODULES_ARRAY <<< "$GPU_MODULES"
+
+# Iterate through the array
+for ENV_BASENAME in "${GPU_MODULES_ARRAY[@]}"; 
+do
+    ENV_YAML=${VEBA_REPOSITORY_DIRECTORY}/install/environments/${ENV_BASENAME}-gpu_env.yml
+    ENV_NAME="${ENV_BASENAME}_env"
+    
+   # Create conda environment
+    echo "Creating ${ENV_NAME} module environment"
+    (mamba env create -y -f $ENV_YAML -p ${CONDA_ENVS_PATH}/${ENV_NAME} || echo "Error when creating VEBA environment: ${ENV_YAML}" ; exit 1) &> ${LOG_DIRECTORY}/${ENV_NAME}.log
+
+    # Copy over files to environment bin/
+    echo -e "\t*Copying VEBA modules into ${ENV_NAME} environment path"
+    cp -r ${VEBA_REPOSITORY_DIRECTORY}/bin/*.py ${CONDA_ENVS_PATH}/${ENV_NAME}/bin/
+    echo -e "\t*Copying VEBA utility scripts into ${ENV_NAME} environment path"
+    cp -r ${VEBA_REPOSITORY_DIRECTORY}/bin/scripts/ ${CONDA_ENVS_PATH}/${ENV_NAME}/bin/
+    # Symlink the utility scripts to bin/
+    echo -e "\t*Symlinking VEBA utility scripts into ${ENV_NAME} environment path"
+
+    DST=${CONDA_ENVS_PATH}/${ENV_NAME}/bin/
+    for SRC in ${CONDA_ENVS_PATH}/${ENV_NAME}/bin/scripts/*;
+        do
+        SRC=$(realpath --relative-to ${DST} ${SRC})
+        ln -sf ${SRC} ${DST}
+        done
+
+    # Version
+    cp -rf ${VEBA_REPOSITORY_DIRECTORY}/VERSION ${CONDA_ENVS_PATH}/${ENV_NAME}/bin/VEBA_VERSION
+    cp -r ${VEBA_REPOSITORY_DIRECTORY}/bin/VEBA_SCRIPT_VERSIONS ${CONDA_ENVS_PATH}/${ENV_NAME}/bin/
+
+done
+
+# Reset IFS to its default value (optional)
+unset IFS
+
 
 echo -e " _    _ _______ ______  _______\n  \  /  |______ |_____] |_____|\n   \/   |______ |_____] |     |"
 echo -e "..............................."

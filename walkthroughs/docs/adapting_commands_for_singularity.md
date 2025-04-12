@@ -32,7 +32,7 @@ Let's say you wanted to use the `binning-prokaryotic` module.  Pull the Docker i
 
 ```bash
 # Version
-VERSION=2.5.0
+VERSION=2.5.1
 
 # Image
 MODULE="veba_binning-prokaryotic"

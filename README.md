@@ -49,7 +49,7 @@ ___________________________________________________________________
 
 ### Current
 
-* **Stable Version:** [`v2.5.0`](https://github.com/jolespin/veba/releases/tag/v2.5.0)
+* **Stable Version:** [`v2.5.1`](https://github.com/jolespin/veba/releases/tag/v2.5.1)
 
 * **Corresponding Database Version:** [`VEBA-DB_v9`](install/DATABASE.md)
 

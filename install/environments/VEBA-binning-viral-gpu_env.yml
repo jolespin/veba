@@ -1,4 +1,4 @@
-name: VEBA-binning-viral_env__v2025.4.11
+name: VEBA-binning-viral-gpu_env__v2025.4.12
 channels:
   - conda-forge
   - bioconda
@@ -26,6 +26,16 @@ dependencies:
   - checkv=1.0.3=pyhdfd78af_0
   - click=8.1.8=pyh707e725_0
   - colorama=0.4.6=pyhd8ed1ab_1
+  - cuda-crt-tools=12.8.93=ha770c72_3
+  - cuda-cudart=12.8.90=h5888daf_1
+  - cuda-cudart_linux-64=12.8.90=h3f2d84a_1
+  - cuda-cupti=12.8.90=h5888daf_1
+  - cuda-nvcc-tools=12.8.93=he02047a_3
+  - cuda-nvrtc=12.8.93=h5888daf_1
+  - cuda-nvtx=12.8.90=h5888daf_1
+  - cuda-nvvm-tools=12.8.93=he02047a_3
+  - cuda-version=12.8=h5d125a7_3
+  - cudnn=9.8.0.87=h81d5506_1
   - diamond=2.0.4=hdb21b49_1
   - flatbuffers=24.12.23=h8f4948b_0
   - gast=0.6.0=pyhd8ed1ab_0
@@ -56,7 +66,12 @@ dependencies:
   - libasprintf=0.23.1=h8e693c7_0
   - libblas=3.9.0=31_h59b9bed_openblas
   - libcblas=3.9.0=31_he106b2a_openblas
+  - libcublas=12.8.4.1=h9ab20c4_1
+  - libcufft=11.3.3.83=h5888daf_1
+  - libcurand=10.3.9.90=h9ab20c4_1
   - libcurl=8.13.0=h332b0f4_0
+  - libcusolver=11.7.3.90=h9ab20c4_1
+  - libcusparse=12.5.8.93=h5888daf_1
   - libedit=3.1.20250104=pl5321h7949ede_0
   - libev=4.33=hd590300_2
   - libexpat=2.7.0=h5888daf_0
@@ -74,6 +89,7 @@ dependencies:
   - liblzma=5.8.1=hb9d3cd8_0
   - libnghttp2=1.64.0=h161d5f1_0
   - libnsl=2.0.1=hd590300_0
+  - libnvjitlink=12.8.93=h5888daf_1
   - libopenblas=0.3.29=pthreads_h94d23a6_0
   - libpng=1.6.47=h943b412_0
   - libprotobuf=5.28.3=h6128344_1
@@ -84,7 +100,7 @@ dependencies:
   - libstdcxx-ng=14.2.0=h4852527_2
   - libuuid=2.38.1=h0b41bf4_0
   - libxcrypt=4.4.36=hd590300_1
-  - libxgboost=3.0.0=cpu_h97e353d_0
+  - libxgboost=3.0.0=cuda128_hacb7753_0
   - libxml2=2.13.7=h4bc477f_1
   - libzlib=1.3.1=hb9d3cd8_2
   - llvmlite=0.44.0=py312h374181b_1
@@ -96,6 +112,7 @@ dependencies:
   - mmseqs2=17.b804f=hd6d6fdc_1
   - mpfr=4.2.1=h90cbb55_3
   - namex=0.0.8=pyhd8ed1ab_1
+  - nccl=2.26.2.1=ha44e49d_1
   - ncurses=6.5=h2d0b736_3
   - numba=0.61.2=py312h2e6246c_0
   - numpy=2.2.4=py312h72c5963_0
@@ -103,13 +120,13 @@ dependencies:
   - opt_einsum=3.4.0=pyhd8ed1ab_1
   - optree=0.15.0=py312h68727a3_0
   - packaging=24.2=pyhd8ed1ab_2
-  - pandas=2.2.3=py312hf9745cd_1
+  - pandas=2.2.3=py312hf9745cd_3
   - pathlib2=2.3.7.post1=py312h7900ff3_4
   - pip=25.0.1=pyh8b19718_0
   - prodigal-gv=2.11.0=h577a1d6_5
   - protobuf=5.28.3=py312h2ec8cdc_0
   - psutil=7.0.0=py312h66e93f0_0
-  - py-xgboost=3.0.0=cpu_pyhf5c67e3_0
+  - py-xgboost=3.0.0=cuda128_pyh71c493a_0
   - pycparser=2.22=pyh29332c3_1
   - pygments=2.19.1=pyhd8ed1ab_0
   - pyrodigal=3.6.3.post1=py312h0fa9677_0
@@ -121,7 +138,7 @@ dependencies:
   - python-flatbuffers=25.2.10=pyhbc23db3_0
   - python-tzdata=2025.2=pyhd8ed1ab_0
   - python_abi=3.12=6_cp312
-  - pytz=2024.1=pyhd8ed1ab_0
+  - pytz=2025.2=pyhd8ed1ab_0
   - re2=2024.07.02=h9925aae_2
   - readline=8.2=h8c095d6_2
   - requests=2.32.3=pyhd8ed1ab_1
@@ -139,9 +156,9 @@ dependencies:
   - taxopy=0.14.0=pyhdfd78af_0
   - tensorboard=2.18.0=pyhd8ed1ab_1
   - tensorboard-data-server=0.7.0=py312hda17c39_2
-  - tensorflow=2.18.0=cpu_py312h69ecde4_0
-  - tensorflow-base=2.18.0=cpu_py312h099d1c6_0
-  - tensorflow-estimator=2.18.0=cpu_py312hc0a35a6_0
+  - tensorflow=2.18.0=cuda126py312h5379a72_200
+  - tensorflow-base=2.18.0=cuda126py312hfb0ba9c_200
+  - tensorflow-estimator=2.18.0=cuda126py312hd49ae37_200
   - termcolor=3.0.1=pyhd8ed1ab_0
   - threadpoolctl=3.6.0=pyhecae5ae_0
   - tk=8.6.13=noxft_h4845f30_101
@@ -154,7 +171,7 @@ dependencies:
   - werkzeug=3.1.3=pyhd8ed1ab_1
   - wheel=0.45.1=pyhd8ed1ab_1
   - wrapt=1.17.2=py312h66e93f0_0
-  - xgboost=3.0.0=cpu_pyhc1a9e11_0
+  - xgboost=3.0.0=cuda128_pyh68bd8d9_0
   - zipp=3.21.0=pyhd8ed1ab_1
   - zlib=1.3.1=hb9d3cd8_2
   - zstandard=0.23.0=py312h66e93f0_1

@@ -1,0 +1,69 @@
+# v2025.4.10
+# Example: Choose a CUDA 12.x devel image on Ubuntu 22.04
+FROM --platform=linux/amd64 nvidia/cuda:12.3.2-cudnn-devel-ubuntu22.04
+# OR maybe 12.2.2? Check TF docs for minimum 12.x version.
+# FROM --platform=linux/amd64 nvidia/cuda:12.2.2-cudnn-devel-ubuntu22.04
+
+ARG ENV_NAME
+
+# --- Install micromamba into the NVIDIA image ---
+ARG MAMBA_USER=mambauser
+ARG MAMBA_USER_ID=1000
+ARG MAMBA_USER_GID=1000
+ARG MAMBA_ROOT_PREFIX=/opt/conda
+ARG MAMBA_EXE=/bin/micromamba
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        bzip2 \
+        ca-certificates \
+        curl \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY --from=mambaorg/micromamba:1.5.8 /usr/local/bin/micromamba* /usr/local/bin/
+COPY --from=mambaorg/micromamba:1.5.8 /usr/local/bin/_activate* /usr/local/bin/
+COPY --from=mambaorg/micromamba:1.5.8 /usr/local/bin/_dockerfile* /usr/local/bin/
+COPY --from=mambaorg/micromamba:1.5.8 ${MAMBA_ROOT_PREFIX} ${MAMBA_ROOT_PREFIX}
+
+RUN groupadd -g ${MAMBA_USER_GID} ${MAMBA_USER} || true \
+    && useradd --shell /bin/bash --uid ${MAMBA_USER_ID} --gid ${MAMBA_USER_GID} --create-home ${MAMBA_USER} \
+    && mkdir -p ${MAMBA_ROOT_PREFIX} \
+    && chown -R ${MAMBA_USER}:${MAMBA_USER} ${MAMBA_ROOT_PREFIX}
+
+# Update PATH and set up shell activation
+ENV PATH=${MAMBA_ROOT_PREFIX}/bin:${PATH}
+SHELL ["/usr/local/bin/_dockerfile_shell.sh"]
+# --- End of micromamba installation ---
+
+WORKDIR /home/
+
+# Data (Keep your volume setup)
+USER root
+RUN mkdir -p /tmp/ /volumes/input /volumes/output /volumes/database /volumes/workspace
+
+# Retrieve VEBA repository (Keep your copy steps)
+RUN mkdir -p veba/
+USER $MAMBA_USER
+COPY --chown=$MAMBA_USER:$MAMBA_USER ./install/ veba/install/
+COPY --chown=$MAMBA_USER:$MAMBA_USER ./bin/ veba/bin/
+COPY --chown=$MAMBA_USER:$MAMBA_USER ./VERSION veba/VERSION
+COPY --chown=$MAMBA_USER:$MAMBA_USER ./LICENSE veba/LICENSE
+RUN chmod -R 777 veba/bin/
+
+ARG MAMBA_NO_LOW_SPEED_LIMIT=1
+
+# Clean locks
+RUN micromamba clean --locks
+
+# Install dependencies (Keep your environment.yml with CUDA versions)
+# !! Important: Ensure consistency between Conda and Pip CUDA !!
+# It's often better to let Conda handle all CUDA deps (TF, torch, lightgbm)
+# and remove the `nvidia-*` pip packages if Conda provides equivalents.
+RUN micromamba install -y -n base -f veba/install/environments/${ENV_NAME}.yml && \
+    micromamba clean -a -y -f
+
+# Add environment scripts (Keep this)
+RUN cp -rf veba/bin/* ${MAMBA_ROOT_PREFIX}/bin/ && \
+    ln -sf ${MAMBA_ROOT_PREFIX}/bin/scripts/*.py ${MAMBA_ROOT_PREFIX}/bin/ && \
+    ln -sf ${MAMBA_ROOT_PREFIX}/bin/scripts/*.r ${MAMBA_ROOT_PREFIX}/bin/
+
+ENTRYPOINT ["/usr/local/bin/_entrypoint.sh"]

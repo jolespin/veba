@@ -1,4 +1,4 @@
-name: VEBA-binning-prokaryotic_env__v2025.4.11
+name: VEBA-binning-prokaryotic-gpu_env__v2025.4.10
 channels:
   - conda-forge
   - bioconda
@@ -19,7 +19,7 @@ dependencies:
   - bwa=0.7.19=h577a1d6_0
   - bz2file=0.98=py_0
   - bzip2=1.0.8=h4bc722e_7
-  - c-ares=1.34.5=hb9d3cd8_0
+  - c-ares=1.34.4=hb9d3cd8_0
   - ca-certificates=2025.1.31=hbcca054_0
   - cached-property=1.5.2=hd8ed1ab_1
   - cached_property=1.5.2=pyha770c72_1
@@ -30,13 +30,23 @@ dependencies:
   - colorama=0.4.6=pyhd8ed1ab_1
   - coloredlogs=15.0.1=pyhd8ed1ab_4
   - coverm=0.7.0=hb4818e0_2
-  - cpython=3.12.10=py312hd8ed1ab_0
+  - cpython=3.12.9=py312hd8ed1ab_1
+  - cuda-crt-tools=12.8.93=ha770c72_1
+  - cuda-cudart=12.8.90=h5888daf_1
+  - cuda-cudart_linux-64=12.8.90=h3f2d84a_1
+  - cuda-cupti=12.8.90=hbd13f7d_0
+  - cuda-nvcc-tools=12.8.93=he02047a_1
+  - cuda-nvrtc=12.8.93=h5888daf_1
+  - cuda-nvtx=12.8.90=hbd13f7d_0
+  - cuda-nvvm-tools=12.8.93=he02047a_1
+  - cuda-version=12.8=h5d125a7_3
+  - cudnn=9.8.0.87=h81d5506_0
   - dashing=1.0=h5b0a936_3
   - diamond=2.1.11=h5ca1c30_1
   - fastani=1.34=hb66fcc3_5
   - filelock=3.18.0=pyhd8ed1ab_0
   - flatbuffers=24.3.25=h59595ed_0
-  - fsspec=2025.3.2=pyhd8ed1ab_0
+  - fsspec=2025.3.1=pyhd8ed1ab_0
   - gast=0.6.0=pyhd8ed1ab_0
   - genopype=2023.5.15=py_0
   - giflib=5.2.2=hd590300_0
@@ -74,12 +84,17 @@ dependencies:
   - libboost-devel=1.85.0=h00ab1b0_4
   - libboost-headers=1.85.0=ha770c72_4
   - libcblas=3.9.0=31_he106b2a_openblas
-  - libcurl=8.13.0=h332b0f4_0
+  - libcublas=12.8.4.1=h9ab20c4_1
+  - libcufft=11.3.3.83=h5888daf_1
+  - libcurand=10.3.9.90=h9ab20c4_1
+  - libcurl=8.12.1=h332b0f4_0
+  - libcusolver=11.7.3.90=h9ab20c4_1
+  - libcusparse=12.5.8.93=hbd13f7d_0
   - libdeflate=1.22=hb9d3cd8_0
   - libedit=3.1.20250104=pl5321h7949ede_0
   - libev=4.33=hd590300_2
-  - libexpat=2.7.0=h5888daf_0
-  - libffi=3.4.6=h2dba641_1
+  - libexpat=2.6.4=h5888daf_0
+  - libffi=3.4.6=h2dba641_0
   - libgcc=14.2.0=h767d61c_2
   - libgcc-ng=14.2.0=h69a702a_2
   - libgfortran=14.2.0=h69a702a_2
@@ -89,10 +104,12 @@ dependencies:
   - libiconv=1.18=h4ce23a2_1
   - libjpeg-turbo=3.0.0=hd590300_1
   - liblapack=3.9.0=31_h7ac8fdf_openblas
-  - liblzma=5.8.1=hb9d3cd8_0
-  - liblzma-devel=5.8.1=hb9d3cd8_0
+  - liblightgbm=4.6.0=cuda_h3896ea8_1
+  - liblzma=5.6.4=hb9d3cd8_0
+  - liblzma-devel=5.6.4=hb9d3cd8_0
   - libnghttp2=1.64.0=h161d5f1_0
   - libnsl=2.0.1=hd590300_0
+  - libnvjitlink=12.8.93=h5888daf_1
   - libopenblas=0.3.29=pthreads_h94d23a6_0
   - libpng=1.6.47=h943b412_0
   - libprotobuf=5.27.5=h5b01275_2
@@ -105,9 +122,9 @@ dependencies:
   - libuuid=2.38.1=h0b41bf4_0
   - libuv=1.50.0=hb9d3cd8_0
   - libxcrypt=4.4.36=hd590300_1
-  - libxml2=2.13.7=h4bc477f_1
+  - libxml2=2.13.7=h8d12d68_0
   - libzlib=1.3.1=hb9d3cd8_2
-  - lightgbm=4.4.0=py312h7070661_1
+  - lightgbm=4.6.0=cuda_py_1
   - markdown=3.6=pyhd8ed1ab_0
   - markdown-it-py=3.0.0=pyhd8ed1ab_1
   - markupsafe=3.0.2=py312h178313f_1
@@ -119,15 +136,16 @@ dependencies:
   - mpfr=4.2.1=h90cbb55_3
   - mpmath=1.3.0=pyhd8ed1ab_1
   - namex=0.0.8=pyhd8ed1ab_1
+  - nccl=2.26.2.1=ha44e49d_0
   - ncurses=6.5=h2d0b736_3
   - networkx=3.4.2=pyh267e887_2
   - nomkl=1.0=h5ca1d4c_0
   - numexpr=2.10.2=py312h6a710ac_100
   - numpy=1.26.4=py312heda63a1_0
   - openblas=0.3.29=pthreads_h6ec200e_0
-  - openssl=3.5.0=h7b32b05_0
+  - openssl=3.4.1=h7b32b05_0
   - opt_einsum=3.4.0=pyhd8ed1ab_1
-  - optree=0.15.0=py312h68727a3_0
+  - optree=0.14.1=py312h68727a3_1
   - packaging=24.2=pyhd8ed1ab_2
   - pandas=2.2.3=py312hf9745cd_1
   - pathlib2=2.3.7.post1=py312h7900ff3_4
@@ -138,14 +156,13 @@ dependencies:
   - pycparser=2.22=pyh29332c3_1
   - pyfastx=2.2.0=py312h4711d71_0
   - pygments=2.19.1=pyhd8ed1ab_0
-  - pyhmmsearch=2024.10.20=pyh7e72e81_0
   - pysocks=1.7.1=pyha55dd90_7
-  - python=3.12.10=h9e4cc4f_0_cpython
+  - python=3.12.9=h9e4cc4f_1_cpython
   - python-dateutil=2.9.0.post0=pyhff2d567_1
   - python-flatbuffers=25.2.10=pyhbc23db3_0
   - python-igraph=0.11.8=py312h3262465_0
   - python-tzdata=2025.2=pyhd8ed1ab_0
-  - python_abi=3.12=6_cp312
+  - python_abi=3.12=5_cp312
   - pytz=2024.1=pyhd8ed1ab_0
   - pyyaml=6.0.2=py312h178313f_2
   - re2=2024.07.02=h9925aae_2
@@ -158,7 +175,7 @@ dependencies:
   - scipy=1.15.2=py312ha707e6e_0
   - semibin=2.2.0=pyhdfd78af_0
   - seqkit=2.10.0=h9ee0642_0
-  - setuptools=78.1.0=pyhff2d567_0
+  - setuptools=75.8.2=pyhff2d567_0
   - six=1.17.0=pyhd8ed1ab_0
   - sleef=3.8=h1b44611_0
   - snappy=1.2.1=h8bd8927_1
@@ -169,26 +186,26 @@ dependencies:
   - sysroot_linux-64=2.17=h0157908_18
   - tensorboard=2.17.1=pyhd8ed1ab_0
   - tensorboard-data-server=0.7.0=py312hda17c39_2
-  - tensorflow=2.17.0=cpu_py312h69ecde4_3
-  - tensorflow-base=2.17.0=cpu_py312h4c54302_3
-  - tensorflow-estimator=2.17.0=cpu_py312h4f468f2_3
-  - termcolor=3.0.1=pyhd8ed1ab_0
+  - tensorflow=2.17.0=cuda120py312h02ad488_203
+  - tensorflow-base=2.17.0=cuda120py312hbec54f7_203
+  - tensorflow-estimator=2.17.0=cuda120py312hfa0f5ef_203
+  - termcolor=2.5.0=pyhd8ed1ab_1
   - texttable=1.7.0=pyhd8ed1ab_1
   - threadpoolctl=3.6.0=pyhecae5ae_0
   - tk=8.6.13=noxft_h4845f30_101
   - tqdm=4.67.1=pyhd8ed1ab_1
   - trnascan-se=2.0.12=pl5321h7b50bb2_2
-  - typing-extensions=4.13.2=h0e9735f_0
-  - typing_extensions=4.13.2=pyh29332c3_0
+  - typing-extensions=4.13.0=h9fa5a19_1
+  - typing_extensions=4.13.0=pyh29332c3_1
   - tzdata=2025b=h78e105d_0
   - tzlocal=5.3=py312h7900ff3_0
-  - urllib3=2.4.0=pyhd8ed1ab_0
+  - urllib3=2.3.0=pyhd8ed1ab_0
   - werkzeug=3.1.3=pyhd8ed1ab_1
   - wheel=0.45.1=pyhd8ed1ab_1
   - wrapt=1.17.2=py312h66e93f0_0
-  - xz=5.8.1=hbcc6ac9_0
-  - xz-gpl-tools=5.8.1=hbcc6ac9_0
-  - xz-tools=5.8.1=hb9d3cd8_0
+  - xz=5.6.4=hbcc6ac9_0
+  - xz-gpl-tools=5.6.4=hbcc6ac9_0
+  - xz-tools=5.6.4=hb9d3cd8_0
   - yaml=0.2.5=h7f98852_2
   - zipp=3.21.0=pyhd8ed1ab_1
   - zlib=1.3.1=hb9d3cd8_2
@@ -203,7 +220,7 @@ dependencies:
       - memory-profiler==0.61.0
       - https://github.com/jolespin/metacoag-nal/releases/download/1.2.3rc4/metacoag-1.2.3rc4.tar.gz
       - https://github.com/jolespin/metadecoder-nal/releases/download/1.1.1rc5/metadecoder-1.1.1rc5.tar.gz
-      - numba==0.61.2
+      - numba==0.61.0
       - nvidia-cublas-cu12==12.4.5.8
       - nvidia-cuda-cupti-cu12==12.4.127
       - nvidia-cuda-nvrtc-cu12==12.4.127
@@ -221,6 +238,7 @@ dependencies:
       - pycoverm==0.6.2
       - pyexeggutor==2025.2.19
       - pyhmmer==0.10.15
+      - pyhmmsearch==2025.1.23
       - pyrodigal==3.6.3
       - skorch==1.1.0
       - sympy==1.13.1
@@ -228,6 +246,6 @@ dependencies:
       - https://github.com/jolespin/tiara-nal/archive/refs/tags/1.0.4rc3.tar.gz
       - torch==2.6.0
       - triton==3.2.0
-      - vamb==5.0.3
+      - vamb==5.0.2
       - vambcore==0.1.2
       - xxhash==3.5.0

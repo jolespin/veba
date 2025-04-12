@@ -14,7 +14,7 @@ from soothsayer_utils import *
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2025.4.4"
+__version__ = "2025.4.11"
 
 # geNomad
 def get_genomad_cmd(input_filepaths, output_filepaths, output_directory, directories, opts):
@@ -108,103 +108,103 @@ def get_genomad_cmd(input_filepaths, output_filepaths, output_directory, directo
 
     return cmd
 
-# VirFinder
-def get_virfinder_cmd(input_filepaths, output_filepaths, output_directory, directories, opts):
+# # VirFinder
+# def get_virfinder_cmd(input_filepaths, output_filepaths, output_directory, directories, opts):
 
-    cmd = [
+#     cmd = [
 
-        "cat",
-        opts.fasta,
-        "|",
-        os.environ["seqkit"],
-        "seq",
-        "-m {}".format(opts.minimum_contig_length),
-        "|",
-        os.environ["seqkit"],
-        "replace",
-        '-p "\s.+"',
-        ">",
-        os.path.join(directories["tmp"], "input.fasta"),
+#         "cat",
+#         opts.fasta,
+#         "|",
+#         os.environ["seqkit"],
+#         "seq",
+#         "-m {}".format(opts.minimum_contig_length),
+#         "|",
+#         os.environ["seqkit"],
+#         "replace",
+#         '-p "\s.+"',
+#         ">",
+#         os.path.join(directories["tmp"], "input.fasta"),
 
-            "&&",
+#             "&&",
             
-        "cp",
-        os.path.join(directories["tmp"], "input.fasta"),
-        os.path.join(directories["output"], "unbinned.fasta"),
+#         "cp",
+#         os.path.join(directories["tmp"], "input.fasta"),
+#         os.path.join(directories["output"], "unbinned.fasta"),
 
-            "&&",
+#             "&&",
 
-        os.environ["virfinder_wrapper.r"],
-        "-f {}".format(os.path.join(directories["tmp"], "input.fasta")),
-        "-o {}".format(output_filepaths[0]),
-        "-q",
-        opts.virfinder_options,
+#         os.environ["virfinder_wrapper.r"],
+#         "-f {}".format(os.path.join(directories["tmp"], "input.fasta")),
+#         "-o {}".format(output_filepaths[0]),
+#         "-q",
+#         opts.virfinder_options,
 
-            "&&",
+#             "&&",
 
-        "cat",
-        output_filepaths[0],
-        "|",
-        "python",
-        "-c",
-        r""" "import sys, pandas as pd; print(*pd.read_csv(sys.stdin, sep='\t', index_col=0).query('{} < {}').index, sep='\n')" """.format("qvalue" if opts.use_qvalue else "pvalue", opts.virfinder_pvalue),
-        ">",
-        output_filepaths[1],
+#         "cat",
+#         output_filepaths[0],
+#         "|",
+#         "python",
+#         "-c",
+#         r""" "import sys, pandas as pd; print(*pd.read_csv(sys.stdin, sep='\t', index_col=0).query('{} < {}').index, sep='\n')" """.format("qvalue" if opts.use_qvalue else "pvalue", opts.virfinder_pvalue),
+#         ">",
+#         output_filepaths[1],
 
-            "&&",
+#             "&&",
 
-        "cat",
-        opts.fasta,
-        "|",
-        os.environ["seqkit"],
-        "grep",
-        "--pattern-file {}".format(output_filepaths[1]),
-        ">",
-        os.path.join(directories["tmp"], "input.fasta"),
+#         "cat",
+#         opts.fasta,
+#         "|",
+#         os.environ["seqkit"],
+#         "grep",
+#         "--pattern-file {}".format(output_filepaths[1]),
+#         ">",
+#         os.path.join(directories["tmp"], "input.fasta"),
 
-            "&&",
+#             "&&",
 
-    #     os.environ["genomad"],
-    #     "annotate",
-    #     "--cleanup",
-    #     "--threads {}".format(opts.n_jobs),
-    #     "--splits {}".format(opts.splits),
-    #     "--evalue {}".format(opts.mmseqs2_evalue),
-    #     "--sensitivity {}".format(opts.sensitivity),
-    # ]
+#     #     os.environ["genomad"],
+#     #     "annotate",
+#     #     "--cleanup",
+#     #     "--threads {}".format(opts.n_jobs),
+#     #     "--splits {}".format(opts.splits),
+#     #     "--evalue {}".format(opts.mmseqs2_evalue),
+#     #     "--sensitivity {}".format(opts.sensitivity),
+#     # ]
 
-    # if opts.use_minimal_database_for_taxonomy:
-    #     cmd += [
-    #         "--use-minimal-db",
-    #     ]
+#     # if opts.use_minimal_database_for_taxonomy:
+#     #     cmd += [
+#     #         "--use-minimal-db",
+#     #     ]
 
-    # cmd += [ 
-    #     os.path.join(directories["tmp"], "input.fasta"), # Input
-    #     os.path.join(output_directory, "intermediate"), # Output
-    #     os.path.join(opts.veba_database, "Classify", "geNomad"),
+#     # cmd += [ 
+#     #     os.path.join(directories["tmp"], "input.fasta"), # Input
+#     #     os.path.join(output_directory, "intermediate"), # Output
+#     #     os.path.join(opts.veba_database, "Classify", "geNomad"),
 
-    #         "&&",
+#     #         "&&",
 
-    #     "cp -rf", 
-    #     os.path.join(output_directory, "intermediate", "input_annotate", "input_taxonomy.tsv"), 
-    #     os.path.join(output_directory, "viral_taxonomy.tsv"), 
+#     #     "cp -rf", 
+#     #     os.path.join(output_directory, "intermediate", "input_annotate", "input_taxonomy.tsv"), 
+#     #     os.path.join(output_directory, "viral_taxonomy.tsv"), 
 
-    os.environ["genomad_taxonomy_wrapper.py"],
-    "-f {}".format( os.path.join(directories["tmp"], "input.fasta")),
-    "-o {}".format(output_directory),
-    "--veba_database {}".format(opts.veba_database),
-    "--sensitivity {}".format(opts.sensitivity),
-    "--splits {}".format(opts.splits),
-    "--mmseqs2_evalue {}".format(opts.mmseqs2_evalue),
-    "--n_jobs {}".format(opts.n_jobs),
-    "--unclassified_lineage_label Unclassified",
-    "--unclassified_taxid -1",
-    "--unclassified_score 1.0",
-    "--use_minimal_database_for_taxonomy" if opts.use_minimal_database_for_taxonomy else "",
-    ]
+#     os.environ["genomad_taxonomy_wrapper.py"],
+#     "-f {}".format( os.path.join(directories["tmp"], "input.fasta")),
+#     "-o {}".format(output_directory),
+#     "--veba_database {}".format(opts.veba_database),
+#     "--sensitivity {}".format(opts.sensitivity),
+#     "--splits {}".format(opts.splits),
+#     "--mmseqs2_evalue {}".format(opts.mmseqs2_evalue),
+#     "--n_jobs {}".format(opts.n_jobs),
+#     "--unclassified_lineage_label Unclassified",
+#     "--unclassified_taxid -1",
+#     "--unclassified_score 1.0",
+#     "--use_minimal_database_for_taxonomy" if opts.use_minimal_database_for_taxonomy else "",
+#     ]
 
 
-    return cmd
+#     return cmd
 
 def get_checkv_cmd(input_filepaths, output_filepaths, output_directory, directories, opts):
     # checkv end_to_end ${FASTA} ${OUT_DIR} -t ${N_JOBS} --restart
@@ -274,7 +274,7 @@ def get_pyrodigalgv_cmd(input_filepaths, output_filepaths, output_directory, dir
         "|",
         os.environ["pyrodigal-gv"],
         "-p meta",
-        "-g {}".format(opts.prodigal_genetic_code),
+        "-g {}".format(opts.pyrodigal_genetic_code),
         "-f gff",
         "-d {}".format(os.path.join(output_directory, "gene_models.ffn")),
         "-a {}".format(os.path.join(output_directory, "gene_models.faa")),
@@ -437,104 +437,104 @@ def create_pipeline(opts, directories, f_cmds):
     # Commands file
     pipeline = ExecutablePipeline(name=__program__, description=opts.name, f_cmds=f_cmds, checkpoint_directory=directories["checkpoints"], log_directory=directories["log"])
 
-    if opts.algorithm == "genomad":
-        # ==========
-        # geNomad
-        # ==========
-        step = 1
+    # if opts.algorithm == "genomad":
+    # ==========
+    # geNomad
+    # ==========
+    step = 1
 
-        program = "genomad"
+    program = "genomad"
 
-        program_label = "{}__{}".format(step, program)
-        # Add to directories
-        output_directory = directories[("intermediate",  program_label)] = create_directory(os.path.join(directories["intermediate"], program_label))
+    program_label = "{}__{}".format(step, program)
+    # Add to directories
+    output_directory = directories[("intermediate",  program_label)] = create_directory(os.path.join(directories["intermediate"], program_label))
 
 
-        # Info
-        description = "Viral and plasmid identification with geNomad"
+    # Info
+    description = "Viral and plasmid identification with geNomad"
+    
+    # i/o
+    input_filepaths = [opts.fasta]
+
+    output_filenames = [
+        "virus_summary.tsv",
+        "virus_scaffolds.list",
+        "viral_taxonomy.tsv",
+    ]
+    output_filepaths = list(map(lambda filename: os.path.join(output_directory, filename), output_filenames))
+
+    params = {
+        "input_filepaths":input_filepaths,
+        "output_filepaths":output_filepaths,
+        "output_directory":output_directory,
+        "opts":opts,
+        "directories":directories,
+    }
+
+    cmd = get_genomad_cmd(**params)
+    pipeline.add_step(
+                id=program_label,
+                description = description,
+                step=step,
+                cmd=cmd,
+                input_filepaths = input_filepaths,
+                output_filepaths = output_filepaths,
+                validate_inputs=True,
+                validate_outputs=True,
+                errors_ok=False,
+                log_prefix=program_label,
+
+    )
+    # if opts.algorithm == "virfinder":
+    #     # ==========
+    #     # VirFinder
+    #     # ==========
+    #     step = 1
+
+    #     program = "virfinder"
+
+    #     program_label = "{}__{}".format(step, program)
+    #     # Add to directories
+    #     output_directory = directories[("intermediate",  program_label)] = create_directory(os.path.join(directories["intermediate"], program_label))
+
+
+    #     # Info
+    #     description = "Viral identification with VirFinder and taxonomy classification with geNomad"
         
-        # i/o
-        input_filepaths = [opts.fasta]
-
-        output_filenames = [
-            "virus_summary.tsv",
-            "virus_scaffolds.list",
-            "viral_taxonomy.tsv",
-        ]
-        output_filepaths = list(map(lambda filename: os.path.join(output_directory, filename), output_filenames))
-
-        params = {
-            "input_filepaths":input_filepaths,
-            "output_filepaths":output_filepaths,
-            "output_directory":output_directory,
-            "opts":opts,
-            "directories":directories,
-        }
-
-        cmd = get_genomad_cmd(**params)
-        pipeline.add_step(
-                    id=program_label,
-                    description = description,
-                    step=step,
-                    cmd=cmd,
-                    input_filepaths = input_filepaths,
-                    output_filepaths = output_filepaths,
-                    validate_inputs=True,
-                    validate_outputs=True,
-                    errors_ok=False,
-                    log_prefix=program_label,
-
-        )
-    if opts.algorithm == "virfinder":
-        # ==========
-        # VirFinder
-        # ==========
-        step = 1
-
-        program = "virfinder"
-
-        program_label = "{}__{}".format(step, program)
-        # Add to directories
-        output_directory = directories[("intermediate",  program_label)] = create_directory(os.path.join(directories["intermediate"], program_label))
-
-
-        # Info
-        description = "Viral identification with VirFinder and taxonomy classification with geNomad"
-        
-        # i/o
-        input_filepaths = [opts.fasta]
+    #     # i/o
+    #     input_filepaths = [opts.fasta]
 
 
 
-        output_filenames = [
-            "virfinder_output.tsv",
-            "virus_scaffolds.list",
-            "viral_taxonomy.tsv",
-        ]
-        output_filepaths = list(map(lambda filename: os.path.join(output_directory, filename), output_filenames))
+    #     output_filenames = [
+    #         "virfinder_output.tsv",
+    #         "virus_scaffolds.list",
+    #         "viral_taxonomy.tsv",
+    #     ]
+    #     output_filepaths = list(map(lambda filename: os.path.join(output_directory, filename), output_filenames))
 
-        params = {
-            "input_filepaths":input_filepaths,
-            "output_filepaths":output_filepaths,
-            "output_directory":output_directory,
-            "opts":opts,
-            "directories":directories,
-        }
+    #     params = {
+    #         "input_filepaths":input_filepaths,
+    #         "output_filepaths":output_filepaths,
+    #         "output_directory":output_directory,
+    #         "opts":opts,
+    #         "directories":directories,
+    #     }
 
-        cmd = get_virfinder_cmd(**params)
-        pipeline.add_step(
-                    id=program_label,
-                    description = description,
-                    step=step,
-                    cmd=cmd,
-                    input_filepaths = input_filepaths,
-                    output_filepaths = output_filepaths,
-                    validate_inputs=True,
-                    validate_outputs=True,
-                    errors_ok=False,
-                    log_prefix=program_label,
+    #     cmd = get_virfinder_cmd(**params)
+    #     pipeline.add_step(
+    #                 id=program_label,
+    #                 description = description,
+    #                 step=step,
+    #                 cmd=cmd,
+    #                 input_filepaths = input_filepaths,
+    #                 output_filepaths = output_filepaths,
+    #                 validate_inputs=True,
+    #                 validate_outputs=True,
+    #                 errors_ok=False,
+    #                 log_prefix=program_label,
 
-        )
+    #     )
 
 
     # ==========
@@ -783,7 +783,7 @@ def add_executables_to_environment(opts):
         "partition_gene_models.py",
         "append_geneid_to_prodigal_gff.py",
         "filter_checkv_results.py",
-        "virfinder_wrapper.r",
+        # "virfinder_wrapper.r",
         "genomad_taxonomy_wrapper.py",
         "compile_gff.py",
         # "subset_table.py",
@@ -872,13 +872,13 @@ def main(args=None):
 
     # Binning
     parser_binning = parser.add_argument_group('Binning arguments')
-    parser_binning.add_argument("-a", "--algorithm", type=str, default="genomad", help="Binning algorithm to use: {genomad, virfinder}  [Default: genomad]")
+    parser_binning.add_argument("-a", "--algorithm", type=str, choices={"genomad"},default="genomad", help="Binning algorithm to use (only genomad is support but more may be added in the future) [Default: genomad]")
     parser_binning.add_argument("-m", "--minimum_contig_length", type=int, default=1500, help="Minimum contig length.  [Default: 1500] ")
     parser_binning.add_argument("--include_provirus_detection", action="store_true", help="Include provirus viral detection")
 
     # Gene models
     parser_genemodels = parser.add_argument_group('Gene model arguments')
-    parser_genemodels.add_argument("--prodigal_genetic_code", type=str, default=11, help="Prodigal-GV -g translation table (https://github.com/apcamargo/prodigal-gv) [Default: 11]")
+    parser_genemodels.add_argument("--pyrodigal_genetic_code", type=str, default=11, help="Pyrodigal-GV -g translation table (https://github.com/apcamargo/prodigal-gv) [Default: 11]")
 
     # geNomad
     parser_genomad = parser.add_argument_group('geNomad arguments\nUsing --relaxed mode by default.  Adjust settings according to the following table: https://portal.nersc.gov/genomad/post_classification_filtering.html#default-parameters-and-presets')
@@ -894,13 +894,13 @@ def main(args=None):
     parser_genomad.add_argument("--maximum_universal_single_copy_genes", type=int, default=100, help = "Maximum allowed number of universal single copy genes (USCGs) in a virus or a plasmid. Sequences with more than this number of USCGs will not be classified as viruses or plasmids, regardless of their score.  [Default: 100]")
     parser_genomad.add_argument("--genomad_options", type=str, default="", help="geNomad | More options (e.g. --arg 1 ) [Default: '']")
 
-    # VirFinder
-    parser_virfinder = parser.add_argument_group('VirFinder arguments')
-    parser_virfinder.add_argument("--virfinder_pvalue", type=float, default=0.05, help="VirFinder statistical test threshold [Default: 0.05]")
-    parser_virfinder.add_argument("--mmseqs2_evalue", type=float, default=1e-3, help = "Maximum accepted E-value in the MMseqs2 search. Used by genomad annotate when VirFinder is used as binning algorithm [Default: 1e-3]")
-    parser_virfinder.add_argument("--use_qvalue", action="store_true", help="Use qvalue (FDR) instead of pvalue")
-    parser_virfinder.add_argument("--use_minimal_database_for_taxonomy", action="store_true", help="Use a smaller marker database to annotate proteins. This will make execution faster but sensitivity will be reduced.")
-    parser_virfinder.add_argument("--virfinder_options", type=str, default="", help="VirFinder | More options (e.g. --arg 1 ) [Default: '']")
+    # # VirFinder
+    # parser_virfinder = parser.add_argument_group('VirFinder arguments')
+    # parser_virfinder.add_argument("--virfinder_pvalue", type=float, default=0.05, help="VirFinder statistical test threshold [Default: 0.05]")
+    # parser_virfinder.add_argument("--mmseqs2_evalue", type=float, default=1e-3, help = "Maximum accepted E-value in the MMseqs2 search. Used by genomad annotate when VirFinder is used as binning algorithm [Default: 1e-3]")
+    # parser_virfinder.add_argument("--use_qvalue", action="store_true", help="Use qvalue (FDR) instead of pvalue")
+    # parser_virfinder.add_argument("--use_minimal_database_for_taxonomy", action="store_true", help="Use a smaller marker database to annotate proteins. This will make execution faster but sensitivity will be reduced.")
+    # parser_virfinder.add_argument("--virfinder_options", type=str, default="", help="VirFinder | More options (e.g. --arg 1 ) [Default: '']")
 
     # CheckV
     parser_checkv = parser.add_argument_group('CheckV arguments')

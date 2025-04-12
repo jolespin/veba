@@ -17,6 +17,7 @@ ____________________________________________________________
 
 | VEBA Database Version | Compatible VEBA Software Version(s)       | Legacy Database Name |
 |-----------------------|-------------------------------------------|----------------------|
+| VEBA-DB_v9            | v2.5.1                                    | -                    |
 | VEBA-DB_v9            | v2.5.0                                    | -                    |
 | VEBA-DB_v8.1          | v2.4.0, v2.4.1, v2.4.2                    | VDB_v8.1             |
 | VEBA-DB_v8            | v2.3.0                                    | VDB_v8               |
