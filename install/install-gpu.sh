@@ -86,9 +86,11 @@ IFS='|'
 read -ra GPU_MODULES_ARRAY <<< "$GPU_MODULES"
 
 # Iterate through the array
-for ENV_NAME in "${GPU_MODULES_ARRAY[@]}"; 
+for ENV_BASENAME in "${GPU_MODULES_ARRAY[@]}"; 
 do
-    ENV_YAML=${VEBA_REPOSITORY_DIRECTORY}/install/environments/${ENV_NAME}-gpu.yml
+    ENV_YAML=${VEBA_REPOSITORY_DIRECTORY}/install/environments/${ENV_BASENAME}-gpu_env.yml
+    ENV_NAME="${ENV_BASENAME}_env"
+    
    # Create conda environment
     echo "Creating ${ENV_NAME} module environment"
     (mamba env create -y -f $ENV_YAML -p ${CONDA_ENVS_PATH}/${ENV_NAME} || echo "Error when creating VEBA environment: ${ENV_YAML}" ; exit 1) &> ${LOG_DIRECTORY}/${ENV_NAME}.log
