@@ -659,6 +659,7 @@ ________________________________________________________________
 <details>
 	<summary> <b>Daily Change Log:</b> </summary>
 
+* [2025.4.14] - Changed `;` instead of `&&` between subcommands in `Binette` stage for `binning-prokaryotic.py` because of [Binette Issue #58](https://github.com/genotoul-bioinfo/Binette/issues/58)
 * [2025.4.11] - Added `install-gpu.sh` which installs GPU accelerated environments when applicable (i.e., `VEBA-binning-prokaryotic_env` and `VEBA-binning-viral_env`)
 * [2025.4.11] - Added `Dockerfile-GPU` which is experimental
 * [2025.4.11] - Changed `install.sh` so it only installs CPU-based environments [Issue #167](https://github.com/jolespin/veba/issues/167)

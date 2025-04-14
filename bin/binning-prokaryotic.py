@@ -13,7 +13,7 @@ from soothsayer_utils import *
 pd.options.display.max_colwidth = 100
 # from tqdm import tqdm
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2025.4.9"
+__version__ = "2025.4.14"
 
 # Assembly
 def get_coverage_cmd( input_filepaths, output_filepaths, output_directory, directories, opts):
@@ -401,7 +401,7 @@ done
         "--low_mem" if opts.checkm2_low_memory else "",
         opts.binnette_options,
         
-            "&&",
+            ";", # Using ; instead of && because of this issue: https://github.com/genotoul-bioinfo/Binette/issues/58
             
         # Scaffolds to bins intermediate
         os.environ["scaffolds_to_bins.py"],
