@@ -6,7 +6,7 @@ from tqdm import tqdm
 from Bio.SeqIO.FastaIO import SimpleFastaParser
 
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2023.7.7"
+__version__ = "2025.4.24"
 
 def gc_content(seq):
     seq = seq.upper()
@@ -165,8 +165,8 @@ def main(args=None):
                     for line in f_in:
                         line = line.strip()
                         if not line.startswith("#"):
-                            if not line.endswith(";"):
-                                line += ";"
+                            if line.endswith(";"):
+                                line = line[:-1]
                             line = "{};organelle={};".format(line, seq_type)
                             print(line, file=f_gff)
         f_gff.close()
