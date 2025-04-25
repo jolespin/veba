@@ -659,6 +659,7 @@ ________________________________________________________________
 <details>
 	<summary> <b>Daily Change Log:</b> </summary>
 
+* [2025.4.25] - Fixed bug in rare case of a contig/scaffold identifier being assigned to more than 1 bin within `get_partition_organelle_sequences_multiple_cmd` command in `eukaryotic_gene_modeling_wrapper.py` used by the `binning-eukaryotic.py` [Issue #175](https://github.com/jolespin/veba/issues/175)
 * [2025.4.24] - Removed extra `;` that was added to GFF by `filter_busco_results.py` when organelles were detected in eukaryotic bins [Issue #173](https://github.com/jolespin/veba/issues/173)
 * [2025.4.14] - Changed `;` instead of `&&` between subcommands in `Binette` stage for `binning-prokaryotic.py` because of [Binette Issue #58](https://github.com/genotoul-bioinfo/Binette/issues/58)
 * [2025.4.11] - Added `install-gpu.sh` which installs GPU accelerated environments when applicable (i.e., `VEBA-binning-prokaryotic_env` and `VEBA-binning-viral_env`)
