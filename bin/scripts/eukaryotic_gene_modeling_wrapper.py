@@ -71,7 +71,9 @@ S2B={}
 for ID in $(cut -f2 $S2B | sort -u);
 do
     SCAFFOLD_LIST={}
-    awk -F'\\t' -v id="$ID" '$2 == id {print $1}' $S2B > $SCAFFOLD_LIST
+    # grep "$ID$" $S2B | cut -f1 > $SCAFFOLD_LIST # The extra $ for a linebreak is needed to distinguish betwee overlapping ids (https://github.com/jolespin/veba/issues/175)
+    awk -F'\\t' -v id="$ID" '$2 == id {{print $1}}' $S2B > $SCAFFOLD_LIST
+    
     {} grep -f $SCAFFOLD_LIST {} | {} -f stdin -t {} -n $ID -o $OUTPUT_DIRECTORY -u {} --verbose
 done
 
