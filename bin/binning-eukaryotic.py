@@ -293,7 +293,7 @@ for FP in %s;
 
     # Create MAG-specific subdirectory within busco output
     OUT_DIR=$BUSCO_OUTPUT_DIRECTORY/$ID_GENOME
-    mkdir -p $OUT_DIR
+    mkdir -p -m 775 $OUT_DIR
 
     echo $FP
     echo $ID_GENOME

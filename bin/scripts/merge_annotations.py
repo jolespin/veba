@@ -6,7 +6,7 @@ import numpy as np
 from soothsayer_utils import read_hmmer, pv, get_file_object, assert_acceptable_arguments, format_header, flatten
 
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2025.1.15"
+__version__ = "2025.5.26"
 
 DIAMOND_HEADER_FIELDS = "qseqid sseqid stitle pident evalue bitscore qcovhsp scovhsp"
 DIAMOND_COLUMNS = list(filter(bool, DIAMOND_HEADER_FIELDS.split(" ")))
@@ -23,17 +23,22 @@ def parse_uniref(stitle):
 
     # Use re.match to search for the pattern in the string
     match = re.match(pattern, stitle)
-
-    # Extract the four fields from the match object
-    field1 = match.group(1)
-    field1 = np.nan if field1 is None else field1
-    field2 = match.group(2)
-    field2 = np.nan if field2 is None else field2
-    field3 = match.group(3)
-    field3 = np.nan if field3 is None else field3
-    field4 = match.group(4)
-    field4 = np.nan if field4 is None else field4
-
+    if match:
+        # Extract the four fields from the match object
+        field1 = match.group(1)
+        field1 = np.nan if field1 is None else field1
+        field2 = match.group(2)
+        field2 = np.nan if field2 is None else field2
+        field3 = match.group(3)
+        field3 = np.nan if field3 is None else field3
+        field4 = match.group(4)
+        field4 = np.nan if field4 is None else field4
+    else:
+        field1 = np.nan
+        field2 = np.nan
+        field3 = np.nan
+        field4 = np.nan
+        
     # Print the four fields
     return [field1, field2, field3, field4]
 
