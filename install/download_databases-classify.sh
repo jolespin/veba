@@ -1,5 +1,5 @@
 #!/bin/bash
-# __version__ = "2025.4.4"
+# __version__ = "2025.5.29"
 # VEBA_DATABASE_VERSION = "VEBA-DB_v9"
 # MICROEUKAYROTIC_DATABASE_VERSION = "MicroEuk_v3"
 # usage: bash veba/download_databases-classify.sh /path/to/veba_database_destination/
@@ -42,9 +42,9 @@ echo ". .. ... ..... ........ ............."
 echo " * Processing GTDB-Tk"
 echo ". .. ... ..... ........ ............."
 
-# # GTDB r220 (For future VEBA ≥ 2.2.0, VDB_7)
+# # GTDB r226
 # Download from the data.ace.uq.edu.au mirror b/c it's way faster than data.gtdb.ecogenomic.org.
-GTDB_VERSION="220"
+GTDB_VERSION="226"
 wget -v -P ${DATABASE_DIRECTORY} https://data.ace.uq.edu.au/public/gtdb/data/releases/release${GTDB_VERSION}/${GTDB_VERSION}.0/auxillary_files/gtdbtk_package/full_package/gtdbtk_r${GTDB_VERSION}_data.tar.gz
 tar xvzf ${DATABASE_DIRECTORY}/gtdbtk_r${GTDB_VERSION}_data.tar.gz -C ${DATABASE_DIRECTORY}
 rm -rf ${DATABASE_DIRECTORY}/Classify/GTDB
@@ -53,24 +53,13 @@ echo "r${GTDB_VERSION}" > ${DATABASE_DIRECTORY}/Classify/GTDB/database_version
 wget -P ${DATABASE_DIRECTORY}/Classify/GTDB/ https://data.ace.uq.edu.au/public/gtdb/data/releases/release${GTDB_VERSION}/${GTDB_VERSION}.0/RELEASE_NOTES.txt 
 rm -rfv ${DATABASE_DIRECTORY}/gtdbtk_r${GTDB_VERSION}_data.tar.gz
 
-# GTDB r220 mash sketch
-GTDB_ZENODO_RECORD_ID="11494307"
+# GTDB mash sketch
+GTDB_ZENODO_RECORD_ID="15548292"
 wget -v -O ${DATABASE_DIRECTORY}/gtdb_r${GTDB_VERSION}.msh https://zenodo.org/records/${GTDB_ZENODO_RECORD_ID}/files/gtdb_r${GTDB_VERSION}.msh?download=1
 mkdir -p ${DATABASE_DIRECTORY}/Classify/GTDB/mash/
 mv ${DATABASE_DIRECTORY}/gtdb_r${GTDB_VERSION}.msh ${DATABASE_DIRECTORY}/Classify/GTDB/mash/gtdb.msh
 
-# # GTDB r214.1
-# # data.gtdb.ecogenomic.org is slower than the faster mirror (data.ace.uq.edu.au/)
-# # wget -v -P ${DATABASE_DIRECTORY} https://data.gtdb.ecogenomic.org/releases/release214/214.1/auxillary_files/gtdbtk_r214_data.tar.gz
-# wget -v -P ${DATABASE_DIRECTORY} https://data.ace.uq.edu.au/public/gtdb/data/releases/release214/214.1/auxillary_files/gtdbtk_r214_data.tar.gz
-# tar xvzf ${DATABASE_DIRECTORY}/gtdbtk_r214_data.tar.gz -C ${DATABASE_DIRECTORY}
-# mv ${DATABASE_DIRECTORY}/release214 ${DATABASE_DIRECTORY}/Classify/GTDB
-# rm -rf ${DATABASE_DIRECTORY}/gtdbtk_r214_data.tar.gz
 
-# # GTDB r214.1 mash sketch
-# wget -v -O ${DATABASE_DIRECTORY}/gtdb_r214.msh https://zenodo.org/record/8048187/files/gtdb_r214.msh?download=1
-# mkdir -p ${DATABASE_DIRECTORY}/Classify/GTDB/mash/
-# mv ${DATABASE_DIRECTORY}/gtdb_r214.msh ${DATABASE_DIRECTORY}/Classify/GTDB/mash/
 
 # CheckV
 echo ". .. ... ..... ........ ............."
