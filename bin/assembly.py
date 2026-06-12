@@ -67,21 +67,6 @@ def get_assembly_cmd( input_filepaths, output_filepaths, output_directory, direc
             "--threads {}".format(opts.n_jobs),
             "--memory {}".format(opts.spades_memory),
         ]
-            
-        cmd += [
-            "&&",
-            "echo 'Adding prefixes to scaffolds.paths'",
-            "&&",
-            os.environ["prepend_de-bruijn_path.py"],
-            "-i {}".format(os.path.join(output_directory, "scaffolds.paths")),
-            "-o {}".format(os.path.join(output_directory, "scaffolds.prefixed.paths")),
-            "--prefix {}".format(opts.scaffold_prefix),
-            "--program spades",
-            "&&",
-            "mv",
-            os.path.join(output_directory, "scaffolds.prefixed.paths"),
-            os.path.join(output_directory, "scaffolds.paths"),
-        ]
 
     # Filter out small scaffolds/transcripts, add prefix (if applicable), and create SAF file
     if opts.program == "rnaspades.py":
