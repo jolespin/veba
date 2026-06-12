@@ -78,42 +78,6 @@ def get_assembly_cmd( input_filepaths, output_filepaths, output_directory, direc
             os.path.join(output_directory, "assembly.fasta"),
             ">",
             os.path.join(output_directory, "assembly.fasta.saf"),
-            
-                "&&",
-                
-            os.environ["prepend_de-bruijn_path.py"],
-            "-i",
-            os.path.join(output_directory, "assembly_graph.gfa"),
-            "--prefix",
-            opts.scaffold_prefix,
-            "-o",
-            os.path.join(output_directory, "assembly_graph.prefixed.gfa"),
-            "--program",
-            "flye",
-            
-                "&&",
-                
-            "mv",
-            os.path.join(output_directory, "assembly_graph.prefixed.gfa"),
-            os.path.join(output_directory, "assembly_graph.gfa"),
-            
-                "&&",
-
-            os.environ["prepend_de-bruijn_path.py"],
-            "-i",
-            os.path.join(output_directory, "assembly_info.txt"),
-            "--prefix",
-            opts.scaffold_prefix,
-            "-o",
-            os.path.join(output_directory, "assembly_info.prefixed.txt"),
-            "--program",
-            "flye",
-            
-                "&&",
-                
-            "mv",
-            os.path.join(output_directory, "assembly_info.prefixed.txt"),
-            os.path.join(output_directory, "assembly_info.txt"),
 
         ]
 
