@@ -344,7 +344,6 @@ def add_executables_to_environment(opts):
     Adapted from Soothsayer: https://github.com/jolespin/soothsayer
     """
     accessory_scripts = {
-                "prepend_de-bruijn_path.py",
                 "fasta_to_saf.py",
                 "transcripts_to_genes.py",
                 }
