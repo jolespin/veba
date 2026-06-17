@@ -423,10 +423,10 @@ def create_pipeline(opts, directories, f_cmds):
             "spades" in opts.program,
             ]):
             output_filenames.append("assembly_graph_with_scaffolds.gfa")
-            
-    if "spades" in opts.program:
-        output_filenames.append("scaffolds.paths")
-        
+
+        if "spades" in opts.program:
+            output_filenames.append("scaffolds.paths")
+
     output_filepaths = list(map(lambda filename: os.path.join(output_directory, filename), output_filenames))
 
     params = {
