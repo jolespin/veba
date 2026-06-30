@@ -415,7 +415,7 @@ def create_pipeline(opts, directories, f_cmds):
     # i/o
     input_filepaths = [opts.forward_reads, opts.reverse_reads]
     if opts.program == "rnaspades.py":
-        output_filenames = ["transcripts.fasta", "transcripts.fasta.saf", "genes_to_transcripts.tsv"]
+        output_filenames = ["transcripts.fasta", "transcripts.fasta.saf", "genes_to_transcripts.tsv", "transcripts.paths"]
     else:
         output_filenames = ["scaffolds.fasta", "scaffolds.fasta.saf"]
         if any([
@@ -625,9 +625,10 @@ def create_pipeline(opts, directories, f_cmds):
 
     # i/o
     if opts.program == "rnaspades.py":
-        input_filepaths = [ 
+        input_filepaths = [
             os.path.join(directories[("intermediate", "1__assembly")], "transcripts.fasta"),
             os.path.join(directories[("intermediate", "1__assembly")], "transcripts.fasta.*"),
+            os.path.join(directories[("intermediate", "1__assembly")], "transcripts.paths"),
             os.path.join(directories[("intermediate", "1__assembly")], "genes_to_transcripts.tsv"),
 
         ]
