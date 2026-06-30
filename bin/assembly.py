@@ -626,9 +626,7 @@ def create_pipeline(opts, directories, f_cmds):
     # i/o
     if opts.program == "rnaspades.py":
         input_filepaths = [
-            os.path.join(directories[("intermediate", "1__assembly")], "transcripts.fasta"),
-            os.path.join(directories[("intermediate", "1__assembly")], "transcripts.fasta.*"),
-            os.path.join(directories[("intermediate", "1__assembly")], "transcripts.paths"),
+            os.path.join(directories[("intermediate", "1__assembly")], "transcripts.*"),
             os.path.join(directories[("intermediate", "1__assembly")], "genes_to_transcripts.tsv"),
 
         ]
