@@ -1,4 +1,4 @@
-VEBA __version__ = "2.5.2"
+VEBA __version__ = "2.5.3"
 VEBA_DATABASE __version__ = "VEBA-DB_v9.1"
 annotate.py __version__ = "2026.3.30"
 assembly-long.py __version__ = "2024.12.11"
