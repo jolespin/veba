@@ -36,6 +36,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * Remove `MetaCoAG` support
 * Remove `UniRef` support
 
+## [2.5.3] - 2026-07-02
+### Change
+ - Removed the prepending to de Bruijn graph now that support is dropping for `MetaCOaG`.  Fixes an issue when running `rnaspades.py` through the `assembly` module [Issue #208](https://github.com/jolespin/veba/issues/208)
+
 ## [2.5.2] - 2026-04-03
 
 ### Added
