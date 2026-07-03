@@ -67,21 +67,6 @@ def get_assembly_cmd( input_filepaths, output_filepaths, output_directory, direc
             "--threads {}".format(opts.n_jobs),
             "--memory {}".format(opts.spades_memory),
         ]
-            
-        cmd += [
-            "&&",
-            "echo 'Adding prefixes to scaffolds.paths'",
-            "&&",
-            os.environ["prepend_de-bruijn_path.py"],
-            "-i {}".format(os.path.join(output_directory, "scaffolds.paths")),
-            "-o {}".format(os.path.join(output_directory, "scaffolds.prefixed.paths")),
-            "--prefix {}".format(opts.scaffold_prefix),
-            "--program spades",
-            "&&",
-            "mv",
-            os.path.join(output_directory, "scaffolds.prefixed.paths"),
-            os.path.join(output_directory, "scaffolds.paths"),
-        ]
 
     # Filter out small scaffolds/transcripts, add prefix (if applicable), and create SAF file
     if opts.program == "rnaspades.py":
@@ -359,7 +344,6 @@ def add_executables_to_environment(opts):
     Adapted from Soothsayer: https://github.com/jolespin/soothsayer
     """
     accessory_scripts = {
-                "prepend_de-bruijn_path.py",
                 "fasta_to_saf.py",
                 "transcripts_to_genes.py",
                 }
@@ -431,7 +415,7 @@ def create_pipeline(opts, directories, f_cmds):
     # i/o
     input_filepaths = [opts.forward_reads, opts.reverse_reads]
     if opts.program == "rnaspades.py":
-        output_filenames = ["transcripts.fasta", "transcripts.fasta.saf", "genes_to_transcripts.tsv"]
+        output_filenames = ["transcripts.fasta", "transcripts.fasta.saf", "genes_to_transcripts.tsv", "transcripts.paths"]
     else:
         output_filenames = ["scaffolds.fasta", "scaffolds.fasta.saf"]
         if any([
@@ -439,10 +423,10 @@ def create_pipeline(opts, directories, f_cmds):
             "spades" in opts.program,
             ]):
             output_filenames.append("assembly_graph_with_scaffolds.gfa")
-            
-    if "spades" in opts.program:
-        output_filenames.append("scaffolds.paths")
-        
+
+        if "spades" in opts.program:
+            output_filenames.append("scaffolds.paths")
+
     output_filepaths = list(map(lambda filename: os.path.join(output_directory, filename), output_filenames))
 
     params = {
@@ -641,9 +625,8 @@ def create_pipeline(opts, directories, f_cmds):
 
     # i/o
     if opts.program == "rnaspades.py":
-        input_filepaths = [ 
-            os.path.join(directories[("intermediate", "1__assembly")], "transcripts.fasta"),
-            os.path.join(directories[("intermediate", "1__assembly")], "transcripts.fasta.*"),
+        input_filepaths = [
+            os.path.join(directories[("intermediate", "1__assembly")], "transcripts.*"),
             os.path.join(directories[("intermediate", "1__assembly")], "genes_to_transcripts.tsv"),
 
         ]
