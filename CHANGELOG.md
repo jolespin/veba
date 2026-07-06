@@ -37,6 +37,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * Remove `UniRef` support
 * Remove `prepend_de-bruijn_path.py` and the de Bruijn graph path prefixing in `assembly.py`/`assembly-long.py` (only used by deprecated `MetaCoAG`; fixes rnaSPAdes crash in [#208](https://github.com/jolespin/veba/issues/208))
 
+## [2.5.4] - TBD
+### Added
+* Added `extract_cds_from_prokaryotic_gff.py` to `bin/scripts/`
+
 ## [2.5.3] - 2026-07-02
 ### Change
  - Removed the prepending to de Bruijn graph now that support is dropping for `MetaCOaG`.  Fixes an issue when running `rnaspades.py` through the `assembly` module [Issue #208](https://github.com/jolespin/veba/issues/208)
