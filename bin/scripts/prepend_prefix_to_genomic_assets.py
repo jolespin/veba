@@ -3,12 +3,14 @@ import argparse
 import os
 import sys
 import pyfastx
+from pyexeggutor import open_file_reader, open_file_writer, fasta_writer
+from loguru import logger
 
 
 def parse_gff3_id_mapping(gff3_path):
     id_to_scaffold = {}
     scaffolds = set()
-    with open(gff3_path) as f:
+    with open_file_reader(gff3_path) as f:
         for line in f:
             if line.startswith("#") or not line.strip():
                 continue
@@ -31,36 +33,36 @@ def rename_scaffold(name, prefix):
 def rename_feature_id(feature_id, prefix, id_to_scaffold):
     scaffold = id_to_scaffold.get(feature_id)
     if scaffold is None:
-        print(f"WARNING: ID '{feature_id}' not found in GFF3 mapping, "
-              f"falling back to prefix-only", file=sys.stderr)
+        logger.warning("ID '{}' not found in GFF3 mapping, "
+                       "falling back to prefix-only", feature_id)
         return prefix + feature_id
     return prefix + scaffold + "_" + feature_id
 
 
-def process_scaffold_fasta(in_path, out_path, prefix):
+def process_scaffold_fasta(in_path, out_path, prefix, wrap=1000):
     fa = pyfastx.Fasta(in_path, build_index=False)
-    with open(out_path, "w") as fout:
+    with open_file_writer(out_path) as fout:
         for name, seq in fa:
             new_name = rename_scaffold(name, prefix)
-            fout.write(f">{new_name}\n{seq}\n")
+            fasta_writer(new_name, seq, fout, wrap=wrap)
 
 
 def process_seq_fasta(in_path, out_path, prefix, id_to_scaffold):
     headers = []
     fa = pyfastx.Fasta(in_path, build_index=False, full_name=True)
-    with open(out_path, "w") as fout:
+    with open_file_writer(out_path) as fout:
         for full_name, seq in fa:
             parts = full_name.split()
             renamed = [rename_feature_id(p, prefix, id_to_scaffold)
                        for p in parts]
             header = " ".join(renamed)
             headers.append(header)
-            fout.write(f">{header}\n{seq}\n")
+            fasta_writer(header, seq, fout, wrap=0)
     return headers
 
 
 def process_gff3(in_path, out_path, prefix, id_to_scaffold):
-    with open(in_path) as fin, open(out_path, "w") as fout:
+    with open_file_reader(in_path) as fin, open_file_writer(out_path) as fout:
         for line in fin:
             if line.startswith("#") or not line.strip():
                 fout.write(line)
@@ -106,9 +108,9 @@ def validate_headers_match(protein_headers, cds_headers):
             mismatches += 1
     if mismatches > 5:
         errors.append(f"  ... and {mismatches - 5} more mismatches")
-    print("ERROR: CDS and protein headers do not match:", file=sys.stderr)
+    logger.error("CDS and protein headers do not match:")
     for e in errors:
-        print(e, file=sys.stderr)
+        logger.error(e)
     return False
 
 
@@ -116,6 +118,9 @@ def main():
     parser = argparse.ArgumentParser(
         description="Prepend a prefix to scaffold and gene IDs across "
                     "genomic asset files for multi-sample merging.")
+    parser.add_argument("-b", "--basename", required=True,
+                        help="Output file basename (e.g. 'sample_1'); "
+                             "extensions are added automatically")
     parser.add_argument("-i", "--prefix", required=True,
                         help="Prefix to prepend (include any delimiter, "
                              "e.g. 'sample-name__')")
@@ -129,6 +134,18 @@ def main():
                         help="Input GFF3 annotation file")
     parser.add_argument("-o", "--output_directory", required=True,
                         help="Output directory")
+    parser.add_argument("--assembly-extension", default=".fa.gz",
+                        help="Output extension for assembly file "
+                             "(default: .fa.gz)")
+    parser.add_argument("--protein-extension", default=".faa.gz",
+                        help="Output extension for protein file "
+                             "(default: .faa.gz)")
+    parser.add_argument("--cds-extension", default=".ffn.gz",
+                        help="Output extension for CDS file "
+                             "(default: .ffn.gz)")
+    parser.add_argument("--gff-extension", default=".gff.gz",
+                        help="Output extension for GFF3 file "
+                             "(default: .gff.gz)")
     parser.add_argument("--no-match-cds-protein", action="store_true",
                         default=False, dest="no_match_cds_protein",
                         help="Skip CDS/protein header validation "
@@ -137,41 +154,41 @@ def main():
 
     for path in [args.assembly, args.proteins, args.cds, args.gff3]:
         if not os.path.isfile(path):
-            print(f"ERROR: File not found: {path}", file=sys.stderr)
+            logger.error("File not found: {}", path)
             sys.exit(1)
 
     os.makedirs(args.output_directory, exist_ok=True)
 
-    print("Parsing GFF3 for ID-to-scaffold mapping...")
+    logger.info("Parsing GFF3 for ID-to-scaffold mapping...")
     id_to_scaffold, scaffolds = parse_gff3_id_mapping(args.gff3)
-    print(f"  Found {len(scaffolds)} scaffolds and {len(id_to_scaffold)} "
-          f"feature IDs")
+    logger.info("Found {} scaffolds and {} feature IDs",
+                len(scaffolds), len(id_to_scaffold))
 
-    assembly_out = os.path.join(args.output_directory, os.path.basename(args.assembly))
-    print(f"Processing assembly FASTA -> {assembly_out}")
+    assembly_out = os.path.join(args.output_directory, f"{args.basename}{args.assembly_extension}")
+    logger.info("Processing assembly FASTA -> {}", assembly_out)
     process_scaffold_fasta(args.assembly, assembly_out, args.prefix)
 
-    proteins_out = os.path.join(args.output_directory, os.path.basename(args.proteins))
-    print(f"Processing protein FASTA -> {proteins_out}")
+    proteins_out = os.path.join(args.output_directory, f"{args.basename}{args.protein_extension}")
+    logger.info("Processing protein FASTA -> {}", proteins_out)
     protein_headers = process_seq_fasta(args.proteins, proteins_out,
                                         args.prefix, id_to_scaffold)
 
-    cds_out = os.path.join(args.output_directory, os.path.basename(args.cds))
-    print(f"Processing CDS FASTA -> {cds_out}")
+    cds_out = os.path.join(args.output_directory, f"{args.basename}{args.cds_extension}")
+    logger.info("Processing CDS FASTA -> {}", cds_out)
     cds_headers = process_seq_fasta(args.cds, cds_out, args.prefix,
                                     id_to_scaffold)
 
-    gff3_out = os.path.join(args.output_directory, os.path.basename(args.gff3))
-    print(f"Processing GFF3 -> {gff3_out}")
+    gff3_out = os.path.join(args.output_directory, f"{args.basename}{args.gff_extension}")
+    logger.info("Processing GFF3 -> {}", gff3_out)
     process_gff3(args.gff3, gff3_out, args.prefix, id_to_scaffold)
 
     if not args.no_match_cds_protein:
-        print("Validating CDS/protein header consistency...")
+        logger.info("Validating CDS/protein header consistency...")
         if not validate_headers_match(protein_headers, cds_headers):
             sys.exit(1)
-        print("  CDS and protein headers match.")
+        logger.info("CDS and protein headers match.")
 
-    print("Done.")
+    logger.info("Done.")
 
 
 if __name__ == "__main__":
