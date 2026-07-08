@@ -39,7 +39,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [2.5.4] - TBD
 ### Added
-* Added `extract_cds_from_prokaryotic_gff.py` to `bin/scripts/`
+* Added `prepend_prefix_to_genomic_assets.py` to `bin/scripts/` which prepends a prefix to assembly, cds, protein, and gff files
+* Added `extract_cds_from_single_exon_gff.py` to `bin/scripts/` which extracts cds sequence from single-exon gff files
 
 ## [2.5.3] - 2026-07-02
 ### Change

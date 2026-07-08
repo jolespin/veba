@@ -33,14 +33,14 @@ def main():
 
     logger.info(f"Loading genome: {opts.genome}")
     fasta_genome = pyfastx.Fasta(opts.genome, build_index=False)
-    contig_to_seq = dict(fasta_genome)
+    contig_to_seq = {name: seq for name, seq in fasta_genome}
 
     logger.info(f"Parsing GFF: {opts.gff}")
     n_written = 0
     n_skipped_missing_contig = 0
 
-    with open_file_writer(opts.output, "wt") as f_out:
-        with open_file_reader(opts.gff, "rt") as f_gff:
+    with open_file_writer(opts.output) as f_out:
+        with open_file_reader(opts.gff) as f_gff:
             for line in f_gff:
                 if line.startswith("#"):
                     continue
