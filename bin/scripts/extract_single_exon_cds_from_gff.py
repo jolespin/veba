@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 import argparse
+import sys
+from contextlib import nullcontext
 
 import pyfastx
 from loguru import logger
@@ -27,7 +29,7 @@ def main():
     parser = argparse.ArgumentParser(description="Extract nucleotide CDS sequences from a flat GFF3 file (no Parent/exon hierarchy assumed).")
     parser.add_argument("-g", "--gff", required=True, help="Input GFF3 file (.gz supported)")
     parser.add_argument("-f", "--genome", required=True, help="Input genome FASTA file (.gz supported)")
-    parser.add_argument("-o", "--output", required=True, help="Output CDS FASTA file (.gz supported)")
+    parser.add_argument("-o", "--output", default=None, help="Output CDS FASTA file (.gz supported) [default: stdout]")
     parser.add_argument("-t", "--feature_type", default="CDS", help="GFF feature type to extract (default: CDS)")
     opts = parser.parse_args()
 
@@ -39,7 +41,12 @@ def main():
     n_written = 0
     n_skipped_missing_contig = 0
 
-    with open_file_writer(opts.output) as f_out:
+    if opts.output:
+        output_writer = open_file_writer(opts.output)
+    else:
+        output_writer = nullcontext(sys.stdout)
+
+    with output_writer as f_out:
         with open_file_reader(opts.gff) as f_gff:
             for line in f_gff:
                 if line.startswith("#"):
@@ -67,7 +74,8 @@ def main():
                 print(seq, file=f_out)
                 n_written += 1
 
-    logger.info(f"Wrote {n_written} CDS sequences to {opts.output}")
+    output_destination = opts.output if opts.output else "stdout"
+    logger.info(f"Wrote {n_written} CDS sequences to {output_destination}")
     if n_skipped_missing_contig:
         logger.warning(f"Skipped {n_skipped_missing_contig} CDS features whose seqid was not found in the genome FASTA")
 
