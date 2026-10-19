@@ -6,7 +6,7 @@ from Bio import SeqIO
 from tqdm import tqdm
 
 __program__ = os.path.split(sys.argv[0])[-1]
-__version__ = "2025.9.9"
+__version__ = "2026.10.19"
 
 def gc_content(seq):
     seq = seq.upper()
@@ -146,21 +146,23 @@ def main(args=None):
                                 df.loc[i,id_field] = id_gene
 
                 # NCBI Genbank
-                # Add gene id preferentially if one doesn't exist: gene_id, Name, ID, and locus_tag in that order.
+                # Add gene id using per-row fallback across multiple identifier fields.
+                # This handles pseudogene CDS features that are missing Name/protein_id
+                # but still have locus_tag or gene qualifiers.
                 if "gene_id" not in df.columns:
-                    genes = None
-                    if "Name" in df.columns:
-                        genes = df["Name"].str.strip()
-                    elif "ID" in df.columns:
-                        genes = df["ID"].str.strip()
-                    elif "locus_tag" in df.columns:
-                        genes = df["locus_tag"].str.strip()
-                    elif "protein_id" in df.columns:
-                        genes = df["protein_id"].str.strip()
-                    elif "gene" in df.columns:
-                        genes = df["gene"].str.strip()
-                    assert genes is not None, "Cannot identify gene identifiers for contig: {}".format(id_contig)
-                    df["gene_id"] = genes
+                    df["gene_id"] = pd.Series(dtype=str, index=df.index)
+                    for field in ["Name", "ID", "locus_tag", "protein_id", "gene"]:
+                        if field in df.columns:
+                            df["gene_id"] = df["gene_id"].fillna(df[field].str.strip())
+                    # Generate synthetic gene_ids for any remaining rows (e.g., pseudogenes
+                    # missing all standard identifier fields)
+                    mask_missing = df["gene_id"].isna()
+                    if mask_missing.any():
+                        for i in df.index[mask_missing]:
+                            row = df.loc[i]
+                            synthetic_id = "{}_{}:{}({})".format(id_contig, row["start"], row["end"], row["strand"])
+                            df.loc[i, "gene_id"] = synthetic_id
+                        print("Warning: {} CDS feature(s) on contig '{}' had no gene identifier; assigned positional IDs".format(mask_missing.sum(), id_contig), file=sys.stderr)
 
                 # # If no contig identifiers, add it.  This prioritizes gff fields.
                 # if "contig_id" not in df.columns:
@@ -176,7 +178,9 @@ def main(args=None):
         df_components = pd.concat(output, axis=0).sort_values(["genome_id", "contig_id", "start", "end"])
 
         for field in ["genome_id", "contig_id", "region_id", "gene_id"]:
-            df_components[field] = df_components[field].map(lambda x: x.strip().replace(" ",""))
+            df_components[field] = df_components[field].map(
+                lambda x: x.strip().replace(" ","") if isinstance(x, str) else x
+            )
 
         for field in ["start","end"]:
             df_components[field] = df_components[field].astype(int)
@@ -301,7 +305,7 @@ def main(args=None):
 
                     header = "{}{}{}".format(
                         id_gene,
-                        opts.separator_in_protein_header, 
+                        " ", 
                         id_component,
                     )
                     print(">{}\n{}".format(header, seq), file=f)
@@ -346,5 +350,3 @@ def main(args=None):
 
 if __name__ == "__main__":
     main()
-    
-                

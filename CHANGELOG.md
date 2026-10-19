@@ -42,6 +42,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * Added `prepend_prefix_to_genomic_assets.py` to `bin/scripts/` which prepends a prefix to assembly, cds, protein, and gff files
 * Added `extract_cds_from_single_exon_gff.py` to `bin/scripts/` which extracts cds sequence from single-exon gff files
 
+### Fixed
+* Fixed the bug where `biosynthetic_genbanks_to_table.py` was crashing on NCBI pseudogene CDS features missing Name qualifier ([Issue #213](https://github.com/jolespin/veba/issues/213))
+* Fixed another bug where `biosynthetic_genbanks_to_table.py` would crash when users select `--use_original_gene_ids` because of a commented out argument
+
 ## [2.5.3] - 2026-07-02
 ### Change
  - Removed the prepending to de Bruijn graph now that support is dropping for `MetaCOaG`.  Fixes an issue when running `rnaspades.py` through the `assembly` module [Issue #208](https://github.com/jolespin/veba/issues/208)
@@ -719,6 +723,9 @@ ________________________________________________________________
 <details>
 	<summary> <b>Daily Change Log:</b> </summary>
 
+* [2026.10.19] - Fixed `biosynthetic_genbanks_to_table.py` gene_id resolution to handle NCBI pseudogene CDS features missing `Name`/`protein_id` qualifiers by using a per-row `fillna` cascade across identifier fields instead of a column-level `if/elif` chain
+* [2026.10.19] - Added NaN-safe guard to the strip/clean operation on identifier fields in `biosynthetic_genbanks_to_table.py`
+* [2026.10.19] - Fixed `--use_original_gene_ids` in `biosynthetic_genbanks_to_table.py` which referenced the commented-out `--separator_in_protein_header` argument; now defaults to a space
 * [2026.4.1] - Updated `check_installation.sh` so it uses uppercase `PASS` and `FAIL`
 * [2026.3.31] - Updated `VEBA-preprocess_env` to use `fastq_preprocessor==2026.3.24` which drops `genopype` for `sh` and uses `fastplong` instead of `chopper`
 * [2026.3.30] - Symlink genomes in `classify-prokaryotic.py` instead of copying genomes
